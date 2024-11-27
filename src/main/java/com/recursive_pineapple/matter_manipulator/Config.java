@@ -6,6 +6,8 @@ import net.minecraftforge.common.config.Configuration;
 
 public class Config {
 
+    public static boolean D1 = false;
+
     public static void synchronizeConfiguration(File configFile) {
         Configuration configuration = new Configuration(configFile);
 
