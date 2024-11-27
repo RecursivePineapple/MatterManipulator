@@ -1,14 +1,8 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
-import static gregtech.api.enums.Mods.EnderIO;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
@@ -34,6 +28,7 @@ import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMSta
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.PendingBlock;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 
 import appeng.api.config.Actionable;
 import appeng.api.implementations.tiles.ISegmentedInventory;
@@ -44,9 +39,10 @@ import appeng.api.storage.data.IAEItemStack;
 import appeng.helpers.ICustomNameObject;
 import appeng.parts.AEBasePart;
 import cpw.mods.fml.common.Optional.Method;
+import crazypants.enderio.conduit.IConduit;
+import crazypants.enderio.conduit.IConduitBundle;
 import gregtech.GTMod;
 import gregtech.api.enums.Mods.Names;
-import gregtech.api.enums.OrePrefixes;
 import gregtech.api.enums.SoundResource;
 import gregtech.api.interfaces.tileentity.ICoverable;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
@@ -125,15 +121,17 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
 
         TileEntity te = world.getTileEntity(x, y, z);
 
-        emptySuperchest(te);
+        boolean ae = Mods.AppliedEnergistics2.isModLoaded();
+        boolean gt = Mods.GregTech.isModLoaded();
+        boolean eio = Mods.EnderIO.isModLoaded();
+
+        if (ae && gt) new SuperchestEmptying().emptySuperchest(te);
         emptyTileInventory(te);
         emptyTank(te);
-        removeCovers(te);
-        resetAEMachine(te);
-        resetKeptSettings(te);
-        if (EnderIO.isModLoaded()) {
-            resetConduitBundle(te);
-        }
+        if (gt) removeCovers(te);
+        if (ae) resetAEMachine(te);
+        if (gt) resetGTMachine(te);
+        if (eio) resetConduitBundle(te);
 
         if (existing instanceof IFluidBlock fluidBlock && fluidBlock.canDrain(world, x, y, z)) {
             givePlayerFluids(fluidBlock.drain(world, x, y, z, true));
@@ -148,15 +146,18 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         world.setBlockToAir(x, y, z);
     }
 
-    protected void emptySuperchest(TileEntity te) {
-        if (te instanceof IGregTechTileEntity igte && igte.getMetaTileEntity() instanceof MTEDigitalChestBase dchest) {
-            for (IAEItemStack stack : dchest.getStorageList()) {
-                stack = dchest.extractItems(stack, Actionable.MODULATE, null);
-
-                while (stack.getStackSize() > 0) {
-                    ItemStack is = stack.getItemStack();
-                    stack.decStackSize(is.stackSize);
-                    givePlayerItems(is);
+    // :doom:
+    protected class SuperchestEmptying {
+        public void emptySuperchest(TileEntity te) {
+            if (te instanceof IGregTechTileEntity igte && igte.getMetaTileEntity() instanceof MTEDigitalChestBase dchest) {
+                for (IAEItemStack stack : dchest.getStorageList()) {
+                    stack = dchest.extractItems(stack, Actionable.MODULATE, null);
+    
+                    while (stack.getStackSize() > 0) {
+                        ItemStack is = stack.getItemStack();
+                        stack.decStackSize(is.stackSize);
+                        givePlayerItems(is);
+                    }
                 }
             }
         }
@@ -179,6 +180,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         }
     }
 
+    @Method(modid = Names.GREG_TECH)
     protected void removeCovers(TileEntity te) {
         if (te instanceof ICoverable coverable) {
             for (ForgeDirection side : ForgeDirection.VALID_DIRECTIONS) {
@@ -193,6 +195,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         }
     }
 
+    @Method(modid = Names.APPLIED_ENERGISTICS2)
     protected void resetAEMachine(Object machine) {
         if (machine instanceof ISegmentedInventory segmentedInventory) {
             IInventory upgrades = segmentedInventory.getInventoryByName("upgrades");
@@ -260,7 +263,8 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         }
     }
 
-    protected void resetKeptSettings(TileEntity te) {
+    @Method(modid = Names.GREG_TECH)
+    protected void resetGTMachine(TileEntity te) {
         if (te instanceof IRedstoneEmitter emitter) {
             for (ForgeDirection side : ForgeDirection.VALID_DIRECTIONS) {
                 emitter.setRedstoneOutputStrength(side, false);
@@ -270,44 +274,10 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
 
     @Method(modid = Names.ENDER_I_O)
     protected void resetConduitBundle(TileEntity te) {
-        EnderIOIntegration.resetConduitBundle(this, te);
-    }
-
-    protected static class EnderIOIntegration {
-
-        private static final Class<?> ICONDUITBUNDLE;
-        private static final MethodHandle GET_CONDUITS, GET_DROPS, REMOVE_CONDUIT;
-
-        static {
-            try {
-                ICONDUITBUNDLE = Class.forName("crazypants.enderio.conduit.IConduitBundle");
-
-                Class<?> IConduit = Class.forName("crazypants.enderio.conduit.IConduit");
-
-                GET_CONDUITS = MethodHandles.lookup()
-                    .findVirtual(ICONDUITBUNDLE, "getConduits", MethodType.methodType(Collection.class));
-                GET_DROPS = MethodHandles.lookup()
-                    .findVirtual(IConduit, "getDrops", MethodType.methodType(List.class));
-                REMOVE_CONDUIT = MethodHandles.lookup()
-                    .findVirtual(ICONDUITBUNDLE, "removeConduit", MethodType.methodType(void.class, IConduit));
-            } catch (NoSuchMethodException | IllegalAccessException | ClassNotFoundException e) {
-                throw new RuntimeException("Could not initialize matter manipulator Ender IO integration", e);
-            }
-        }
-
-        protected static void resetConduitBundle(AbstractBuildable buildable, TileEntity te) {
-            if (te != null) {
-                try {
-                    if (ICONDUITBUNDLE.isAssignableFrom(te.getClass())) {
-                        for (Object conduit : (Collection<Object>) GET_CONDUITS.invoke(te)) {
-                            buildable.givePlayerItems(
-                                ((List<ItemStack>) GET_DROPS.invoke(conduit)).toArray(new ItemStack[0]));
-                            REMOVE_CONDUIT.invoke(te, conduit);
-                        }
-                    }
-                } catch (Throwable t) {
-                    GTMod.GT_FML_LOGGER.error("Error while resetting conduit bundle", t);
-                }
+        if (te instanceof IConduitBundle bundle) {
+            for (IConduit conduit : bundle.getConduits()) {
+                givePlayerItems(conduit.getDrops().toArray(new ItemStack[0]));
+                bundle.removeConduit(conduit);
             }
         }
     }

@@ -19,14 +19,16 @@ import org.joml.Vector3i;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.recursive_pineapple.matter_manipulator.common.building.AEAnalysisResult;
 import com.recursive_pineapple.matter_manipulator.common.building.AEPartData;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer;
-import com.recursive_pineapple.matter_manipulator.common.building.CoverData;
+import com.recursive_pineapple.matter_manipulator.common.building.GTAnalysisResult;
 import com.recursive_pineapple.matter_manipulator.common.building.TileAnalysisResult;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.RegionAnalysis;
 import com.recursive_pineapple.matter_manipulator.common.uplink.IUplinkMulti;
 import com.recursive_pineapple.matter_manipulator.common.utils.ItemId;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 
 import appeng.api.AEApi;
 import appeng.api.config.SecurityPermissions;
@@ -247,40 +249,7 @@ public class MMState {
                 TileAnalysisResult d = block.tileData;
 
                 if (d != null) {
-                    d.mGTFront = t.apply(d.mGTFront);
-                    d.mGTMainFacing = t.apply(d.mGTMainFacing);
-                    d.mGTFacing = t.apply(d.mGTFacing);
-                    d.mAEUp = t.apply(d.mAEUp);
-                    d.mAEForward = t.apply(d.mAEForward);
-                    d.mDirection = t.apply(d.mDirection);
 
-                    if (d.mCovers != null) {
-                        CoverData[] coversOut = new CoverData[d.mCovers.length];
-
-                        for (int i = 0; i < coversOut.length; i++) {
-                            coversOut[t.apply(ForgeDirection.VALID_DIRECTIONS[i])
-                                .ordinal()] = d.mCovers[i];
-                        }
-
-                        d.mCovers = coversOut;
-                    }
-
-                    if (d.mAEParts != null) {
-                        AEPartData[] partsOut = new AEPartData[TileAnalysisResult.ALL_DIRECTIONS.length];
-
-                        int unknown = ForgeDirection.UNKNOWN.ordinal();
-
-                        for (int i = 0; i < partsOut.length; i++) {
-                            if (i == unknown) {
-                                partsOut[unknown] = d.mAEParts[unknown];
-                            } else {
-                                partsOut[t.apply(TileAnalysisResult.ALL_DIRECTIONS[i])
-                                    .ordinal()] = d.mAEParts[i];
-                            }
-                        }
-
-                        d.mAEParts = partsOut;
-                    }
                 }
             }
 
@@ -404,85 +373,105 @@ public class MMState {
         } else {
             Block block = Block.getBlockFromItem(stack.getItem());
 
-            if (block instanceof BlockMachines) {
-                int start = 0, end = 0;
+            if (Mods.GregTech.isModLoaded()) {
+                getGTCables(a, b, out, block, world, stack);
+            }
 
-                // calculate the start & end mConnections flags
-                switch (new Vector3i(b).sub(a)
-                    .maxComponent()) {
-                    case 0: {
-                        start = b.x > 0 ? ForgeDirection.WEST.flag : ForgeDirection.EAST.flag;
-                        end = b.x < 0 ? ForgeDirection.WEST.flag : ForgeDirection.EAST.flag;
-                        break;
-                    }
-                    case 1: {
-                        start = b.y > 0 ? ForgeDirection.DOWN.flag : ForgeDirection.UP.flag;
-                        end = b.y < 0 ? ForgeDirection.DOWN.flag : ForgeDirection.UP.flag;
-                        break;
-                    }
-                    case 2: {
-                        start = b.z > 0 ? ForgeDirection.NORTH.flag : ForgeDirection.SOUTH.flag;
-                        end = b.z < 0 ? ForgeDirection.NORTH.flag : ForgeDirection.SOUTH.flag;
-                        break;
+            if (Mods.AppliedEnergistics2.isModLoaded()) {
+                getAECables(a, b, out, block, world, stack);
+            }
+        }
+
+        return out;
+    }
+
+    private void getGTCables(Vector3i a, Vector3i b, List<PendingBlock> out, Block block, World world, ItemStack cableStack) {
+        if (block instanceof BlockMachines) {
+            int start = 0, end = 0;
+
+            // calculate the start & end mConnections flags
+            switch (new Vector3i(b).sub(a)
+                .maxComponent()) {
+                case 0: {
+                    start = b.x > 0 ? ForgeDirection.WEST.flag : ForgeDirection.EAST.flag;
+                    end = b.x < 0 ? ForgeDirection.WEST.flag : ForgeDirection.EAST.flag;
+                    break;
+                }
+                case 1: {
+                    start = b.y > 0 ? ForgeDirection.DOWN.flag : ForgeDirection.UP.flag;
+                    end = b.y < 0 ? ForgeDirection.DOWN.flag : ForgeDirection.UP.flag;
+                    break;
+                }
+                case 2: {
+                    start = b.z > 0 ? ForgeDirection.NORTH.flag : ForgeDirection.SOUTH.flag;
+                    end = b.z < 0 ? ForgeDirection.NORTH.flag : ForgeDirection.SOUTH.flag;
+                    break;
+                }
+            }
+
+            for (Vector3i voxel : getLineVoxels(a.x, a.y, a.z, b.x, b.y, b.z)) {
+                byte existingConnections = 0;
+
+                // respect existing connections if possible
+                if (world.getTileEntity(voxel.x, voxel.y, voxel.z) instanceof IGregTechTileEntity igte
+                    && igte.getMetaTileEntity() instanceof IConnectable connectable) {
+                    for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
+                        if (connectable.isConnectedAtSide(dir)) {
+                            existingConnections |= dir.flag;
+                        }
                     }
                 }
 
+                PendingBlock pendingBlock = new PendingBlock(
+                    world.provider.dimensionId,
+                    voxel.x,
+                    voxel.y,
+                    voxel.z,
+                    cableStack);
+
+                GTAnalysisResult gt = new GTAnalysisResult();
+                gt.mConnections = (byte) (existingConnections | start | end);
+
+                pendingBlock.tileData = new TileAnalysisResult();
+                pendingBlock.tileData.gt = gt;
+
+                out.add(pendingBlock);
+            }
+
+            // stop the ends from connecting to nothing
+            if (!out.isEmpty()) {
+                ((GTAnalysisResult) out.get(0).tileData.gt).mConnections &= ~start;
+                ((GTAnalysisResult) out.get(out.size() - 1).tileData.gt).mConnections &= ~end;
+            }
+        }
+    }
+
+    private void getAECables(Vector3i a, Vector3i b, List<PendingBlock> out, Block block, World world, ItemStack cableStack) {
+        if (cableStack.getItem() instanceof IPartItem partItem) {
+            if (partItem.createPartFromItemStack(cableStack) instanceof IPartCable cable) {
+                Block cableBus = PendingBlock.AE_BLOCK_CABLE.get();
+
                 for (Vector3i voxel : getLineVoxels(a.x, a.y, a.z, b.x, b.y, b.z)) {
-                    byte existingConnections = 0;
-
-                    // respect existing connections if possible
-                    if (world.getTileEntity(voxel.x, voxel.y, voxel.z) instanceof IGregTechTileEntity igte
-                        && igte.getMetaTileEntity() instanceof IConnectable connectable) {
-                        for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
-                            if (connectable.isConnectedAtSide(dir)) {
-                                existingConnections |= dir.flag;
-                            }
-                        }
-                    }
-
                     PendingBlock pendingBlock = new PendingBlock(
                         world.provider.dimensionId,
                         voxel.x,
                         voxel.y,
                         voxel.z,
-                        stack);
+                        cableStack);
+
+                    pendingBlock.setBlock(cableBus, 0);
+
+                    AEAnalysisResult ae = new AEAnalysisResult();
+                    ae.mAEParts = new AEPartData[7];
+                    ae.mAEParts[ForgeDirection.UNKNOWN.ordinal()] = new AEPartData(cable);
 
                     pendingBlock.tileData = new TileAnalysisResult();
-                    pendingBlock.tileData.mConnections = (byte) (existingConnections | start | end);
+                    pendingBlock.tileData.ae = ae;
 
                     out.add(pendingBlock);
                 }
-
-                // stop the ends from connecting to nothing
-                if (!out.isEmpty()) {
-                    out.get(0).tileData.mConnections &= ~start;
-                    out.get(out.size() - 1).tileData.mConnections &= ~end;
-                }
-            } else if (stack.getItem() instanceof IPartItem partItem) {
-                if (partItem.createPartFromItemStack(stack) instanceof IPartCable cable) {
-                    Block cableBus = PendingBlock.AE_BLOCK_CABLE.get();
-
-                    for (Vector3i voxel : getLineVoxels(a.x, a.y, a.z, b.x, b.y, b.z)) {
-                        PendingBlock pendingBlock = new PendingBlock(
-                            world.provider.dimensionId,
-                            voxel.x,
-                            voxel.y,
-                            voxel.z,
-                            stack);
-
-                        pendingBlock.setBlock(cableBus, 0);
-
-                        pendingBlock.tileData = new TileAnalysisResult();
-                        pendingBlock.tileData.mAEParts = new AEPartData[7];
-                        pendingBlock.tileData.mAEParts[ForgeDirection.UNKNOWN.ordinal()] = new AEPartData(cable);
-
-                        out.add(pendingBlock);
-                    }
-                }
             }
         }
-
-        return out;
     }
 
     private List<PendingBlock> getGeomPendingBlocks(World world) {

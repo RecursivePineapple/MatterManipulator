@@ -24,12 +24,9 @@ import cpw.mods.fml.common.network.NetworkRegistry.TargetPoint;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import gregtech.GTMod;
-import gregtech.api.enums.GTValues;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
-import gregtech.api.net.GTPacket;
-import gregtech.api.net.IGT_NetworkHandler;
-import gregtech.common.GTNetwork;
 
+import com.recursive_pineapple.matter_manipulator.Config;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
@@ -199,10 +196,10 @@ public enum Messages {
             if (theWorld.provider.dimensionId == packet.worldId) {
                 Location l = packet.getLocation();
 
-                if (theWorld.getTileEntity(l.x, l.y, l.z) instanceof IGregTechTileEntity igte
-                    && igte.getMetaTileEntity() instanceof IUplinkMulti uplink) {
-                    uplink.setState(packet.getState());
-                }
+                // if (theWorld.getTileEntity(l.x, l.y, l.z) instanceof IGregTechTileEntity igte
+                //     && igte.getMetaTileEntity() instanceof IUplinkMulti uplink) {
+                //     uplink.setState(packet.getState());
+                // }
             }
         }
 
@@ -306,8 +303,6 @@ public enum Messages {
 
     ;
 
-    private static final IGT_NetworkHandler CHANNEL = createNetwork();
-
     private ISimplePacketHandler<? extends SimplePacket> handler;
 
     private <T extends SimplePacket> Messages(ISimplePacketHandler<T> handler) {
@@ -327,7 +322,7 @@ public enum Messages {
     }
 
     public void sendToServer(Object data) {
-        if (GTValues.D1) {
+        if (Config.D1) {
             GTMod.GT_FML_LOGGER.info("Sending packet to server: " + this + "; " + data);
         }
         CHANNEL.sendToServer(getNewPacket(data));
@@ -338,7 +333,7 @@ public enum Messages {
     }
 
     public void sendToPlayer(EntityPlayerMP player, Object data) {
-        if (GTValues.D1) {
+        if (Config.D1) {
             GTMod.GT_FML_LOGGER.info("Sending packet to player: " + this + "; " + data + "; " + player);
         }
         CHANNEL.sendToPlayer(getNewPacket(data), player);
@@ -349,7 +344,7 @@ public enum Messages {
     }
 
     public void sendToPlayersAround(Location location, Object data) {
-        if (GTValues.D1) {
+        if (Config.D1) {
             GTMod.GT_FML_LOGGER
                 .info("Sending packet to players around " + location.toString() + ": " + this + "; " + data);
         }
@@ -360,15 +355,17 @@ public enum Messages {
 
     @SuppressWarnings("unchecked")
     public void handle(EntityPlayer player, SimplePacket packet) {
-        // if (GTValues.D1) {
-        GTMod.GT_FML_LOGGER
-            .info("Handling packet: " + this + "; " + packet + "; " + player + "; " + NetworkUtils.isClient());
-        // }
+        if (Config.D1) {
+            GTMod.GT_FML_LOGGER
+                .info("Handling packet: " + this + "; " + packet + "; " + player + "; " + NetworkUtils.isClient());
+        }
         ((ISimplePacketHandler<SimplePacket>) handler).handle(player, packet);
     }
 
-    private static GTNetwork createNetwork() {
-        ArrayList<GTPacket> packets = new ArrayList<>();
+    private static final Network CHANNEL = createNetwork();
+
+    private static Network createNetwork() {
+        ArrayList<MMPacket> packets = new ArrayList<>();
 
         for (Messages message : values()) {
             try {
@@ -378,7 +375,7 @@ public enum Messages {
             }
         }
 
-        return new GTNetwork("MatterManipulator", packets.toArray(new GTPacket[0]));
+        return new Network("MatterManipulator", packets.toArray(new MMPacket[0]));
     }
 
     /**
@@ -404,7 +401,7 @@ public enum Messages {
     /**
      * A packet that doesn't contain any data.
      */
-    private static class SimplePacket extends GTPacket {
+    private static class SimplePacket extends MMPacket {
 
         public final Messages message;
 
@@ -418,7 +415,7 @@ public enum Messages {
         }
 
         @Override
-        public GTPacket decode(ByteArrayDataInput buffer) {
+        public MMPacket decode(ByteArrayDataInput buffer) {
             return message.getNewPacket();
         }
 
@@ -457,7 +454,7 @@ public enum Messages {
         }
 
         @Override
-        public GTPacket decode(ByteArrayDataInput buffer) {
+        public MMPacket decode(ByteArrayDataInput buffer) {
             IntPacket message = new IntPacket(super.message);
             message.value = buffer.readInt();
             return message;
@@ -514,7 +511,7 @@ public enum Messages {
         }
 
         @Override
-        public GTPacket decode(ByteArrayDataInput buffer) {
+        public MMPacket decode(ByteArrayDataInput buffer) {
             UplinkPacket message = new UplinkPacket(super.message);
             message.worldId = buffer.readInt();
             message.location = buffer.readLong();

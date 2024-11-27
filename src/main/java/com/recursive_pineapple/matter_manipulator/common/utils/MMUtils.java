@@ -528,6 +528,10 @@ public class MMUtils {
         return array;
     }
 
+    public static ForgeDirection nullIfUnknown(ForgeDirection dir) {
+        return dir == ForgeDirection.UNKNOWN ? null : dir;
+    }
+
     /**
      * Empties all items in an inventory into a pseudo inventory.
      * Will reset/disassemble any items as necessary.

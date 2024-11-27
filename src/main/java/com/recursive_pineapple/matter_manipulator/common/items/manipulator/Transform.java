@@ -4,6 +4,7 @@ import static net.minecraftforge.common.util.ForgeDirection.DOWN;
 import static net.minecraftforge.common.util.ForgeDirection.EAST;
 import static net.minecraftforge.common.util.ForgeDirection.NORTH;
 import static net.minecraftforge.common.util.ForgeDirection.SOUTH;
+import static net.minecraftforge.common.util.ForgeDirection.UNKNOWN;
 import static net.minecraftforge.common.util.ForgeDirection.UP;
 import static net.minecraftforge.common.util.ForgeDirection.WEST;
 
@@ -61,6 +62,7 @@ public class Transform {
 
     public ForgeDirection apply(ForgeDirection dir) {
         if (dir == null) return null;
+        if (dir == UNKNOWN) return UNKNOWN;
 
         return vprime(v(dir).mulTransposeDirection(getRotation()));
     }

@@ -2,6 +2,7 @@ package com.recursive_pineapple.matter_manipulator;
 
 import com.recursive_pineapple.matter_manipulator.common.entities.EntityItemLarge;
 import com.recursive_pineapple.matter_manipulator.common.items.MMItemList;
+import com.recursive_pineapple.matter_manipulator.common.networking.Messages;
 
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
@@ -16,6 +17,7 @@ public class CommonProxy {
         Config.synchronizeConfiguration(event.getSuggestedConfigurationFile());
 
         MMItemList.registerItems();
+        Messages.init();
     }
 
     public void init(FMLInitializationEvent event) {

@@ -137,8 +137,6 @@ public class ItemMatterManipulator extends Item
             .getSide() == Side.CLIENT) {
             renderer = new MatterManipulatorRenderer();
         }
-
-        Messages.init();
     }
 
     private static int counter = 0;

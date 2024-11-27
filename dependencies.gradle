@@ -44,8 +44,9 @@ dependencies {
     implementation("com.github.GTNewHorizons:ModularUI:1.2.13:dev")
 
     compileOnly("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-477-GTNH:dev") { transitive = false }
-    compileOnly("com.github.GTNewHorizons:GT5-Unofficial:99.99.99:dev") { transitive = false }
     compileOnly("com.github.GTNewHorizons:BloodMagic:1.6.7:dev") { transitive = false }
+    compileOnly("com.github.GTNewHorizons:EnderIO:2.8.22:dev") { transitive = false }
+    compileOnly("com.github.GTNewHorizons:GT5-Unofficial:99.99.99:dev") { transitive = false }
 
     compileOnly("com.google.auto.value:auto-value-annotations:1.10.1") { transitive = false }
     annotationProcessor("com.google.auto.value:auto-value:1.10.1")
