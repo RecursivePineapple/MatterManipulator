@@ -319,7 +319,7 @@ public enum Messages {
 
                 if (packet.sound < 0 || packet.sound >= sounds.length) return;
 
-                Minecraft.getMinecraft().theWorld.playSound(x, y, z, null, y, z, false);
+                Minecraft.getMinecraft().theWorld.playSound(x, y, z, sounds[packet.sound].toString(), y, z, false);
             }
         }
 
@@ -330,9 +330,11 @@ public enum Messages {
 
             SoundPacket packet = new SoundPacket(message);
 
-            packet.worldId = sound.left().worldId;
-            packet.location = CoordinatePacker.pack(sound.left().x, sound.left().y, sound.left().z);
-            packet.sound = sound.right().ordinal();
+            if (sound != null) {
+                packet.worldId = sound.left().worldId;
+                packet.location = CoordinatePacker.pack(sound.left().x, sound.left().y, sound.left().z);
+                packet.sound = sound.right().ordinal();
+            }
 
             return packet;
         }
@@ -764,7 +766,6 @@ public enum Messages {
         };
     }
 
-    @SideOnly(Side.SERVER)
     public static void sendSoundToPlayer(EntityPlayerMP player, World world, int x, int y, int z, SoundResource sound, float strength, float pitch) {
         SoundPacket packet = new SoundPacket(Messages.PlaySound);
 
@@ -777,7 +778,6 @@ public enum Messages {
         CHANNEL.sendToPlayer(packet, player);
     }
 
-    @SideOnly(Side.SERVER)
     public static void sendSoundToAllWithinRange(World world, int x, int y, int z, SoundResource sound, float strength, float pitch) {
         SoundPacket packet = new SoundPacket(Messages.PlaySound);
 

@@ -14,6 +14,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import gregtech.client.GTTooltipHandler;
 import net.minecraft.client.renderer.texture.IIconRegister;
+import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -56,7 +57,7 @@ public class MetaItem extends Item {
 
     @Override
     public String getUnlocalizedName(ItemStack stack) {
-        return name + "." + getDamage(stack);
+        return "item." + name + "." + getDamage(stack);
     }
 
     @Override
@@ -74,28 +75,28 @@ public class MetaItem extends Item {
 
     private static String getItemTier(IDMetaItem metaItem) {
         return switch(metaItem) {
-            case MatterManipulatorPowerCore0 -> Tier.HV.tooltip.get();
-            case MatterManipulatorComputerCore0 -> Tier.HV.tooltip.get();
-            case MatterManipulatorTeleporterCore0 -> Tier.HV.tooltip.get();
-            case MatterManipulatorFrame0 -> Tier.HV.tooltip.get();
-            case MatterManipulatorLens0 -> Tier.HV.tooltip.get();
-            case MatterManipulatorPowerCore1 -> Tier.IV.tooltip.get();
-            case MatterManipulatorComputerCore1 -> Tier.IV.tooltip.get();
-            case MatterManipulatorTeleporterCore1 -> Tier.IV.tooltip.get();
-            case MatterManipulatorFrame1 -> Tier.IV.tooltip.get();
-            case MatterManipulatorLens1 -> Tier.IV.tooltip.get();
-            case MatterManipulatorPowerCore2 -> Tier.LuV.tooltip.get();
-            case MatterManipulatorComputerCore2 -> Tier.LuV.tooltip.get();
-            case MatterManipulatorTeleporterCore2 -> Tier.LuV.tooltip.get();
-            case MatterManipulatorFrame2 -> Tier.LuV.tooltip.get();
-            case MatterManipulatorLens2 -> Tier.LuV.tooltip.get();
-            case MatterManipulatorPowerCore3 -> Tier.ZPM.tooltip.get();
-            case MatterManipulatorComputerCore3 -> Tier.ZPM.tooltip.get();
-            case MatterManipulatorTeleporterCore3 -> Tier.ZPM.tooltip.get();
-            case MatterManipulatorFrame3 -> Tier.ZPM.tooltip.get();
-            case MatterManipulatorLens3 -> Tier.ZPM.tooltip.get();
-            case MatterManipulatorAEDownlink -> Tier.IV.tooltip.get();
-            case MatterManipulatorQuantumDownlink -> Tier.ZPM.tooltip.get();
+            case PowerCore0 -> Tier.HV.tooltip.get();
+            case ComputerCore0 -> Tier.HV.tooltip.get();
+            case TeleporterCore0 -> Tier.HV.tooltip.get();
+            case Frame0 -> Tier.HV.tooltip.get();
+            case Lens0 -> Tier.HV.tooltip.get();
+            case PowerCore1 -> Tier.IV.tooltip.get();
+            case ComputerCore1 -> Tier.IV.tooltip.get();
+            case TeleporterCore1 -> Tier.IV.tooltip.get();
+            case Frame1 -> Tier.IV.tooltip.get();
+            case Lens1 -> Tier.IV.tooltip.get();
+            case PowerCore2 -> Tier.LuV.tooltip.get();
+            case ComputerCore2 -> Tier.LuV.tooltip.get();
+            case TeleporterCore2 -> Tier.LuV.tooltip.get();
+            case Frame2 -> Tier.LuV.tooltip.get();
+            case Lens2 -> Tier.LuV.tooltip.get();
+            case PowerCore3 -> Tier.ZPM.tooltip.get();
+            case ComputerCore3 -> Tier.ZPM.tooltip.get();
+            case TeleporterCore3 -> Tier.ZPM.tooltip.get();
+            case Frame3 -> Tier.ZPM.tooltip.get();
+            case Lens3 -> Tier.ZPM.tooltip.get();
+            case AEDownlink -> Tier.IV.tooltip.get();
+            case QuantumDownlink -> Tier.ZPM.tooltip.get();
             default -> null;
         };
     }
@@ -146,6 +147,13 @@ public class MetaItem extends Item {
             var t = GTTooltipHandler.Tier.valueOf(tier);
 
             return ReflectionHelper.getPrivateValue(GTTooltipHandler.Tier.class, t, "tooltip");
+        }
+    }
+
+    @Override
+    public void getSubItems(Item self, CreativeTabs tab, List<ItemStack> subItems) {
+        for (IDMetaItem id : IDMetaItem.values()) {
+            subItems.add(new ItemStack(this, 1, id.ID));
         }
     }
 }

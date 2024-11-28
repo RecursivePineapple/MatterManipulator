@@ -131,15 +131,15 @@ public class BoxRenderer {
         tes.addVertexWithUV(dX, 0, 0, dX, 0);
         
         // south face
-        tes.addVertexWithUV(0, 0, dZ, 0, dZ + 0);
-        tes.addVertexWithUV(0, dY, dZ, 0, dZ + dY);
-        tes.addVertexWithUV(dX, dY, dZ, dX, dZ + dY);
-        tes.addVertexWithUV(dX, 0, dZ, dX, dZ + 0);
+        tes.addVertexWithUV(0, 0, dZ, dZ + 0, 0);
+        tes.addVertexWithUV(0, dY, dZ, dZ + 0, dY);
+        tes.addVertexWithUV(dX, dY, dZ, dZ + dX, dY);
+        tes.addVertexWithUV(dX, 0, dZ, dZ + dX, 0);
 
-        tes.addVertexWithUV(0, 0, dZ, 0, dZ + 0);
-        tes.addVertexWithUV(dX, 0, dZ, dX, dZ + 0);
-        tes.addVertexWithUV(dX, dY, dZ, dX, dZ + dY);
-        tes.addVertexWithUV(0, dY, dZ, 0, dZ + dY);
+        tes.addVertexWithUV(0, 0, dZ, dZ + 0, 0);
+        tes.addVertexWithUV(dX, 0, dZ, dZ + dX, 0);
+        tes.addVertexWithUV(dX, dY, dZ, dZ + dX, dY);
+        tes.addVertexWithUV(0, dY, dZ, dZ + 0, dY);
         // spotless:on
 
         tes.restoreTranslation();

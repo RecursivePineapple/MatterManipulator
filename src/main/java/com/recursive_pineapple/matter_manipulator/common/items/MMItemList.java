@@ -1,21 +1,65 @@
 package com.recursive_pineapple.matter_manipulator.common.items;
 
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 
-public class MMItemList {
-    
-    private MMItemList() {}
+public enum MMItemList {
+    MK0,
+    MK1,
+    MK2,
+    MK3,
 
-    public static MetaItem META_ITEM;
-    public static ItemMatterManipulator MK0, MK1, MK2, MK3;
+    Hologram,
+    PowerCore0,
+    ComputerCore0,
+    TeleporterCore0,
+    Frame0,
+    Lens0,
 
-    public static void registerItems() {
-        META_ITEM = new MetaItem("metaitem");
+    PowerCore1,
+    ComputerCore1,
+    TeleporterCore1,
+    Frame1,
+    Lens1,
 
-        MK0 = new ItemMatterManipulator(ManipulatorTier.Tier0);
-        MK1 = new ItemMatterManipulator(ManipulatorTier.Tier1);
-        MK2 = new ItemMatterManipulator(ManipulatorTier.Tier2);
-        MK3 = new ItemMatterManipulator(ManipulatorTier.Tier3);
+    PowerCore2,
+    ComputerCore2,
+    TeleporterCore2,
+    Frame2,
+    Lens2,
+
+    PowerCore3,
+    ComputerCore3,
+    TeleporterCore3,
+    Frame3,
+    Lens3,
+
+    AEDownlink,
+    QuantumDownlink,
+
+    ;
+
+    public ItemStack stack;
+
+    public void set(ItemStack stack) {
+        this.stack = stack;
+    }
+
+    public void set(Item item) {
+        stack = new ItemStack(item, 1);
+    }
+
+    public void set(Item item, int meta) {
+        stack = new ItemStack(item, 1, meta);
+    }
+
+    public ItemStack get() {
+        return stack.copy();
+    }
+
+    public ItemStack get(int amount) {
+        ItemStack copy = stack.copy();
+        copy.stackSize = amount;
+        return copy;
     }
 }

@@ -273,12 +273,10 @@ public enum SoundResource {
         Minecraft.getMinecraft().thePlayer.playSound(this.toString(), volume, pitch);
     }
 
-    @SideOnly(Side.SERVER)
     public void sendPlayToPlayer(EntityPlayerMP player, Location l, float volume, float pitch) {
         Messages.sendSoundToPlayer(player, l.getWorld(), l.x, l.y, l.z, this, volume, pitch);
     }
 
-    @SideOnly(Side.SERVER)
     public void sendPlayToAll(Location l, float volume, float pitch) {
         Messages.sendSoundToAllWithinRange(l.getWorld(), l.x, l.y, l.z, this, volume, pitch);
     }

@@ -16,10 +16,12 @@ public enum Mods {
     ForgeMicroblocks(Names.FORGE_MICROBLOCKS),
     GregTech(Names.GREG_TECH),
     GTPlusPlus(Names.G_T_PLUS_PLUS),
+    GraviSuite(Names.GRAVI_SUITE),
     LogisticsPipes(Names.LOGISTICS_PIPES),
     MatterManipulator(Names.MATTER_MANIPULATOR),
     Minecraft(Names.MINECRAFT),
     StorageDrawers(Names.STORAGE_DRAWERS),
+    Thaumcraft(Names.THAUMCRAFT),
 
     ;
 
@@ -31,11 +33,13 @@ public enum Mods {
         public static final String ENDER_I_O = "EnderIO";
         public static final String FORGE_MICROBLOCKS = "ForgeMicroblock";
         public static final String GREG_TECH = "gregtech";
+        public static final String GRAVI_SUITE = "GraviSuite";
         public static final String LOGISTICS_PIPES = "LogisticsPipes";
         public static final String MATTER_MANIPULATOR = "matter-manipulator";
         public static final String MINECRAFT = "minecraft";
         public static final String G_T_PLUS_PLUS = "miscutils";
         public static final String STORAGE_DRAWERS = "StorageDrawers";
+        public static final String THAUMCRAFT = "Thaumcraft";
     }
 
     public final String ID;

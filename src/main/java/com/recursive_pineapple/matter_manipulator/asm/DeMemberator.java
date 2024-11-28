@@ -14,6 +14,7 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.LocalVariableNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.VarInsnNode;
 
 import com.gtnewhorizon.gtnhlib.asm.ClassConstantPoolParser;
 
@@ -60,10 +61,6 @@ public class DeMemberator implements IClassTransformer {
                             continue outer;
                         }
                     }
-                }
-
-                for (LocalVariableNode varNode : method.localVariables) {
-                    
                 }
             }
 

@@ -83,6 +83,7 @@ import appeng.api.parts.PartItemStack;
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Optional.Interface;
+import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.InputEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
@@ -584,16 +585,17 @@ public class ItemMatterManipulator extends Item
             }
 
             setState(stack, state);
+            
+            return stack;
+        } else {
+            if (player.isSneaking()) {
+                player.setItemInUse(stack, Integer.MAX_VALUE);
+            } else if (world.isRemote) {
+                UIInfos.openClientUI(player, this::createWindow);
+            }
+
             return stack;
         }
-
-        if (player.isSneaking()) {
-            player.setItemInUse(stack, Integer.MAX_VALUE);
-        } else if (world.isRemote) {
-            UIInfos.openClientUI(player, this::createWindow);
-        }
-
-        return stack;
     }
 
     /**
@@ -1538,7 +1540,7 @@ public class ItemMatterManipulator extends Item
 
     private long lastExceptionPrint = 0;
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     @SideOnly(Side.CLIENT)
     public void renderSelection(RenderWorldLastEvent event) {
         try {
