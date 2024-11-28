@@ -1,40 +1,43 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
+import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.AppliedEnergistics2;
+import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidContainerItem;
 
 import com.google.common.collect.ImmutableList;
 import com.gtnewhorizon.gtnhlib.util.map.ItemStackMap;
+import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.entities.EntityItemLarge;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
 import com.recursive_pineapple.matter_manipulator.common.uplink.IUplinkMulti;
 import com.recursive_pineapple.matter_manipulator.common.uplink.UplinkStatus;
+import com.recursive_pineapple.matter_manipulator.common.utils.BigFluidStack;
+import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.FluidId;
 import com.recursive_pineapple.matter_manipulator.common.utils.ItemId;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
 import appeng.api.config.Actionable;
 import appeng.api.config.FuzzyMode;
 import appeng.api.networking.security.PlayerSource;
 import appeng.api.storage.data.IAEFluidStack;
 import appeng.api.storage.data.IAEItemStack;
-import appeng.util.item.AEFluidStack;
-import appeng.util.item.AEItemStack;
 import it.unimi.dsi.fastutil.Pair;
 
 /**
@@ -58,20 +61,20 @@ public class MMInventory implements IPseudoInventory {
     }
 
     @Override
-    public Pair<Boolean, List<IAEItemStack>> tryConsumeItems(List<IAEItemStack> items, int flags) {
+    public Pair<Boolean, List<BigItemStack>> tryConsumeItems(List<BigItemStack> items, int flags) {
         if ((flags & CONSUME_IGNORE_CREATIVE) == 0 && player.capabilities.isCreativeMode) {
             return Pair.of(true, items);
         } else {
-            List<IAEItemStack> simulated = MMUtils.mapToList(items, IAEItemStack::copy);
-            List<IAEItemStack> extracted = new ArrayList<>();
+            List<BigItemStack> simulated = MMUtils.mapToList(items, BigItemStack::copy);
+            List<BigItemStack> extracted = new ArrayList<>();
 
             // the first pass is simulated to make sure the requested items can be provided
             consumeItemsFromPending(simulated, extracted, flags | CONSUME_SIMULATED);
             consumeItemsFromPlayer(simulated, extracted, flags | CONSUME_SIMULATED);
-            if (tier.hasCap(ItemMatterManipulator.CONNECTS_TO_AE)) {
+            if (tier.hasCap(ItemMatterManipulator.CONNECTS_TO_AE) && Mods.AppliedEnergistics2.isModLoaded()) {
                 consumeItemsFromAE(simulated, extracted, flags | CONSUME_SIMULATED);
             }
-            if (tier.hasCap(ItemMatterManipulator.CONNECTS_TO_UPLINK)) {
+            if (tier.hasCap(ItemMatterManipulator.CONNECTS_TO_UPLINK) && Mods.GregTech.isModLoaded()) {
                 consumeItemsFromUplink(simulated, extracted, flags | CONSUME_SIMULATED);
             }
 
@@ -83,24 +86,24 @@ public class MMInventory implements IPseudoInventory {
                 }
             }
 
-            simulated = MMUtils.mapToList(items, IAEItemStack::copy);
+            simulated = MMUtils.mapToList(items, BigItemStack::copy);
             extracted.clear();
 
             consumeItemsFromPending(simulated, extracted, flags);
             consumeItemsFromPlayer(simulated, extracted, flags);
-            if (tier.hasCap(ItemMatterManipulator.CONNECTS_TO_AE)) {
+            if (tier.hasCap(ItemMatterManipulator.CONNECTS_TO_AE) && Mods.AppliedEnergistics2.isModLoaded()) {
                 consumeItemsFromAE(simulated, extracted, flags);
             }
-            if (tier.hasCap(ItemMatterManipulator.CONNECTS_TO_UPLINK)) {
+            if (tier.hasCap(ItemMatterManipulator.CONNECTS_TO_UPLINK) && Mods.GregTech.isModLoaded()) {
                 consumeItemsFromUplink(simulated, extracted, flags);
             }
 
-            ItemStackMap<IAEItemStack> out = new ItemStackMap<>(true);
+            ItemStackMap<BigItemStack> out = new ItemStackMap<>(true);
 
-            for (IAEItemStack ex : extracted) {
+            for (BigItemStack ex : extracted) {
                 ItemStack stack = ex.getItemStack();
 
-                IAEItemStack merged = out.get(stack);
+                BigItemStack merged = out.get(stack);
 
                 if (merged == null) {
                     merged = ex.copy()
@@ -153,16 +156,19 @@ public class MMInventory implements IPseudoInventory {
             pendingFluids.clear();
             return;
         }
+        
+        boolean hasME;
 
-        if (tier.hasCap(ItemMatterManipulator.CONNECTS_TO_AE)) {
+        if (tier.hasCap(ItemMatterManipulator.CONNECTS_TO_AE) && AppliedEnergistics2.isModLoaded()) {
             if (state.encKey != null && !state.hasMEConnection()) {
                 state.connectToMESystem();
             }
+            hasME = state.hasMEConnection() && state.canInteractWithAE(player);
+        } else {
+            hasME = false;
         }
 
-        boolean hasME = state.hasMEConnection() && state.canInteractWithAE(player);
-
-        if (tier.hasCap(ItemMatterManipulator.CONNECTS_TO_UPLINK)) {
+        if (tier.hasCap(ItemMatterManipulator.CONNECTS_TO_UPLINK) && GregTech.isModLoaded()) {
             if (state.uplinkAddress != null && !state.hasUplinkConnection()) {
                 state.connectToUplink();
             }
@@ -171,26 +177,15 @@ public class MMInventory implements IPseudoInventory {
         IUplinkMulti uplink = state.uplink;
 
         pendingItems.forEach((item, amount) -> {
+            BigItemStack stack = new BigItemStack(item.getItemStack()).setStackSize(amount);
+
             if (hasME) {
-                AEItemStack stack = AEItemStack.create(item.getItemStack());
-                Objects.requireNonNull(stack);
-                stack.setStackSize(amount);
+                injectItemsIntoAE(stack);
 
-                IAEItemStack result = state.storageGrid.getItemInventory()
-                    .injectItems(stack, Actionable.MODULATE, new PlayerSource(player, state.securityTerminal));
-
-                if (result != null) {
-                    amount = result.getStackSize();
-                } else {
-                    return;
-                }
+                if (stack.getStackSize() == 0) return;
             }
 
             if (uplink != null) {
-                IAEItemStack stack = AEItemStack.create(item.getItemStack());
-                Objects.requireNonNull(stack);
-                stack.setStackSize(amount);
-
                 UplinkStatus status = uplink.tryGivePlayerItems(Arrays.asList(stack));
 
                 if (status != UplinkStatus.OK && !printedUplinkWarning) {
@@ -198,61 +193,45 @@ public class MMInventory implements IPseudoInventory {
                     MMUtils.sendErrorToPlayer(player, "Could not push items to uplink: " + status.toString());
                 }
 
-                amount = stack.getStackSize();
+                if (stack.getStackSize() == 0) return;
             }
 
             while (amount > 0) {
-                ItemStack stack = item.getItemStack();
+                ItemStack smallStack = stack.remove(item.getItemStack().getMaxStackSize());
 
-                int toRemove = (int) Math.min(amount, stack.getMaxStackSize());
+                int removed = smallStack.stackSize;
 
-                stack.stackSize = toRemove;
-                amount -= toRemove;
-
-                if (!player.inventory.addItemStackToInventory(stack)) {
-                    amount += toRemove;
+                if (!player.inventory.addItemStackToInventory(smallStack)) {
+                    amount += removed;
                     break;
                 } else {
                     amount += stack.stackSize;
                 }
             }
 
-            if (!player.capabilities.isCreativeMode) {
-                while (amount > 0) {
-                    int toRemove = (int) Math.min(amount, Integer.MAX_VALUE);
-                    amount -= toRemove;
-                    player.worldObj.spawnEntityInWorld(
-                        new EntityItemLarge(
-                            player.worldObj,
-                            player.posX,
-                            player.posY,
-                            player.posZ,
-                            item.getItemStack(toRemove)));
-                }
+            for(ItemStack smallStack : stack.toStacks()) {
+                player.worldObj.spawnEntityInWorld(
+                    new EntityItemLarge(
+                        player.worldObj,
+                        player.posX,
+                        player.posY,
+                        player.posZ,
+                        smallStack));
             }
         });
 
         pendingItems.clear();
 
         pendingFluids.forEach((id, amount) -> {
+            BigFluidStack stack = new BigFluidStack(id.getFluidStack()).setStackSize(amount);
+
             if (hasME) {
-                AEFluidStack stack = AEFluidStack.create(id.getFluidStack());
-                stack.setStackSize(amount);
+                injectFluidsIntoAE(stack);
 
-                IAEFluidStack result = state.storageGrid.getFluidInventory()
-                    .injectItems(stack, Actionable.MODULATE, new PlayerSource(player, state.securityTerminal));
-
-                if (result != null) {
-                    amount = result.getStackSize();
-                } else {
-                    return;
-                }
+                if (stack.getStackSize() == 0) return;
             }
 
             if (uplink != null) {
-                AEFluidStack stack = AEFluidStack.create(id.getFluidStack());
-                stack.setStackSize(amount);
-
                 UplinkStatus status = uplink.tryGivePlayerFluids(Arrays.asList(stack));
 
                 if (status != UplinkStatus.OK && !printedUplinkWarning) {
@@ -260,7 +239,7 @@ public class MMInventory implements IPseudoInventory {
                     MMUtils.sendErrorToPlayer(player, "Could not push fluids to uplink: " + status.toString());
                 }
 
-                amount += stack.getStackSize();
+                if (stack.getStackSize() == 0) return;
             }
 
             // this is final because of the lambdas, but its amount field is updated several times
@@ -311,30 +290,44 @@ public class MMInventory implements IPseudoInventory {
             }
 
             if (amount > 0 && !player.capabilities.isCreativeMode) {
-                player.addChatMessage(
-                    new ChatComponentText(
-                        EnumChatFormatting.GOLD + "Could not find a container for fluid (it was voided): "
+                MMUtils.sendWarningToPlayer(player, "Could not find a container for fluid (it was voided): "
                             + amount
                             + "L of "
-                            + fluid.getLocalizedName()));
+                            + fluid.getLocalizedName());
             }
         });
 
         pendingFluids.clear();
     }
 
-    private void consumeItemsFromPending(List<IAEItemStack> requestedItems, List<IAEItemStack> extractedItems,
+    @Optional(Names.APPLIED_ENERGISTICS2)
+    private void injectItemsIntoAE(BigItemStack stack) {
+        IAEItemStack result = state.storageGrid.getItemInventory()
+            .injectItems(stack.getAEItemStack(), Actionable.MODULATE, new PlayerSource(player, state.securityTerminal));
+
+        stack.setStackSize(result != null ? result.getStackSize() : 0);
+    }
+
+    @Optional(Names.APPLIED_ENERGISTICS2)
+    private void injectFluidsIntoAE(BigFluidStack stack) {
+        IAEFluidStack result = state.storageGrid.getFluidInventory()
+            .injectItems(stack.getAEFluidStack(), Actionable.MODULATE, new PlayerSource(player, state.securityTerminal));
+
+        stack.setStackSize(result != null ? result.getStackSize() : 0);
+    }
+
+    private void consumeItemsFromPending(List<BigItemStack> requestedItems, List<BigItemStack> extractedItems,
         int flags) {
         boolean simulate = (flags & CONSUME_SIMULATED) != 0;
         boolean fuzzy = (flags & CONSUME_FUZZY) != 0;
 
-        for (IAEItemStack req : requestedItems) {
+        for (BigItemStack req : requestedItems) {
             if (req.getStackSize() == 0) {
                 continue;
             }
 
             if (!fuzzy) {
-                ItemId id = ItemId.create(req.getItemStack());
+                ItemId id = req.getId();
 
                 Long amtInPending = pendingItems.get(id);
 
@@ -400,14 +393,14 @@ public class MMInventory implements IPseudoInventory {
         }
     }
 
-    private void consumeItemsFromPlayer(List<IAEItemStack> requestedItems, List<IAEItemStack> extractedItems,
+    private void consumeItemsFromPlayer(List<BigItemStack> requestedItems, List<BigItemStack> extractedItems,
         int flags) {
         boolean simulate = (flags & CONSUME_SIMULATED) != 0;
         boolean fuzzy = (flags & CONSUME_FUZZY) != 0;
 
         ItemStack[] inv = player.inventory.mainInventory;
 
-        for (IAEItemStack req : requestedItems) {
+        for (BigItemStack req : requestedItems) {
             if (req.getStackSize() == 0) {
                 continue;
             }
@@ -427,17 +420,13 @@ public class MMInventory implements IPseudoInventory {
 
                 if (fuzzy ? slot.isItemEqual(reqStack) : MMUtils.areStacksBasicallyEqual(slot, reqStack)) {
                     if (slot.stackSize == 111) {
-                        extractedItems.add(
-                            Objects.requireNonNull(AEItemStack.create(slot))
-                                .setStackSize(req.getStackSize()));
+                        extractedItems.add(new BigItemStack(slot).setStackSize(req.getStackSize()));
                         req.setStackSize(0);
                     } else {
                         int toRemove = Math.min(slot.stackSize, reqStack.stackSize);
 
                         req.decStackSize(toRemove);
-                        extractedItems.add(
-                            Objects.requireNonNull(AEItemStack.create(slot))
-                                .setStackSize(toRemove));
+                        extractedItems.add(new BigItemStack(slot).setStackSize(toRemove));
 
                         if (!simulate) {
                             slot.stackSize -= toRemove;
@@ -452,7 +441,8 @@ public class MMInventory implements IPseudoInventory {
         }
     }
 
-    private void consumeItemsFromAE(List<IAEItemStack> requestedItems, List<IAEItemStack> extractedItems, int flags) {
+    @Optional(Names.APPLIED_ENERGISTICS2)
+    private void consumeItemsFromAE(List<BigItemStack> requestedItems, List<BigItemStack> extractedItems, int flags) {
         boolean simulate = (flags & CONSUME_SIMULATED) != 0;
         boolean fuzzy = (flags & CONSUME_FUZZY) != 0;
 
@@ -470,15 +460,17 @@ public class MMInventory implements IPseudoInventory {
             return;
         }
 
-        for (IAEItemStack req : requestedItems) {
+        for (BigItemStack req : requestedItems) {
             if (req.getStackSize() == 0) {
                 continue;
             }
 
+            IAEItemStack aeReq = req.getAEItemStack();
+
             // spotless:off
             List<IAEItemStack> matches = fuzzy ?
-                ImmutableList.copyOf(state.itemStorage.getStorageList().findFuzzy(req, FuzzyMode.IGNORE_ALL)) :
-                Arrays.asList(state.itemStorage.getStorageList().findPrecise(req));
+                ImmutableList.copyOf(state.itemStorage.getStorageList().findFuzzy(aeReq, FuzzyMode.IGNORE_ALL)) :
+                Arrays.asList(state.itemStorage.getStorageList().findPrecise(aeReq));
             // spotless:on
 
             for (IAEItemStack match : matches) {
@@ -493,20 +485,21 @@ public class MMInventory implements IPseudoInventory {
                 match = match.copy()
                     .setStackSize(req.getStackSize());
 
-                IAEItemStack result = state.itemStorage.extractItems(
+                    IAEItemStack result = state.itemStorage.extractItems(
                     match,
                     simulate ? Actionable.SIMULATE : Actionable.MODULATE,
                     new PlayerSource(player, state.securityTerminal));
 
                 if (result != null) {
-                    extractedItems.add(result);
+                    extractedItems.add(BigItemStack.create(result));
                     req.decStackSize(result.getStackSize());
                 }
             }
         }
     }
 
-    private void consumeItemsFromUplink(List<IAEItemStack> requestedItems, List<IAEItemStack> extractedItems,
+    @Optional(Names.GREG_TECH)
+    private void consumeItemsFromUplink(List<BigItemStack> requestedItems, List<BigItemStack> extractedItems,
         int flags) {
         boolean simulate = (flags & CONSUME_SIMULATED) != 0;
         boolean fuzzy = (flags & CONSUME_FUZZY) != 0;

@@ -3,11 +3,11 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
+
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
-import appeng.api.storage.data.IAEItemStack;
-import appeng.util.item.AEItemStack;
 import it.unimi.dsi.fastutil.Pair;
 
 /**
@@ -31,7 +31,7 @@ public interface IPseudoInventory {
      * If the extraction succeeded and partial mode wasn't enabled, extraneous items will not be extracted and the
      * returned list will contain the same items as the request.
      * If fuzzy mode is enabled there may be several stacks with different tags (and damages where relevant), but every
-     * stackable item will be merged into the same IAEItemStack.
+     * stackable item will be merged into the same BigItemStack.
      * 
      * @param items The list of items to extract.
      * @param flags The flags (see {@link IPseudoInventory#CONSUME_SIMULATED}, {@link IPseudoInventory#CONSUME_FUZZY},
@@ -39,7 +39,7 @@ public interface IPseudoInventory {
      * @return Key = whether the extract was successful. Value = the list of items extracted (only relevant for fuzzy
      *         mode).
      */
-    public Pair<Boolean, List<IAEItemStack>> tryConsumeItems(List<IAEItemStack> items, int flags);
+    public Pair<Boolean, List<BigItemStack>> tryConsumeItems(List<BigItemStack> items, int flags);
 
     /**
      * Consumes a set of items.
@@ -47,8 +47,8 @@ public interface IPseudoInventory {
      * @return True when the items were successfully consumed.
      */
     public default boolean tryConsumeItems(ItemStack... items) {
-        List<IAEItemStack> stacks = new ArrayList<>(items.length);
-        for (int i = 0; i < items.length; i++) stacks.add(AEItemStack.create(items[i]));
+        List<BigItemStack> stacks = new ArrayList<>(items.length);
+        for (int i = 0; i < items.length; i++) stacks.add(new BigItemStack(items[i]));
         return tryConsumeItems(stacks, 0).first();
     }
 

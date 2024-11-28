@@ -2,6 +2,7 @@ package com.recursive_pineapple.matter_manipulator.common.items.manipulator;
 
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.min;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.signum;
+import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.AppliedEnergistics2;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +20,7 @@ import org.joml.Vector3i;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.building.AEAnalysisResult;
 import com.recursive_pineapple.matter_manipulator.common.building.AEPartData;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer;
@@ -29,6 +31,7 @@ import com.recursive_pineapple.matter_manipulator.common.uplink.IUplinkMulti;
 import com.recursive_pineapple.matter_manipulator.common.utils.ItemId;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
 import appeng.api.AEApi;
 import appeng.api.config.SecurityPermissions;
@@ -62,10 +65,15 @@ public class MMState {
     public Long encKey, uplinkAddress;
     public double charge;
 
+    @Optional(Names.APPLIED_ENERGISTICS2)
     public transient TileSecurity securityTerminal;
+    @Optional(Names.APPLIED_ENERGISTICS2)
     public transient IGridNode gridNode;
+    @Optional(Names.APPLIED_ENERGISTICS2)
     public transient IGrid grid;
+    @Optional(Names.APPLIED_ENERGISTICS2)
     public transient IStorageGrid storageGrid;
+    @Optional(Names.APPLIED_ENERGISTICS2)
     public transient IMEMonitor<IAEItemStack> itemStorage;
 
     public static MMState load(NBTTagCompound tag) {
@@ -85,6 +93,8 @@ public class MMState {
      * True if the ME system could be connected to.
      */
     public boolean hasMEConnection() {
+        if (!AppliedEnergistics2.isModLoaded()) return false;
+
         return encKey != null && securityTerminal != null
             && gridNode != null
             && grid != null
@@ -95,6 +105,7 @@ public class MMState {
     /**
      * Tries to connect to an ME system, if possible.
      */
+    @Optional(Names.APPLIED_ENERGISTICS2)
     public boolean connectToMESystem() {
         grid = null;
         storageGrid = null;
@@ -122,12 +133,15 @@ public class MMState {
         return hasMEConnection();
     }
 
+    @Optional(Names.APPLIED_ENERGISTICS2)
     private transient IWirelessAccessPoint prevAccessPoint;
 
     /**
      * Checks if the player is currently within range of an access point and the access point is online.
      */
     public boolean canInteractWithAE(EntityPlayer player) {
+        if (!AppliedEnergistics2.isModLoaded()) return false;
+
         if (grid == null) {
             return false;
         }
@@ -159,6 +173,7 @@ public class MMState {
         return false;
     }
 
+    @Optional(Names.APPLIED_ENERGISTICS2)
     private boolean checkAEDistance(EntityPlayer player, IWirelessAccessPoint accessPoint) {
         if (accessPoint != null && accessPoint.getGrid() == grid && accessPoint.isActive()) {
             DimensionalCoord coord = accessPoint.getLocation();
@@ -377,7 +392,7 @@ public class MMState {
                 getGTCables(a, b, out, block, world, stack);
             }
 
-            if (Mods.AppliedEnergistics2.isModLoaded()) {
+            if (AppliedEnergistics2.isModLoaded()) {
                 getAECables(a, b, out, block, world, stack);
             }
         }
@@ -385,6 +400,7 @@ public class MMState {
         return out;
     }
 
+    @Optional(Names.GREG_TECH)
     private void getGTCables(Vector3i a, Vector3i b, List<PendingBlock> out, Block block, World world, ItemStack cableStack) {
         if (block instanceof BlockMachines) {
             int start = 0, end = 0;
@@ -446,6 +462,7 @@ public class MMState {
         }
     }
 
+    @Optional(Names.APPLIED_ENERGISTICS2)
     private void getAECables(Vector3i a, Vector3i b, List<PendingBlock> out, Block block, World world, ItemStack cableStack) {
         if (cableStack.getItem() instanceof IPartItem partItem) {
             if (partItem.createPartFromItemStack(cableStack) instanceof IPartCable cable) {

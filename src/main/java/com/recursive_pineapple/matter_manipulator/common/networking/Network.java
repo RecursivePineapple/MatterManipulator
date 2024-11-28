@@ -12,12 +12,13 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 import com.recursive_pineapple.matter_manipulator.MMMod;
 
+import cpw.mods.fml.client.FMLClientHandler;
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.network.FMLEmbeddedChannel;
 import cpw.mods.fml.common.network.FMLOutboundHandler;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import cpw.mods.fml.relauncher.Side;
-import gregtech.api.enums.GTValues;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandler;
@@ -132,7 +133,7 @@ public class Network extends MessageToMessageCodec<FMLProxyPacket, MMPacket> {
 
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, MMPacket aPacket) {
-            final EntityPlayer aPlayer = GTValues.GT.getThePlayer();
+            final EntityPlayer aPlayer = FMLClientHandler.instance().getClientPlayerEntity();
             aPacket.process(aPlayer == null ? null : aPlayer.worldObj);
         }
     }

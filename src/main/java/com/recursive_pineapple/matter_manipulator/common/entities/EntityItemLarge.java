@@ -1,7 +1,5 @@
 package com.recursive_pineapple.matter_manipulator.common.entities;
 
-import static gregtech.api.enums.Mods.GregTech;
-
 import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -10,6 +8,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
+
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 
 import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -36,7 +36,7 @@ public class EntityItemLarge extends EntityItem {
             EntityItemLarge.class,
             "EntityItemLarge",
             EntityID.LargeItem.ID,
-            GregTech.ID,
+            Mods.MatterManipulator.ID,
             64,
             3,
             true);

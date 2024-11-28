@@ -3,6 +3,7 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 import java.util.Objects;
 
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
@@ -38,15 +39,17 @@ public class InventoryAnalysis {
     private static IItemProvider getProviderFor(ItemStack stack, boolean fuzzy) {
         if (stack == null || stack.getItem() == null) return null;
 
-        if (!fuzzy) {
-            AECellItemProvider cell = AECellItemProvider.fromWorkbenchItem(stack);
-
-            if (cell != null) return cell;
+        if (Mods.AppliedEnergistics2.isModLoaded()) {
+            if (!fuzzy) {
+                IItemProvider cell = AECellItemProvider.fromWorkbenchItem(stack);
+    
+                if (cell != null) return cell;
+            }
+    
+            IItemProvider pattern = PatternItemProvider.fromPattern(stack);
+    
+            if (pattern != null) return pattern;
         }
-
-        PatternItemProvider pattern = PatternItemProvider.fromPattern(stack);
-
-        if (pattern != null) return pattern;
 
         return fuzzy ? new PortableItemStack(stack) : PortableItemStack.withNBT(stack);
     }

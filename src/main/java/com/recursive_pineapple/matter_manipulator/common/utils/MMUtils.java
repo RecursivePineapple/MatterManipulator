@@ -16,7 +16,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Random;
 import java.util.UUID;
 import java.util.function.Function;
@@ -25,6 +24,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
@@ -62,6 +62,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.gtnewhorizon.gtnhlib.util.map.ItemStackMap;
+import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.RequiredItemAnalysis;
 import com.recursive_pineapple.matter_manipulator.common.building.IPseudoInventory;
@@ -75,14 +76,9 @@ import com.recursive_pineapple.matter_manipulator.common.networking.Messages;
 
 import appeng.api.implementations.items.IUpgradeModule;
 import appeng.api.storage.ICellWorkbenchItem;
-import appeng.api.storage.data.IAEItemStack;
 import appeng.parts.automation.UpgradeInventory;
 import appeng.util.Platform;
-import appeng.util.item.AEItemStack;
 import cpw.mods.fml.relauncher.ReflectionHelper;
-import gregtech.GTMod;
-import gregtech.api.util.GTUtility;
-import gregtech.api.util.GTUtility.ItemId;
 import it.unimi.dsi.fastutil.Pair;
 
 public class MMUtils {
@@ -199,7 +195,7 @@ public class MMUtils {
      */
     public static MovingObjectPosition getHitResult(EntityPlayer player) {
         double reachDistance = player instanceof EntityPlayerMP mp ? mp.theItemInWorldManager.getBlockReachDistance()
-            : GTUtility.getClientReachDistance();
+            : Minecraft.getMinecraft().playerController.getBlockReachDistance();
 
         Vec3 posVec = Vec3.createVectorHelper(player.posX, player.posY + player.getEyeHeight(), player.posZ);
 
@@ -218,7 +214,7 @@ public class MMUtils {
      */
     public static Vector3i getLookingAtLocation(EntityPlayer player) {
         double reachDistance = player instanceof EntityPlayerMP mp ? mp.theItemInWorldManager.getBlockReachDistance()
-            : GTUtility.getClientReachDistance();
+            : Minecraft.getMinecraft().playerController.getBlockReachDistance();
 
         Vec3 posVec = Vec3.createVectorHelper(player.posX, player.posY + player.getEyeHeight(), player.posZ);
 
@@ -587,7 +583,7 @@ public class MMUtils {
      * Array will never contain null indices.
      */
     public static PortableItemStack[] fromInventory(IInventory inventory) {
-        List<ItemStack> merged = GTUtility.mergeStacks(Arrays.asList(GTUtility.inventoryToArray(inventory, false)));
+        List<ItemStack> merged = mergeStacks(Arrays.asList(inventoryToArray(inventory, false)));
         ArrayList<PortableItemStack> out = new ArrayList<>();
 
         for (ItemStack stack : merged) {
@@ -652,6 +648,10 @@ public class MMUtils {
         } else {
             return false;
         }
+    }
+
+    public static NBTTagCompound copy(NBTTagCompound tag) {
+        return tag == null ? null : (NBTTagCompound) tag;
     }
 
     /**
@@ -849,28 +849,24 @@ public class MMUtils {
         RequiredItemAnalysis itemAnalysis = BlockAnalyzer
             .getRequiredItemsForBuild(player, blocks, (flags & PLAN_ALL) != 0);
 
-        List<IAEItemStack> requiredItems = mapToList(
+        List<BigItemStack> requiredItems = mapToList(
             itemAnalysis.requiredItems.entrySet(),
-            e -> Objects.requireNonNull(
-                AEItemStack.create(
-                    e.getKey()
-                        .getItemStack()))
-                .setStackSize(e.getValue()));
+            e -> new BigItemStack(e.getKey(), e.getValue()));
 
         MMInventory inv = new MMInventory(player, state, manipulator.tier);
 
-        Pair<Boolean, List<IAEItemStack>> extractResult = inv.tryConsumeItems(
+        Pair<Boolean, List<BigItemStack>> extractResult = inv.tryConsumeItems(
             requiredItems,
             IPseudoInventory.CONSUME_SIMULATED | IPseudoInventory.CONSUME_PARTIAL
                 | IPseudoInventory.CONSUME_IGNORE_CREATIVE);
 
-        List<IAEItemStack> availableItems = extractResult.right() == null ? new ArrayList<>() : extractResult.right();
+        List<BigItemStack> availableItems = extractResult.right() == null ? new ArrayList<>() : extractResult.right();
 
         sendInfoToPlayer(player, "Required items:");
 
         if (!requiredItems.isEmpty()) {
             requiredItems.stream()
-                .map((IAEItemStack stack) -> {
+                .map((BigItemStack stack) -> {
                     long available = availableItems.stream()
                         .filter(s -> s.isSameType(stack))
                         .mapToLong(s -> s.getStackSize())
@@ -919,10 +915,10 @@ public class MMUtils {
                         stack.decStackSize(available);
                     });
 
-                    Iterator<IAEItemStack> iter = requiredItems.iterator();
+                    Iterator<BigItemStack> iter = requiredItems.iterator();
 
                     while (iter.hasNext()) {
-                        IAEItemStack stack = iter.next();
+                        BigItemStack stack = iter.next();
 
                         if (stack.getStackSize() == 0) iter.remove();
                     }
@@ -981,7 +977,7 @@ public class MMUtils {
             try {
                 block = (Block) ITEM_REED_BLOCK.invoke(specialPlacing);
             } catch (Throwable t) {
-                GTMod.GT_FML_LOGGER.error("Could not get field ItemReed.field_150935_a for " + specialPlacing, t);
+                MMMod.LOG.error("Could not get field ItemReed.field_150935_a for " + specialPlacing, t);
                 return Blocks.air;
             }
         } else {

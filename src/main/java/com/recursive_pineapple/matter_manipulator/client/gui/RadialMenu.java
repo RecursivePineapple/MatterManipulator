@@ -20,8 +20,7 @@ import com.gtnewhorizons.modularui.api.math.Pos2d;
 import com.gtnewhorizons.modularui.api.math.Size;
 import com.gtnewhorizons.modularui.api.widget.Interactable;
 import com.gtnewhorizons.modularui.api.widget.Widget;
-
-import gregtech.api.enums.SoundResource;
+import com.recursive_pineapple.matter_manipulator.common.networking.SoundResource;
 
 /**
  * A radial menu widget that fills the whole screen.
@@ -186,7 +185,7 @@ public class RadialMenu extends Widget implements Interactable {
                 if (option.hidden.getAsBoolean()) {
                     return ClickResult.ACKNOWLEDGED;
                 } else {
-                    Minecraft.getMinecraft().thePlayer.playSound(SoundResource.RANDOM_CLICK.toString(), 0.5f, 1f);
+                    SoundResource.RANDOM_CLICK.playClient(0.5f, 1f);
                     option.onClick.onClick(this, option, mouseButton, doubleClick);
                     return ClickResult.ACCEPT;
                 }

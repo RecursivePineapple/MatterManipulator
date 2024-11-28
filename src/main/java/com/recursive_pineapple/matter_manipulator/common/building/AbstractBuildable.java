@@ -1,6 +1,8 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
 
+import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -12,7 +14,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.FluidRegistry;
@@ -23,12 +24,17 @@ import net.minecraftforge.oredict.OreDictionary;
 
 import org.joml.Vector3d;
 
+import com.recursive_pineapple.matter_manipulator.MMMod;
+import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.PendingBlock;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
+import com.recursive_pineapple.matter_manipulator.common.networking.SoundResource;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
 import appeng.api.config.Actionable;
 import appeng.api.implementations.tiles.ISegmentedInventory;
@@ -38,16 +44,11 @@ import appeng.api.parts.PartItemStack;
 import appeng.api.storage.data.IAEItemStack;
 import appeng.helpers.ICustomNameObject;
 import appeng.parts.AEBasePart;
-import cpw.mods.fml.common.Optional.Method;
 import crazypants.enderio.conduit.IConduit;
 import crazypants.enderio.conduit.IConduitBundle;
-import gregtech.GTMod;
-import gregtech.api.enums.Mods.Names;
-import gregtech.api.enums.SoundResource;
 import gregtech.api.interfaces.tileentity.ICoverable;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.interfaces.tileentity.IRedstoneEmitter;
-import gregtech.api.util.GTUtility;
 import gregtech.common.blocks.BlockOres;
 import gregtech.common.tileentities.storage.MTEDigitalChestBase;
 import it.unimi.dsi.fastutil.Pair;
@@ -73,7 +74,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
                 euUsage *= TE_PENALTY;
             }
         } catch (Throwable e) {
-            GTMod.GT_FML_LOGGER.error("Could not get Block.isBlockContainer field", e);
+            MMMod.LOG.error("Could not get Block.isBlockContainer field", e);
         }
 
         return tryConsumePower(stack, pendingBlock.x, pendingBlock.y, pendingBlock.z, euUsage);
@@ -102,7 +103,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
 
             boolean isOre = false;
 
-            if (existing instanceof BlockOres) {
+            if (GregTech.isModLoaded() && existing instanceof BlockOres) {
                 isOre = true;
             } else {
                 for (int id : OreDictionary.getOreIDs(stack)) {
@@ -125,7 +126,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         boolean gt = Mods.GregTech.isModLoaded();
         boolean eio = Mods.EnderIO.isModLoaded();
 
-        if (ae && gt) new SuperchestEmptying().emptySuperchest(te);
+        if (ae && gt) emptySuperchest(te);
         emptyTileInventory(te);
         emptyTank(te);
         if (gt) removeCovers(te);
@@ -146,18 +147,16 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         world.setBlockToAir(x, y, z);
     }
 
-    // :doom:
-    protected class SuperchestEmptying {
-        public void emptySuperchest(TileEntity te) {
-            if (te instanceof IGregTechTileEntity igte && igte.getMetaTileEntity() instanceof MTEDigitalChestBase dchest) {
-                for (IAEItemStack stack : dchest.getStorageList()) {
-                    stack = dchest.extractItems(stack, Actionable.MODULATE, null);
-    
-                    while (stack.getStackSize() > 0) {
-                        ItemStack is = stack.getItemStack();
-                        stack.decStackSize(is.stackSize);
-                        givePlayerItems(is);
-                    }
+    @Optional({ Names.GREG_TECH, Names.APPLIED_ENERGISTICS2 })
+    protected void emptySuperchest(TileEntity te) {
+        if (te instanceof IGregTechTileEntity igte && igte.getMetaTileEntity() instanceof MTEDigitalChestBase dchest) {
+            for (IAEItemStack stack : dchest.getStorageList()) {
+                stack = dchest.extractItems(stack, Actionable.MODULATE, null);
+
+                while (stack.getStackSize() > 0) {
+                    ItemStack is = stack.getItemStack();
+                    stack.decStackSize(is.stackSize);
+                    givePlayerItems(is);
                 }
             }
         }
@@ -180,7 +179,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         }
     }
 
-    @Method(modid = Names.GREG_TECH)
+    @Optional(Names.GREG_TECH)
     protected void removeCovers(TileEntity te) {
         if (te instanceof ICoverable coverable) {
             for (ForgeDirection side : ForgeDirection.VALID_DIRECTIONS) {
@@ -195,7 +194,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         }
     }
 
-    @Method(modid = Names.APPLIED_ENERGISTICS2)
+    @Optional(Names.APPLIED_ENERGISTICS2)
     protected void resetAEMachine(Object machine) {
         if (machine instanceof ISegmentedInventory segmentedInventory) {
             IInventory upgrades = segmentedInventory.getInventoryByName("upgrades");
@@ -263,7 +262,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         }
     }
 
-    @Method(modid = Names.GREG_TECH)
+    @Optional(Names.GREG_TECH)
     protected void resetGTMachine(TileEntity te) {
         if (te instanceof IRedstoneEmitter emitter) {
             for (ForgeDirection side : ForgeDirection.VALID_DIRECTIONS) {
@@ -272,7 +271,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         }
     }
 
-    @Method(modid = Names.ENDER_I_O)
+    @Optional(Names.ENDER_I_O)
     protected void resetConduitBundle(TileEntity te) {
         if (te instanceof IConduitBundle bundle) {
             for (IConduit conduit : bundle.getConduits()) {
@@ -317,7 +316,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
 
             float distance = (float) new Vector3d(player.posX - avgX, player.posY - avgY, player.posZ - avgZ).length();
 
-            GTUtility.sendSoundToPlayers(pair.right(), pair.left(), (distance / 16f) + 1, -1, avgX, avgY, avgZ);
+            pair.left().sendPlayToAll(new Location(pair.right(), avgX, avgY, avgZ), (distance / 16f) + 1, -1);
         });
         pendingSounds.clear();
     }
@@ -331,9 +330,9 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         if (!world.canMineBlock(player, x, y, z) || MinecraftServer.getServer().isBlockProtected(world, x, y, z, player)) {
             // spotless:on
             if (!printedProtectedBlockWarning) {
-                GTUtility.sendChatToPlayer(
+                MMUtils.sendWarningToPlayer(
                     player,
-                    EnumChatFormatting.GOLD + "Tried to break/place a block in a protected area!");
+                    "Tried to break/place a block in a protected area!");
                 printedProtectedBlockWarning = true;
             }
 

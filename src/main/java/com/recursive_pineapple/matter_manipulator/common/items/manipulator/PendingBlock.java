@@ -4,12 +4,13 @@ import java.util.Comparator;
 import java.util.Optional;
 
 import com.recursive_pineapple.matter_manipulator.common.building.TileAnalysisResult;
+import com.recursive_pineapple.matter_manipulator.common.utils.Lazy;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
 import appeng.api.AEApi;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
-import gregtech.api.util.Lazy;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -141,6 +142,7 @@ public class PendingBlock extends Location {
         return toStack().getDisplayName() + (tileData == null ? "" : tileData.getItemDetails());
     }
 
+    @com.recursive_pineapple.matter_manipulator.asm.Optional(Names.APPLIED_ENERGISTICS2)
     public static final Lazy<Block> AE_BLOCK_CABLE = new Lazy<>(
         () -> AEApi.instance()
             .definitions()

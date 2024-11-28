@@ -4,10 +4,11 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.common.collect.MapMaker;
+import com.recursive_pineapple.matter_manipulator.common.building.IPseudoInventory;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
+import com.recursive_pineapple.matter_manipulator.common.utils.BigFluidStack;
+import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
 
-import appeng.api.storage.data.IAEFluidStack;
-import appeng.api.storage.data.IAEItemStack;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import it.unimi.dsi.fastutil.Pair;
@@ -29,17 +30,17 @@ public interface IUplinkMulti {
     /**
      * See {@link IPseudoInventory#tryConsumeItems(List, int)}
      */
-    public Pair<UplinkStatus, List<IAEItemStack>> tryConsumeItems(List<IAEItemStack> requestedItems, boolean simulate, boolean fuzzy);
+    public Pair<UplinkStatus, List<BigItemStack>> tryConsumeItems(List<BigItemStack> requestedItems, boolean simulate, boolean fuzzy);
 
     /**
      * See {@link IPseudoInventory#givePlayerItems(ItemStack...)}
      */
-    public UplinkStatus tryGivePlayerItems(List<IAEItemStack> items);
+    public UplinkStatus tryGivePlayerItems(List<BigItemStack> items);
 
     /**
      * See {@link IPseudoInventory#givePlayerFluids(FluidStack...)}
      */
-    public UplinkStatus tryGivePlayerFluids(List<IAEFluidStack> fluids);
+    public UplinkStatus tryGivePlayerFluids(List<BigFluidStack> fluids);
 
     /**
      * Submits a new plan to the ME hatch.
@@ -47,7 +48,7 @@ public interface IUplinkMulti {
      * @param details   Some extra details for the plan
      * @param autocraft When true, the plan will be automatically crafted
      */
-    public void submitPlan(EntityPlayer submitter, String details, List<IAEItemStack> requiredItems, boolean autocraft);
+    public void submitPlan(EntityPlayer submitter, String details, List<BigItemStack> requiredItems, boolean autocraft);
 
     /**
      * Clears any manual plans

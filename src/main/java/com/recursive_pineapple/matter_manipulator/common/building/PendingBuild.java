@@ -1,17 +1,23 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
+import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
+import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.PendingBlock;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
+import com.recursive_pineapple.matter_manipulator.common.networking.SoundResource;
+import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
@@ -26,9 +32,6 @@ import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.FluidStack;
 
-import appeng.api.storage.data.IAEItemStack;
-import appeng.util.item.AEItemStack;
-import gregtech.api.enums.SoundResource;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import it.unimi.dsi.fastutil.Pair;
@@ -192,7 +195,7 @@ public class PendingBuild extends AbstractBuildable {
             if (item != null) {
                 item.stackSize = toPlace.size();
 
-                List<IAEItemStack> extracted = tryConsumeItems(Arrays.asList(AEItemStack.create(item)), CONSUME_PARTIAL)
+                List<BigItemStack> extracted = tryConsumeItems(Arrays.asList(new BigItemStack(item)), CONSUME_PARTIAL)
                     .right();
 
                 ItemStack extractedStack = extracted.size() == 1 ? extracted.get(0)
@@ -316,7 +319,7 @@ public class PendingBuild extends AbstractBuildable {
         }
 
         @Override
-        public Pair<Boolean, List<IAEItemStack>> tryConsumeItems(List<IAEItemStack> items, int flags) {
+        public Pair<Boolean, List<BigItemStack>> tryConsumeItems(List<BigItemStack> items, int flags) {
             return PendingBuild.this.tryConsumeItems(items, flags);
         }
 
@@ -335,15 +338,7 @@ public class PendingBuild extends AbstractBuildable {
             String blockName = null;
 
             if (pendingBlock.isInWorld(player.worldObj)) {
-                if (player.worldObj.getTileEntity(
-                    pendingBlock.x,
-                    pendingBlock.y,
-                    pendingBlock.z) instanceof IGregTechTileEntity igte) {
-                    IMetaTileEntity imte = igte.getMetaTileEntity();
-                    if (imte != null) {
-                        blockName = imte.getLocalName();
-                    }
-                }
+                if (GregTech.isModLoaded()) blockName = getGTBlockName(pendingBlock);
 
                 if (blockName == null) {
                     blockName = PendingBlock.fromBlock(player.worldObj, pendingBlock.x, pendingBlock.y, pendingBlock.z)
@@ -369,15 +364,7 @@ public class PendingBuild extends AbstractBuildable {
             String blockName = null;
 
             if (pendingBlock.isInWorld(player.worldObj)) {
-                if (player.worldObj.getTileEntity(
-                    pendingBlock.x,
-                    pendingBlock.y,
-                    pendingBlock.z) instanceof IGregTechTileEntity igte) {
-                    IMetaTileEntity imte = igte.getMetaTileEntity();
-                    if (imte != null) {
-                        blockName = imte.getLocalName();
-                    }
-                }
+                if (GregTech.isModLoaded()) blockName = getGTBlockName(pendingBlock);
 
                 if (blockName == null) {
                     blockName = PendingBlock.fromBlock(player.worldObj, pendingBlock.x, pendingBlock.y, pendingBlock.z)
@@ -396,5 +383,20 @@ public class PendingBuild extends AbstractBuildable {
                     blockName != null ? " (" + blockName + ")" : "",
                     message));
         }
+    }
+
+    @Optional(Names.GREG_TECH)
+    private String getGTBlockName(PendingBlock pendingBlock) {
+        if (player.worldObj.getTileEntity(
+            pendingBlock.x,
+            pendingBlock.y,
+            pendingBlock.z) instanceof IGregTechTileEntity igte) {
+            IMetaTileEntity imte = igte.getMetaTileEntity();
+            if (imte != null) {
+                return imte.getLocalName();
+            }
+        }
+
+        return null;
     }
 }

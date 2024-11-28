@@ -33,6 +33,9 @@
  *
  * For more details, see https://docs.gradle.org/8.0.1/userguide/java_library_plugin.html#sec:java_library_configurations_graph
  */
+
+def asmVersion = "9.7"
+
 dependencies {
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:NotEnoughItems:2.6.46-GTNH:dev")
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:Hodgepodge:99.99.99:dev")
@@ -45,9 +48,19 @@ dependencies {
 
     compileOnly("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-477-GTNH:dev") { transitive = false }
     compileOnly("com.github.GTNewHorizons:BloodMagic:1.6.7:dev") { transitive = false }
+    compileOnly("curse.maven:cofh-lib-220333:2388748") { transitive = false }
     compileOnly("com.github.GTNewHorizons:EnderIO:2.8.22:dev") { transitive = false }
+    compileOnly("com.github.GTNewHorizons:ForgeMultipart:1.4.7:dev") { transitive = false }
     compileOnly("com.github.GTNewHorizons:GT5-Unofficial:99.99.99:dev") { transitive = false }
+    compileOnly("curse.maven:mekanism-268560:2475797") { transitive = false }
+    compileOnly("com.github.GTNewHorizons:OpenComputers:1.10.6-GTNH:dev") { transitive = false }
+
+    compileOnly deobf("https://www.immibis.com/mcmoddl/files/immibis-microblocks-59.1.2.jar", "immibis-microblocks-59.1.2")
+    compileOnly deobf("https://www.immibis.com/mcmoddl/files/immibis-core-59.1.4.jar", "immibis-core-59.1.4")
 
     compileOnly("com.google.auto.value:auto-value-annotations:1.10.1") { transitive = false }
     annotationProcessor("com.google.auto.value:auto-value:1.10.1")
+
+    implementation("org.ow2.asm:asm:${asmVersion}")
+    implementation("org.ow2.asm:asm-tree:${asmVersion}")
 }

@@ -25,11 +25,11 @@ import com.recursive_pineapple.matter_manipulator.Config;
 import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.PendingBlock;
+import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.FluidId;
 import com.recursive_pineapple.matter_manipulator.common.utils.ItemId;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 
-import appeng.api.storage.data.IAEItemStack;
 import it.unimi.dsi.fastutil.Pair;
 
 public class BlockAnalyzer {
@@ -195,7 +195,7 @@ public class BlockAnalyzer {
         }
 
         @Override
-        public Pair<Boolean, List<IAEItemStack>> tryConsumeItems(List<IAEItemStack> items, int flags) {
+        public Pair<Boolean, List<BigItemStack>> tryConsumeItems(List<BigItemStack> items, int flags) {
             return build.tryConsumeItems(items, flags);
         }
 
@@ -260,13 +260,13 @@ public class BlockAnalyzer {
         }
 
         @Override
-        public Pair<Boolean, List<IAEItemStack>> tryConsumeItems(List<IAEItemStack> items, int flags) {
+        public Pair<Boolean, List<BigItemStack>> tryConsumeItems(List<BigItemStack> items, int flags) {
             boolean simulate = (flags & CONSUME_SIMULATED) != 0;
             boolean fuzzy = (flags & CONSUME_FUZZY) != 0;
 
-            List<IAEItemStack> extractedItems = new ArrayList<>();
+            List<BigItemStack> extractedItems = new ArrayList<>();
 
-            for (IAEItemStack req : items) {
+            for (BigItemStack req : items) {
                 if (req.getStackSize() == 0) {
                     continue;
                 }

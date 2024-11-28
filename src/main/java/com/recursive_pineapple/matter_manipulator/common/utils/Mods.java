@@ -15,6 +15,7 @@ public enum Mods {
     EnderIO(Names.ENDER_I_O),
     ForgeMicroblocks(Names.FORGE_MICROBLOCKS),
     GregTech(Names.GREG_TECH),
+    GTPlusPlus(Names.G_T_PLUS_PLUS),
     LogisticsPipes(Names.LOGISTICS_PIPES),
     MatterManipulator(Names.MATTER_MANIPULATOR),
     Minecraft(Names.MINECRAFT),
@@ -33,6 +34,7 @@ public enum Mods {
         public static final String LOGISTICS_PIPES = "LogisticsPipes";
         public static final String MATTER_MANIPULATOR = "matter-manipulator";
         public static final String MINECRAFT = "minecraft";
+        public static final String G_T_PLUS_PLUS = "miscutils";
         public static final String STORAGE_DRAWERS = "StorageDrawers";
     }
 

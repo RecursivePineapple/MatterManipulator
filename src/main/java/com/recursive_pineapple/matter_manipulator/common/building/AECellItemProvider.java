@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 
 import net.minecraft.inventory.IInventory;
@@ -13,10 +14,7 @@ import appeng.api.AEApi;
 import appeng.api.config.FuzzyMode;
 import appeng.api.definitions.IItemDefinition;
 import appeng.api.storage.ICellWorkbenchItem;
-import appeng.api.storage.data.IAEItemStack;
 import appeng.parts.automation.UpgradeInventory;
-import appeng.util.item.AEItemStack;
-import gregtech.api.util.GTUtility;
 
 /**
  * An item provider that creates AE cells.
@@ -83,13 +81,13 @@ public class AECellItemProvider implements IItemProvider {
 
         if (consume) {
             var result = inv
-                .tryConsumeItems(MMUtils.mapToList(items, AEItemStack::create), IPseudoInventory.CONSUME_FUZZY);
+                .tryConsumeItems(MMUtils.mapToList(items, BigItemStack::new), IPseudoInventory.CONSUME_FUZZY);
 
             if (!result.left()) {
                 return null;
             }
 
-            for (IAEItemStack extracted : result.right()) {
+            for (BigItemStack extracted : result.right()) {
                 ItemStack extractedStack = extracted.getItemStack();
 
                 if (extractedStack.isItemEqual(cell)) {
@@ -134,7 +132,7 @@ public class AECellItemProvider implements IItemProvider {
             .cardOreFilter();
 
         if (upgrades != null) {
-            if (GTUtility.streamInventory(upgrades)
+            if (MMUtils.streamInventory(upgrades)
                 .anyMatch(oredictCard::isSameAs)) {
                 cellWorkbenchItem.setOreFilter(cell, mOreDict);
             }

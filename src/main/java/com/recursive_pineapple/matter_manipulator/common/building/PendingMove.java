@@ -4,11 +4,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.PendingBlock;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
+import com.recursive_pineapple.matter_manipulator.common.networking.SoundResource;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
@@ -16,14 +20,10 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 
 import WayofTime.alchemicalWizardry.api.event.TeleposeEvent;
-import gregtech.api.enums.Mods;
-import gregtech.api.enums.Mods.Names;
-import gregtech.api.enums.SoundResource;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.interfaces.tileentity.IIC2Enet;
 import gregtech.api.metatileentity.BaseMetaTileEntity;
@@ -285,20 +285,22 @@ public class PendingMove extends AbstractBuildable {
             newTileEntityF.yCoord = yi;
             newTileEntityF.zCoord = zi;
 
-            if (newTileEntityF instanceof IGregTechTileEntity igte
-                && igte.getMetaTileEntity() instanceof BaseMetaTileEntity bmte) {
-                bmte.setCableUpdateDelay(100);
-            }
-
-            if (newTileEntityF instanceof IIC2Enet enet) {
-                enet.doEnetUpdate();
+            if (Mods.GregTech.isModLoaded()) {
+                if (newTileEntityF instanceof IGregTechTileEntity igte
+                    && igte.getMetaTileEntity() instanceof BaseMetaTileEntity bmte) {
+                    bmte.setCableUpdateDelay(100);
+                }
+    
+                if (newTileEntityF instanceof IIC2Enet enet) {
+                    enet.doEnetUpdate();
+                }
             }
         }
 
         return true;
     }
 
-    @cpw.mods.fml.common.Optional.Method(modid = Names.BLOOD_MAGIC)
+    @Optional(Names.BLOOD_MAGIC)
     private static boolean allowTelepose(World worldI, World worldF, PendingBlock s, PendingBlock d) {
         TeleposeEvent evt = new TeleposeEvent(
             worldI,

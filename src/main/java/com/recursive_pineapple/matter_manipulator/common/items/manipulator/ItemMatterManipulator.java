@@ -83,7 +83,6 @@ import appeng.api.parts.PartItemStack;
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Optional.Interface;
-import cpw.mods.fml.common.Optional.Method;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.InputEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
@@ -94,6 +93,7 @@ import gregtech.api.interfaces.metatileentity.IMetaTileEntityCable;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntityPipe;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 
+import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMConfig.VoxelAABB;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.BlockRemoveMode;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.BlockSelectMode;
@@ -861,7 +861,7 @@ public class ItemMatterManipulator extends Item
             String.format("Set cables to: %s", selected == null ? "nothing" : selected.getDisplayName()));
     }
 
-    @Method(modid = Names.GREG_TECH)
+    @Optional(Names.GREG_TECH)
     private ItemStack pickGTCable(World world, EntityPlayer player, MovingObjectPosition hit, TileEntity te) {
         if (te instanceof IGregTechTileEntity igte && (igte.getMetaTileEntity() instanceof IMetaTileEntityCable
             || igte.getMetaTileEntity() instanceof IMetaTileEntityPipe)) {
@@ -873,7 +873,7 @@ public class ItemMatterManipulator extends Item
         }
     }
 
-    @Method(modid = Names.APPLIED_ENERGISTICS2)
+    @Optional(Names.APPLIED_ENERGISTICS2)
     private ItemStack pickAECable(TileEntity te) {
         if (te instanceof IPartHost partHost && partHost.getPart(ForgeDirection.UNKNOWN) instanceof IPartCable cable) {
             return cable.getItemStack(PartItemStack.Pick);

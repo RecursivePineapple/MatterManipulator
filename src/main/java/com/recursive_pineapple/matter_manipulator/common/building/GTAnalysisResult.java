@@ -10,15 +10,15 @@ import com.google.gson.JsonElement;
 import com.gtnewhorizon.structurelib.alignment.IAlignment;
 import com.gtnewhorizon.structurelib.alignment.IAlignmentProvider;
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
+import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockAnalysisContext;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 
 import appeng.helpers.ICustomNameObject;
-import appeng.util.IWideReadableNumberConverter;
 import appeng.util.ReadableNumberConverter;
-import gregtech.GTMod;
 import gregtech.api.enums.ItemList;
 import gregtech.api.enums.VoidingMode;
 import gregtech.api.interfaces.IConfigurationCircuitSupport;
@@ -161,10 +161,12 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
                 mGTGhostCircuit = 0;
             } else if (circuit.getItem() == ItemList.Circuit_Integrated.getItem()) {
                 mGTGhostCircuit = (byte) Items.feather.getDamage(circuit);
-            } else if (circuit.getItem() == GregtechItemList.Circuit_BioRecipeSelector.getItem()) {
-                mGTGhostCircuit = (byte) (Items.feather.getDamage(circuit) + 24);
-            } else if (circuit.getItem() == GregtechItemList.Circuit_T3RecipeSelector.getItem()) {
-                mGTGhostCircuit = (byte) (Items.feather.getDamage(circuit) + 48);
+            } else if (Mods.GTPlusPlus.isModLoaded()) {
+                if (circuit.getItem() == GregtechItemList.Circuit_BioRecipeSelector.getItem()) {
+                    mGTGhostCircuit = (byte) (Items.feather.getDamage(circuit) + 24);
+                } else if (circuit.getItem() == GregtechItemList.Circuit_T3RecipeSelector.getItem()) {
+                    mGTGhostCircuit = (byte) (Items.feather.getDamage(circuit) + 48);
+                }
             }
         }
 
@@ -215,7 +217,7 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
                 }
             } catch (Throwable t) {
                 // Probably an NPE, but we're catching Throwable just to be safe
-                GTMod.GT_FML_LOGGER.error("Could not copy IDataCopyable's data", t);
+                MMMod.LOG.error("Could not copy IDataCopyable's data", t);
             }
         }
 
@@ -403,7 +405,7 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
                     }
                 } catch (Throwable t) {
                     // Probably an NPE, but we're catching Throwable just to be safe
-                    GTMod.GT_FML_LOGGER.error("Could not paste IDataCopyable's data", t);
+                    MMMod.LOG.error("Could not paste IDataCopyable's data", t);
                 }
             }
 
@@ -494,7 +496,7 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
     @Override
     public void getItemDetails(List<String> details) {
         if (mGTMEBusCapacity != 0) {
-            IWideReadableNumberConverter nc = ReadableNumberConverter.INSTANCE;
+            ReadableNumberConverter nc = ReadableNumberConverter.INSTANCE;
             details.add(String.format("cache capacity: %s", nc.toWideReadableForm(mGTMEBusCapacity)));
         }
     }

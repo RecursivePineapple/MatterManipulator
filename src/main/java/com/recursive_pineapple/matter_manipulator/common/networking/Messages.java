@@ -1,5 +1,8 @@
 package com.recursive_pineapple.matter_manipulator.common.networking;
 
+import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.AppliedEnergistics2;
+import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
+
 import java.util.ArrayList;
 import java.util.function.BiConsumer;
 
@@ -11,6 +14,7 @@ import net.minecraft.network.INetHandler;
 import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import org.jetbrains.annotations.Nullable;
@@ -23,10 +27,9 @@ import com.gtnewhorizons.modularui.common.internal.network.NetworkUtils;
 import cpw.mods.fml.common.network.NetworkRegistry.TargetPoint;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import gregtech.GTMod;
-import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 
 import com.recursive_pineapple.matter_manipulator.Config;
+import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
@@ -41,6 +44,7 @@ import com.recursive_pineapple.matter_manipulator.common.uplink.UplinkState;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 
 import io.netty.buffer.ByteBuf;
+import it.unimi.dsi.fastutil.Pair;
 
 /**
  * Contains all networking messages that the manipulator can send.
@@ -196,6 +200,7 @@ public enum Messages {
             if (theWorld.provider.dimensionId == packet.worldId) {
                 Location l = packet.getLocation();
 
+                // TODO: fix this
                 // if (theWorld.getTileEntity(l.x, l.y, l.z) instanceof IGregTechTileEntity igte
                 //     && igte.getMetaTileEntity() instanceof IUplinkMulti uplink) {
                 //     uplink.setState(packet.getState());
@@ -243,7 +248,7 @@ public enum Messages {
 
                 int result = 0;
 
-                if (manipulator.tier.hasCap(ItemMatterManipulator.CONNECTS_TO_AE)) {
+                if (manipulator.tier.hasCap(ItemMatterManipulator.CONNECTS_TO_AE) && AppliedEnergistics2.isModLoaded()) {
                     if (state.connectToMESystem()) {
                         result |= MMUtils.TOOLTIP_HAS_AE;
                         if (state.canInteractWithAE(player)) {
@@ -252,7 +257,7 @@ public enum Messages {
                     }
                 }
 
-                if (manipulator.tier.hasCap(ItemMatterManipulator.CONNECTS_TO_UPLINK)) {
+                if (manipulator.tier.hasCap(ItemMatterManipulator.CONNECTS_TO_UPLINK) && GregTech.isModLoaded()) {
                     if (state.uplinkAddress != null) {
                         result |= MMUtils.TOOLTIP_HAS_UPLINK;
                         if (state.connectToUplink()) {
@@ -300,6 +305,38 @@ public enum Messages {
         state.config.transform.rotate(ForgeDirection.VALID_DIRECTIONS[dir], amount);
         player.inventoryContainer.detectAndSendChanges();
     }))),
+    PlaySound(client(new ISimplePacketHandler<Messages.SoundPacket>() {
+
+        @Override
+        @SideOnly(Side.CLIENT)
+        public void handle(EntityPlayer player, SoundPacket packet) {
+            if (packet.worldId == Minecraft.getMinecraft().theWorld.provider.dimensionId) {
+                int x = CoordinatePacker.unpackX(packet.location);
+                int y = CoordinatePacker.unpackY(packet.location);
+                int z = CoordinatePacker.unpackZ(packet.location);
+
+                SoundResource[] sounds = SoundResource.values();
+
+                if (packet.sound < 0 || packet.sound >= sounds.length) return;
+
+                Minecraft.getMinecraft().theWorld.playSound(x, y, z, null, y, z, false);
+            }
+        }
+
+        @Override
+        public SoundPacket getNewPacket(Messages message, @Nullable Object value) {
+            @SuppressWarnings("unchecked")
+            Pair<Location, SoundResource> sound = (Pair<Location, SoundResource>) value;
+
+            SoundPacket packet = new SoundPacket(message);
+
+            packet.worldId = sound.left().worldId;
+            packet.location = CoordinatePacker.pack(sound.left().x, sound.left().y, sound.left().z);
+            packet.sound = sound.right().ordinal();
+
+            return packet;
+        }
+    })),
 
     ;
 
@@ -323,7 +360,7 @@ public enum Messages {
 
     public void sendToServer(Object data) {
         if (Config.D1) {
-            GTMod.GT_FML_LOGGER.info("Sending packet to server: " + this + "; " + data);
+            MMMod.LOG.info("Sending packet to server: " + this + "; " + data);
         }
         CHANNEL.sendToServer(getNewPacket(data));
     }
@@ -334,7 +371,7 @@ public enum Messages {
 
     public void sendToPlayer(EntityPlayerMP player, Object data) {
         if (Config.D1) {
-            GTMod.GT_FML_LOGGER.info("Sending packet to player: " + this + "; " + data + "; " + player);
+            MMMod.LOG.info("Sending packet to player: " + this + "; " + data + "; " + player);
         }
         CHANNEL.sendToPlayer(getNewPacket(data), player);
     }
@@ -345,7 +382,7 @@ public enum Messages {
 
     public void sendToPlayersAround(Location location, Object data) {
         if (Config.D1) {
-            GTMod.GT_FML_LOGGER
+            MMMod.LOG
                 .info("Sending packet to players around " + location.toString() + ": " + this + "; " + data);
         }
         CHANNEL.sendToAllAround(
@@ -353,10 +390,32 @@ public enum Messages {
             new TargetPoint(location.worldId, location.x, location.y, location.z, 256d));
     }
 
+    public void sendToPlayersWithinRange(Location location, Object data) {
+        if (Config.D1) {
+            MMMod.LOG
+                .info("Sending packet to players around " + location.toString() + ": " + this + "; " + data);
+        }
+
+        World world = location.getWorld();
+
+        MMPacket packet = getNewPacket(data);
+
+        for (EntityPlayer p : world.playerEntities) {
+            EntityPlayerMP player = (EntityPlayerMP) p;
+
+            Chunk chunk = world.getChunkFromBlockCoords(location.x, location.z);
+            if (player.getServerForPlayer()
+                .getPlayerManager()
+                .isPlayerWatchingChunk(player, chunk.xPosition, chunk.zPosition)) {
+                CHANNEL.sendToPlayer(packet, player);
+            }
+        }
+    }
+
     @SuppressWarnings("unchecked")
     public void handle(EntityPlayer player, SimplePacket packet) {
         if (Config.D1) {
-            GTMod.GT_FML_LOGGER
+            MMMod.LOG
                 .info("Handling packet: " + this + "; " + packet + "; " + player + "; " + NetworkUtils.isClient());
         }
         ((ISimplePacketHandler<SimplePacket>) handler).handle(player, packet);
@@ -529,7 +588,7 @@ public enum Messages {
             @Override
             public void handle(EntityPlayer player, T packet) {
                 if (player == null) {
-                    GTMod.GT_FML_LOGGER
+                    MMMod.LOG
                         .error("Client received server packet, it will be ignored: " + packet.message.name());
                     return;
                 }
@@ -553,7 +612,7 @@ public enum Messages {
             @Override
             public void handle(EntityPlayer player, T packet) {
                 if (player != null) {
-                    GTMod.GT_FML_LOGGER
+                    MMMod.LOG
                         .error("Server received client packet, it will be ignored: " + packet.message.name());
                     return;
                 }
@@ -693,7 +752,6 @@ public enum Messages {
                     setter.set(player, held, manipulator, state, packet.value);
 
                     ItemMatterManipulator.setState(held, state);
-                    System.out.println("state: " + (state));
                 }
             }
 
@@ -704,5 +762,74 @@ public enum Messages {
                 return packet;
             }
         };
+    }
+
+    @SideOnly(Side.SERVER)
+    public static void sendSoundToPlayer(EntityPlayerMP player, World world, int x, int y, int z, SoundResource sound, float strength, float pitch) {
+        SoundPacket packet = new SoundPacket(Messages.PlaySound);
+
+        packet.worldId = world.provider.dimensionId;
+        packet.location = CoordinatePacker.pack(x, y, z);
+        packet.sound = sound.ordinal();
+        packet.strength = strength;
+        packet.pitch = pitch;
+
+        CHANNEL.sendToPlayer(packet, player);
+    }
+
+    @SideOnly(Side.SERVER)
+    public static void sendSoundToAllWithinRange(World world, int x, int y, int z, SoundResource sound, float strength, float pitch) {
+        SoundPacket packet = new SoundPacket(Messages.PlaySound);
+
+        packet.worldId = world.provider.dimensionId;
+        packet.location = CoordinatePacker.pack(x, y, z);
+        packet.sound = sound.ordinal();
+        packet.strength = strength;
+        packet.pitch = pitch;
+
+        for (EntityPlayer p : world.playerEntities) {
+            EntityPlayerMP player = (EntityPlayerMP) p;
+
+            Chunk chunk = world.getChunkFromBlockCoords(x, z);
+            if (player.getServerForPlayer()
+                .getPlayerManager()
+                .isPlayerWatchingChunk(player, chunk.xPosition, chunk.zPosition)) {
+                CHANNEL.sendToPlayer(packet, player);
+            }
+        }
+    }
+
+    private static class SoundPacket extends SimplePacket {
+
+        public int worldId;
+        public long location;
+        public int sound;
+        public float strength, pitch;
+
+        public SoundPacket(Messages message) {
+            super(message);
+        }
+
+        @Override
+        public void encode(ByteBuf buffer) {
+            buffer.writeInt(worldId);
+            buffer.writeLong(location);
+            buffer.writeInt(sound);
+            buffer.writeFloat(strength);
+            buffer.writeFloat(pitch);
+        }
+
+        @Override
+        public MMPacket decode(ByteArrayDataInput buffer) {
+            SoundPacket message = new SoundPacket(super.message);
+
+            message.worldId = buffer.readInt();
+            message.location = buffer.readLong();
+            message.sound = buffer.readInt();
+            message.strength = buffer.readFloat();
+            message.pitch = buffer.readFloat();
+
+            return message;
+        }
     }
 }

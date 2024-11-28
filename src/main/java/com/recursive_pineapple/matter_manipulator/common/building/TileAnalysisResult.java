@@ -36,13 +36,13 @@ public class TileAnalysisResult {
 
     public TileAnalysisResult(IBlockAnalysisContext context, TileEntity te) {
 
-        if (Mods.GregTech.isModLoaded()) {
-            gt = GTAnalysisResult.analyze(context, te);
-        }
+        // if (Mods.GregTech.isModLoaded()) {
+        //     gt = GTAnalysisResult.analyze(context, te);
+        // }
 
-        if (Mods.AppliedEnergistics2.isModLoaded()) {
-            ae = AEAnalysisResult.analyze(context, te);
-        }
+        // if (Mods.AppliedEnergistics2.isModLoaded()) {
+        //     ae = AEAnalysisResult.analyze(context, te);
+        // }
 
         // check its inventory
         if (te instanceof IInventory inventory) {
@@ -61,13 +61,8 @@ public class TileAnalysisResult {
     public boolean apply(IBlockApplyContext ctx) {
         TileEntity te = ctx.getTileEntity();
 
-        if (Mods.GregTech.isModLoaded()) {
-            gt.apply(ctx);
-        }
-
-        if (Mods.AppliedEnergistics2.isModLoaded()) {
-            ae.apply(ctx);
-        }
+        if (gt != null) gt.apply(ctx);
+        if (ae != null) ae.apply(ctx);
 
         // update the inventory
         if (te instanceof IInventory inventory && mInventory != null) {

@@ -1,7 +1,5 @@
 package com.recursive_pineapple.matter_manipulator.client.rendering;
 
-import static gregtech.api.enums.Mods.GregTech;
-
 import java.nio.ByteBuffer;
 import java.util.List;
 
@@ -20,6 +18,7 @@ import com.gtnewhorizon.gtnhlib.client.renderer.quad.QuadView;
 import com.gtnewhorizon.gtnhlib.client.renderer.shader.ShaderProgram;
 import com.gtnewhorizon.gtnhlib.client.renderer.vbo.VertexBuffer;
 import com.gtnewhorizon.gtnhlib.client.renderer.vertex.DefaultVertexFormat;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 
 public class BoxRenderer {
 
@@ -30,7 +29,7 @@ public class BoxRenderer {
 
     public BoxRenderer() {
         program = new ShaderProgram(
-            GregTech.resourceDomain,
+            Mods.MatterManipulator.resourceDomain,
             "shaders/fancybox.vert.glsl",
             "shaders/fancybox.frag.glsl");
 
