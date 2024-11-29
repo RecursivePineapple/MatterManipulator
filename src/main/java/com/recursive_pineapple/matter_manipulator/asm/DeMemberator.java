@@ -8,13 +8,10 @@ import java.util.List;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
-import org.objectweb.asm.tree.LocalVariableNode;
 import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.VarInsnNode;
 
 import com.gtnewhorizon.gtnhlib.asm.ClassConstantPoolParser;
 
@@ -51,14 +48,14 @@ public class DeMemberator implements IClassTransformer {
 
             Iterator<MethodNode> methods = node.methods.iterator();
 
-            outer: while (methods.hasNext()) {
+            while (methods.hasNext()) {
                 MethodNode method = methods.next();
 
                 if (method.invisibleAnnotations != null) {
                     for (AnnotationNode an : method.invisibleAnnotations) {
                         if (shouldBeRemoved(an)) {
                             methods.remove();
-                            continue outer;
+                            break;
                         }
                     }
                 }

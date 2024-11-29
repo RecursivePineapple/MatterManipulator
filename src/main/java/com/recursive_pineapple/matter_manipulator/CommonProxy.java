@@ -4,6 +4,7 @@ import com.recursive_pineapple.matter_manipulator.common.entities.EntityItemLarg
 import com.recursive_pineapple.matter_manipulator.common.items.MMItems;
 import com.recursive_pineapple.matter_manipulator.common.networking.Messages;
 import com.recursive_pineapple.matter_manipulator.common.recipes.ManipulatorRecipes;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
@@ -23,7 +24,10 @@ public class CommonProxy {
 
     public void init(FMLInitializationEvent event) {
         EntityItemLarge.registerCommon();
-        ManipulatorRecipes.addRecipes();
+
+        if (Mods.GregTech.isModLoaded()) {
+            ManipulatorRecipes.addRecipes();
+        }
     }
 
     public void postInit(FMLPostInitializationEvent event) {}
