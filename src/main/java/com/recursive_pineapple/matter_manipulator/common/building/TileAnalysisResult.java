@@ -9,8 +9,10 @@ import com.recursive_pineapple.matter_manipulator.common.building.AnalysisHacks.
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockAnalysisContext;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
+import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 
+import ic2.api.tile.IWrenchable;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -49,7 +51,11 @@ public class TileAnalysisResult {
             mInventory = InventoryAnalysis.fromInventory(inventory, false);
         }
 
-        mDirection = nullIfUnknown(RotationHacks.getRotation(te));
+        if (te instanceof IWrenchable wrenchable) {
+            mDirection = MMUtils.getIndexSafe(ForgeDirection.VALID_DIRECTIONS, wrenchable.getFacing());
+        } else {
+            mDirection = nullIfUnknown(RotationHacks.getRotation(te));
+        }
     }
 
     private static final TileAnalysisResult NO_OP = new TileAnalysisResult();
@@ -70,7 +76,11 @@ public class TileAnalysisResult {
         }
 
         if (mDirection != null) {
-            RotationHacks.setRotation(te, mDirection);
+            if (te instanceof IWrenchable wrenchable) {
+                wrenchable.setFacing((short) mDirection.ordinal());
+            } else {
+                RotationHacks.setRotation(te, mDirection);
+            }
         }
 
         return true;

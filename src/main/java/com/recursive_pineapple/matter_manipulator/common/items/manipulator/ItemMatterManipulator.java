@@ -558,15 +558,17 @@ public class ItemMatterManipulator extends Item
     public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer player) {
         MMState state = getState(stack);
 
-        MovingObjectPosition hit = MMUtils.getHitResult(player);
-
         if (state.config.action != null) {
+            MovingObjectPosition hit = MMUtils.getHitResult(player, true);
+    
             if (handleAction(stack, world, player, state, hit)) {
                 setState(stack, state);
 
                 return stack;
             }
         }
+
+        MovingObjectPosition hit = MMUtils.getHitResult(player, false);
 
         if (hit != null) {
             Location location = new Location(world, hit.blockX, hit.blockY, hit.blockZ);
@@ -724,17 +726,17 @@ public class ItemMatterManipulator extends Item
 
     public void onMMBPressed(EntityPlayer player, ItemStack stack, MMState state) {
         if (state.config.placeMode == PlaceMode.GEOMETRY) {
-            onPickBlock(player.getEntityWorld(), player, stack, state, MMUtils.getHitResult(player));
+            onPickBlock(player.getEntityWorld(), player, stack, state, MMUtils.getHitResult(player, true));
         }
         if (state.config.placeMode == PlaceMode.EXCHANGING) {
             if (player.isSneaking()) {
-                onExchangeSetWhitelist(player.worldObj, player, stack, state, MMUtils.getHitResult(player));
+                onExchangeSetWhitelist(player.worldObj, player, stack, state, MMUtils.getHitResult(player, true));
             } else {
-                onExchangeSetTarget(player.worldObj, player, stack, state, MMUtils.getHitResult(player));
+                onExchangeSetTarget(player.worldObj, player, stack, state, MMUtils.getHitResult(player, true));
             }
         }
         if (state.config.placeMode == PlaceMode.CABLES) {
-            onPickCable(player.getEntityWorld(), player, stack, state, MMUtils.getHitResult(player));
+            onPickCable(player.getEntityWorld(), player, stack, state, MMUtils.getHitResult(player, true));
         }
     }
 
@@ -796,15 +798,11 @@ public class ItemMatterManipulator extends Item
 
         state.config.replaceWith = MMConfig.saveStack(selected);
 
-        if (selected == null) {
-            MMUtils.sendInfoToPlayer(player, "Cleared exchange whitelist");
-        } else {
-            MMUtils.sendInfoToPlayer(
-                player,
-                String.format(
-                    "Set block to replace with to: %s",
-                    selected == null ? "nothing" : selected.getDisplayName()));
-        }
+        MMUtils.sendInfoToPlayer(
+            player,
+            String.format(
+                "Set block to replace with to: %s",
+                selected == null ? "nothing" : selected.getDisplayName()));
     }
 
     private void onExchangeAddWhitelist(World world, EntityPlayer player, ItemStack stack, MMState state,

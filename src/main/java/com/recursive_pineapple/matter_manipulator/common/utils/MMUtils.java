@@ -193,7 +193,7 @@ public class MMUtils {
     /**
      * Gets the standard vanilla hit result for a player.
      */
-    public static MovingObjectPosition getHitResult(EntityPlayer player) {
+    public static MovingObjectPosition getHitResult(EntityPlayer player, boolean includeLiquids) {
         double reachDistance = player instanceof EntityPlayerMP mp ? mp.theItemInWorldManager.getBlockReachDistance()
             : Minecraft.getMinecraft().playerController.getBlockReachDistance();
 
@@ -204,7 +204,7 @@ public class MMUtils {
         Vec3 modifiedPosVec = posVec
             .addVector(lookVec.xCoord * reachDistance, lookVec.yCoord * reachDistance, lookVec.zCoord * reachDistance);
 
-        MovingObjectPosition hit = player.worldObj.rayTraceBlocks(posVec, modifiedPosVec);
+        MovingObjectPosition hit = player.worldObj.rayTraceBlocks(posVec, modifiedPosVec, includeLiquids);
 
         return hit != null && hit.typeOfHit != MovingObjectType.BLOCK ? null : hit;
     }
