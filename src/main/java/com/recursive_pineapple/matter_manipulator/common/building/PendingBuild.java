@@ -18,6 +18,7 @@ import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMSta
 import com.recursive_pineapple.matter_manipulator.common.networking.SoundResource;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
 import net.minecraft.block.Block;
@@ -233,15 +234,17 @@ public class PendingBuild extends AbstractBuildable {
             if (item != null) {
                 int metadata = item.getHasSubtypes() ? item.getMetadata(pending.metadata) : pending.metadata;
 
+                ItemStack stackToPlace = pending.toStack();
+
                 if (item instanceof ItemBlock itemBlock) {
                     itemBlock.placeBlockAt(
-                        pending.toStack(),
+                        stackToPlace,
                         player,
                         player.worldObj,
                         x,
                         y,
                         z,
-                        ForgeDirection.NORTH.ordinal(),
+                        getDefaultPlaceSide(stackToPlace).ordinal(),
                         0,
                         0,
                         0,
@@ -284,6 +287,14 @@ public class PendingBuild extends AbstractBuildable {
         if (state.config.placeMode == PlaceMode.CABLES) return true;
 
         return false;
+    }
+
+    private ForgeDirection getDefaultPlaceSide(ItemStack stack) {
+        if (Mods.GregTech.isModLoaded() && MMState.isGTCable(stack)) {
+            return ForgeDirection.UNKNOWN;
+        }
+
+        return ForgeDirection.NORTH;
     }
 
     private class PendingBuildApplyContext implements IBlockApplyContext {
