@@ -72,7 +72,6 @@ import gregtech.api.recipe.check.CheckRecipeResultRegistry;
 import gregtech.api.recipe.maps.FuelBackend;
 import gregtech.api.render.TextureFactory;
 import gregtech.api.util.GTRecipe;
-import gregtech.api.util.GTUtility;
 import gregtech.api.util.IGTHatchAdder;
 import gregtech.api.util.MultiblockTooltipBuilder;
 import gregtech.api.util.shutdown.ShutDownReason;
@@ -577,7 +576,7 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
         for (BigFluidStack fluid : fluids) {
             if (fluid == null) continue;
 
-            if (!consumePlasmaEU(GTUtility.ceilDiv(fluid.getStackSize(), 1000) * BASE_PLASMA_EU_COST)) {
+            if (!consumePlasmaEU(MMUtils.ceilDiv(fluid.getStackSize(), 1000) * BASE_PLASMA_EU_COST)) {
                 return UplinkStatus.NO_PLASMA;
             }
 
@@ -622,7 +621,7 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
                     long euPerLitre = fuel.mSpecialValue;
 
                     int litresToConsume = (int) Math
-                        .min(Integer.MAX_VALUE, GTUtility.ceilDiv(euToGenerate, euPerLitre));
+                        .min(Integer.MAX_VALUE, MMUtils.ceilDiv(euToGenerate, euPerLitre));
 
                     FluidStack toConsume = tank.fluid.copy();
                     toConsume.amount = litresToConsume;
@@ -664,7 +663,7 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
 
             hatch.addRequest(submitter, patternName, MMUtils.mapToList(requiredItems, BigItemStack::getAEItemStack), autocraft);
 
-            GTUtility.sendInfoToPlayer(
+            MMUtils.sendInfoToPlayer(
                 submitter,
                 "Pushed a new virtual ME pattern to the uplink called '" + patternName + "'.");
         }

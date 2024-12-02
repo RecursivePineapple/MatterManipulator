@@ -24,6 +24,7 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 import com.google.common.collect.ImmutableSet;
 import com.recursive_pineapple.matter_manipulator.common.items.MMItemList;
+import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 
 import appeng.api.AEApi;
 import appeng.api.config.Actionable;
@@ -58,7 +59,6 @@ import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.metatileentity.implementations.MTEHatch;
 import gregtech.api.render.TextureFactory;
-import gregtech.api.util.GTUtility;
 
 public class MTEMMUplinkMEHatch extends MTEHatch
     implements IGridProxyable, IPowerChannelState, ICraftingProvider, ICraftingRequester {
@@ -145,9 +145,9 @@ public class MTEMMUplinkMEHatch extends MTEHatch
             ManipulatorRequest request = iter.next();
 
             if (!request.poll()) {
-                EntityPlayer player = GTUtility.getPlayerById(request.requester);
+                EntityPlayer player = MMUtils.getPlayerById(request.requester);
                 if (player != null) {
-                    GTUtility.sendErrorToPlayer(player, "Craft for plan " + request.requestName + " failed.");
+                    MMUtils.sendErrorToPlayer(player, "Craft for plan " + request.requestName + " failed.");
                 }
                 iter.remove();
                 onRequestsChanged();
@@ -409,7 +409,7 @@ public class MTEMMUplinkMEHatch extends MTEHatch
         }
 
         pendingCraft = new LinkedList<>(
-            GTUtility.streamInventory(table)
+            MMUtils.streamInventory(table)
                 .filter(i -> i != null)
                 .collect(Collectors.toList()));
 
@@ -426,9 +426,9 @@ public class MTEMMUplinkMEHatch extends MTEHatch
                 if (request.link != null) {
                     request.link.cancel();
 
-                    EntityPlayer player = GTUtility.getPlayerById(request.requester);
+                    EntityPlayer player = MMUtils.getPlayerById(request.requester);
                     if (player != null) {
-                        GTUtility.sendInfoToPlayer(player, "'" + request.requestName + "' has finished");
+                        MMUtils.sendInfoToPlayer(player, "'" + request.requestName + "' has finished");
                     }
                 }
 
@@ -513,7 +513,7 @@ public class MTEMMUplinkMEHatch extends MTEHatch
 
         onRequestsChanged();
 
-        GTUtility.sendInfoToPlayer(aPlayer, "Cleared all requests and cancelled pending craft jobs.");
+        MMUtils.sendInfoToPlayer(aPlayer, "Cleared all requests and cancelled pending craft jobs.");
     }
 
     public void clearManualPlans(EntityPlayer player) {
@@ -524,7 +524,7 @@ public class MTEMMUplinkMEHatch extends MTEHatch
 
         onRequestsChanged();
 
-        GTUtility.sendInfoToPlayer(player, "Cleared your manual requests.");
+        MMUtils.sendInfoToPlayer(player, "Cleared your manual requests.");
     }
 
     public void cancelAutoPlans(EntityPlayer player) {
@@ -552,7 +552,7 @@ public class MTEMMUplinkMEHatch extends MTEHatch
 
         onRequestsChanged();
 
-        GTUtility.sendInfoToPlayer(player, "Cleared your auto requests and cancelled their crafting jobs.");
+        MMUtils.sendInfoToPlayer(player, "Cleared your auto requests and cancelled their crafting jobs.");
     }
 
     private void onRequestsChanged() {
@@ -707,10 +707,10 @@ public class MTEMMUplinkMEHatch extends MTEHatch
                         return false;
                     }
 
-                    EntityPlayer player = GTUtility.getPlayerById(requester);
+                    EntityPlayer player = MMUtils.getPlayerById(requester);
 
                     if (player != null) {
-                        GTUtility.sendInfoToPlayer(player, "Submitted job for plan '" + requestName + "'.");
+                        MMUtils.sendInfoToPlayer(player, "Submitted job for plan '" + requestName + "'.");
                     }
                 }
             } catch (final InterruptedException | ExecutionException e) {
@@ -730,7 +730,7 @@ public class MTEMMUplinkMEHatch extends MTEHatch
             tag.setBoolean("substitute", false);
             tag.setBoolean("beSubstitute", false);
 
-            EntityPlayer player = GTUtility.getPlayerById(requester);
+            EntityPlayer player = MMUtils.getPlayerById(requester);
             tag.setString(
                 "author",
                 player != null ? player.getGameProfile()
