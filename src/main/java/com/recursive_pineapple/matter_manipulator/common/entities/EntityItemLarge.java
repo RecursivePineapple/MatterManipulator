@@ -90,6 +90,9 @@ public class EntityItemLarge extends EntityItem {
                 return;
             }
 
+            entityIn.openContainer.detectAndSendChanges();
+            entityIn.inventoryContainer.detectAndSendChanges();
+
             ItemStack itemstack = this.getEntityItem();
             int i = itemstack.stackSize;
 

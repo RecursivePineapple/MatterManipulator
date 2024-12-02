@@ -13,7 +13,6 @@ import com.google.common.io.ByteStreams;
 import com.recursive_pineapple.matter_manipulator.MMMod;
 
 import cpw.mods.fml.client.FMLClientHandler;
-import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.network.FMLEmbeddedChannel;
 import cpw.mods.fml.common.network.FMLOutboundHandler;
 import cpw.mods.fml.common.network.NetworkRegistry;

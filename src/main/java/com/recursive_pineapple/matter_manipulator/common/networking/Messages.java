@@ -27,9 +27,11 @@ import com.gtnewhorizons.modularui.common.internal.network.NetworkUtils;
 import cpw.mods.fml.common.network.NetworkRegistry.TargetPoint;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 
 import com.recursive_pineapple.matter_manipulator.Config;
 import com.recursive_pineapple.matter_manipulator.MMMod;
+import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
@@ -40,8 +42,11 @@ import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMSta
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.PlaceMode;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.Shape;
 import com.recursive_pineapple.matter_manipulator.common.uplink.IUplinkMulti;
+import com.recursive_pineapple.matter_manipulator.common.uplink.MTEMMUplink;
 import com.recursive_pineapple.matter_manipulator.common.uplink.UplinkState;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.Pair;
@@ -198,13 +203,20 @@ public enum Messages {
             World theWorld = Minecraft.getMinecraft().theWorld;
 
             if (theWorld.provider.dimensionId == packet.worldId) {
-                Location l = packet.getLocation();
+                if (Mods.GregTech.isModLoaded() && Mods.AppliedEnergistics2.isModLoaded()) {
+                    Location l = packet.getLocation();
+    
+                    setState(l.getWorld(), l.x, l.y, l.z, packet.getState());
+                }
+            }
+        }
 
-                // TODO: fix this
-                // if (theWorld.getTileEntity(l.x, l.y, l.z) instanceof IGregTechTileEntity igte
-                //     && igte.getMetaTileEntity() instanceof IUplinkMulti uplink) {
-                //     uplink.setState(packet.getState());
-                // }
+        @Optional({ Names.GREG_TECH, Names.APPLIED_ENERGISTICS2 })
+        private void setState(World world, int x, int y, int z, UplinkState state) {
+            if (world.getTileEntity(x, y, z) instanceof IGregTechTileEntity igte) {
+                if (igte.getMetaTileEntity() instanceof MTEMMUplink uplink) {
+                    uplink.setState(state);
+                }
             }
         }
 
@@ -395,7 +407,7 @@ public enum Messages {
     public void sendToPlayersWithinRange(Location location, Object data) {
         if (Config.D1) {
             MMMod.LOG
-                .info("Sending packet to players around " + location.toString() + ": " + this + "; " + data);
+                .info("Sending packet to players that are watching " + location.toString() + ": " + this + "; " + data);
         }
 
         World world = location.getWorld();

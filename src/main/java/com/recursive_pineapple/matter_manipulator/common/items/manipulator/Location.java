@@ -66,15 +66,11 @@ public class Location {
     }
 
     public World getWorld() {
-        World world = DimensionManager.getWorld(this.worldId);
-
-        if (world != null) return world;
-
-        if (FMLCommonHandler.instance().getSide() == Side.CLIENT) {
+        if (FMLCommonHandler.instance().getEffectiveSide().isClient()) {
             return getWorldClient();
+        } else {
+            return DimensionManager.getWorld(this.worldId);
         }
-        
-        return null;
     }
 
     @SideOnly(Side.CLIENT)

@@ -44,9 +44,13 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
     public InventoryAnalysis mAECells = null;
     public InventoryAnalysis mAEPatterns = null;
 
+    private static final AEAnalysisResult NO_OP = new AEAnalysisResult();
+
     public static AEAnalysisResult analyze(IBlockAnalysisContext context, TileEntity te) {
         if (te instanceof IGridHost) {
-            return new AEAnalysisResult(te);
+            AEAnalysisResult result = new AEAnalysisResult(te);
+
+            return result.equals(NO_OP) ? null : result;
         } else {
             return null;
         }

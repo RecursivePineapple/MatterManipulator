@@ -29,3 +29,13 @@ item.metaitem.21.name=Matter Manipulator ME Downlink
 item.metaitem.22.name=Matter Manipulator Quantum Downlink
 
 mm.tooltip.voltage=%s / %s EU - Voltage: %s
+
+mm.structure.hatch-info=Any %s Casing
+mm.structure.hatch-dots= (dots %s)
+
+# Keybindings
+key.mm=Matter Manipulator
+key.mm-ctrl=Control
+key.mm-cut=Mark Cut
+key.mm-copy=Mark Copy
+key.mm-paste=Mark Paste

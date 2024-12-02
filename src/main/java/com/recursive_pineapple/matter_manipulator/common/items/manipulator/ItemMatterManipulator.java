@@ -2,6 +2,7 @@ package com.recursive_pineapple.matter_manipulator.common.items.manipulator;
 
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.formatNumbers;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMValues.V;
+import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.AppliedEnergistics2;
 import static net.minecraftforge.common.util.ForgeDirection.EAST;
 import static net.minecraftforge.common.util.ForgeDirection.SOUTH;
 import static net.minecraftforge.common.util.ForgeDirection.UP;
@@ -90,6 +91,7 @@ import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import gregtech.api.interfaces.metatileentity.IConnectable;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntityCable;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntityPipe;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
@@ -788,6 +790,12 @@ public class ItemMatterManipulator extends Item
         PendingBlock block = PendingBlock.fromPickBlock(player.worldObj, player, hit);
         ItemStack selected = block == null ? null : block.toStack();
 
+        if (tier.hasCap(ALLOW_CABLES) && AppliedEnergistics2.isModLoaded()) {
+            if (selected != null && selected.getItem() == Item.getItemFromBlock(PendingBlock.AE_BLOCK_CABLE.get())) {
+                selected = MMState.getAECable(world, hit.blockX, hit.blockY, hit.blockZ);
+            }
+        }
+
         state.config.replaceWith = MMConfig.saveStack(selected);
 
         if (selected == null) {
@@ -805,6 +813,12 @@ public class ItemMatterManipulator extends Item
         MovingObjectPosition hit) {
         PendingBlock block = PendingBlock.fromPickBlock(player.worldObj, player, hit);
         ItemStack selected = block == null ? null : block.toStack();
+
+        if (tier.hasCap(ALLOW_CABLES) && AppliedEnergistics2.isModLoaded()) {
+            if (selected != null && selected.getItem() == Item.getItemFromBlock(PendingBlock.AE_BLOCK_CABLE.get())) {
+                selected = MMState.getAECable(world, hit.blockX, hit.blockY, hit.blockZ);
+            }
+        }
 
         if (selected != null) {
             if (state.config.replaceWhitelist == null) {
@@ -827,6 +841,12 @@ public class ItemMatterManipulator extends Item
         MovingObjectPosition hit) {
         PendingBlock block = PendingBlock.fromPickBlock(player.worldObj, player, hit);
         ItemStack selected = block == null ? null : block.toStack();
+
+        if (tier.hasCap(ALLOW_CABLES) && AppliedEnergistics2.isModLoaded()) {
+            if (selected != null && selected.getItem() == Item.getItemFromBlock(PendingBlock.AE_BLOCK_CABLE.get())) {
+                selected = MMState.getAECable(world, hit.blockX, hit.blockY, hit.blockZ);
+            }
+        }
 
         if (selected != null) {
             state.config.replaceWhitelist = new ArrayList<>();
@@ -865,8 +885,7 @@ public class ItemMatterManipulator extends Item
 
     @Optional(Names.GREG_TECH)
     private ItemStack pickGTCable(World world, EntityPlayer player, MovingObjectPosition hit, TileEntity te) {
-        if (te instanceof IGregTechTileEntity igte && (igte.getMetaTileEntity() instanceof IMetaTileEntityCable
-            || igte.getMetaTileEntity() instanceof IMetaTileEntityPipe)) {
+        if (te instanceof IGregTechTileEntity igte && igte.getMetaTileEntity() instanceof IConnectable) {
             PendingBlock block = PendingBlock.fromPickBlock(world, player, hit);
 
             return block == null ? null : block.toStack();
@@ -967,7 +986,7 @@ public class ItemMatterManipulator extends Item
     }
 
     private IBuildable getPendingBuild(EntityPlayer player, ItemStack stack, MMState state) {
-        List<PendingBlock> blocks = state.getPendingBlocks(player.getEntityWorld());
+        List<PendingBlock> blocks = state.getPendingBlocks(tier, player.getEntityWorld());
 
         if (tier.maxRange != -1) {
             int maxRange2 = tier.maxRange * tier.maxRange;
@@ -1781,7 +1800,7 @@ public class ItemMatterManipulator extends Item
                 if (needsAnalysis) {
                     lastAnalysisMS = System.currentTimeMillis();
                     lastAnalyzedConfig = state.config;
-                    analysisCache = state.getPendingBlocks(player.getEntityWorld());
+                    analysisCache = state.getPendingBlocks(tier, player.getEntityWorld());
                     analysisCache.removeIf(b -> b == null || b.getBlock() == Blocks.air);
                     analysisCache.sort(Comparator.comparingInt((PendingBlock b) -> b.renderOrder));
 
@@ -1894,7 +1913,7 @@ public class ItemMatterManipulator extends Item
                 if (needsAnalysis) {
                     lastAnalysisMS = System.currentTimeMillis();
                     lastAnalyzedConfig = state.config;
-                    analysisCache = state.getPendingBlocks(player.getEntityWorld());
+                    analysisCache = state.getPendingBlocks(tier, player.getEntityWorld());
 
                     String array = "";
 

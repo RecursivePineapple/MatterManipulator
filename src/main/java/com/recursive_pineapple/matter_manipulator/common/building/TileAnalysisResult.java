@@ -36,13 +36,13 @@ public class TileAnalysisResult {
 
     public TileAnalysisResult(IBlockAnalysisContext context, TileEntity te) {
 
-        // if (Mods.GregTech.isModLoaded()) {
-        //     gt = GTAnalysisResult.analyze(context, te);
-        // }
+        if (Mods.GregTech.isModLoaded()) {
+            gt = GTAnalysisResult.analyze(context, te);
+        }
 
-        // if (Mods.AppliedEnergistics2.isModLoaded()) {
-        //     ae = AEAnalysisResult.analyze(context, te);
-        // }
+        if (Mods.AppliedEnergistics2.isModLoaded()) {
+            ae = AEAnalysisResult.analyze(context, te);
+        }
 
         // check its inventory
         if (te instanceof IInventory inventory) {

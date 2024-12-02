@@ -76,9 +76,13 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
     private static final short GT_MULTI_INPUT_SEPARATION = (short) (0b1 << counter++);
     private static final short GT_MULTI_RECIPE_LOCK = (short) (0b1 << counter++);
 
+    private static final GTAnalysisResult NO_OP = new GTAnalysisResult();
+
     public static GTAnalysisResult analyze(IBlockAnalysisContext context, TileEntity te) {
         if (te instanceof IGregTechTileEntity igte) {
-            return new GTAnalysisResult(igte);
+            GTAnalysisResult result = new GTAnalysisResult(igte);
+
+            return result.equals(NO_OP) ? null : result;
         } else {
             return null;
         }

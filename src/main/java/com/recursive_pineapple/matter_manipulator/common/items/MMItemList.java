@@ -37,6 +37,9 @@ public enum MMItemList {
     AEDownlink,
     QuantumDownlink,
 
+    UplinkController,
+    UplinkHatch,
+
     ;
 
     public ItemStack stack;

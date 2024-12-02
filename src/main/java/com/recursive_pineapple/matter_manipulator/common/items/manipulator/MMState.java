@@ -1,8 +1,10 @@
 package com.recursive_pineapple.matter_manipulator.common.items.manipulator;
 
+import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.getIndexSafe;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.min;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.signum;
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.AppliedEnergistics2;
+import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +13,7 @@ import java.util.stream.Collectors;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
@@ -26,11 +29,12 @@ import com.recursive_pineapple.matter_manipulator.common.building.AEPartData;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer;
 import com.recursive_pineapple.matter_manipulator.common.building.GTAnalysisResult;
 import com.recursive_pineapple.matter_manipulator.common.building.TileAnalysisResult;
+import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.BlockAnalysisContext;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.RegionAnalysis;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
 import com.recursive_pineapple.matter_manipulator.common.uplink.IUplinkMulti;
 import com.recursive_pineapple.matter_manipulator.common.utils.ItemId;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
 import appeng.api.AEApi;
@@ -43,12 +47,15 @@ import appeng.api.networking.IGridNode;
 import appeng.api.networking.energy.IEnergyGrid;
 import appeng.api.networking.security.ISecurityGrid;
 import appeng.api.networking.storage.IStorageGrid;
+import appeng.api.parts.IPartHost;
 import appeng.api.parts.IPartItem;
+import appeng.api.parts.PartItemStack;
 import appeng.api.storage.IMEMonitor;
 import appeng.api.storage.data.IAEItemStack;
 import appeng.api.util.DimensionalCoord;
 import appeng.tile.misc.TileSecurity;
 import appeng.tile.networking.TileWireless;
+import gregtech.api.GregTechAPI;
 import gregtech.api.interfaces.metatileentity.IConnectable;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.common.blocks.BlockMachines;
@@ -226,11 +233,11 @@ public class MMState {
      * Gets the pending blocks for this manipulator.
      * Note: moving uses a special algorithm, so its value returned here should only be used for drawing the hints.
      */
-    public List<PendingBlock> getPendingBlocks(World world) {
+    public List<PendingBlock> getPendingBlocks(ManipulatorTier tier, World world) {
         return switch (config.placeMode) {
             case COPYING, MOVING -> getAnalysis(world);
             case GEOMETRY -> getGeomPendingBlocks(world);
-            case EXCHANGING -> getExchangeBlocks(world);
+            case EXCHANGING -> getExchangeBlocks(tier, world);
             case CABLES -> getCableBlocks(world);
         };
     }
@@ -264,7 +271,7 @@ public class MMState {
                 TileAnalysisResult d = block.tileData;
 
                 if (d != null) {
-
+                    d.transform(t);
                 }
             }
 
@@ -320,7 +327,7 @@ public class MMState {
         return analysis.blocks;
     }
 
-    private List<PendingBlock> getExchangeBlocks(World world) {
+    private List<PendingBlock> getExchangeBlocks(ManipulatorTier tier, World world) {
         Location coordA = config.coordA;
         Location coordB = config.coordB;
 
@@ -343,16 +350,101 @@ public class MMState {
 
         ItemStack replacement = MMConfig.loadStack(config.replaceWith);
 
-        for (Vector3i voxel : MMUtils.getBlocksInBB(coordA, deltas)) {
-            PendingBlock existing = PendingBlock.fromBlock(world, voxel.x, voxel.y, voxel.z);
+        boolean replacingWithGTCable = tier.hasCap(ItemMatterManipulator.ALLOW_CABLES)
+            && GregTech.isModLoaded()
+            && isGTCable(replacement);
+        boolean replacingWithAECable = tier.hasCap(ItemMatterManipulator.ALLOW_CABLES)
+            && AppliedEnergistics2.isModLoaded()
+            && isAECable(replacement);
 
-            if (existing != null && existing.toStack() != null
-                && whitelist.contains(ItemId.create(existing.toStack()))) {
-                pending.add(new PendingBlock(world.provider.dimensionId, voxel.x, voxel.y, voxel.z, replacement));
+        BlockAnalysisContext context = new BlockAnalysisContext(world);
+
+        for (Vector3i voxel : MMUtils.getBlocksInBB(coordA, deltas)) {
+            int x = voxel.x;
+            int y = voxel.y;
+            int z = voxel.z;
+
+            if (world.isAirBlock(x, y, z)) continue;
+
+            PendingBlock existing = PendingBlock.fromBlock(world, x, y, z);
+
+            if (existing == null) continue;
+
+            ItemStack existingStack = existing.toStack();
+
+            if (existingStack == null) continue;
+
+            boolean wasAECable = false;
+
+            ItemStack aeCable = getAECable(world, x, y, z);
+
+            if (aeCable != null) {
+                if (!whitelist.contains(ItemId.create(aeCable))) continue;
+
+                wasAECable = true;
+            }
+
+            if (!wasAECable) {
+                if (!whitelist.contains(ItemId.create(existingStack))) continue;
+            }
+
+            if (replacingWithGTCable) {
+                PendingBlock rep = new PendingBlock(world.provider.dimensionId, x, y, z, replacement);
+
+                if (isGTCable(existingStack)) {
+                    context.voxel = voxel;
+                    rep.tileData = BlockAnalyzer.analyze(context);
+                } else {
+                    rep.tileData = new TileAnalysisResult();
+                }
+
+                pending.add(rep);
+            } else if (replacingWithAECable) {
+                PendingBlock rep = new PendingBlock(world.provider.dimensionId, x, y, z, PendingBlock.AE_BLOCK_CABLE.get(), 0);
+
+                if (world.getTileEntity(x, y, z) instanceof IPartHost) {
+                    context.voxel = voxel;
+                    rep.tileData = BlockAnalyzer.analyze(context);
+                } else {
+                    rep.tileData = new TileAnalysisResult();
+                }
+
+                placingAECable(rep.tileData, replacement);
+
+                pending.add(rep);
+            } else {
+                pending.add(new PendingBlock(world.provider.dimensionId, x, y, z, replacement));
             }
         }
 
         return pending;
+    }
+
+    @Optional(Names.APPLIED_ENERGISTICS2)
+    public static ItemStack getAECable(World world, int x, int y, int z) {
+        if (world.getTileEntity(x, y, z) instanceof IPartHost partHost) {
+            if (partHost.getPart(ForgeDirection.UNKNOWN) instanceof IPartCable cable) {
+                return cable.getItemStack(PartItemStack.Break);
+            }
+        }
+
+        return null;
+    }
+
+    @Optional(Names.APPLIED_ENERGISTICS2)
+    private void placingAECable(TileAnalysisResult result, ItemStack cable) {
+        AEAnalysisResult ae;
+
+        if (result.ae == null) {
+            ae = new AEAnalysisResult();
+            result.ae = ae;
+        } else {
+            ae = (AEAnalysisResult) result.ae;
+        }
+
+        if (ae.mAEParts == null) ae.mAEParts = new AEPartData[7];
+
+        ae.mAEParts[ForgeDirection.UNKNOWN.ordinal()] = new AEPartData(((IPartItem) cable.getItem()).createPartFromItemStack(cable));
     }
 
     private List<PendingBlock> getCableBlocks(World world) {
@@ -388,7 +480,7 @@ public class MMState {
         } else {
             Block block = Block.getBlockFromItem(stack.getItem());
 
-            if (Mods.GregTech.isModLoaded()) {
+            if (GregTech.isModLoaded()) {
                 getGTCables(a, b, out, block, world, stack);
             }
 
@@ -398,6 +490,36 @@ public class MMState {
         }
 
         return out;
+    }
+
+    @Optional(Names.GREG_TECH)
+    private boolean isGTCable(ItemStack stack) {
+        if (stack == null) return false;
+
+        Block block = Block.getBlockFromItem(stack.getItem());
+
+        if (block instanceof BlockMachines) {
+            int metaId = Items.feather.getDamage(stack);
+
+            if (getIndexSafe(GregTechAPI.METATILEENTITIES, metaId) instanceof IConnectable) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Optional(Names.APPLIED_ENERGISTICS2)
+    private boolean isAECable(ItemStack stack) {
+        if (stack == null) return false;
+
+        if (stack.getItem() instanceof IPartItem partItem) {
+            if (partItem.createPartFromItemStack(stack) instanceof IPartCable) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @Optional(Names.GREG_TECH)

@@ -14,6 +14,7 @@ import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemM
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.PendingBlock;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.PlaceMode;
 import com.recursive_pineapple.matter_manipulator.common.networking.SoundResource;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
@@ -106,7 +107,7 @@ public class PendingBuild extends AbstractBuildable {
                     }
                 }
 
-                if (block.tileData != null && tier.hasCap(ItemMatterManipulator.ALLOW_CONFIGURING)) {
+                if (block.tileData != null && supportsConfiguring()) {
                     applyContext.pendingBlock = block;
                     block.tileData.apply(applyContext);
                     playSound(world, x, y, z, SoundResource.MOB_ENDERMEN_PORTAL);
@@ -184,6 +185,9 @@ public class PendingBuild extends AbstractBuildable {
             } else {
                 MMUtils.sendInfoToPlayer(player, "Finished placing blocks.");
             }
+
+            actuallyGivePlayerStuff();
+            playSounds();
             return;
         }
 
@@ -257,7 +261,7 @@ public class PendingBuild extends AbstractBuildable {
                     world.setBlockMetadataWithNotify(x, y, z, metadata, 3);
                 }
 
-                if (pending.tileData != null && tier.hasCap(ItemMatterManipulator.ALLOW_CONFIGURING)) {
+                if (pending.tileData != null && supportsConfiguring()) {
                     applyContext.pendingBlock = pending;
                     pending.tileData.apply(applyContext);
                 }
@@ -268,6 +272,18 @@ public class PendingBuild extends AbstractBuildable {
 
         actuallyGivePlayerStuff();
         playSounds();
+    }
+
+    private boolean supportsConfiguring() {
+        // self-explanitory
+        if (tier.hasCap(ItemMatterManipulator.ALLOW_CONFIGURING)) return true;
+
+        // lower tiers support cables, but not copying
+        // since exchanging or placing cables requires configuring, we need to return true for these two
+        if (state.config.placeMode == PlaceMode.EXCHANGING) return true;
+        if (state.config.placeMode == PlaceMode.CABLES) return true;
+
+        return false;
     }
 
     private class PendingBuildApplyContext implements IBlockApplyContext {

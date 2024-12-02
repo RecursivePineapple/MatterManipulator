@@ -10,6 +10,7 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
+import gregtech.api.GregTechAPI;
 
 public class CommonProxy {
 
@@ -20,17 +21,19 @@ public class CommonProxy {
 
         MMItems.registerItems();
         Messages.init();
+
+        if (Mods.GregTech.isModLoaded()) {
+            GregTechAPI.sThirdPartyMultiRegistration.add(MMItems::registerMultis);
+        }
     }
 
     public void init(FMLInitializationEvent event) {
         EntityItemLarge.registerCommon();
-
-        if (Mods.GregTech.isModLoaded()) {
-            ManipulatorRecipes.addRecipes();
-        }
     }
 
-    public void postInit(FMLPostInitializationEvent event) {}
+    public void postInit(FMLPostInitializationEvent event) {
+        ManipulatorRecipes.addRecipes();
+    }
 
     public void serverStarting(FMLServerStartingEvent event) {}
 }

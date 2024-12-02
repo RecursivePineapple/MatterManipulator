@@ -36,7 +36,6 @@ public class ManipulatorRecipes {
 
     private static boolean ae, gt, th, eio, gs;
 
-    @Optional(Names.GREG_TECH)
     public static void addRecipes() {
         ae = Mods.AppliedEnergistics2.isModLoaded();
         gt = Mods.GregTech.isModLoaded();
@@ -44,13 +43,16 @@ public class ManipulatorRecipes {
         eio = Mods.EnderIO.isModLoaded();
         gs = Mods.GraviSuite.isModLoaded();
 
-        // addMK0Recipes();
-        // addMK1Recipes();
-        // addMK2Recipes();
-        // addMK3Recipe();
-        // addUplinkRecipes();
+        if (gt) {
+            addMK0Recipes();
+            addMK1Recipes();
+            addMK2Recipes();
+            addMK3Recipe();
+            addUplinkRecipes();
+        }
     }
 
+    @Optional(Names.GREG_TECH)
     private static void addMK0Recipes() {
         // Power core MK0
         GTValues.RA.stdBuilder()
@@ -140,6 +142,7 @@ public class ManipulatorRecipes {
 
     }
 
+    @Optional(Names.GREG_TECH)
     private static void addMK1Recipes() {
         Fluid solderIndalloy = FluidRegistry.getFluid("molten.indalloy140") != null
             ? FluidRegistry.getFluid("molten.indalloy140")
@@ -233,6 +236,7 @@ public class ManipulatorRecipes {
             .addTo(RecipeMaps.assemblerRecipes);
     }
 
+    @Optional(Names.GREG_TECH)
     private static void addMK2Recipes() {
         Fluid solderIndalloy = FluidRegistry.getFluid("molten.indalloy140") != null
             ? FluidRegistry.getFluid("molten.indalloy140")
@@ -276,7 +280,7 @@ public class ManipulatorRecipes {
             .addTo(AssemblyLine);
 
         // Teleporter core MK2
-        GTValues.RA.stdBuilder()
+        if (gs) GTValues.RA.stdBuilder()
             .metadata(RESEARCH_ITEM, GTOreDictUnificator.get(OrePrefixes.frameGt, Materials.Quantium, 1))
             .metadata(RESEARCH_TIME, 40 * MINUTES)
             .itemInputs(
@@ -340,6 +344,7 @@ public class ManipulatorRecipes {
             .addTo(RecipeMaps.assemblerRecipes);
     }
 
+    @Optional(Names.GREG_TECH)
     private static void addMK3Recipe() {
         Fluid solderIndalloy = FluidRegistry.getFluid("molten.indalloy140") != null
             ? FluidRegistry.getFluid("molten.indalloy140")
@@ -388,7 +393,7 @@ public class ManipulatorRecipes {
                 ItemList.Field_Generator_ZPM.get(1),
                 ItemList.Gravistar.get(4),
                 new ItemStack(ModItems.itemStandarParticleBase, 16, 0), // gravitons
-                getModItem(Mods.GraviSuite.ID, "itemSimpleItem", 16, 3),
+                getModItem(Mods.GraviSuite.ID, "itemSimpleItem", 16, 3), // gravitation engine
                 GTOreDictUnificator.get(OrePrefixes.itemCasing, Materials.Trinium, 8),
                 GTOreDictUnificator.get(OrePrefixes.screw, Materials.Trinium, 16))
             .fluidInputs(
@@ -529,6 +534,7 @@ public class ManipulatorRecipes {
             .addTo(RecipeMaps.assemblerRecipes);
     }
 
+    @Optional(Names.GREG_TECH)
     private static void addUplinkRecipes() {
         Fluid solderIndalloy = FluidRegistry.getFluid("molten.indalloy140") != null
             ? FluidRegistry.getFluid("molten.indalloy140")
