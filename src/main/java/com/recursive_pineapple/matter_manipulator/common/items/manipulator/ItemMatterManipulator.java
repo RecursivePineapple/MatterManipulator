@@ -92,8 +92,6 @@ import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import gregtech.api.interfaces.metatileentity.IConnectable;
-import gregtech.api.interfaces.metatileentity.IMetaTileEntityCable;
-import gregtech.api.interfaces.metatileentity.IMetaTileEntityPipe;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
@@ -492,7 +490,7 @@ public class ItemMatterManipulator extends Item
                 addInfoLine(desc, "Paste Coordinate: %s", state.config.coordC);
 
                 addInfoLine(desc,
-                    "Array: %s",
+                    "Stack: %s",
                     state.config.arraySpan,
                     span -> String.format("X: %dx, Y: %dx, Z: %dx", span.x + 1, span.y + 1, span.z + 1));
             }
@@ -1256,7 +1254,7 @@ public class ItemMatterManipulator extends Item
                 })
             .done()
             .branch()
-                .label("Edit Array")
+                .label("Edit Stack")
                 .option()
                     .label("Reset")
                     .onClicked(() -> {
@@ -1870,7 +1868,7 @@ public class ItemMatterManipulator extends Item
             boolean isSourceBValid = sourceB != null && sourceB.isInWorld(player.worldObj);
             boolean isPasteValid = paste != null && paste.isInWorld(player.worldObj);
 
-            Vector3i deltas = null;
+            VoxelAABB copyDeltas = null;
 
             BoxRenderer.INSTANCE.start(event.partialTicks);
 
@@ -1878,16 +1876,18 @@ public class ItemMatterManipulator extends Item
                 Objects.requireNonNull(sourceA);
                 Objects.requireNonNull(sourceB);
 
-                deltas = MMUtils.getRegionDeltas(sourceA, sourceB);
+                copyDeltas = new VoxelAABB(sourceA.toVec(), sourceB.toVec());
 
                 BoxRenderer.INSTANCE
-                    .drawAround(MMUtils.getBoundingBox(sourceA, deltas), new Vector3f(0.15f, 0.6f, 0.75f));
+                    .drawAround(copyDeltas.toBoundingBox(), new Vector3f(0.15f, 0.6f, 0.75f));
             }
+
+            VoxelAABB pasteDeltas = null;
 
             if (isPasteValid) {
                 Objects.requireNonNull(paste);
 
-                VoxelAABB pasteDeltas = state.config.getPasteVisualDeltas(player.worldObj);
+                pasteDeltas = state.config.getPasteVisualDeltas(player.worldObj);
 
                 if (pasteDeltas == null) pasteDeltas = new VoxelAABB();
 
@@ -1914,22 +1914,6 @@ public class ItemMatterManipulator extends Item
                     lastAnalysisMS = System.currentTimeMillis();
                     lastAnalyzedConfig = state.config;
                     analysisCache = state.getPendingBlocks(tier, player.getEntityWorld());
-
-                    String array = "";
-
-                    if (state.config.arraySpan != null) {
-                        array = String.format(
-                            " aX=%d aY=%d aZ=%d",
-                            state.config.arraySpan.x,
-                            state.config.arraySpan.y,
-                            state.config.arraySpan.z);
-                    }
-
-                    AboveHotbarHUD.renderTextAboveHotbar(
-                        pasteDeltas.describe() + array,
-                        (int) (ANALYSIS_INTERVAL_MS * 20 / 1000),
-                        false,
-                        false);
                 }
 
                 if (needsHintDraw) {
@@ -1937,6 +1921,30 @@ public class ItemMatterManipulator extends Item
                     lastDrawer = this;
                     drawHints(event, state, player, playerLocation);
                 }
+            }
+
+            if (pasteDeltas != null) {
+                String array = "";
+        
+                if (state.config.arraySpan != null) {
+                    array = String.format(
+                        " stX=%d stY=%d stZ=%d",
+                        state.config.arraySpan.x,
+                        state.config.arraySpan.y,
+                        state.config.arraySpan.z);
+                }
+    
+                AboveHotbarHUD.renderTextAboveHotbar(
+                    pasteDeltas.describe() + array,
+                    (int) (ANALYSIS_INTERVAL_MS * 20 / 1000),
+                    false,
+                    false);
+            } else if (copyDeltas != null) {
+                AboveHotbarHUD.renderTextAboveHotbar(
+                    copyDeltas.describe(),
+                    (int) (ANALYSIS_INTERVAL_MS * 20 / 1000),
+                    false,
+                    false);
             }
 
             BoxRenderer.INSTANCE.finish();

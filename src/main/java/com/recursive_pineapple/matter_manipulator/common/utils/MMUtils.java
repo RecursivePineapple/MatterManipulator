@@ -49,7 +49,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.IIcon;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
@@ -64,7 +63,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.gtnewhorizon.gtnhlib.util.map.ItemStackMap;
 import com.recursive_pineapple.matter_manipulator.MMMod;
-import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.RequiredItemAnalysis;
 import com.recursive_pineapple.matter_manipulator.common.building.IPseudoInventory;
@@ -75,7 +73,6 @@ import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Locat
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.PendingBlock;
 import com.recursive_pineapple.matter_manipulator.common.networking.Messages;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
 import appeng.api.implementations.items.IUpgradeModule;
 import appeng.api.storage.ICellWorkbenchItem;

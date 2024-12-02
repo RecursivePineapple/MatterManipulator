@@ -493,7 +493,7 @@ public class MMState {
     }
 
     @Optional(Names.GREG_TECH)
-    private boolean isGTCable(ItemStack stack) {
+    public static boolean isGTCable(ItemStack stack) {
         if (stack == null) return false;
 
         Block block = Block.getBlockFromItem(stack.getItem());
@@ -510,7 +510,7 @@ public class MMState {
     }
 
     @Optional(Names.APPLIED_ENERGISTICS2)
-    private boolean isAECable(ItemStack stack) {
+    public static boolean isAECable(ItemStack stack) {
         if (stack == null) return false;
 
         if (stack.getItem() instanceof IPartItem partItem) {
