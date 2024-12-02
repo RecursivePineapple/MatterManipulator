@@ -88,6 +88,13 @@ For parts:
 
 Note: attunable P2Ps (non-interface P2Ps) will also be attuned automatically from a blank P2P.
 
+### Miscellanious
+
+- Inventories
+- Storage Drawer rotation
+
+Note: any block that uses metadata to store its rotation (pistons, stairs, etc) will be automatically rotated. Some mod TileEntities (such as drawers) will need to have their own logic added, since they may not use metadata for this.
+
 ## How to use the tool
 
 Most of the tool's configuration is done through a radial menu which can be accessed by right clicking in the air. There are a few keybinds and context actions for common actions - specifically cutting (ctrl + x), copying (ctrl + c), pasting (ctrl + v), and block picking (middle mouse button). The exchange mode extends block picking since it has two configurable blocks - holding shift while picking a block will set the replace whitelist instead of the block to replace with.
