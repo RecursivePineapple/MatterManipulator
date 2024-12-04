@@ -12,7 +12,6 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 import com.recursive_pineapple.matter_manipulator.MMMod;
 
-import cpw.mods.fml.client.FMLClientHandler;
 import cpw.mods.fml.common.network.FMLEmbeddedChannel;
 import cpw.mods.fml.common.network.FMLOutboundHandler;
 import cpw.mods.fml.common.network.NetworkRegistry;
@@ -132,7 +131,7 @@ public class Network extends MessageToMessageCodec<FMLProxyPacket, MMPacket> {
 
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, MMPacket aPacket) {
-            final EntityPlayer aPlayer = FMLClientHandler.instance().getClientPlayerEntity();
+            final EntityPlayer aPlayer = MMMod.proxy.getThePlayer();
             aPacket.process(aPlayer == null ? null : aPlayer.worldObj);
         }
     }

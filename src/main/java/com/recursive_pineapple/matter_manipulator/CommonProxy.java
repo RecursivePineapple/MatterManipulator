@@ -11,6 +11,7 @@ import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import gregtech.api.GregTechAPI;
+import net.minecraft.entity.player.EntityPlayer;
 
 public class CommonProxy {
 
@@ -36,4 +37,8 @@ public class CommonProxy {
     }
 
     public void serverStarting(FMLServerStartingEvent event) {}
+
+    public EntityPlayer getThePlayer() {
+        return null;
+    }
 }
