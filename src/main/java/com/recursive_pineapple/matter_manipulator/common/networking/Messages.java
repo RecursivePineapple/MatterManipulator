@@ -85,17 +85,26 @@ public enum Messages {
         state.config.action = null;
     }))),
     SetShape(server(enumPacket(Shape.values(), (state, value) -> state.config.shape = value))),
+    SetA(server(locationPacket((player, stack, manipulator, state, location) -> {
+        state.config.coordA = new Location(player.worldObj, location);
+    }))),
     MoveA(server(simple((player, stack, manipulator, state) -> {
         state.config.action = PendingAction.MOVING_COORDS;
         state.config.coordAOffset = new Vector3i();
         state.config.coordBOffset = null;
         state.config.coordCOffset = null;
     }))),
+    SetB(server(locationPacket((player, stack, manipulator, state, location) -> {
+        state.config.coordB = new Location(player.worldObj, location);
+    }))),
     MoveB(server(simple((player, stack, manipulator, state) -> {
         state.config.action = PendingAction.MOVING_COORDS;
         state.config.coordAOffset = null;
         state.config.coordBOffset = new Vector3i();
         state.config.coordCOffset = null;
+    }))),
+    SetC(server(locationPacket((player, stack, manipulator, state, location) -> {
+        state.config.coordC = new Location(player.worldObj, location);
     }))),
     MoveC(server(simple((player, stack, manipulator, state) -> {
         state.config.action = PendingAction.MOVING_COORDS;
@@ -289,6 +298,9 @@ public enum Messages {
             return packet;
         }
     })),
+    SetArray(server(locationPacket((player, stack, manipulator, state, span) -> {
+        state.config.arraySpan = span;
+    }))),
     ResetArray(server(simple((player, stack, manipulator, state) -> {
         state.config.arraySpan = null;
         player.inventoryContainer.detectAndSendChanges();
@@ -331,7 +343,7 @@ public enum Messages {
 
                 if (packet.sound < 0 || packet.sound >= sounds.length) return;
 
-                Minecraft.getMinecraft().theWorld.playSound(x, y, z, sounds[packet.sound].toString(), y, z, false);
+                Minecraft.getMinecraft().theWorld.playSound(x, y, z, sounds[packet.sound].toString(), packet.strength, packet.pitch, false);
             }
         }
 
@@ -843,5 +855,70 @@ public enum Messages {
 
             return message;
         }
+    }
+
+    private static class LocationPacket extends SimplePacket {
+
+        public long location;
+
+        public LocationPacket(Messages message) {
+            super(message);
+        }
+
+        @Override
+        public void encode(ByteBuf buffer) {
+            buffer.writeLong(location);
+        }
+
+        @Override
+        public MMPacket decode(ByteArrayDataInput buffer) {
+            LocationPacket message = new LocationPacket(super.message);
+
+            message.location = buffer.readLong();
+
+            return message;
+        }
+    }
+
+    private static interface ILocationSetter {
+
+        public void set(EntityPlayer player, ItemStack stack, ItemMatterManipulator manipulator, MMState state,
+            Vector3i location);
+    }
+
+    private static ISimplePacketHandler<LocationPacket> locationPacket(ILocationSetter setter) {
+        return new ISimplePacketHandler<Messages.LocationPacket>() {
+
+            @Override
+            public void handle(EntityPlayer player, LocationPacket packet) {
+                ItemStack held = player.inventory.getCurrentItem();
+
+                if (held != null && held.getItem() instanceof ItemMatterManipulator manipulator) {
+                    MMState state = ItemMatterManipulator.getState(held);
+
+                    Vector3i v = new Vector3i(
+                        CoordinatePacker.unpackX(packet.location),
+                        CoordinatePacker.unpackY(packet.location),
+                        CoordinatePacker.unpackZ(packet.location));
+
+                    setter.set(player, held, manipulator, state, v);
+
+                    ItemMatterManipulator.setState(held, state);
+                }
+            }
+
+            @Override
+            public LocationPacket getNewPacket(Messages message, @Nullable Object value) {
+                LocationPacket packet = new LocationPacket(message);
+
+                if (value instanceof Location l) {
+                    packet.location = CoordinatePacker.pack(l.x, l.y, l.z);
+                } else if (value instanceof Vector3i v) {
+                    packet.location = CoordinatePacker.pack(v.x, v.y, v.z);
+                }
+
+                return packet;
+            }
+        };
     }
 }

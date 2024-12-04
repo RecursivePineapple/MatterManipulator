@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.IntConsumer;
+import java.util.function.Supplier;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -57,7 +59,10 @@ import com.gtnewhorizon.structurelib.StructureLibAPI;
 import com.gtnewhorizon.structurelib.entity.fx.WeightlessParticleFX;
 import com.gtnewhorizons.modularui.api.UIInfos;
 import com.gtnewhorizons.modularui.api.math.Alignment;
+import com.gtnewhorizons.modularui.api.math.Color;
+import com.gtnewhorizons.modularui.api.math.CrossAxisAlignment;
 import com.gtnewhorizons.modularui.api.math.MainAxisAlignment;
+import com.gtnewhorizons.modularui.api.math.Pos2d;
 import com.gtnewhorizons.modularui.api.math.Size;
 import com.gtnewhorizons.modularui.api.screen.ModularUIContext;
 import com.gtnewhorizons.modularui.api.screen.ModularWindow;
@@ -68,8 +73,12 @@ import com.gtnewhorizons.modularui.common.internal.wrapper.ModularGui;
 import com.gtnewhorizons.modularui.common.internal.wrapper.ModularUIContainer;
 import com.gtnewhorizons.modularui.common.widget.Column;
 import com.gtnewhorizons.modularui.common.widget.DynamicTextWidget;
+import com.gtnewhorizons.modularui.common.widget.MultiChildWidget;
 import com.gtnewhorizons.modularui.common.widget.Row;
+import com.gtnewhorizons.modularui.common.widget.TextWidget;
 import com.gtnewhorizons.modularui.common.widget.VanillaButtonWidget;
+import com.gtnewhorizons.modularui.common.widget.textfield.NumericWidget;
+import com.gtnewhorizons.modularui.api.drawable.AdaptableUITexture;
 import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.client.gui.RadialMenuBuilder;
 import com.recursive_pineapple.matter_manipulator.client.rendering.BoxRenderer;
@@ -1453,100 +1462,351 @@ public class ItemMatterManipulator extends Item
         MMState initialState) {
         buildContext.setShowNEI(false);
 
-        ModularWindow.Builder builder = ModularWindow.builder(new Size(0, 0));
+        ModularWindow.Builder builder = ModularWindow.builderFullScreen();
 
         builder.bindPlayerInventory(buildContext.getPlayer(), 0, -9001);
 
         if (NetworkUtils.isClient()) {
+            Widget[] left = {
+                new Row().widgets(
+                    new VanillaButtonWidget().setDisplayString("Rotate X-")
+                        .setOnClick((t, u) -> { Transform.sendRotate(EAST, false); })
+                        .setSynced(false, false)
+                        .setSize(62, 18),
+                    padding(6, 6),
+                    new VanillaButtonWidget().setDisplayString("Rotate X+")
+                        .setOnClick((t, u) -> { Transform.sendRotate(EAST, true); })
+                        .setSynced(false, false)
+                        .setSize(62, 18)),
+                padding(10, 10),
+                new Row().widgets(
+                    new VanillaButtonWidget().setDisplayString("Rotate Y-")
+                        .setOnClick((t, u) -> { Transform.sendRotate(UP, false); })
+                        .setSynced(false, false)
+                        .setSize(62, 18),
+                    padding(6, 6),
+                    new VanillaButtonWidget().setDisplayString("Rotate Y+")
+                        .setOnClick((t, u) -> { Transform.sendRotate(UP, true); })
+                        .setSynced(false, false)
+                        .setSize(62, 18)),
+                padding(10, 10),
+                new Row().widgets(
+                    new VanillaButtonWidget().setDisplayString("Rotate Z-")
+                        .setOnClick((t, u) -> { Transform.sendRotate(SOUTH, false); })
+                        .setSynced(false, false)
+                        .setSize(62, 18),
+                    padding(6, 6),
+                    new VanillaButtonWidget().setDisplayString("Rotate Z+")
+                        .setOnClick((t, u) -> { Transform.sendRotate(SOUTH, true); })
+                        .setSynced(false, false)
+                        .setSize(62, 18)),
+                padding(10, 10),
+                new Row().widgets(
+                    new VanillaButtonWidget().setDisplayString("Flip X")
+                        .setOnClick(
+                            (t, u) -> { Messages.ToggleTransformFlip.sendToServer(Transform.FLIP_X); })
+                        .setSynced(false, false)
+                        .setSize(40, 18),
+                    padding(5, 5),
+                    new VanillaButtonWidget().setDisplayString("Flip Y")
+                        .setOnClick(
+                            (t, u) -> { Messages.ToggleTransformFlip.sendToServer(Transform.FLIP_Y); })
+                        .setSynced(false, false)
+                        .setSize(40, 18),
+                    padding(5, 5),
+                    new VanillaButtonWidget().setDisplayString("Flip Z")
+                        .setOnClick(
+                            (t, u) -> { Messages.ToggleTransformFlip.sendToServer(Transform.FLIP_Z); })
+                        .setSynced(false, false)
+                        .setSize(40, 18)),
+                padding(10, 10),
+                new Row().widgets(DynamicTextWidget.dynamicString(() -> {
+                    MMState currState = getState(
+                        buildContext.getPlayer()
+                            .getHeldItem());
+
+                    Transform t = currState.getTransform();
+
+                    ArrayList<String> flips = new ArrayList<>();
+
+                    if (t.flipX) flips.add("X");
+                    if (t.flipY) flips.add("Y");
+                    if (t.flipZ) flips.add("Z");
+
+                    String[] names = { "Down", "Up", "North", "South", "West", "East" };
+
+                    return String.format(
+                        "Flip: %s\nUp: %s\nForward: %s",
+                        flips.isEmpty() ? "None" : String.join(", ", flips),
+                        names[t.up.ordinal()],
+                        names[t.forward.ordinal()]);
+                })
+                    .setSynced(false)
+                    .setTextAlignment(Alignment.TopLeft)
+                    .setDefaultColor(0x2EFFFF)
+                    .setSize(90, 24),
+                    new Column()
+                        .setAlignment(MainAxisAlignment.CENTER, CrossAxisAlignment.END)
+                        .widget(new VanillaButtonWidget().setDisplayString("Reset")
+                            .setOnClick((t, u) -> { Messages.ResetTransform.sendToServer(); })
+                            .setSynced(false, false)
+                            .setSize(40, 18))
+                        .setSize(40, 24))
+            };
+
+            Widget[] right = {
+                new TextWidget("Copy A")
+                    .setTextAlignment(Alignment.BottomCenter)
+                    .setDefaultColor(0x2EFFFF)
+                    .setSize(130, 18),
+                padding(2, 2),
+                makeCoordinateEditor(buildContext.getPlayer(), 0, 0),
+                padding(2, 2),
+                makeCoordinateEditor(buildContext.getPlayer(), 0, 1),
+                padding(2, 2),
+                makeCoordinateEditor(buildContext.getPlayer(), 0, 2),
+                padding(10, 2),
+                new TextWidget("Copy B")
+                    .setTextAlignment(Alignment.BottomCenter)
+                    .setDefaultColor(0x2EFFFF)
+                    .setSize(130, 18),
+                padding(2, 2),
+                makeCoordinateEditor(buildContext.getPlayer(), 1, 0),
+                padding(2, 2),
+                makeCoordinateEditor(buildContext.getPlayer(), 1, 1),
+                padding(2, 2),
+                makeCoordinateEditor(buildContext.getPlayer(), 1, 2),
+                padding(10, 2),
+                new TextWidget("Paste")
+                    .setTextAlignment(Alignment.BottomCenter)
+                    .setDefaultColor(0x2EFFFF)
+                    .setSize(130, 18),
+                padding(2, 2),
+                makeCoordinateEditor(buildContext.getPlayer(), 2, 0),
+                padding(2, 2),
+                makeCoordinateEditor(buildContext.getPlayer(), 2, 1),
+                padding(2, 2),
+                makeCoordinateEditor(buildContext.getPlayer(), 2, 2),
+                padding(10, 2),
+                new TextWidget("Stacking")
+                    .setTextAlignment(Alignment.BottomCenter)
+                    .setDefaultColor(0x2EFFFF)
+                    .setSize(130, 18),
+                padding(2, 2),
+                makeCoordinateEditor(buildContext.getPlayer(), 3, 0),
+                padding(2, 2),
+                makeCoordinateEditor(buildContext.getPlayer(), 3, 1),
+                padding(2, 2),
+                makeCoordinateEditor(buildContext.getPlayer(), 3, 2),
+                padding(10, 2)
+            };
+
             builder.widget(
                 new Row().widgets(
                     padding(10, 10),
-                    new Column().setAlignment(MainAxisAlignment.CENTER)
-                        .widgets(
-                            new Row().widgets(
-                                new VanillaButtonWidget().setDisplayString("Rotate X-")
-                                    .setOnClick((t, u) -> { Transform.sendRotate(EAST, false); })
-                                    .setSynced(false, false)
-                                    .setSize(62, 18),
-                                padding(6, 6),
-                                new VanillaButtonWidget().setDisplayString("Rotate X+")
-                                    .setOnClick((t, u) -> { Transform.sendRotate(EAST, true); })
-                                    .setSynced(false, false)
-                                    .setSize(62, 18)),
-                            padding(10, 10),
-                            new Row().widgets(
-                                new VanillaButtonWidget().setDisplayString("Rotate Y-")
-                                    .setOnClick((t, u) -> { Transform.sendRotate(UP, false); })
-                                    .setSynced(false, false)
-                                    .setSize(62, 18),
-                                padding(6, 6),
-                                new VanillaButtonWidget().setDisplayString("Rotate Y+")
-                                    .setOnClick((t, u) -> { Transform.sendRotate(UP, true); })
-                                    .setSynced(false, false)
-                                    .setSize(62, 18)),
-                            padding(10, 10),
-                            new Row().widgets(
-                                new VanillaButtonWidget().setDisplayString("Rotate Z-")
-                                    .setOnClick((t, u) -> { Transform.sendRotate(SOUTH, false); })
-                                    .setSynced(false, false)
-                                    .setSize(62, 18),
-                                padding(6, 6),
-                                new VanillaButtonWidget().setDisplayString("Rotate Z+")
-                                    .setOnClick((t, u) -> { Transform.sendRotate(SOUTH, true); })
-                                    .setSynced(false, false)
-                                    .setSize(62, 18)),
-                            padding(10, 10),
-                            new Row().widgets(
-                                new VanillaButtonWidget().setDisplayString("Flip X")
-                                    .setOnClick(
-                                        (t, u) -> { Messages.ToggleTransformFlip.sendToServer(Transform.FLIP_X); })
-                                    .setSynced(false, false)
-                                    .setSize(40, 18),
-                                padding(5, 5),
-                                new VanillaButtonWidget().setDisplayString("Flip Y")
-                                    .setOnClick(
-                                        (t, u) -> { Messages.ToggleTransformFlip.sendToServer(Transform.FLIP_Y); })
-                                    .setSynced(false, false)
-                                    .setSize(40, 18),
-                                padding(5, 5),
-                                new VanillaButtonWidget().setDisplayString("Flip Z")
-                                    .setOnClick(
-                                        (t, u) -> { Messages.ToggleTransformFlip.sendToServer(Transform.FLIP_Z); })
-                                    .setSynced(false, false)
-                                    .setSize(40, 18)),
-                            padding(10, 10),
-                            new Row().widgets(DynamicTextWidget.dynamicString(() -> {
-                                MMState currState = getState(
-                                    buildContext.getPlayer()
-                                        .getHeldItem());
+                    new Column()
+                        .setAlignment(MainAxisAlignment.CENTER, CrossAxisAlignment.START)
+                        .widgets(left)).fillParent());
 
-                                Transform t = currState.getTransform();
+            Column cr;
 
-                                ArrayList<String> flips = new ArrayList<>();
-
-                                if (t.flipX) flips.add("X");
-                                if (t.flipY) flips.add("Y");
-                                if (t.flipZ) flips.add("Z");
-
-                                String[] names = { "Down", "Up", "North", "South", "West", "East" };
-
-                                return String.format(
-                                    "Flip: %s\nUp: %s\nForward: %s",
-                                    flips.isEmpty() ? "None" : String.join(", ", flips),
-                                    names[t.up.ordinal()],
-                                    names[t.forward.ordinal()]);
-                            })
-                                .setSynced(false)
-                                .setTextAlignment(Alignment.TopLeft)
-                                .setDefaultColor(EnumChatFormatting.BLACK)
-                                .setSize(90, 18 * 3),
-                                new VanillaButtonWidget().setDisplayString("Reset")
-                                    .setOnClick((t, u) -> { Messages.ResetTransform.sendToServer(); })
-                                    .setSynced(false, false)
-                                    .setSize(40, 18)))));
+            builder.widget(
+                (cr = new Column())
+                    .setAlignment(MainAxisAlignment.CENTER, CrossAxisAlignment.END)
+                    .widgets(right)
+                    .setPosProvider((screenSize, window, parent) -> {
+                        return new Pos2d(screenSize.width - cr.getSize().width - 10, 0);
+                    }));
         }
 
         return builder.build();
+    }
+
+    private static Vector3i getDefaultLocation(EntityPlayer player) {
+        return MMUtils.getLookingAtLocation(player);
+    }
+
+    private static final AdaptableUITexture DISPLAY = AdaptableUITexture
+        .of("modularui:gui/background/display", 143, 75, 2);
+
+    @SideOnly(Side.CLIENT)
+    private Row makeCoordinateEditor(EntityPlayer player, int coord, int component) {
+        Supplier<Integer> getter = () -> {
+            MMState currState = getState(player.getHeldItem());
+
+            Vector3i l = switch (coord) {
+                case 0 -> currState.config.coordA.toVec();
+                case 1 -> currState.config.coordB.toVec();
+                case 2 -> currState.config.coordC.toVec();
+                case 3 -> currState.config.arraySpan;
+                default -> throw new IllegalArgumentException("coord");
+            };
+
+            if (l == null) {
+                if (coord == 3) {
+                    l = new Vector3i(1);
+                } else {
+                    l = getDefaultLocation(player);
+                }
+            }
+
+            return switch (component) {
+                case 0 -> l.x;
+                case 1 -> l.y;
+                case 2 -> l.z;
+                default -> throw new IllegalArgumentException("component");
+            };
+        };
+
+        IntConsumer setter = i -> {
+            MMState currState = getState(player.getHeldItem());
+
+            Vector3i l = switch (coord) {
+                case 0 -> currState.config.coordA.toVec();
+                case 1 -> currState.config.coordB.toVec();
+                case 2 -> currState.config.coordC.toVec();
+                case 3 -> currState.config.arraySpan;
+                default -> throw new IllegalArgumentException("coord");
+            };
+
+            if (l == null) {
+                if (coord == 3) {
+                    l = new Vector3i(1);
+                } else {
+                    l = getDefaultLocation(player);
+                }
+
+                switch (coord) {
+                    case 0 -> currState.config.coordA = new Location(player.worldObj, l);
+                    case 1 -> currState.config.coordB = new Location(player.worldObj, l);
+                    case 2 -> currState.config.coordC = new Location(player.worldObj, l);
+                    case 3 -> currState.config.arraySpan = l;
+                    default -> throw new IllegalArgumentException("coord");
+                }
+            }
+
+            switch (component) {
+                case 0 -> l.x = i;
+                case 1 -> l.y = i;
+                case 2 -> l.z = i;
+                default -> throw new IllegalArgumentException("component");
+            }
+
+            ItemMatterManipulator.setState(player.getHeldItem(), currState);
+
+            switch (coord) {
+                case 0 -> {
+                    Messages.SetA.sendToServer(l);
+                }
+                case 1 -> {
+                    Messages.SetB.sendToServer(l);
+                }
+                case 2 -> {
+                    Messages.SetC.sendToServer(l);
+                }
+                case 3 -> {
+                    Messages.SetArray.sendToServer(l);
+                }
+                default -> throw new IllegalArgumentException("coord");
+            }
+        };
+
+        String compName = switch (component) {
+            case 0 -> "X";
+            case 1 -> "Y";
+            case 2 -> "Z";
+            default -> throw new IllegalArgumentException("component");
+        };
+
+        return new Row().widgets(
+            new VanillaButtonWidget().setDisplayString(compName + " - 1")
+                .setOnClick(
+                    (t, u) -> {
+                        Integer i = getter.get();
+
+                        if (i == null) {
+                            i = switch (component) {
+                                case 0 -> (int) player.posX;
+                                case 1 -> (int) player.posY;
+                                case 2 -> (int) player.posZ;
+                                default -> throw new IllegalArgumentException("component");
+                            };
+                        }
+                        
+                        if (GuiScreen.isShiftKeyDown()) {
+                            i -= 10;
+                        } else {
+                            i--;
+                        }
+
+                        if (coord == 3) {
+                            if (i < 1) {
+                                i = 1;
+                            }
+                        }
+
+                        setter.accept(i);
+                    })
+                .setSynced(false, false)
+                .setSize(40, 18)
+                .setTicker(w -> {
+                    if (GuiScreen.isShiftKeyDown()) {
+                        ((VanillaButtonWidget) w).setDisplayString(compName + " - 10");
+                    } else {
+                        ((VanillaButtonWidget) w).setDisplayString(compName + " - 1");
+                    }
+                }),
+            padding(5, 5),
+            new MultiChildWidget()
+                .addChild(new NumericWidget()
+                    .setSynced(false, false)
+                    .setIntegerOnly(true)
+                    .setGetter(() -> getter.get())
+                    .setSetter(i -> setter.accept((int) i))
+                    .setBounds(coord == 3 ? 1 : Integer.MIN_VALUE, Integer.MAX_VALUE)
+                    .setScrollBar()
+                    .setTextColor(Color.WHITE.dark(1))
+                    .setBackground(DISPLAY.withOffset(-2, -2, 4, 4))
+                    .setSize(36, 14)
+                    .setPos(2, 2)
+                    .setTicker(w -> {
+                        if (!w.isFocused()) {
+                            ((NumericWidget) w).setValue(getter.get());
+                        }
+                    }))
+                    .setSize(40, 18),
+            padding(5, 5),
+            new VanillaButtonWidget().setDisplayString(compName + " + 1")
+                .setOnClick(
+                    (t, u) -> {
+                        Integer i = getter.get();
+
+                        if (i == null) {
+                            i = switch (component) {
+                                case 0 -> (int) player.posX;
+                                case 1 -> (int) player.posY;
+                                case 2 -> (int) player.posZ;
+                                default -> throw new IllegalArgumentException("component");
+                            };
+                        }
+                        
+                        if (GuiScreen.isShiftKeyDown()) {
+                            i += 10;
+                        } else {
+                            i++;
+                        }
+
+                        setter.accept(i);
+                    })
+                .setSynced(false, false)
+                .setSize(40, 18)
+                .setTicker(w -> {
+                    if (GuiScreen.isShiftKeyDown()) {
+                        ((VanillaButtonWidget) w).setDisplayString(compName + " + 10");
+                    } else {
+                        ((VanillaButtonWidget) w).setDisplayString(compName + " + 1");
+                    }
+                }));
     }
 
     // #endregion
