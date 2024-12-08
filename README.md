@@ -4,13 +4,22 @@ This mod adds the matter manipulator, which is meant to be a survival-usable ver
 
 ## Current Status
 
-This tool can be used as a standalone mod, but it doesn't come with any default recipes since vanilla just doesn't have enough items or mechanics to support it. It's highly recommended to add your own recipes if using this in a pack. The manipulator crafting components will always be present, so it's also recommended to follow the existing pattern of making components, then combining the components into the final tool.
+This tool can be used as a standalone mod with a few dependencies, but it doesn't come with any default recipes since vanilla just doesn't have enough items or mechanics to support it. It's highly recommended to add your own recipes if using this in a pack. The manipulator crafting components will always be present, so it's also recommended to follow the existing pattern of making components, then combining the components into the final tool.
 
-This tool was previously in beta, but due to the recent migration to a standalone mod it is in a temporary alpha state. From testing it seems like everything works fine, but there are bound to be forgotten features and bugs. **Use in a survival world at your own risk.**
+This tool is in beta, meaning that it can be used in survival worlds if you're fine with loading backups. There are certainly still bugs that aren't known, but it seems stable enough to be used.
 
-If you're using this in GTNH, you must upgrade your GT5u jar to the latest custom release found [here](https://github.com/RecursivePineapple/GT5-Unofficial/releases). This patched GT5u contains several patches that are required for the matter manipulator to properly interact with GT machines. Your game will crash if you try to use a matter manipulator in GTNH without this jar.
+If you're using this in GTNH, you must upgrade your GT5u jar to the latest custom release found [here](https://github.com/RecursivePineapple/GT5-Unofficial/releases) that matches your modpack version. This patched GT5u contains several patches that are required for the matter manipulator to properly interact with GT machines. Your game will crash if you try to use a matter manipulator in GTNH without this jar.
 
 This mod will be added to GTNH and its GT5u PR will be merged some time in the new year, after 2.7 is released and stable.
+
+## Required Dependencies
+
+- StructureLib
+- ModularUI 1
+- GTNHLib
+- Postea (temporary, needed for migrating items from GT5u)
+
+All of these come with GTNH, so you don't need to install anything else if you're using it in the modpack.
 
 ## Behaviour Overview
 
@@ -25,13 +34,13 @@ The third mode allows you to replace large swaths of blocks, like the equal trad
 
 The fourth mode allows you to move a section of blocks from one area to another. It can move anything that can be broken, since it effectively just saves the tile entity and loads it in another location. The code for this was taken from blood magic's teleposers.
 
-The fifth mode allows you to copy + paste areas of machines. Currently, it only supports basic blocks, GT machines, and AE machines. It's possible to add more integrations, but I didn't think it was worth the effort. I'll take contributions if anyone wants to add support for a mod. I plan on adding an array mode and flipping/rotation soon.
+The fifth mode allows you to copy + paste areas of machines. Currently, it only supports basic blocks, GT machines, and AE machines. It's possible to add more integrations, but I didn't think it was worth the effort. I'll take contributions if anyone wants to add support for a mod. Additionally, you can rotate, flip, or stack the copied blocks. You can edit the stack size by either clicking 'Edit Stack' then clicking 'Mark', or you can edit it in the edit transform screen. Note that it only works in one direction (which is determined by the two copy coordinates) due to the complex math. I haven't been able to make it work in the other directions.
 
 The final mode (although this is more of a global setting), is the remove mode. This will let you configure which existing blocks should be removed, if any. You can remove no blocks, replaceable blocks only (grass, leaves, etc), or all blocks.
 
 ## Block Placing & Removing
 
-This tool will try to replicate blocks as accurately as possible. It does this by analyzing the block's item and metadata along with its tile entity. It does not do anything with raw NBT (except for the moving mode, which doesn't save it), so the only duplication glitches will be ones where the tool doesn't give or take items or fluids properly.
+This tool will try to replicate blocks as accurately as possible. It does this by analyzing the block's item and metadata along with its tile entity. It does not do anything with raw NBT (except for the moving mode, which doesn't save it), so the only duplication or deletion glitches will be ones where the tool doesn't give or take items or fluids properly.
 
 If a block has subtypes, it will save its metadata as is and try to find an item with that meta when placing it. If a block doesn't have subtypes, minecraft will reset its metadata when broken, which means the tool can set its metadata to whatever it was when analyzed without changing the block.
 
@@ -47,7 +56,7 @@ For balance reasons, the tool will always void ore regardless of the tier. This 
 
 ## Which traits are copied?
 
-The goal is to completely support AE and GT, though some machine-specific settings in GT have been intentionally skipped. If there's anything critical missing, feel free to open an issue.
+The goal is to completely support AE and GT, though some niche machine-specific settings in GT have been intentionally skipped. If there's anything critical missing, feel free to open an issue.
 
 ### GregTech
 
