@@ -80,6 +80,7 @@ import com.gtnewhorizons.modularui.common.widget.VanillaButtonWidget;
 import com.gtnewhorizons.modularui.common.widget.textfield.NumericWidget;
 import com.gtnewhorizons.modularui.api.drawable.AdaptableUITexture;
 import com.recursive_pineapple.matter_manipulator.MMMod;
+import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.InteractionConfig;
 import com.recursive_pineapple.matter_manipulator.client.gui.RadialMenuBuilder;
 import com.recursive_pineapple.matter_manipulator.client.rendering.BoxRenderer;
 import com.recursive_pineapple.matter_manipulator.common.building.IBuildable;
@@ -1866,12 +1867,14 @@ public class ItemMatterManipulator extends Item
         public static final KeyBinding CUT = new KeyBinding("key.mm-cut", Keyboard.KEY_X, "key.mm");
         public static final KeyBinding COPY = new KeyBinding("key.mm-copy", Keyboard.KEY_C, "key.mm");
         public static final KeyBinding PASTE = new KeyBinding("key.mm-paste", Keyboard.KEY_V, "key.mm");
+        public static final KeyBinding RESET = new KeyBinding("key.mm-reset", Keyboard.KEY_Z, "key.mm");
 
         public static void initKeybindings() {
             ClientRegistry.registerKeyBinding(CONTROL);
             ClientRegistry.registerKeyBinding(CUT);
             ClientRegistry.registerKeyBinding(COPY);
             ClientRegistry.registerKeyBinding(PASTE);
+            ClientRegistry.registerKeyBinding(RESET);
         }
 
         public void onKeyPressed() {
@@ -1881,24 +1884,31 @@ public class ItemMatterManipulator extends Item
             if (held != null && held.getItem() == ItemMatterManipulator.this) {
                 MMState state = getState(held);
 
-                // Need to use isKeyDown here because isPressed doesn't work well with ctrl+... for some reason
-                if (CONTROL.getKeyCode() == 0 || Keyboard.isKeyDown(CONTROL.getKeyCode())) {
-                    if (Keyboard.isKeyDown(CUT.getKeyCode())) {
+                if (CONTROL.getKeyCode() == 0 || CONTROL.getIsKeyPressed()) {
+                    if (CUT.isPressed()) {
                         if (state.config.placeMode != PlaceMode.MOVING) {
                             Messages.SetPlaceMode.sendToServer(PlaceMode.MOVING);
                         }
+                        if (InteractionConfig.pasteAutoClear) {
+                            Messages.ClearCoords.sendToServer();
+                        }
                         Messages.MarkCut.sendToServer();
-                    } else if (Keyboard.isKeyDown(COPY.getKeyCode())) {
+                    } else if (COPY.isPressed()) {
                         if (state.config.placeMode != PlaceMode.COPYING) {
                             Messages.SetPlaceMode.sendToServer(PlaceMode.COPYING);
                         }
+                        if (InteractionConfig.pasteAutoClear) {
+                            Messages.ClearCoords.sendToServer();
+                        }
                         Messages.MarkCopy.sendToServer();
-                    } else if (Keyboard.isKeyDown(PASTE.getKeyCode())) {
+                    } else if (PASTE.isPressed()) {
                         // set the mode to copying if we aren't in a mode supports pasting (moving/copying)
                         if (state.config.placeMode != PlaceMode.COPYING && state.config.placeMode != PlaceMode.MOVING) {
                             Messages.SetPlaceMode.sendToServer(PlaceMode.COPYING);
                         }
                         Messages.MarkPaste.sendToServer();
+                    } else if (RESET.isPressed()) {
+                        Messages.ClearCoords.sendToServer();
                     }
                 }
             }

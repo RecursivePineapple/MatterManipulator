@@ -21,7 +21,7 @@ import net.minecraftforge.fluids.FluidStack;
 import org.joml.Vector3i;
 
 import com.mojang.authlib.GameProfile;
-import com.recursive_pineapple.matter_manipulator.Config;
+import com.recursive_pineapple.matter_manipulator.GlobalMMConfig;
 import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.PendingBlock;
@@ -92,7 +92,7 @@ public class BlockAnalyzer {
 
         long post = System.nanoTime();
 
-        if (Config.D1) {
+        if (GlobalMMConfig.D1) {
             MMMod.LOG.info("Analysis took " + (post - pre) / 1e6 + " ms");
         }
 

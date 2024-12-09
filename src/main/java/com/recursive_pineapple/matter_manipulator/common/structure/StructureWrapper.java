@@ -12,7 +12,7 @@ import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
-import com.recursive_pineapple.matter_manipulator.Config;
+import com.recursive_pineapple.matter_manipulator.GlobalMMConfig;
 import com.recursive_pineapple.matter_manipulator.MMMod;
 
 import gregtech.api.interfaces.IHatchElement;
@@ -109,7 +109,7 @@ public class StructureWrapper<MTE extends MTEEnhancedMultiBlockBase<?> & IStruct
     public boolean checkStructure(MTE instance) {
         loadStructure();
 
-        if (!Config.DEVENV) {
+        if (!GlobalMMConfig.DEVENV) {
             return checkStructureImpl(instance);
         } else {
             try {
@@ -142,7 +142,7 @@ public class StructureWrapper<MTE extends MTEEnhancedMultiBlockBase<?> & IStruct
     }
 
     public void construct(MTE instance, ItemStack trigger, boolean hintsOnly) {
-        if (!Config.DEVENV) {
+        if (!GlobalMMConfig.DEVENV) {
             constructImpl(instance, trigger, hintsOnly);
         } else {
             try {
@@ -178,7 +178,7 @@ public class StructureWrapper<MTE extends MTEEnhancedMultiBlockBase<?> & IStruct
     public int survivalConstruct(MTE instance, ItemStack trigger, int elementBudget, ISurvivalBuildEnvironment env) {
         if (instance.mMachine) return -1;
 
-        if (!Config.DEVENV) {
+        if (!GlobalMMConfig.DEVENV) {
             return survivalConstructImpl(instance, trigger, elementBudget, env);
         } else {
             try {

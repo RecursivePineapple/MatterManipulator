@@ -29,8 +29,9 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 
-import com.recursive_pineapple.matter_manipulator.Config;
+import com.recursive_pineapple.matter_manipulator.GlobalMMConfig;
 import com.recursive_pineapple.matter_manipulator.MMMod;
+import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.InteractionConfig;
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
@@ -166,6 +167,20 @@ public enum Messages {
                 state.config.coordA = new Location(player.getEntityWorld(), newA);
                 state.config.coordB = new Location(player.getEntityWorld(), newB);
             }
+        }
+    }))),
+    ClearCoords(server(simple((player, stack, manipulator, state) -> {
+        state.config.action = null;
+        state.config.coordA = null;
+        state.config.coordB = null;
+        state.config.coordC = null;
+        state.config.coordAOffset = null;
+        state.config.coordBOffset = null;
+        state.config.coordCOffset = null;
+        
+        if (InteractionConfig.resetTransform) {
+            state.config.transform = new Transform();
+            state.config.arraySpan = null;
         }
     }))),
     MarkCopy(server(simple((player, stack, manipulator, state) -> {
@@ -385,7 +400,7 @@ public enum Messages {
     }
 
     public void sendToServer(Object data) {
-        if (Config.D1) {
+        if (GlobalMMConfig.D1) {
             MMMod.LOG.info("Sending packet to server: " + this + "; " + data);
         }
         CHANNEL.sendToServer(getNewPacket(data));
@@ -396,7 +411,7 @@ public enum Messages {
     }
 
     public void sendToPlayer(EntityPlayerMP player, Object data) {
-        if (Config.D1) {
+        if (GlobalMMConfig.D1) {
             MMMod.LOG.info("Sending packet to player: " + this + "; " + data + "; " + player);
         }
         CHANNEL.sendToPlayer(getNewPacket(data), player);
@@ -407,7 +422,7 @@ public enum Messages {
     }
 
     public void sendToPlayersAround(Location location, Object data) {
-        if (Config.D1) {
+        if (GlobalMMConfig.D1) {
             MMMod.LOG
                 .info("Sending packet to players around " + location.toString() + ": " + this + "; " + data);
         }
@@ -417,7 +432,7 @@ public enum Messages {
     }
 
     public void sendToPlayersWithinRange(Location location, Object data) {
-        if (Config.D1) {
+        if (GlobalMMConfig.D1) {
             MMMod.LOG
                 .info("Sending packet to players that are watching " + location.toString() + ": " + this + "; " + data);
         }
@@ -440,7 +455,7 @@ public enum Messages {
 
     @SuppressWarnings("unchecked")
     public void handle(EntityPlayer player, SimplePacket packet) {
-        if (Config.D1) {
+        if (GlobalMMConfig.D1) {
             MMMod.LOG
                 .info("Handling packet: " + this + "; " + packet + "; " + player + "; " + NetworkUtils.isClient());
         }

@@ -18,8 +18,7 @@ public class CommonProxy {
     public void preInit(FMLPreInitializationEvent event) {
         MMMod.LOG.info("Loading Matter Manipulator version " + Tags.VERSION);
 
-        Config.synchronizeConfiguration(event.getSuggestedConfigurationFile());
-
+        GlobalMMConfig.init();
         MMItems.registerItems();
         Messages.init();
 
