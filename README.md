@@ -34,7 +34,7 @@ The third mode allows you to replace large swaths of blocks, like the equal trad
 
 The fourth mode allows you to move a section of blocks from one area to another. It can move anything that can be broken, since it effectively just saves the tile entity and loads it in another location. The code for this was taken from blood magic's teleposers.
 
-The fifth mode allows you to copy + paste areas of machines. Currently, it only supports basic blocks, GT machines, and AE machines. It's possible to add more integrations, but I didn't think it was worth the effort. I'll take contributions if anyone wants to add support for a mod. Additionally, you can rotate, flip, or stack the copied blocks. You can edit the stack size by either clicking 'Edit Stack' then clicking 'Mark', or you can edit it in the edit transform screen. Note that it only works in one direction (which is determined by the two copy coordinates) due to the complex math. I haven't been able to make it work in the other directions.
+The fifth mode allows you to copy + paste areas of machines. Currently, it only supports basic blocks, GT machines, and AE machines. It's possible to add more integrations, but I didn't think it was worth the effort. I'll take contributions if anyone wants to add support for a mod. Additionally, you can rotate, flip, or stack the copied blocks. You can edit the stack size by either clicking 'Edit Stack' then clicking 'Mark', or you can edit it in the edit transform screen.
 
 The final mode (although this is more of a global setting), is the remove mode. This will let you configure which existing blocks should be removed, if any. You can remove no blocks, replaceable blocks only (grass, leaves, etc), or all blocks.
 
@@ -46,7 +46,7 @@ If a block has subtypes, it will save its metadata as is and try to find an item
 
 When the tool breaks a block, it will try to reset it in the world by checking for GT and AE interfaces, then calling a handful of methods on the tile entity. It will remove any covers, clear any fluid tanks or inventories, remove any AE patterns, cells, or upgrades, reset the AE name, and try to convert p2p tunnels to their default version. It will also remove any config on a storage cell. In general, if the tool can configure something, it will try its best to undo that configuration. Once it's done everything it can to reset a block, it will remove the block.
 
-When modifying a tile entity, the tool will generate a TileAnalysisResult. This object contains a few dozen fields which represent all copy-able state. When a tile is analyzed, this object will scan for various interfaces and call various methods to retrieve the tile's state. When applying, it will do the reverse, consuming or returning items when applicable. It will never directly modify the NBT state, even if it's safe to do so (ie for AE configuration). It will only hack into internals when absolutely necessary, and even then it only call private methods.
+When modifying a tile entity, the tool will generate a TileAnalysisResult. This object contains a few dozen fields which represent all copyable state. When a tile is analyzed, this object will scan for various interfaces and call various methods to retrieve the tile's state. When applying, it will do the reverse, consuming or returning items when applicable. It will never directly modify the NBT state, even if it's safe to do so (ie for AE configuration). It will only hack into internals when absolutely necessary, and even then it only call private methods.
 
 For non-moving modes, the tool will only place similar blocks at the same time. It groups blocks based on their item and meta (if the item has subtypes). Most builds will be limited by the build tick time, not the block place limit, so the block place limit is only relevant for geometry.
 
@@ -97,7 +97,7 @@ For parts:
 
 Note: attunable P2Ps (non-interface P2Ps) will also be attuned automatically from a blank P2P.
 
-### Miscellanious
+### Miscellaneous
 
 - Inventories
 - Storage Drawer rotation
