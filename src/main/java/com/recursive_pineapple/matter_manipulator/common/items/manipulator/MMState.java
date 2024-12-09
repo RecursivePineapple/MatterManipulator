@@ -290,9 +290,9 @@ public class MMState {
 
                 List<PendingBlock> base = new ArrayList<>(analysis.blocks);
 
-                for (int y = 0; y < sy; y++) {
-                    for (int z = 0; z < sz; z++) {
-                        for (int x = 0; x < sx; x++) {
+                for (int y = Math.min(sy, 0); y <= Math.max(sy, 0); y++) {
+                    for (int z = Math.min(sz, 0); z <= Math.max(sz, 0); z++) {
+                        for (int x = Math.min(sx, 0); x <= Math.max(sx, 0); x++) {
                             int dx = x * (analysis.deltas.x + (analysis.deltas.x < 0 ? -1 : 1));
                             int dy = y * (analysis.deltas.y + (analysis.deltas.y < 0 ? -1 : 1));
                             int dz = z * (analysis.deltas.z + (analysis.deltas.z < 0 ? -1 : 1));

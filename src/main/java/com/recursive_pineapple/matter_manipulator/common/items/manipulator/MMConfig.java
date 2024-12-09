@@ -1,7 +1,6 @@
 package com.recursive_pineapple.matter_manipulator.common.items.manipulator;
 
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.ceilDiv2;
-import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.signum;
 
 import java.util.List;
 
@@ -157,6 +156,17 @@ public class MMConfig {
             return this;
         }
 
+        public VoxelAABB union(VoxelAABB other) {
+            Vector3i min = min(), max = max();
+
+            origin.set(min)
+                .min(other.min());
+            bounds.set(max)
+                .max(other.max());
+
+            return this;
+        }
+
         public VoxelAABB moveOrigin(Vector3i newOrigin) {
             bounds.sub(origin)
                 .add(newOrigin);
@@ -165,18 +175,22 @@ public class MMConfig {
             return this;
         }
 
-        private static int scaleComponent(int k, int o, int n) {
-            int d = k - o;
-
-            if (d == 0) return n + o - 1;
-
-            return (d + signum(d)) * n + o - signum(d);
-        }
-
         public VoxelAABB scale(int x, int y, int z) {
-            bounds.x = scaleComponent(bounds.x, origin.x, x);
-            bounds.y = scaleComponent(bounds.y, origin.y, y);
-            bounds.z = scaleComponent(bounds.z, origin.z, z);
+            int dirX = bounds.x < origin.x ? -1 : 1;
+            int dirY = bounds.y < origin.y ? -1 : 1;
+            int dirZ = bounds.z < origin.z ? -1 : 1;
+
+            Vector3i size = size();
+
+            size.mul(x, y, z);
+            size.mul(dirX, dirY, dirZ);
+            size.add(origin);
+
+            VoxelAABB other = clone();
+
+            other.moveOrigin(size);
+
+            union(other);
 
             return this;
         }
@@ -220,15 +234,9 @@ public class MMConfig {
 
     public Vector3i getArrayMult(World world, Location sourceA, Location sourceB, Location dest,
         Vector3i lookingAt) {
-        if (!Location.areCompatible(sourceA, sourceB)) return new Vector3i(1);
-        if (dest == null || dest.worldId != world.provider.dimensionId) return new Vector3i(1);
-
-        VoxelAABB copy = new VoxelAABB(sourceA.toVec(), sourceB.toVec());
-        VoxelAABB paste = copy.clone()
-            .moveOrigin(dest.toVec());
+        if (!Location.areCompatible(sourceA, sourceB, dest)) return new Vector3i(1);
 
         Vector3i array = new Vector3i(lookingAt).sub(dest.toVec());
-        Vector3i span = paste.size();
 
         Vector3i delta = sourceB.toVec()
             .sub(sourceA.toVec());
@@ -241,32 +249,37 @@ public class MMConfig {
             array.z = Math.round(v2.z);
         }
 
-        array.x *= delta.x < 0 ? -1 : 1;
-        array.y *= delta.y < 0 ? -1 : 1;
-        array.z *= delta.z < 0 ? -1 : 1;
+        array.x = delta.x == 0 ? array.x + (array.x > 0 ? 1 : 0) : ceilDiv2(array.x, delta.x);
+        array.y = delta.y == 0 ? array.y + (array.y > 0 ? 1 : 0) : ceilDiv2(array.y, delta.y);
+        array.z = delta.z == 0 ? array.z + (array.z > 0 ? 1 : 0) : ceilDiv2(array.z, delta.z);
 
-        array.x += signum(array.x);
-        array.y += signum(array.y);
-        array.z += signum(array.z);
-
-        array.x = array.x < 1 ? 1 : ceilDiv2(array.x, span.x);
-        array.y = array.y < 1 ? 1 : ceilDiv2(array.y, span.y);
-        array.z = array.z < 1 ? 1 : ceilDiv2(array.z, span.z);
+        array.x += array.x > 0 ? -1 : 0;
+        array.y += array.y > 0 ? -1 : 0;
+        array.z += array.z > 0 ? -1 : 0;
 
         return array;
     }
 
     public VoxelAABB getPasteVisualDeltas(World world) {
-        if (coordA == null || coordB == null) return null;
-        if (!coordA.isInWorld(world) || !coordB.isInWorld(world)) return null;
+        if (!Location.areCompatible(coordA, coordB, coordC)) return null;
+        if (world != null && coordA.worldId != world.provider.dimensionId) return null;
 
         VoxelAABB aabb = new VoxelAABB(coordA.toVec(), coordB.toVec());
+
+        aabb.moveOrigin(coordC.toVec());
 
         if (arraySpan != null) {
             aabb.scale(arraySpan.x, arraySpan.y, arraySpan.z);
         }
 
         return aabb;
+    }
+
+    public VoxelAABB getCopyVisualDeltas(World world) {
+        if (!Location.areCompatible(coordA, coordB)) return null;
+        if (world != null && coordA.worldId != world.provider.dimensionId) return null;
+
+        return new VoxelAABB(coordA.toVec(), coordB.toVec());
     }
 
     @Override

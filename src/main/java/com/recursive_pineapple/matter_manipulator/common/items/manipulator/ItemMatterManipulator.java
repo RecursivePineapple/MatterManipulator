@@ -79,6 +79,9 @@ import com.gtnewhorizons.modularui.common.widget.TextWidget;
 import com.gtnewhorizons.modularui.common.widget.VanillaButtonWidget;
 import com.gtnewhorizons.modularui.common.widget.textfield.NumericWidget;
 import com.gtnewhorizons.modularui.api.drawable.AdaptableUITexture;
+import com.gtnewhorizons.modularui.api.drawable.IDrawable;
+import com.gtnewhorizons.modularui.api.drawable.OffsetDrawable;
+import com.gtnewhorizons.modularui.api.drawable.shapes.Rectangle;
 import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.InteractionConfig;
 import com.recursive_pineapple.matter_manipulator.client.gui.RadialMenuBuilder;
@@ -1467,7 +1470,35 @@ public class ItemMatterManipulator extends Item
 
         builder.bindPlayerInventory(buildContext.getPlayer(), 0, -9001);
 
+        IDrawable[] background = {
+            new Rectangle().setColor(0xFF888888),
+            new OffsetDrawable(new Rectangle().setColor(0xFF111111), 2, 2, -4, -4),
+        };
+
         if (NetworkUtils.isClient()) {
+
+            DynamicTextWidget rotationInfo = DynamicTextWidget.dynamicString(() -> {
+                MMState currState = getState(
+                    buildContext.getPlayer()
+                        .getHeldItem());
+
+                Transform t = currState.getTransform();
+
+                ArrayList<String> flips = new ArrayList<>();
+
+                if (t.flipX) flips.add("X");
+                if (t.flipY) flips.add("Y");
+                if (t.flipZ) flips.add("Z");
+
+                String[] names = { "Down", "Up", "North", "South", "West", "East" };
+
+                return String.format(
+                    "Flip: %s\nUp: %s\nForward: %s",
+                    flips.isEmpty() ? "None" : String.join(", ", flips),
+                    names[t.up.ordinal()],
+                    names[t.forward.ordinal()]);
+            });
+
             Widget[] left = {
                 new Row().widgets(
                     new VanillaButtonWidget().setDisplayString("Rotate X-")
@@ -1521,45 +1552,29 @@ public class ItemMatterManipulator extends Item
                         .setSynced(false, false)
                         .setSize(40, 18)),
                 padding(10, 10),
-                new Row().widgets(DynamicTextWidget.dynamicString(() -> {
-                    MMState currState = getState(
-                        buildContext.getPlayer()
-                            .getHeldItem());
-
-                    Transform t = currState.getTransform();
-
-                    ArrayList<String> flips = new ArrayList<>();
-
-                    if (t.flipX) flips.add("X");
-                    if (t.flipY) flips.add("Y");
-                    if (t.flipZ) flips.add("Z");
-
-                    String[] names = { "Down", "Up", "North", "South", "West", "East" };
-
-                    return String.format(
-                        "Flip: %s\nUp: %s\nForward: %s",
-                        flips.isEmpty() ? "None" : String.join(", ", flips),
-                        names[t.up.ordinal()],
-                        names[t.forward.ordinal()]);
-                })
-                    .setSynced(false)
-                    .setTextAlignment(Alignment.TopLeft)
-                    .setDefaultColor(0x2EFFFF)
-                    .setSize(90, 24),
+                new Row().widgets(
+                    new MultiChildWidget()
+                        .addChild(
+                            rotationInfo
+                                .setSynced(false)
+                                .setTextAlignment(Alignment.CenterLeft)
+                                .setDefaultColor(Color.WHITE.dark(1))
+                                .setSize(80, 36)
+                                .setPos(3, 0))
+                        .setBackground(background)
+                        .setSize(88, 36),
+                    padding(2, 2),
                     new Column()
                         .setAlignment(MainAxisAlignment.CENTER, CrossAxisAlignment.END)
                         .widget(new VanillaButtonWidget().setDisplayString("Reset")
                             .setOnClick((t, u) -> { Messages.ResetTransform.sendToServer(); })
                             .setSynced(false, false)
                             .setSize(40, 18))
-                        .setSize(40, 24))
+                        .setSize(40, 36))
             };
 
             Widget[] right = {
-                new TextWidget("Copy A")
-                    .setTextAlignment(Alignment.BottomCenter)
-                    .setDefaultColor(0x2EFFFF)
-                    .setSize(130, 18),
+                makeHeader("Copy (A)"),
                 padding(2, 2),
                 makeCoordinateEditor(buildContext.getPlayer(), 0, 0),
                 padding(2, 2),
@@ -1567,10 +1582,7 @@ public class ItemMatterManipulator extends Item
                 padding(2, 2),
                 makeCoordinateEditor(buildContext.getPlayer(), 0, 2),
                 padding(10, 2),
-                new TextWidget("Copy B")
-                    .setTextAlignment(Alignment.BottomCenter)
-                    .setDefaultColor(0x2EFFFF)
-                    .setSize(130, 18),
+                makeHeader("Copy (B)"),
                 padding(2, 2),
                 makeCoordinateEditor(buildContext.getPlayer(), 1, 0),
                 padding(2, 2),
@@ -1578,10 +1590,7 @@ public class ItemMatterManipulator extends Item
                 padding(2, 2),
                 makeCoordinateEditor(buildContext.getPlayer(), 1, 2),
                 padding(10, 2),
-                new TextWidget("Paste")
-                    .setTextAlignment(Alignment.BottomCenter)
-                    .setDefaultColor(0x2EFFFF)
-                    .setSize(130, 18),
+                makeHeader("Paste"),
                 padding(2, 2),
                 makeCoordinateEditor(buildContext.getPlayer(), 2, 0),
                 padding(2, 2),
@@ -1589,10 +1598,7 @@ public class ItemMatterManipulator extends Item
                 padding(2, 2),
                 makeCoordinateEditor(buildContext.getPlayer(), 2, 2),
                 padding(10, 2),
-                new TextWidget("Stacking")
-                    .setTextAlignment(Alignment.BottomCenter)
-                    .setDefaultColor(0x2EFFFF)
-                    .setSize(130, 18),
+                makeHeader("Stacking"),
                 padding(2, 2),
                 makeCoordinateEditor(buildContext.getPlayer(), 3, 0),
                 padding(2, 2),
@@ -1623,6 +1629,26 @@ public class ItemMatterManipulator extends Item
         return builder.build();
     }
 
+    private static Widget makeHeader(String text) {
+        IDrawable[] background = {
+            new Rectangle().setColor(0xFF888888),
+            new OffsetDrawable(new Rectangle().setColor(0xFF111111), 2, 2, -4, -4),
+        };
+
+        return new MultiChildWidget()
+            .addChild(
+                new MultiChildWidget()
+                    .addChild(
+                        new TextWidget(text)
+                            .setTextAlignment(Alignment.BottomCenter)
+                            .setDefaultColor(Color.WHITE.dark(1))
+                            .setSize(60, 13))
+                    .setBackground(background)
+                    .setSize(60, 18)
+                    .setPos((130 - 60) / 2, 0))
+            .setSize(130, 18);
+    }
+
     private static Vector3i getDefaultLocation(EntityPlayer player) {
         return MMUtils.getLookingAtLocation(player);
     }
@@ -1645,7 +1671,7 @@ public class ItemMatterManipulator extends Item
 
             if (l == null) {
                 if (coord == 3) {
-                    l = new Vector3i(1);
+                    l = new Vector3i(0);
                 } else {
                     l = getDefaultLocation(player);
                 }
@@ -1672,7 +1698,7 @@ public class ItemMatterManipulator extends Item
 
             if (l == null) {
                 if (coord == 3) {
-                    l = new Vector3i(1);
+                    l = new Vector3i(0);
                 } else {
                     l = getDefaultLocation(player);
                 }
@@ -1734,28 +1760,48 @@ public class ItemMatterManipulator extends Item
                             };
                         }
                         
+                        int offset = 1;
+                        
                         if (GuiScreen.isShiftKeyDown()) {
-                            i -= 10;
-                        } else {
-                            i--;
+                            offset = 10;
+                        } else if (GuiScreen.isCtrlKeyDown()) {
+                            MMState currState = getState(player.getHeldItem());
+
+                            Vector3i size = currState.config.getPasteVisualDeltas(null).size();
+
+                            offset = switch (component) {
+                                case 0 -> size.x;
+                                case 1 -> size.y;
+                                case 2 -> size.z;
+                                case 3 -> 1;
+                                default -> throw new IllegalArgumentException("component");
+                            };
                         }
 
-                        if (coord == 3) {
-                            if (i < 1) {
-                                i = 1;
-                            }
-                        }
+                        i -= offset;
 
                         setter.accept(i);
                     })
                 .setSynced(false, false)
                 .setSize(40, 18)
                 .setTicker(w -> {
+                    int offset = 1;
                     if (GuiScreen.isShiftKeyDown()) {
-                        ((VanillaButtonWidget) w).setDisplayString(compName + " - 10");
-                    } else {
-                        ((VanillaButtonWidget) w).setDisplayString(compName + " - 1");
+                        offset = 10;
+                    } else if (GuiScreen.isCtrlKeyDown()) {
+                        MMState currState = getState(player.getHeldItem());
+
+                        Vector3i size = currState.config.getPasteVisualDeltas(null).size();
+
+                        offset = switch (component) {
+                            case 0 -> size.x;
+                            case 1 -> size.y;
+                            case 2 -> size.z;
+                            case 3 -> 1;
+                            default -> throw new IllegalArgumentException("component");
+                        };
                     }
+                    ((VanillaButtonWidget) w).setDisplayString(compName + " - " + offset);
                 }),
             padding(5, 5),
             new MultiChildWidget()
@@ -1791,22 +1837,48 @@ public class ItemMatterManipulator extends Item
                             };
                         }
                         
+                        int offset = 1;
+
                         if (GuiScreen.isShiftKeyDown()) {
-                            i += 10;
-                        } else {
-                            i++;
+                            offset = 10;
+                        } else if (GuiScreen.isCtrlKeyDown()) {
+                            MMState currState = getState(player.getHeldItem());
+
+                            Vector3i size = currState.config.getPasteVisualDeltas(null).size();
+
+                            offset = switch (component) {
+                                case 0 -> size.x;
+                                case 1 -> size.y;
+                                case 2 -> size.z;
+                                case 3 -> 1;
+                                default -> throw new IllegalArgumentException("component");
+                            };
                         }
+
+                        i += offset;
 
                         setter.accept(i);
                     })
                 .setSynced(false, false)
                 .setSize(40, 18)
                 .setTicker(w -> {
+                    int offset = 1;
                     if (GuiScreen.isShiftKeyDown()) {
-                        ((VanillaButtonWidget) w).setDisplayString(compName + " + 10");
-                    } else {
-                        ((VanillaButtonWidget) w).setDisplayString(compName + " + 1");
+                        offset = 10;
+                    } else if (GuiScreen.isCtrlKeyDown()) {
+                        MMState currState = getState(player.getHeldItem());
+
+                        Vector3i size = currState.config.getPasteVisualDeltas(null).size();
+
+                        offset = switch (component) {
+                            case 0 -> size.x;
+                            case 1 -> size.y;
+                            case 2 -> size.z;
+                            case 3 -> 1;
+                            default -> throw new IllegalArgumentException("component");
+                        };
                     }
+                    ((VanillaButtonWidget) w).setDisplayString(compName + " + " + offset);
                 }));
     }
 
@@ -2157,9 +2229,9 @@ public class ItemMatterManipulator extends Item
 
                 pasteDeltas = state.config.getPasteVisualDeltas(player.worldObj);
 
-                if (pasteDeltas == null) pasteDeltas = new VoxelAABB();
-
-                pasteDeltas.moveOrigin(paste.toVec());
+                if (pasteDeltas == null) {
+                    pasteDeltas = new VoxelAABB(paste.toVec(), paste.toVec());
+                }
 
                 if (state.config.transform != null) {
                     state.config.transform.apply(pasteDeltas);
