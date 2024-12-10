@@ -2,7 +2,9 @@ package com.recursive_pineapple.matter_manipulator.common.utils;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -954,7 +956,16 @@ public class MMUtils {
         }
     }
 
-    private static final MethodHandle ITEM_REED_BLOCK = MMUtils.exposeFieldGetter(ItemReed.class, "field_150935_a");
+    public static MethodHandle exposeMethod(Class<?> clazz, MethodType sig, String... names) {
+        try {
+            Method method = ReflectionHelper.findMethod(clazz, null, names, sig.parameterArray());
+            method.setAccessible(true);
+            return MethodHandles.lookup()
+                .unreflect(method);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("Could not make method handle for " + clazz.getName() + ":" + names[0], e);
+        }
+    }
 
     private static final Random RNG = new Random();
 
@@ -978,12 +989,7 @@ public class MMUtils {
         if (item == Items.redstone) {
             block = Blocks.redstone_wire;
         } else if (item instanceof ItemReed specialPlacing) {
-            try {
-                block = (Block) ITEM_REED_BLOCK.invoke(specialPlacing);
-            } catch (Throwable t) {
-                MMMod.LOG.error("Could not get field ItemReed.field_150935_a for " + specialPlacing, t);
-                return Blocks.air;
-            }
+            block = specialPlacing.field_150935_a;
         } else {
             block = Block.getBlockFromItem(item);
         }

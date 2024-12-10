@@ -1,8 +1,12 @@
 package com.recursive_pineapple.matter_manipulator.common.items.manipulator;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodType;
+import java.lang.reflect.Method;
 import java.util.Comparator;
 import java.util.Optional;
 
+import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.common.building.TileAnalysisResult;
 import com.recursive_pineapple.matter_manipulator.common.utils.Lazy;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
@@ -12,7 +16,10 @@ import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 import appeng.api.AEApi;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
+import cpw.mods.fml.relauncher.ReflectionHelper;
+import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockSlab;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
@@ -31,13 +38,23 @@ public class PendingBlock extends Location {
 
     public UniqueIdentifier blockId;
     public int metadata;
+
+    /**
+     * Some extra metadata that isn't saved in the item, but needs to be applied when the block is placed.
+     * Currently this is only used for slabs, since their metadata is a combination of their item and whether they're on the top or bottom.
+     */
+    public int flags;
+
     public TileAnalysisResult tileData;
     // various sort orders, one is for drawing hints and one is for the build order
     public int renderOrder, buildOrder;
 
-    public transient Item item;
-    public transient Block block;
-    public transient ItemStack stack;
+    private transient Item item;
+    private transient Block block;
+    private transient Optional<ItemStack> stack;
+
+    private static int counter = 0;
+    public static final int SLAB_TOP = 0b1 << counter++;
 
     public PendingBlock(int worldId, int x, int y, int z, ItemStack block) {
         super(worldId, x, y, z);
@@ -53,6 +70,11 @@ public class PendingBlock extends Location {
     public PendingBlock(int worldId, int x, int y, int z, Block block, int meta) {
         super(worldId, x, y, z);
         setBlock(block, meta);
+    }
+
+    public PendingBlock(int worldId, int x, int y, int z, Block block, int meta, int flags) {
+        this(worldId, x, y, z, block, meta);
+        this.flags = flags;
     }
 
     private PendingBlock() {}
@@ -102,6 +124,8 @@ public class PendingBlock extends Location {
     public Block getBlock() {
         if (block == null) {
             block = blockId == null ? Blocks.air : GameRegistry.findBlock(blockId.modId, blockId.name);
+
+            if (block == null) block = Blocks.air;
         }
 
         return block;
@@ -119,24 +143,48 @@ public class PendingBlock extends Location {
         return item;
     }
 
+    private static final MethodHandle CREATE_STACKED_BLOCK = MMUtils.exposeMethod(Block.class, MethodType.methodType(ItemStack.class, int.class), "createStackedBlock", "func_149644_j", "j");
+
     public ItemStack toStack() {
         if (stack == null) {
-            Item item = getItem();
+            Block block = getBlock();
 
-            if (item == null) return null;
+            if (block == Blocks.air) {
+                this.stack = Optional.empty();
+                return null;
+            }
 
-            if (item.getHasSubtypes()) {
-                stack = new ItemStack(item, 1, metadata);
-            } else {
-                stack = new ItemStack(item, 1, 0);
+            ItemStack stack = null;
+
+            try {
+                stack = (ItemStack) CREATE_STACKED_BLOCK.invoke(block, metadata);
+            } catch (Throwable t) {
+                throw new RuntimeException("Could not invoke " + CREATE_STACKED_BLOCK, t);
+            }
+
+            if (stack == null || stack.getItem() == null) {
+                Item item = getItem();
+
+                if (item == null) {
+                    this.stack = Optional.empty();
+                    return null;
+                }
+
+                if (item.getHasSubtypes()) {
+                    stack = new ItemStack(item, 1, metadata);
+                } else {
+                    stack = new ItemStack(item, 1, 0);
+                }
             }
 
             if (tileData != null) {
                 stack.setTagCompound(tileData.getItemTag());
             }
+
+            this.stack = Optional.ofNullable(stack);
         }
 
-        return stack.copy();
+        return stack.orElse(null);
     }
 
     public String getDisplayName() {
@@ -182,6 +230,7 @@ public class PendingBlock extends Location {
         dup.z = z;
         dup.blockId = blockId;
         dup.metadata = metadata;
+        dup.flags = flags;
         dup.tileData = tileData;
         dup.renderOrder = renderOrder;
         dup.buildOrder = buildOrder;
@@ -203,7 +252,15 @@ public class PendingBlock extends Location {
 
         meta = item.getHasSubtypes() ? block.getDamageValue(world, x, y, z) : meta;
 
-        return new PendingBlock(world.provider.dimensionId, x, y, z, block, meta);
+        int flags = 0;
+
+        if (block instanceof BlockSlab) {
+            if ((world.getBlockMetadata(x, y, z) & 8) != 0) {
+                flags |= SLAB_TOP;
+            }
+        }
+
+        return new PendingBlock(world.provider.dimensionId, x, y, z, block, meta, flags);
     }
 
     /**
@@ -233,7 +290,13 @@ public class PendingBlock extends Location {
             return a == null && b == null;
         }
 
-        return ItemStack.areItemStacksEqual(a.toStack(), b.toStack());
+        if (!ItemStack.areItemStacksEqual(a.toStack(), b.toStack())) return false;
+
+        if (a.getBlock() instanceof BlockSlab slabA && b.getBlock() instanceof BlockSlab slabB) {
+            if (slabA.field_150004_a != slabB.field_150004_a) return false;
+        }
+
+        return true;
     }
 
     @Override
@@ -286,6 +349,48 @@ public class PendingBlock extends Location {
         return true;
     }
 
+    private static final Object2BooleanOpenHashMap<Block> CUSTOM_PLACING = new Object2BooleanOpenHashMap<>();
+
+    public static boolean hasCustomPlacing(Block block) {
+        if (!CUSTOM_PLACING.containsKey(block)) {
+            boolean placing = hasCustomPlacingImpl(block);
+            CUSTOM_PLACING.put(block, placing);
+            return placing;
+        }
+
+        return CUSTOM_PLACING.getBoolean(block);
+    }
+
+    private static final Method canPlaceBlockOnSide, canPlaceBlockAt;
+
+    static {
+        canPlaceBlockOnSide = ReflectionHelper.findMethod(
+            Block.class,
+            null,
+            new String[] { "canPlaceBlockOnSide", "func_149707_d", "d" },
+            World.class, int.class, int.class, int.class, int.class);
+
+        canPlaceBlockAt = ReflectionHelper.findMethod(
+            Block.class,
+            null,
+            new String[] { "canPlaceBlockAt", "func_149742_c", "c" },
+            World.class, int.class, int.class, int.class);
+    }
+
+    private static boolean hasCustomPlacingImpl(Block block) {
+        Class<?> clazz = block.getClass();
+
+        try {
+            Method sideImpl = clazz.getMethod(canPlaceBlockOnSide.getName(), canPlaceBlockOnSide.getParameterTypes());
+            Method atImpl = clazz.getMethod(canPlaceBlockAt.getName(), canPlaceBlockAt.getParameterTypes());
+
+            return sideImpl.getDeclaringClass() != Block.class || atImpl.getDeclaringClass() != Block.class;
+        } catch (Exception e) {
+            MMMod.LOG.error("Could not find method for hasCustomPlacingImpl", e);
+            return false;
+        }
+    }
+
     /**
      * A comparator for sorting blocks prior to building.
      */
@@ -295,6 +400,7 @@ public class PendingBlock extends Location {
                 .thenComparing(id -> id.name));
 
         return Comparator.comparingInt((PendingBlock b) -> b.buildOrder)
+            .thenComparingInt(b -> hasCustomPlacing(b.getBlock()) ? 0 : 1)
             .thenComparing(Comparator.nullsFirst(Comparator.comparing(b -> b.blockId, blockId)))
             .thenComparingInt(b -> b.metadata)
             .thenComparingLong(b -> {

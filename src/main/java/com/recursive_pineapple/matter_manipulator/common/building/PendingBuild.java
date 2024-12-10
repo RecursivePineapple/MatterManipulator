@@ -22,6 +22,7 @@ import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockSlab;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
@@ -97,20 +98,49 @@ public class PendingBuild extends AbstractBuildable {
 
             PendingBlock existing = PendingBlock.fromBlock(world, x, y, z);
 
+            if (next.getBlock() == Blocks.air && existing.getBlock() == Blocks.air) {
+                pendingBlocks.removeFirst();
+                continue;
+            }
+
             // if the existing block is the same as the one we're trying to place, just apply its tile data
             if (PendingBlock.isSameBlock(next, existing)) {
                 PendingBlock block = pendingBlocks.removeFirst();
+
+                boolean didSomething = false;
 
                 if (block.getItem() != null && !block.getItem()
                     .getHasSubtypes()) {
                     if (world.getBlockMetadata(block.x, block.y, block.z) != block.metadata) {
                         world.setBlockMetadataWithNotify(block.x, block.y, block.z, block.metadata, 3);
+                        didSomething = true;
+                    }
+                }
+
+                if (block.getBlock() instanceof BlockSlab) {
+                    int meta = world.getBlockMetadata(x, y, z);
+                    boolean isUp = (meta & 8) != 0;
+                    boolean shouldBeUp = (block.flags & PendingBlock.SLAB_TOP) != 0;
+
+                    if (isUp != shouldBeUp) {
+                        if (shouldBeUp) {
+                            meta |= 8;
+                        } else {
+                            meta &= 7;
+                        }
+
+                        world.setBlockMetadataWithNotify(x, y, z, meta, 3);
+                        didSomething = true;
                     }
                 }
 
                 if (block.tileData != null && supportsConfiguring()) {
                     applyContext.pendingBlock = block;
                     block.tileData.apply(applyContext);
+                    didSomething = true;
+                }
+
+                if (didSomething) {
                     playSound(world, x, y, z, SoundResource.MOB_ENDERMEN_PORTAL);
                 }
 
@@ -198,7 +228,7 @@ public class PendingBuild extends AbstractBuildable {
             ItemStack item = first.toStack();
 
             if (item != null) {
-                item.stackSize = toPlace.size();
+                item.stackSize *= toPlace.size();
 
                 List<BigItemStack> extracted = tryConsumeItems(Arrays.asList(new BigItemStack(item)), CONSUME_PARTIAL)
                     .right();
@@ -262,6 +292,14 @@ public class PendingBuild extends AbstractBuildable {
 
                 if (!item.getHasSubtypes()) {
                     world.setBlockMetadataWithNotify(x, y, z, metadata, 3);
+                }
+
+                if (block instanceof BlockSlab) {
+                    if ((pending.flags & PendingBlock.SLAB_TOP) != 0) {
+                        world.setBlockMetadataWithNotify(x, y, z, world.getBlockMetadata(x, y, z) | 8, 3);
+                    } else {
+                        world.setBlockMetadataWithNotify(x, y, z, world.getBlockMetadata(x, y, z) & 7, 3);
+                    }
                 }
 
                 if (pending.tileData != null && supportsConfiguring()) {
