@@ -1929,7 +1929,7 @@ public class ItemMatterManipulator extends Item
 
         private List<PendingBlock> analysisCache = null;
 
-        private MatterManipulatorRenderer lastDrawer = null;
+        private ItemStack lastDrawer = null;
 
         private static final long ANALYSIS_INTERVAL_MS = 10_000;
 
@@ -2020,7 +2020,7 @@ public class ItemMatterManipulator extends Item
                     e.printStackTrace();
                 }
             } else {
-                if (lastDrawer == this) {
+                if (lastDrawer == held) {
                     lastAnalysisMS = 0;
                     lastAnalyzedConfig = null;
                     lastPlayerPosition = null;
@@ -2030,6 +2030,9 @@ public class ItemMatterManipulator extends Item
                     // reset the hints when this item just drew and the player isn't holding it anymore
                     StructureLibAPI.startHinting(player.worldObj);
                     StructureLibAPI.endHinting(player.worldObj);
+
+
+                    AboveHotbarHUD.renderTextAboveHotbar("", 0, false, false);
                 }
             }
         }
@@ -2133,7 +2136,7 @@ public class ItemMatterManipulator extends Item
                 boolean needsAnalysis = (System.currentTimeMillis() - lastAnalysisMS) >= ANALYSIS_INTERVAL_MS
                     || !Objects.equals(lastAnalyzedConfig, state.config);
 
-                boolean needsHintDraw = needsAnalysis || !Objects.equals(lastPlayerPosition, playerLocation);
+                boolean needsHintDraw = needsAnalysis || (!Objects.equals(lastPlayerPosition, playerLocation) && tier.maxRange != -1);
 
                 if (needsAnalysis) {
                     lastAnalysisMS = System.currentTimeMillis();
@@ -2148,7 +2151,7 @@ public class ItemMatterManipulator extends Item
 
                 if (needsHintDraw) {
                     lastPlayerPosition = playerLocation;
-                    lastDrawer = this;
+                    lastDrawer = player.getHeldItem();
                     drawHints(event, state, player, playerLocation);
                 }
             }
@@ -2258,7 +2261,7 @@ public class ItemMatterManipulator extends Item
 
                 if (needsHintDraw) {
                     lastPlayerPosition = playerLocation;
-                    lastDrawer = this;
+                    lastDrawer = player.getHeldItem();
                     drawHints(event, state, player, playerLocation);
                 }
             }
@@ -2305,7 +2308,9 @@ public class ItemMatterManipulator extends Item
                     if (dist2 > buildable) continue;
                 }
 
-                if (i++ > MAX_PREVIEW_BLOCKS) break;
+                if (pendingBlock.blockId.name.equals("air") && player.worldObj.isAirBlock(pendingBlock.x, pendingBlock.y, pendingBlock.z)) {
+                    continue;
+                }
 
                 Block block = pendingBlock.getBlock();
                 PendingBlock existing = PendingBlock
@@ -2314,6 +2319,9 @@ public class ItemMatterManipulator extends Item
                 if (pendingBlock.isInWorld(player.worldObj) && block != null
                     && block != Blocks.air
                     && !PendingBlock.isSameBlock(existing, pendingBlock)) {
+
+                    if (i++ > MAX_PREVIEW_BLOCKS) break;
+
                     StructureLibAPI.hintParticle(
                         player.worldObj,
                         pendingBlock.x,
