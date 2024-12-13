@@ -12,6 +12,8 @@ If you're using this in GTNH, you must upgrade your GT5u jar to the latest custo
 
 This mod will be added to GTNH and its GT5u PR will be merged some time in the new year, after 2.7 is released and stable.
 
+You can find the releases [here](https://github.com/RecursivePineapple/MatterManipulator/releases).
+
 ## Required Dependencies
 
 - StructureLib
