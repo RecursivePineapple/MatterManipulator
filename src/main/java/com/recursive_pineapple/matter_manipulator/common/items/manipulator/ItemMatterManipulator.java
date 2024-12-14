@@ -2034,7 +2034,6 @@ public class ItemMatterManipulator extends Item
                     StructureLibAPI.startHinting(player.worldObj);
                     StructureLibAPI.endHinting(player.worldObj);
 
-
                     AboveHotbarHUD.renderTextAboveHotbar("", 0, false, false);
                 }
             }

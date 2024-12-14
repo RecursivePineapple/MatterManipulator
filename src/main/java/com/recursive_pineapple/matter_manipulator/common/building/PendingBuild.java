@@ -5,6 +5,7 @@ import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregT
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -41,8 +42,6 @@ import net.minecraftforge.fluids.FluidStack;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import it.unimi.dsi.fastutil.Pair;
-import it.unimi.dsi.fastutil.longs.LongArraySet;
-import it.unimi.dsi.fastutil.longs.LongSet;
 
 /**
  * Handles all building logic.
@@ -50,7 +49,7 @@ import it.unimi.dsi.fastutil.longs.LongSet;
 public class PendingBuild extends AbstractBuildable {
 
     private LinkedList<PendingBlock> pendingBlocks;
-    private LongSet visited = new LongArraySet();
+    private HashSet<Long> visited = new HashSet<>();
 
     public PendingBuild(EntityPlayer player, MMState state, ManipulatorTier tier,
         LinkedList<PendingBlock> pendingBlocks) {
@@ -238,37 +237,42 @@ public class PendingBuild extends AbstractBuildable {
 
         PendingBlock first = toPlace.get(0);
 
-        ItemStack consumed = null;
+        ItemStack perBlock = null;
+        long extracted = 0, toConsume = 0;
 
         // if the block we're placing isn't free (ae cable busses) we need to consume it
         if (!first.isFree()) {
-            consumed = first.toStack();
+            perBlock = first.toStack();
         }
 
-        if (consumed != null) {
-            consumed.stackSize *= toPlace.size();
+        if (perBlock != null) {
+            toConsume = toPlace.size() * perBlock.stackSize;
 
-            List<BigItemStack> extracted = tryConsumeItems(Arrays.asList(new BigItemStack(consumed)), CONSUME_PARTIAL)
+            List<BigItemStack> extractedStacks = tryConsumeItems(Arrays.asList(new BigItemStack(perBlock).setStackSize(toConsume)), CONSUME_PARTIAL)
                 .right();
 
-            ItemStack extractedStack = extracted.size() == 1 ? extracted.get(0)
-                .getItemStack() : null;
+            extracted = extractedStacks.isEmpty() ? 0 : extractedStacks.get(0).stackSize;
+            long missing = toConsume - extracted;
 
-            int extractedAmount = extractedStack == null ? 0 : extractedStack.stackSize;
+            int placeable = (int) (Math.min(extracted / perBlock.stackSize, Integer.MAX_VALUE));
 
-            // if we only consumed some of the blocks, only place as many as we got
-            if (extractedAmount < consumed.stackSize) {
+            // if we only consumed some of the blocks, only place as many as we can
+            if (missing > 0) {
                 MMUtils.sendErrorToPlayer(
                     player,
-                    "Could not find item, the corresponding blocks will be skipped: " + first.getDisplayName()
+                    "Could not find item, " + (toPlace.size() - placeable) + " block" + (toPlace.size() - placeable > 1 ? "s" : "") + " will be skipped: " + first.getDisplayName()
                         + " x "
-                        + (consumed.stackSize - extractedAmount));
+                        + missing);
 
-                toPlace = toPlace.subList(0, extractedAmount);
+                toPlace = toPlace.subList(0, placeable);
+
+                long toReturn = extracted - perBlock.stackSize * placeable;
+
+                if (toReturn > 0) {
+                    givePlayerItems(new BigItemStack(perBlock).setStackSize(toReturn).toStacks().toArray(new ItemStack[0]));
+                }
             }
         }
-
-        int initialItems = consumed == null ? 0 : consumed.stackSize;
 
         for (PendingBlock pending : toPlace) {
             int x = pending.x;
@@ -294,21 +298,17 @@ public class PendingBuild extends AbstractBuildable {
     
                 world.notifyBlockOfNeighborChange(x, y, z, Blocks.air);
                 continue;
-            } else {
-                if (consumed != null) consumed.stackSize--;
             }
-
-            ItemStack stackToPlace = pending.toStack();
 
             if (item instanceof ItemBlock itemBlock) {
                 itemBlock.placeBlockAt(
-                    stackToPlace,
+                    perBlock,
                     player,
                     player.worldObj,
                     x,
                     y,
                     z,
-                    getDefaultPlaceSide(stackToPlace).ordinal(),
+                    getDefaultPlaceSide(perBlock).ordinal(),
                     0,
                     0,
                     0,
@@ -323,6 +323,8 @@ public class PendingBuild extends AbstractBuildable {
                     block.onPostBlockPlaced(world, x, y, z, metadata);
                 }
             }
+
+            if (perBlock != null) extracted -= perBlock.stackSize;
 
             if (!item.getHasSubtypes()) {
                 world.setBlockMetadataWithNotify(x, y, z, metadata, 3);
@@ -344,17 +346,15 @@ public class PendingBuild extends AbstractBuildable {
             world.notifyBlockOfNeighborChange(x, y, z, Blocks.air);
         }
 
-        if (consumed != null && consumed.stackSize < 0) {
+        if (perBlock != null && extracted < 0) {
             // somehow consumed too many items
-            MMMod.LOG.error("Consumed too many items! " + consumed.getDisplayName() + "; expected to consume " + initialItems + ", but consumed " + (initialItems - consumed.stackSize));
-            sendErrorToPlayer(player, "Consumed too many items! There's a bug in the building code! (" + consumed.getDisplayName() + ")");
+            MMMod.LOG.error("Consumed too many items! " + perBlock.getDisplayName() + "; expected to consume " + toConsume + ", but consumed " + (toConsume - extracted));
         }
 
-        if (consumed != null && consumed.stackSize > 0) {
+        if (perBlock != null && extracted > 0) {
             // extra stuff left over somehow
-            givePlayerItems(consumed);
-            MMMod.LOG.error("Didn't consume enough items! " + consumed.getDisplayName() + "; expected to consume " + initialItems + ", but consumed " + (initialItems - consumed.stackSize));
-            sendErrorToPlayer(player, "Didn't consume enough items! There's a bug in the building code! (" + consumed.getDisplayName() + ")");
+            givePlayerItems(new BigItemStack(perBlock).setStackSize(extracted).toStacks().toArray(new ItemStack[0]));
+            MMMod.LOG.error("Didn't consume enough items! " + perBlock.getDisplayName() + "; expected to consume " + toConsume + ", but consumed " + (toConsume - extracted));
         }
 
         actuallyGivePlayerStuff();
