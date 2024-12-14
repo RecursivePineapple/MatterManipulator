@@ -21,11 +21,21 @@ public class GlobalMMConfig {
         public static boolean resetTransform;
     }
 
+    @Config(modid = Names.MATTER_MANIPULATOR, category = "Rendering")
+    public static class RenderingConfig {
+
+        @Config.Comment("Controls how many blocks are shown in the preview (client only)")
+        @Config.DefaultInt(5_000)
+        @Config.Name("Max Hints Shown")
+        public static int maxHints;
+    }
+
     public static boolean DEVENV = false, D1 = false;
 
     public static void init() {
         try {
             ConfigurationManager.registerConfig(InteractionConfig.class);
+            ConfigurationManager.registerConfig(RenderingConfig.class);
         } catch (ConfigException e) {
             throw new RuntimeException(e);
         }

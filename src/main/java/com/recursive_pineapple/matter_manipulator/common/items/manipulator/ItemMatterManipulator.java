@@ -84,6 +84,7 @@ import com.gtnewhorizons.modularui.api.drawable.OffsetDrawable;
 import com.gtnewhorizons.modularui.api.drawable.shapes.Rectangle;
 import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.InteractionConfig;
+import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.RenderingConfig;
 import com.recursive_pineapple.matter_manipulator.client.gui.RadialMenuBuilder;
 import com.recursive_pineapple.matter_manipulator.client.rendering.BoxRenderer;
 import com.recursive_pineapple.matter_manipulator.common.building.IBuildable;
@@ -1937,8 +1938,6 @@ public class ItemMatterManipulator extends Item
 
         private static final long ANALYSIS_INTERVAL_MS = 10_000;
 
-        private static final int MAX_PREVIEW_BLOCKS = 10_000;
-
         public static final KeyBinding CONTROL = new KeyBinding("key.mm-ctrl", Keyboard.KEY_LCONTROL, "key.mm");
         public static final KeyBinding CUT = new KeyBinding("key.mm-cut", Keyboard.KEY_X, "key.mm");
         public static final KeyBinding COPY = new KeyBinding("key.mm-copy", Keyboard.KEY_C, "key.mm");
@@ -2324,7 +2323,7 @@ public class ItemMatterManipulator extends Item
                     && block != Blocks.air
                     && !PendingBlock.isSameBlock(existing, pendingBlock)) {
 
-                    if (i++ > MAX_PREVIEW_BLOCKS) break;
+                    if (++i > RenderingConfig.maxHints) break;
 
                     StructureLibAPI.hintParticle(
                         player.worldObj,
