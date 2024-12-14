@@ -505,7 +505,11 @@ public class ItemMatterManipulator extends Item
                 addInfoLine(desc,
                     "Stack: %s",
                     state.config.arraySpan,
-                    span -> String.format("X: %dx, Y: %dx, Z: %dx", span.x + 1, span.y + 1, span.z + 1));
+                    span -> String.format(
+                        "X: %dx, Y: %dx, Z: %dx",
+                        span.x + (span.x < 0 ? -1 : 1),
+                        span.y + (span.y < 0 ? -1 : 1),
+                        span.z + (span.z < 0 ? -1 : 1)));
             }
 
             if (state.config.placeMode == PlaceMode.MOVING) {
