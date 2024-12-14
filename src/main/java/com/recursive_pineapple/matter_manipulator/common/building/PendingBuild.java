@@ -1,5 +1,6 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
+import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendErrorToPlayer;
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
 
 import java.util.ArrayList;
@@ -8,6 +9,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
+import com.gtnewhorizon.gtnhlib.util.CoordinatePacker;
+import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
@@ -38,6 +41,8 @@ import net.minecraftforge.fluids.FluidStack;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.longs.LongArraySet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 
 /**
  * Handles all building logic.
@@ -45,6 +50,7 @@ import it.unimi.dsi.fastutil.Pair;
 public class PendingBuild extends AbstractBuildable {
 
     private LinkedList<PendingBlock> pendingBlocks;
+    private LongSet visited = new LongArraySet();
 
     public PendingBuild(EntityPlayer player, MMState state, ManipulatorTier tier,
         LinkedList<PendingBlock> pendingBlocks) {
@@ -71,6 +77,14 @@ public class PendingBuild extends AbstractBuildable {
 
             int chunkX = x >> 4;
             int chunkZ = z >> 4;
+
+            long coord = CoordinatePacker.pack(x, y, z);
+
+            if (!visited.add(coord)) {
+                MMMod.LOG.warn("Tried to place block twice! " + next);
+                pendingBlocks.removeFirst();
+                continue;
+            }
 
             // if this block's chunk isn't loaded, ignore it completely
             if (!Objects.equals(chunkX, lastChunkX) || !Objects.equals(chunkZ, lastChunkZ)) {
@@ -222,34 +236,39 @@ public class PendingBuild extends AbstractBuildable {
             return;
         }
 
-        // if the block we're placing isn't free (ae cable busses) we need to consume it
         PendingBlock first = toPlace.get(0);
+
+        ItemStack consumed = null;
+
+        // if the block we're placing isn't free (ae cable busses) we need to consume it
         if (!first.isFree()) {
-            ItemStack item = first.toStack();
+            consumed = first.toStack();
+        }
 
-            if (item != null) {
-                item.stackSize *= toPlace.size();
+        if (consumed != null) {
+            consumed.stackSize *= toPlace.size();
 
-                List<BigItemStack> extracted = tryConsumeItems(Arrays.asList(new BigItemStack(item)), CONSUME_PARTIAL)
-                    .right();
+            List<BigItemStack> extracted = tryConsumeItems(Arrays.asList(new BigItemStack(consumed)), CONSUME_PARTIAL)
+                .right();
 
-                ItemStack extractedStack = extracted.size() == 1 ? extracted.get(0)
-                    .getItemStack() : null;
+            ItemStack extractedStack = extracted.size() == 1 ? extracted.get(0)
+                .getItemStack() : null;
 
-                int extractedAmount = extractedStack == null ? 0 : extractedStack.stackSize;
+            int extractedAmount = extractedStack == null ? 0 : extractedStack.stackSize;
 
-                // if we only consumed some of the blocks, only place as many as we got
-                if (extractedAmount < item.stackSize) {
-                    MMUtils.sendErrorToPlayer(
-                        player,
-                        "Could not find item, the corresponding blocks will be skipped: " + first.getDisplayName()
-                            + " x "
-                            + (item.stackSize - extractedAmount));
+            // if we only consumed some of the blocks, only place as many as we got
+            if (extractedAmount < consumed.stackSize) {
+                MMUtils.sendErrorToPlayer(
+                    player,
+                    "Could not find item, the corresponding blocks will be skipped: " + first.getDisplayName()
+                        + " x "
+                        + (consumed.stackSize - extractedAmount));
 
-                    toPlace = toPlace.subList(0, extractedAmount);
-                }
+                toPlace = toPlace.subList(0, extractedAmount);
             }
         }
+
+        int initialItems = consumed == null ? 0 : consumed.stackSize;
 
         for (PendingBlock pending : toPlace) {
             int x = pending.x;
@@ -261,54 +280,81 @@ public class PendingBuild extends AbstractBuildable {
             Block block = pending.getBlock();
             Item item = pending.getItem();
 
-            if (item != null) {
-                int metadata = item.getHasSubtypes() ? item.getMetadata(pending.metadata) : pending.metadata;
+            if (item == null) continue;
 
-                ItemStack stackToPlace = pending.toStack();
+            int metadata = item.getHasSubtypes() ? item.getMetadata(pending.metadata) : pending.metadata;
 
-                if (item instanceof ItemBlock itemBlock) {
-                    itemBlock.placeBlockAt(
-                        stackToPlace,
-                        player,
-                        player.worldObj,
-                        x,
-                        y,
-                        z,
-                        getDefaultPlaceSide(stackToPlace).ordinal(),
-                        0,
-                        0,
-                        0,
-                        metadata);
-                } else {
-                    if (!world.setBlock(x, y, z, block, metadata, 3)) {
-                        continue;
-                    }
-
-                    if (world.getBlock(x, y, z) == block) {
-                        block.onBlockPlacedBy(world, x, y, z, player, stack);
-                        block.onPostBlockPlaced(world, x, y, z, metadata);
-                    }
-                }
-
-                if (!item.getHasSubtypes()) {
-                    world.setBlockMetadataWithNotify(x, y, z, metadata, 3);
-                }
-
-                if (block instanceof BlockSlab) {
-                    if ((pending.flags & PendingBlock.SLAB_TOP) != 0) {
-                        world.setBlockMetadataWithNotify(x, y, z, world.getBlockMetadata(x, y, z) | 8, 3);
-                    } else {
-                        world.setBlockMetadataWithNotify(x, y, z, world.getBlockMetadata(x, y, z) & 7, 3);
-                    }
-                }
-
+            if (world.getBlock(x, y, z) == block && world.getBlockMetadata(x, y, z) == metadata) {
+                // somehow the block already exists, despite us checking to make sure that this shouldn't happen
+                // just to be safe, we only consume the item when we actually place something
                 if (pending.tileData != null && supportsConfiguring()) {
                     applyContext.pendingBlock = pending;
                     pending.tileData.apply(applyContext);
                 }
-
+    
                 world.notifyBlockOfNeighborChange(x, y, z, Blocks.air);
+                continue;
+            } else {
+                if (consumed != null) consumed.stackSize--;
             }
+
+            ItemStack stackToPlace = pending.toStack();
+
+            if (item instanceof ItemBlock itemBlock) {
+                itemBlock.placeBlockAt(
+                    stackToPlace,
+                    player,
+                    player.worldObj,
+                    x,
+                    y,
+                    z,
+                    getDefaultPlaceSide(stackToPlace).ordinal(),
+                    0,
+                    0,
+                    0,
+                    metadata);
+            } else {
+                if (!world.setBlock(x, y, z, block, metadata, 3)) {
+                    continue;
+                }
+
+                if (world.getBlock(x, y, z) == block) {
+                    block.onBlockPlacedBy(world, x, y, z, player, stack);
+                    block.onPostBlockPlaced(world, x, y, z, metadata);
+                }
+            }
+
+            if (!item.getHasSubtypes()) {
+                world.setBlockMetadataWithNotify(x, y, z, metadata, 3);
+            }
+
+            if (block instanceof BlockSlab) {
+                if ((pending.flags & PendingBlock.SLAB_TOP) != 0) {
+                    world.setBlockMetadataWithNotify(x, y, z, world.getBlockMetadata(x, y, z) | 8, 3);
+                } else {
+                    world.setBlockMetadataWithNotify(x, y, z, world.getBlockMetadata(x, y, z) & 7, 3);
+                }
+            }
+
+            if (pending.tileData != null && supportsConfiguring()) {
+                applyContext.pendingBlock = pending;
+                pending.tileData.apply(applyContext);
+            }
+
+            world.notifyBlockOfNeighborChange(x, y, z, Blocks.air);
+        }
+
+        if (consumed != null && consumed.stackSize < 0) {
+            // somehow consumed too many items
+            MMMod.LOG.error("Consumed too many items! " + consumed.getDisplayName() + "; expected to consume " + initialItems + ", but consumed " + (initialItems - consumed.stackSize));
+            sendErrorToPlayer(player, "Consumed too many items! There's a bug in the building code! (" + consumed.getDisplayName() + ")");
+        }
+
+        if (consumed != null && consumed.stackSize > 0) {
+            // extra stuff left over somehow
+            givePlayerItems(consumed);
+            MMMod.LOG.error("Didn't consume enough items! " + consumed.getDisplayName() + "; expected to consume " + initialItems + ", but consumed " + (initialItems - consumed.stackSize));
+            sendErrorToPlayer(player, "Didn't consume enough items! There's a bug in the building code! (" + consumed.getDisplayName() + ")");
         }
 
         actuallyGivePlayerStuff();

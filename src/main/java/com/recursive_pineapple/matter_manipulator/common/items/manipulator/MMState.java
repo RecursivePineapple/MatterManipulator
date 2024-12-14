@@ -289,6 +289,7 @@ public class MMState {
                 int sz = config.arraySpan.z;
 
                 List<PendingBlock> base = new ArrayList<>(analysis.blocks);
+                analysis.blocks.clear();
 
                 for (int y = Math.min(sy, 0); y <= Math.max(sy, 0); y++) {
                     for (int z = Math.min(sz, 0); z <= Math.max(sz, 0); z++) {
