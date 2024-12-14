@@ -349,48 +349,6 @@ public class PendingBlock extends Location {
         return true;
     }
 
-    private static final Object2BooleanOpenHashMap<Block> CUSTOM_PLACING = new Object2BooleanOpenHashMap<>();
-
-    public static boolean hasCustomPlacing(Block block) {
-        if (!CUSTOM_PLACING.containsKey(block)) {
-            boolean placing = hasCustomPlacingImpl(block);
-            CUSTOM_PLACING.put(block, placing);
-            return placing;
-        }
-
-        return CUSTOM_PLACING.getBoolean(block);
-    }
-
-    private static final Method canPlaceBlockOnSide, canPlaceBlockAt;
-
-    static {
-        canPlaceBlockOnSide = ReflectionHelper.findMethod(
-            Block.class,
-            null,
-            new String[] { "canPlaceBlockOnSide", "func_149707_d", "d" },
-            World.class, int.class, int.class, int.class, int.class);
-
-        canPlaceBlockAt = ReflectionHelper.findMethod(
-            Block.class,
-            null,
-            new String[] { "canPlaceBlockAt", "func_149742_c", "c" },
-            World.class, int.class, int.class, int.class);
-    }
-
-    private static boolean hasCustomPlacingImpl(Block block) {
-        Class<?> clazz = block.getClass();
-
-        try {
-            Method sideImpl = clazz.getMethod(canPlaceBlockOnSide.getName(), canPlaceBlockOnSide.getParameterTypes());
-            Method atImpl = clazz.getMethod(canPlaceBlockAt.getName(), canPlaceBlockAt.getParameterTypes());
-
-            return sideImpl.getDeclaringClass() != Block.class || atImpl.getDeclaringClass() != Block.class;
-        } catch (Exception e) {
-            MMMod.LOG.error("Could not find method for hasCustomPlacingImpl", e);
-            return false;
-        }
-    }
-
     /**
      * A comparator for sorting blocks prior to building.
      */
@@ -400,7 +358,6 @@ public class PendingBlock extends Location {
                 .thenComparing(id -> id.name));
 
         return Comparator.comparingInt((PendingBlock b) -> b.buildOrder)
-            .thenComparingInt(b -> hasCustomPlacing(b.getBlock()) ? 0 : 1)
             .thenComparing(Comparator.nullsFirst(Comparator.comparing(b -> b.blockId, blockId)))
             .thenComparingInt(b -> b.metadata)
             .thenComparingLong(b -> {
