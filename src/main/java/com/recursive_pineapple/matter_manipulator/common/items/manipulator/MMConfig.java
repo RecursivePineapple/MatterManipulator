@@ -1,7 +1,5 @@
 package com.recursive_pineapple.matter_manipulator.common.items.manipulator;
 
-import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.ceilDiv2;
-
 import java.util.List;
 
 import org.joml.Matrix4f;
@@ -249,13 +247,9 @@ public class MMConfig {
             array.z = Math.round(v2.z);
         }
 
-        array.x = delta.x == 0 ? array.x + (array.x > 0 ? 1 : 0) : ceilDiv2(array.x, delta.x);
-        array.y = delta.y == 0 ? array.y + (array.y > 0 ? 1 : 0) : ceilDiv2(array.y, delta.y);
-        array.z = delta.z == 0 ? array.z + (array.z > 0 ? 1 : 0) : ceilDiv2(array.z, delta.z);
-
-        array.x += array.x > 0 ? -1 : 0;
-        array.y += array.y > 0 ? -1 : 0;
-        array.z += array.z > 0 ? -1 : 0;
+        array.x = delta.x == 0 ? array.x : Math.floorDiv(array.x, delta.x + (delta.x < 0 ? -1 : 1));
+        array.y = delta.y == 0 ? array.y : Math.floorDiv(array.y, delta.y + (delta.y < 0 ? -1 : 1));
+        array.z = delta.z == 0 ? array.z : Math.floorDiv(array.z, delta.z + (delta.z < 0 ? -1 : 1));
 
         return array;
     }
