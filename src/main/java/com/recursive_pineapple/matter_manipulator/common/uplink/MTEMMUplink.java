@@ -476,14 +476,10 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
 
         List<BigItemStack> out = new ArrayList<>();
 
-        long requiredEU = 0;
-
         for (BigItemStack req : requestedItems) {
             if (req.getStackSize() == 0) {
                 continue;
             }
-
-            requiredEU += req.getStackSize() * BASE_PLASMA_EU_COST;
 
             // spotless:off
             List<IAEItemStack> matches = fuzzy ?
@@ -503,6 +499,10 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
                 match = match.copy()
                     .setStackSize(req.getStackSize());
 
+                if (!consumePlasmaEU(req.getStackSize() * BASE_PLASMA_EU_COST, simulate)) {
+                    return Pair.of(UplinkStatus.NO_PLASMA, null);
+                }
+            
                 IAEItemStack result = itemInventory.extractItems(
                     match,
                     simulate ? Actionable.SIMULATE : Actionable.MODULATE,
@@ -512,12 +512,6 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
                     out.add(BigItemStack.create(result));
                     req.setStackSize(req.getStackSize() - result.getStackSize());
                 }
-            }
-        }
-
-        if (!simulate) {
-            if (!consumePlasmaEU(requiredEU)) {
-                return Pair.of(UplinkStatus.NO_PLASMA, null);
             }
         }
 
@@ -544,7 +538,7 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
         for (BigItemStack item : items) {
             if (item == null) continue;
 
-            if (!consumePlasmaEU(item.getStackSize() * BASE_PLASMA_EU_COST)) {
+            if (!consumePlasmaEU(item.getStackSize() * BASE_PLASMA_EU_COST, false)) {
                 return UplinkStatus.NO_PLASMA;
             }
 
@@ -576,7 +570,7 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
         for (BigFluidStack fluid : fluids) {
             if (fluid == null) continue;
 
-            if (!consumePlasmaEU(MMUtils.ceilDiv(fluid.getStackSize(), 1000) * BASE_PLASMA_EU_COST)) {
+            if (!consumePlasmaEU(MMUtils.ceilDiv(fluid.getStackSize(), 1000) * BASE_PLASMA_EU_COST, false)) {
                 return UplinkStatus.NO_PLASMA;
             }
 
@@ -592,13 +586,15 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
      * Tries to consume plasma EU.
      * Converts plasma to EU as needed.
      */
-    private boolean consumePlasmaEU(long euToConsume) {
+    private boolean consumePlasmaEU(long euToConsume, boolean simulate) {
         if (pendingPlasmaEU < euToConsume) {
             generatePlasmaEU(euToConsume - pendingPlasmaEU);
         }
 
         if (pendingPlasmaEU >= euToConsume) {
-            pendingPlasmaEU -= euToConsume;
+            if (!simulate) {
+                pendingPlasmaEU -= euToConsume;
+            }
             return true;
         } else {
             return false;
