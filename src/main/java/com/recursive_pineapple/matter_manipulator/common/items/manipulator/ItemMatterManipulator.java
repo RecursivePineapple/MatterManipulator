@@ -1667,9 +1667,9 @@ public class ItemMatterManipulator extends Item
             MMState currState = getState(player.getHeldItem());
 
             Vector3i l = switch (coord) {
-                case 0 -> currState.config.coordA.toVec();
-                case 1 -> currState.config.coordB.toVec();
-                case 2 -> currState.config.coordC.toVec();
+                case 0 -> currState.config.coordA == null ? null : currState.config.coordA.toVec();
+                case 1 -> currState.config.coordB == null ? null : currState.config.coordB.toVec();
+                case 2 -> currState.config.coordC == null ? null : currState.config.coordC.toVec();
                 case 3 -> currState.config.arraySpan;
                 default -> throw new IllegalArgumentException("coord");
             };
