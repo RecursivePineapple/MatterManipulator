@@ -572,7 +572,7 @@ public class ManipulatorRecipes {
                     .get(),
                 GTOreDictUnificator.get(OrePrefixes.circuit, Materials.UV, 4) },
             new FluidStack[] { new FluidStack(solderIndalloy, (int) (L * 32)), Materials.Naquadria.getMolten(L * 16), },
-            null, // TODO: ItemList.Hatch_MatterManipulatorUplink_ME.get(1),
+            MMItemList.UplinkHatch.get(1),
             60 * SECONDS,
             (int) TierEU.RECIPE_UV);
 
@@ -621,7 +621,7 @@ public class ManipulatorRecipes {
                 CustomItemList.dataOut_Hatch.get(1), CustomItemList.DATApipe.get(32),
                 GTOreDictUnificator.get(OrePrefixes.circuit, Materials.UHV, 2) },
             new FluidStack[] { new FluidStack(solderIndalloy, (int) (L * 64)), Materials.Naquadria.getMolten(L * 32), },
-            null, // TODO: MMItemList.Uplink.get(1),
+            MMItemList.UplinkController.get(1),
             60 * SECONDS,
             (int) TierEU.RECIPE_UV);
     }
