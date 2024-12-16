@@ -87,6 +87,10 @@ public class MMInventory implements IPseudoInventory {
                 }
             }
 
+            if ((flags & CONSUME_SIMULATED) != 0) {
+                return Pair.of(true, extracted);
+            }
+
             simulated = MMUtils.mapToList(items, BigItemStack::copy);
             extracted.clear();
 
@@ -561,5 +565,4 @@ public class MMInventory implements IPseudoInventory {
 
         if (result.right() != null) extractedItems.addAll(result.right());
     }
-
 }

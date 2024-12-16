@@ -872,8 +872,7 @@ public class MMUtils {
 
                     if (stack.getStackSize() - available > 0) {
                         return String.format(
-                            "%s%s%s: %s%d%s (%s%d%s missing)",
-                            EnumChatFormatting.AQUA.toString(),
+                            "%s%s: %s%d%s (%s%d%s missing)",
                             stack.getItemStack()
                                 .getDisplayName(),
                             EnumChatFormatting.GRAY.toString(),
@@ -885,8 +884,7 @@ public class MMUtils {
                             EnumChatFormatting.GRAY.toString());
                     } else {
                         return String.format(
-                            "%s%s%s: %s%d%s",
-                            EnumChatFormatting.AQUA.toString(),
+                            "%s%s: %s%d%s",
                             stack.getItemStack()
                                 .getDisplayName(),
                             EnumChatFormatting.GRAY.toString(),

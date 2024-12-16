@@ -101,6 +101,14 @@ public class TileAnalysisResult {
     public boolean getRequiredItemsForExistingBlock(IBlockApplyContext context) {
         TileEntity te = context.getTileEntity();
 
+        if (gt != null) {
+            if (!gt.getRequiredItemsForExistingBlock(context)) return false;
+        }
+
+        if (ae != null) {
+            if (!ae.getRequiredItemsForExistingBlock(context)) return false;
+        }
+
         if (mInventory != null && te instanceof IInventory inventory) {
             mInventory.apply(context, inventory, true, true);
         }
@@ -114,6 +122,14 @@ public class TileAnalysisResult {
      * @return True if this tile result is valid, false otherwise
      */
     public boolean getRequiredItemsForNewBlock(IBlockApplyContext context) {
+        if (gt != null) {
+            if (!gt.getRequiredItemsForNewBlock(context)) return false;
+        }
+
+        if (ae != null) {
+            if (!ae.getRequiredItemsForNewBlock(context)) return false;
+        }
+
         if (mInventory != null) {
             for (IItemProvider item : mInventory.mItems) {
                 if (item != null) {
