@@ -2,11 +2,10 @@ package com.recursive_pineapple.matter_manipulator.common.items.manipulator;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
-import java.lang.reflect.Method;
 import java.util.Comparator;
 import java.util.Optional;
 
-import com.recursive_pineapple.matter_manipulator.MMMod;
+import com.recursive_pineapple.matter_manipulator.common.building.InteropConstants;
 import com.recursive_pineapple.matter_manipulator.common.building.TileAnalysisResult;
 import com.recursive_pineapple.matter_manipulator.common.utils.Lazy;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
@@ -16,8 +15,6 @@ import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 import appeng.api.AEApi;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
-import cpw.mods.fml.relauncher.ReflectionHelper;
-import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockSlab;
 import net.minecraft.entity.player.EntityPlayer;
@@ -189,6 +186,10 @@ public class PendingBlock extends Location {
 
     public String getDisplayName() {
         return toStack().getDisplayName() + (tileData == null ? "" : tileData.getItemDetails());
+    }
+
+    public boolean shouldBeSkipped() {
+        return InteropConstants.shouldBeSkipped(getBlock(), metadata);
     }
 
     @com.recursive_pineapple.matter_manipulator.asm.Optional(Names.APPLIED_ENERGISTICS2)

@@ -70,7 +70,7 @@ public class BlockAnalyzer {
         for (Vector3i voxel : MMUtils.getBlocksInBB(a, deltas)) {
             PendingBlock pending = PendingBlock.fromBlock(world, voxel.x, voxel.y, voxel.z);
 
-            if (pending == null) {
+            if (pending == null || pending.shouldBeSkipped()) {
                 continue;
             }
 
