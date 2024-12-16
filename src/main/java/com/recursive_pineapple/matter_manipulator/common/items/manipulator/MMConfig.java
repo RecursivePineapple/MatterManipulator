@@ -123,32 +123,34 @@ public class MMConfig {
 
     public static class VoxelAABB {
 
-        public Vector3i origin, bounds;
+        public Vector3i origin, a, b;
 
         public VoxelAABB() {
             origin = new Vector3i();
-            bounds = new Vector3i();
+            a = new Vector3i();
+            b = new Vector3i();
         }
 
         public VoxelAABB(Vector3i a, Vector3i b) {
-            origin = new Vector3i(a);
-            bounds = new Vector3i(b);
+            this.origin = new Vector3i(a);
+            this.a = new Vector3i(a);
+            this.b = new Vector3i(b);
         }
 
         public Vector3i min() {
-            return new Vector3i(origin).min(bounds);
+            return new Vector3i(a).min(b);
         }
 
         public Vector3i max() {
-            return new Vector3i(origin).max(bounds);
+            return new Vector3i(a).max(b);
         }
 
         public VoxelAABB union(Vector3i v) {
             Vector3i min = min(), max = max();
 
-            origin.set(v)
+            a.set(v)
                 .min(min);
-            bounds.set(v)
+            b.set(v)
                 .max(max);
 
             return this;
@@ -157,26 +159,26 @@ public class MMConfig {
         public VoxelAABB union(VoxelAABB other) {
             Vector3i min = min(), max = max();
 
-            origin.set(min)
+            a.set(min)
                 .min(other.min());
-            bounds.set(max)
+            b.set(max)
                 .max(other.max());
 
             return this;
         }
 
         public VoxelAABB moveOrigin(Vector3i newOrigin) {
-            bounds.sub(origin)
-                .add(newOrigin);
+            b.sub(origin).add(newOrigin);
+            a.sub(origin).add(newOrigin);
             origin.set(newOrigin);
 
             return this;
         }
 
         public VoxelAABB scale(int x, int y, int z) {
-            int dirX = bounds.x < origin.x ? -1 : 1;
-            int dirY = bounds.y < origin.y ? -1 : 1;
-            int dirZ = bounds.z < origin.z ? -1 : 1;
+            int dirX = b.x < a.x ? -1 : 1;
+            int dirY = b.y < a.y ? -1 : 1;
+            int dirZ = b.z < a.z ? -1 : 1;
 
             Vector3i size = size();
 
@@ -196,7 +198,8 @@ public class MMConfig {
         public VoxelAABB clone() {
             VoxelAABB dup = new VoxelAABB();
             dup.origin = new Vector3i(origin);
-            dup.bounds = new Vector3i(bounds);
+            dup.a = new Vector3i(a);
+            dup.b = new Vector3i(b);
             return dup;
         }
 
@@ -254,17 +257,23 @@ public class MMConfig {
         return array;
     }
 
-    public VoxelAABB getPasteVisualDeltas(World world) {
+    public VoxelAABB getPasteVisualDeltas(World world, boolean transform) {
         if (!Location.areCompatible(coordA, coordB, coordC)) return null;
         if (world != null && coordA.worldId != world.provider.dimensionId) return null;
 
         VoxelAABB aabb = new VoxelAABB(coordA.toVec(), coordB.toVec());
 
-        aabb.moveOrigin(coordC.toVec());
+        aabb.moveOrigin(new Vector3i(0));
 
         if (arraySpan != null) {
             aabb.scale(arraySpan.x, arraySpan.y, arraySpan.z);
         }
+
+        if (transform) {
+            this.transform.apply(aabb);
+        }
+
+        aabb.moveOrigin(coordC.toVec());
 
         return aabb;
     }

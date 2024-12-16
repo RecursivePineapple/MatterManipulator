@@ -464,8 +464,6 @@ public class MMState {
         ItemStack stack = config.getCables();
 
         if (stack == null) {
-            TileAnalysisResult noop = new TileAnalysisResult();
-
             for (Vector3i voxel : getLineVoxels(a.x, a.y, a.z, b.x, b.y, b.z)) {
                 PendingBlock pendingBlock = new PendingBlock(
                     world.provider.dimensionId,
@@ -474,7 +472,7 @@ public class MMState {
                     voxel.z,
                     null);
 
-                pendingBlock.tileData = noop;
+                pendingBlock.tileData = new TileAnalysisResult();
 
                 out.add(pendingBlock);
             }
@@ -526,29 +524,33 @@ public class MMState {
     @Optional(Names.GREG_TECH)
     private void getGTCables(Vector3i a, Vector3i b, List<PendingBlock> out, Block block, World world, ItemStack cableStack) {
         if (block instanceof BlockMachines) {
-            int start = 0, end = 0;
+            int end = 0, start = 0;
 
             // calculate the start & end mConnections flags
             switch (new Vector3i(b).sub(a)
                 .maxComponent()) {
                 case 0: {
-                    start = b.x > 0 ? ForgeDirection.WEST.flag : ForgeDirection.EAST.flag;
-                    end = b.x < 0 ? ForgeDirection.WEST.flag : ForgeDirection.EAST.flag;
+                    start = b.x < 0 ? ForgeDirection.WEST.flag : ForgeDirection.EAST.flag;
+                    end = b.x > 0 ? ForgeDirection.WEST.flag : ForgeDirection.EAST.flag;
                     break;
                 }
                 case 1: {
-                    start = b.y > 0 ? ForgeDirection.DOWN.flag : ForgeDirection.UP.flag;
-                    end = b.y < 0 ? ForgeDirection.DOWN.flag : ForgeDirection.UP.flag;
+                    start = b.y < 0 ? ForgeDirection.DOWN.flag : ForgeDirection.UP.flag;
+                    end = b.y > 0 ? ForgeDirection.DOWN.flag : ForgeDirection.UP.flag;
                     break;
                 }
                 case 2: {
-                    start = b.z > 0 ? ForgeDirection.NORTH.flag : ForgeDirection.SOUTH.flag;
-                    end = b.z < 0 ? ForgeDirection.NORTH.flag : ForgeDirection.SOUTH.flag;
+                    start = b.z < 0 ? ForgeDirection.NORTH.flag : ForgeDirection.SOUTH.flag;
+                    end = b.z > 0 ? ForgeDirection.NORTH.flag : ForgeDirection.SOUTH.flag;
                     break;
                 }
             }
 
-            for (Vector3i voxel : getLineVoxels(a.x, a.y, a.z, b.x, b.y, b.z)) {
+            List<Vector3i> voxels = getLineVoxels(a.x, a.y, a.z, b.x, b.y, b.z);
+
+            for (int i = 0; i < voxels.size(); i++) {
+                Vector3i voxel = voxels.get(i);
+
                 byte existingConnections = 0;
 
                 // respect existing connections if possible
@@ -569,18 +571,18 @@ public class MMState {
                     cableStack);
 
                 GTAnalysisResult gt = new GTAnalysisResult();
-                gt.mConnections = (byte) (existingConnections | start | end);
+
+                byte conn = existingConnections;
+
+                if (i > 0) conn |= start;
+                if (i < voxels.size() - 1) conn |= end;
+
+                gt.mConnections = conn;
 
                 pendingBlock.tileData = new TileAnalysisResult();
                 pendingBlock.tileData.gt = gt;
 
                 out.add(pendingBlock);
-            }
-
-            // stop the ends from connecting to nothing
-            if (!out.isEmpty()) {
-                ((GTAnalysisResult) out.get(0).tileData.gt).mConnections &= ~start;
-                ((GTAnalysisResult) out.get(out.size() - 1).tileData.gt).mConnections &= ~end;
             }
         }
     }

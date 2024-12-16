@@ -240,7 +240,7 @@ public class ItemMatterManipulator extends Item
         boolean simulate) {
         NBTTagCompound tag = getOrCreateNbtData(stack);
 
-        double maxTransfer = ignoreTransferLimit ? toCharge : Math.min(toCharge, V[tier.voltageTier]);
+        double maxTransfer = ignoreTransferLimit ? toCharge : Math.min(toCharge, getTransferLimit(stack));
         double currentCharge = tag.getDouble("charge");
         double remainingSpace = tier.maxCharge - currentCharge;
 
@@ -260,7 +260,7 @@ public class ItemMatterManipulator extends Item
 
         NBTTagCompound tag = getOrCreateNbtData(stack);
 
-        double maxTransfer = ignoreTransferLimit ? toDischarge : Math.min(toDischarge, V[tier.voltageTier]);
+        double maxTransfer = ignoreTransferLimit ? toDischarge : Math.min(toDischarge, getTransferLimit(stack));
         double currentCharge = tag.getDouble("charge");
 
         double toConsume = Math.min(maxTransfer, currentCharge);
@@ -565,6 +565,8 @@ public class ItemMatterManipulator extends Item
 
     @Override
     public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer player) {
+        if (player.getItemInUse() != null) return stack;
+
         MMState state = getState(stack);
 
         if (state.config.action != null) {
@@ -1763,7 +1765,7 @@ public class ItemMatterManipulator extends Item
                         } else if (GuiScreen.isCtrlKeyDown()) {
                             MMState currState = getState(player.getHeldItem());
 
-                            Vector3i size = currState.config.getPasteVisualDeltas(null).size();
+                            Vector3i size = currState.config.getPasteVisualDeltas(null, false).size();
 
                             offset = switch (component) {
                                 case 0 -> size.x;
@@ -1787,7 +1789,7 @@ public class ItemMatterManipulator extends Item
                     } else if (GuiScreen.isCtrlKeyDown()) {
                         MMState currState = getState(player.getHeldItem());
 
-                        Vector3i size = currState.config.getPasteVisualDeltas(null).size();
+                        Vector3i size = currState.config.getPasteVisualDeltas(null, false).size();
 
                         offset = switch (component) {
                             case 0 -> size.x;
@@ -1840,7 +1842,7 @@ public class ItemMatterManipulator extends Item
                         } else if (GuiScreen.isCtrlKeyDown()) {
                             MMState currState = getState(player.getHeldItem());
 
-                            Vector3i size = currState.config.getPasteVisualDeltas(null).size();
+                            Vector3i size = currState.config.getPasteVisualDeltas(null, false).size();
 
                             offset = switch (component) {
                                 case 0 -> size.x;
@@ -1864,7 +1866,7 @@ public class ItemMatterManipulator extends Item
                     } else if (GuiScreen.isCtrlKeyDown()) {
                         MMState currState = getState(player.getHeldItem());
 
-                        Vector3i size = currState.config.getPasteVisualDeltas(null).size();
+                        Vector3i size = currState.config.getPasteVisualDeltas(null, false).size();
 
                         offset = switch (component) {
                             case 0 -> size.x;
@@ -1957,6 +1959,9 @@ public class ItemMatterManipulator extends Item
                         }
                         if (InteractionConfig.pasteAutoClear) {
                             Messages.ClearCoords.sendToServer();
+                            if (InteractionConfig.resetTransform) {
+                                Messages.ClearTransform.sendToServer();
+                            }
                         }
                         Messages.MarkCut.sendToServer();
                     } else if (COPY.isPressed()) {
@@ -1965,6 +1970,9 @@ public class ItemMatterManipulator extends Item
                         }
                         if (InteractionConfig.pasteAutoClear) {
                             Messages.ClearCoords.sendToServer();
+                            if (InteractionConfig.resetTransform) {
+                                Messages.ClearTransform.sendToServer();
+                            }
                         }
                         Messages.MarkCopy.sendToServer();
                     } else if (PASTE.isPressed()) {
@@ -1975,6 +1983,9 @@ public class ItemMatterManipulator extends Item
                         Messages.MarkPaste.sendToServer();
                     } else if (RESET.isPressed()) {
                         Messages.ClearCoords.sendToServer();
+                        if (InteractionConfig.resetTransform) {
+                            Messages.ClearTransform.sendToServer();
+                        }
                     }
                 }
             }
@@ -2223,14 +2234,10 @@ public class ItemMatterManipulator extends Item
             if (isPasteValid) {
                 Objects.requireNonNull(paste);
 
-                pasteDeltas = state.config.getPasteVisualDeltas(player.worldObj);
+                pasteDeltas = state.config.getPasteVisualDeltas(player.worldObj, true);
 
                 if (pasteDeltas == null) {
                     pasteDeltas = new VoxelAABB(paste.toVec(), paste.toVec());
-                }
-
-                if (state.config.transform != null) {
-                    state.config.transform.apply(pasteDeltas);
                 }
 
                 BoxRenderer.INSTANCE.drawAround(pasteDeltas.toBoundingBox(), new Vector3f(0.75f, 0.5f, 0.15f));

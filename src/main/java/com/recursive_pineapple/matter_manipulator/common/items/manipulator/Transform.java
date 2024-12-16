@@ -78,16 +78,13 @@ public class Transform {
     }
 
     public VoxelAABB apply(VoxelAABB bb) {
-        Vector3i deltas = new Vector3i(
-            bb.bounds.x - bb.origin.x,
-            bb.bounds.y - bb.origin.y,
-            bb.bounds.z - bb.origin.z);
+        bb.a.sub(bb.origin);
+        apply(bb.a);
+        bb.a.add(bb.origin);
 
-        apply(deltas);
-
-        bb.bounds.x = deltas.x + bb.origin.x;
-        bb.bounds.y = deltas.y + bb.origin.y;
-        bb.bounds.z = deltas.z + bb.origin.z;
+        bb.b.sub(bb.origin);
+        apply(bb.b);
+        bb.b.add(bb.origin);
 
         return bb;
     }

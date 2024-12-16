@@ -120,7 +120,7 @@ public class PendingBlock extends Location {
 
     public Block getBlock() {
         if (block == null) {
-            block = blockId == null ? Blocks.air : GameRegistry.findBlock(blockId.modId, blockId.name);
+            if (blockId != null) block = GameRegistry.findBlock(blockId.modId, blockId.name);
 
             if (block == null) block = Blocks.air;
         }

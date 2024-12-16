@@ -177,11 +177,10 @@ public enum Messages {
         state.config.coordAOffset = null;
         state.config.coordBOffset = null;
         state.config.coordCOffset = null;
-        
-        if (InteractionConfig.resetTransform) {
-            state.config.transform = new Transform();
-            state.config.arraySpan = null;
-        }
+    }))),
+    ClearTransform(server(simple((player, stack, manipulator, state) -> {
+        state.config.transform = new Transform();
+        state.config.arraySpan = null;
     }))),
     MarkCopy(server(simple((player, stack, manipulator, state) -> {
         state.config.action = PendingAction.MARK_COPY_A;
@@ -316,11 +315,9 @@ public enum Messages {
     }))),
     ResetArray(server(simple((player, stack, manipulator, state) -> {
         state.config.arraySpan = null;
-        player.inventoryContainer.detectAndSendChanges();
     }))),
-    ResetTransform(server(intPacket((player, stack, manipulator, state, value) -> {
+    ResetTransform(server(simple((player, stack, manipulator, state) -> {
         state.config.transform = new Transform();
-        player.inventoryContainer.detectAndSendChanges();
     }))),
     ToggleTransformFlip(server(intPacket((player, stack, manipulator, state, value) -> {
         if (state.config.transform == null) state.config.transform = new Transform();
@@ -328,7 +325,6 @@ public enum Messages {
         if ((value & Transform.FLIP_X) != 0) state.config.transform.flipX ^= true;
         if ((value & Transform.FLIP_Y) != 0) state.config.transform.flipY ^= true;
         if ((value & Transform.FLIP_Z) != 0) state.config.transform.flipZ ^= true;
-        player.inventoryContainer.detectAndSendChanges();
     }))),
     RotateTransform(server(intPacket((player, stack, manipulator, state, value) -> {
         if (state.config.transform == null) state.config.transform = new Transform();
@@ -340,7 +336,6 @@ public enum Messages {
         int amount = ((value >> 8) & 0xFF) != 0 ? 1 : -1;
 
         state.config.transform.rotate(ForgeDirection.VALID_DIRECTIONS[dir], amount);
-        player.inventoryContainer.detectAndSendChanges();
     }))),
     PlaySound(client(new ISimplePacketHandler<Messages.SoundPacket>() {
 
@@ -362,10 +357,10 @@ public enum Messages {
 
         @Override
         public SoundPacket getNewPacket(Messages message, @Nullable Object value) {
+            SoundPacket packet = new SoundPacket(message);
+
             @SuppressWarnings("unchecked")
             Pair<Location, SoundResource> sound = (Pair<Location, SoundResource>) value;
-
-            SoundPacket packet = new SoundPacket(message);
 
             if (sound != null) {
                 packet.worldId = sound.left().worldId;
