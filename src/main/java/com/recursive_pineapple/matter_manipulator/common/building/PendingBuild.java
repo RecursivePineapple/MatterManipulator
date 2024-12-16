@@ -1,6 +1,7 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
-import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendErrorToPlayer;
+import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendInfoToPlayer;
+import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendWarningToPlayer;
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
 
 import java.util.ArrayList;
@@ -77,14 +78,6 @@ public class PendingBuild extends AbstractBuildable {
             int chunkX = x >> 4;
             int chunkZ = z >> 4;
 
-            long coord = CoordinatePacker.pack(x, y, z);
-
-            if (!visited.add(coord)) {
-                MMMod.LOG.warn("Tried to place block twice! " + next);
-                pendingBlocks.removeFirst();
-                continue;
-            }
-
             // if this block's chunk isn't loaded, ignore it completely
             if (!Objects.equals(chunkX, lastChunkX) || !Objects.equals(chunkZ, lastChunkZ)) {
                 if (!world.getChunkProvider()
@@ -110,6 +103,11 @@ public class PendingBuild extends AbstractBuildable {
             }
 
             PendingBlock existing = PendingBlock.fromBlock(world, x, y, z);
+
+            if (existing.shouldBeSkipped()) {
+                pendingBlocks.removeFirst();
+                continue;
+            }
 
             if (next.getBlock() == Blocks.air && existing.getBlock() == Blocks.air) {
                 pendingBlocks.removeFirst();
@@ -219,6 +217,14 @@ public class PendingBuild extends AbstractBuildable {
                 break;
             }
 
+            long coord = CoordinatePacker.pack(x, y, z);
+
+            if (!visited.add(coord)) {
+                MMMod.LOG.warn("Tried to place block twice! " + next);
+                pendingBlocks.removeFirst();
+                continue;
+            }
+
             toPlace.add(pendingBlocks.removeFirst());
         }
 
@@ -237,44 +243,49 @@ public class PendingBuild extends AbstractBuildable {
 
         PendingBlock first = toPlace.get(0);
 
-        ItemStack perBlock = null;
-        long extracted = 0, toConsume = 0;
+        ItemStack perBlock = first.toStack();
+        long total = 0;
+        BigItemStack extracted = null;
 
         // if the block we're placing isn't free (ae cable busses) we need to consume it
         if (!first.isFree()) {
-            perBlock = first.toStack();
-        }
+            total = toPlace.size() * perBlock.stackSize;
 
-        if (perBlock != null) {
-            toConsume = toPlace.size() * perBlock.stackSize;
-
-            List<BigItemStack> extractedStacks = tryConsumeItems(Arrays.asList(new BigItemStack(perBlock).setStackSize(toConsume)), CONSUME_PARTIAL)
+            List<BigItemStack> extractedStacks = tryConsumeItems(Arrays.asList(new BigItemStack(perBlock).setStackSize(total)), CONSUME_PARTIAL)
                 .right();
 
-            extracted = extractedStacks.isEmpty() ? 0 : extractedStacks.get(0).stackSize;
-            long missing = toConsume - extracted;
+            extracted = extractedStacks.isEmpty() ? null : extractedStacks.get(0);
 
-            int placeable = (int) (Math.min(extracted / perBlock.stackSize, Integer.MAX_VALUE));
-
-            // if we only consumed some of the blocks, only place as many as we can
-            if (missing > 0) {
-                MMUtils.sendErrorToPlayer(
+            if (extracted == null) {
+                sendWarningToPlayer(
                     player,
-                    "Could not find item, " + (toPlace.size() - placeable) + " block" + (toPlace.size() - placeable > 1 ? "s" : "") + " will be skipped: " + first.getDisplayName()
-                        + " x "
-                        + missing);
+                    String.format(
+                        "Could not find item, %d block%s will be skipped temporarily:",
+                        toPlace.size(),
+                        toPlace.size() > 1 ? "s" : ""));
+                sendWarningToPlayer(
+                    player,
+                    String.format(
+                        "  %s x %d",
+                        first.getDisplayName(),
+                        total));
 
-                toPlace = toPlace.subList(0, placeable);
-
-                long toReturn = extracted - perBlock.stackSize * placeable;
-
-                if (toReturn > 0) {
-                    givePlayerItems(new BigItemStack(perBlock).setStackSize(toReturn).toStacks().toArray(new ItemStack[0]));
+                for (PendingBlock pending : toPlace) {
+                    pendingBlocks.add(pending);
+        
+                    long coord = CoordinatePacker.pack(pending.x, pending.y, pending.z);
+                    
+                    visited.remove(coord);
                 }
+                
+                return;
             }
         }
 
-        for (PendingBlock pending : toPlace) {
+        int i = 0;
+        for (; i < toPlace.size(); i++) {
+            PendingBlock pending = toPlace.get(i);
+
             int x = pending.x;
             int y = pending.y;
             int z = pending.z;
@@ -298,6 +309,10 @@ public class PendingBuild extends AbstractBuildable {
     
                 world.notifyBlockOfNeighborChange(x, y, z, Blocks.air);
                 continue;
+            }
+
+            if (extracted != null && extracted.stackSize < perBlock.stackSize) {
+                break;
             }
 
             if (item instanceof ItemBlock itemBlock) {
@@ -324,7 +339,9 @@ public class PendingBuild extends AbstractBuildable {
                 }
             }
 
-            if (perBlock != null) extracted -= perBlock.stackSize;
+            if (extracted != null) {
+                extracted.stackSize -= perBlock.stackSize;
+            }
 
             if (!item.getHasSubtypes()) {
                 world.setBlockMetadataWithNotify(x, y, z, metadata, 3);
@@ -346,15 +363,37 @@ public class PendingBuild extends AbstractBuildable {
             world.notifyBlockOfNeighborChange(x, y, z, Blocks.air);
         }
 
-        if (perBlock != null && extracted < 0) {
-            // somehow consumed too many items
-            MMMod.LOG.error("Consumed too many items! " + perBlock.getDisplayName() + "; expected to consume " + toConsume + ", but consumed " + (toConsume - extracted));
+        if (extracted != null && i < toPlace.size()) {
+            sendWarningToPlayer(
+                player,
+                String.format(
+                    "Could not find item, %d block%s will be skipped temporarily:",
+                    toPlace.size() - i,
+                    toPlace.size() - i > 1 ? "s" : ""));
+            sendWarningToPlayer(
+                player,
+                String.format(
+                    "  %s x %d",
+                    first.getDisplayName(),
+                    total - (toPlace.size() - i) * perBlock.stackSize));
         }
 
-        if (perBlock != null && extracted > 0) {
+        sendInfoToPlayer(player, "Placed " + i + " blocks (" + pendingBlocks.size() + " remaining)");
+
+        if (extracted != null && extracted.stackSize >= perBlock.stackSize) {
             // extra stuff left over somehow
-            givePlayerItems(new BigItemStack(perBlock).setStackSize(extracted).toStacks().toArray(new ItemStack[0]));
-            MMMod.LOG.error("Didn't consume enough items! " + perBlock.getDisplayName() + "; expected to consume " + toConsume + ", but consumed " + (toConsume - extracted));
+            MMMod.LOG.error("Didn't consume enough items! " + perBlock.getDisplayName() + "; expected to consume " + total + ", but consumed " + (total - extracted.stackSize));
+            givePlayerItems(extracted.toStacks().toArray(new ItemStack[0]));
+        }
+
+        for (; i < toPlace.size(); i++) {
+            PendingBlock pending = toPlace.get(i);
+
+            pendingBlocks.add(pending);
+
+            long coord = CoordinatePacker.pack(pending.x, pending.y, pending.z);
+            
+            visited.remove(coord);
         }
 
         actuallyGivePlayerStuff();

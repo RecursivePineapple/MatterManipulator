@@ -106,6 +106,16 @@ public class BigItemStack {
         return stack;
     }
 
+    public List<ItemStack> toStacks(int stackSize) {
+        List<ItemStack> stack = new ArrayList<>();
+
+        while (this.stackSize > 0) {
+            stack.add(remove(stackSize));
+        }
+
+        return stack;
+    }
+
     public BigItemStack copy() {
         BigItemStack out = new BigItemStack();
 

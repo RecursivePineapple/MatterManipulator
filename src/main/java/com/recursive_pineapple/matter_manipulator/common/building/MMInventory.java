@@ -6,13 +6,13 @@ import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregT
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidContainerItem;
 
@@ -39,6 +39,7 @@ import appeng.api.networking.security.PlayerSource;
 import appeng.api.storage.data.IAEFluidStack;
 import appeng.api.storage.data.IAEItemStack;
 import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 
 /**
  * Handles all manipulator-related item sourcing and sinking.
@@ -49,8 +50,8 @@ public class MMInventory implements IPseudoInventory {
     public MMState state;
     public ManipulatorTier tier;
 
-    public final HashMap<ItemId, Long> pendingItems = new HashMap<>();
-    public final HashMap<FluidId, Long> pendingFluids = new HashMap<>();
+    public final Object2LongOpenHashMap<ItemId> pendingItems = new Object2LongOpenHashMap<>();
+    public final Object2LongOpenHashMap<FluidId> pendingFluids = new Object2LongOpenHashMap<>();
 
     private boolean printedUplinkWarning = false;
 
@@ -126,7 +127,7 @@ public class MMInventory implements IPseudoInventory {
 
         for (ItemStack item : items) {
             if (item != null && item.getItem() != null) {
-                pendingItems.merge(ItemId.create(item), (long) item.stackSize, (Long a, Long b) -> a + b);
+                pendingItems.addTo(ItemId.create(item), item.stackSize);
             }
         }
     }
@@ -139,7 +140,7 @@ public class MMInventory implements IPseudoInventory {
 
         for (FluidStack fluid : fluids) {
             if (fluid != null) {
-                pendingFluids.merge(FluidId.create(fluid), (long) fluid.amount, (Long a, Long b) -> a + b);
+                pendingFluids.addTo(FluidId.create(fluid), fluid.amount);
             }
         }
     }
@@ -176,7 +177,10 @@ public class MMInventory implements IPseudoInventory {
 
         IUplinkMulti uplink = state.uplink;
 
-        pendingItems.forEach((item, amount) -> {
+        for (var entry : pendingItems.object2LongEntrySet()) {
+            ItemId item = entry.getKey();
+            long amount = entry.getLongValue();
+
             BigItemStack stack = new BigItemStack(item.getItemStack()).setStackSize(amount);
 
             if (hasME) {
@@ -196,33 +200,57 @@ public class MMInventory implements IPseudoInventory {
                 if (stack.getStackSize() == 0) return;
             }
 
-            while (amount > 0) {
+            while (stack.stackSize > 0) {
                 ItemStack smallStack = stack.remove(item.getItemStack().getMaxStackSize());
 
-                int removed = smallStack.stackSize;
+                int toInsert = smallStack.stackSize;
 
-                if (!player.inventory.addItemStackToInventory(smallStack)) {
-                    amount += removed;
-                    break;
-                } else {
-                    amount += stack.stackSize;
-                }
+                player.inventory.addItemStackToInventory(smallStack);
+
+                stack.stackSize += smallStack.stackSize;
+
+                if (smallStack.stackSize == toInsert) break;
             }
+
+            AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(player.posX - 2.5d, player.posY - 1d, player.posX - 2.5d, player.posY + 2.5d, player.getEyeHeight() + 1d, player.posZ + 2.5d);
 
             for(ItemStack smallStack : stack.toStacks()) {
-                player.worldObj.spawnEntityInWorld(
-                    new EntityItemLarge(
-                        player.worldObj,
-                        player.posX,
-                        player.posY,
-                        player.posZ,
-                        smallStack));
+                var onGround = player.worldObj.getEntitiesWithinAABB(EntityItemLarge.class, aabb);
+
+                for (EntityItemLarge e : onGround) {
+                    if (smallStack.stackSize <= 0) break;
+
+                    ItemStack droppedStack = e.getEntityItem();
+                    if (MMUtils.areStacksBasicallyEqual(droppedStack, smallStack)) {
+                        int toAdd = (int) (Math.min((long) Integer.MAX_VALUE, (long) droppedStack.stackSize + (long) smallStack.stackSize) - droppedStack.stackSize);
+
+                        droppedStack = droppedStack.copy();
+
+                        droppedStack.stackSize += toAdd;
+                        smallStack.stackSize -= toAdd;
+
+                        e.setEntityItemStack(droppedStack);
+                    }
+                }
+
+                if (smallStack.stackSize > 0) {
+                    player.worldObj.spawnEntityInWorld(
+                        new EntityItemLarge(
+                            player.worldObj,
+                            player.posX,
+                            player.posY,
+                            player.posZ,
+                            smallStack));
+                }
             }
-        });
+        }
 
         pendingItems.clear();
 
-        pendingFluids.forEach((id, amount) -> {
+        for (var entry : pendingFluids.object2LongEntrySet()) {
+            FluidId id = entry.getKey();
+            long amount = entry.getLongValue();
+
             BigFluidStack stack = new BigFluidStack(id.getFluidStack()).setStackSize(amount);
 
             if (hasME) {
@@ -244,7 +272,7 @@ public class MMInventory implements IPseudoInventory {
 
             // this is final because of the lambdas, but its amount field is updated several times
             final FluidStack fluid = id
-                .getFluidStack(amount > Integer.MAX_VALUE ? Integer.MAX_VALUE : amount.intValue());
+                .getFluidStack(amount > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) amount);
 
             // spotless:off
             ItemStack idealCell = MMUtils.streamInventory(player.inventory)
@@ -268,7 +296,7 @@ public class MMInventory implements IPseudoInventory {
                 return;
             }
 
-            fluid.amount = amount > Integer.MAX_VALUE ? Integer.MAX_VALUE : amount.intValue();
+            fluid.amount = amount > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) amount;
 
             // spotless:off
             List<ItemStack> validCells = MMUtils.streamInventory(player.inventory)
@@ -281,7 +309,7 @@ public class MMInventory implements IPseudoInventory {
             // spotless:on
 
             for (ItemStack cell : validCells) {
-                fluid.amount = amount > Integer.MAX_VALUE ? Integer.MAX_VALUE : amount.intValue();
+                fluid.amount = amount > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) amount;
                 amount -= ((IFluidContainerItem) cell.getItem()).fill(idealCell, fluid.copy(), true);
 
                 if (amount <= 0) {
@@ -295,7 +323,7 @@ public class MMInventory implements IPseudoInventory {
                             + "L of "
                             + fluid.getLocalizedName());
             }
-        });
+        }
 
         pendingFluids.clear();
     }
@@ -329,9 +357,9 @@ public class MMInventory implements IPseudoInventory {
             if (!fuzzy) {
                 ItemId id = req.getId();
 
-                Long amtInPending = pendingItems.get(id);
+                long amtInPending = pendingItems.getLong(id);
 
-                if (amtInPending == null || amtInPending == 0) {
+                if (amtInPending == 0) {
                     continue;
                 }
 
@@ -345,19 +373,19 @@ public class MMInventory implements IPseudoInventory {
 
                 if (!simulate) {
                     if (amtInPending == 0) {
-                        pendingItems.remove(id);
+                        pendingItems.removeLong(id);
                     } else {
                         pendingItems.put(id, amtInPending);
                     }
                 }
             } else {
-                var iter = pendingItems.entrySet()
+                var iter = pendingItems.object2LongEntrySet()
                     .iterator();
 
                 while (iter.hasNext()) {
                     var e = iter.next();
 
-                    if (e.getValue() == null || e.getValue() == 0) {
+                    if (e.getLongValue() == 0) {
                         continue;
                     }
 
@@ -372,7 +400,7 @@ public class MMInventory implements IPseudoInventory {
                         continue;
                     }
 
-                    long amtInPending = e.getValue();
+                    long amtInPending = e.getLongValue();
                     long toRemove = Math.min(amtInPending, req.getStackSize());
 
                     extractedItems.add(
@@ -416,26 +444,35 @@ public class MMInventory implements IPseudoInventory {
                     continue;
                 }
 
+                if (req.getItem() != slot.getItem()) continue;
+
                 ItemStack reqStack = req.getItemStack();
 
-                if (fuzzy ? slot.isItemEqual(reqStack) : MMUtils.areStacksBasicallyEqual(slot, reqStack)) {
-                    if (slot.stackSize == 111) {
-                        extractedItems.add(new BigItemStack(slot).setStackSize(req.getStackSize()));
-                        req.setStackSize(0);
-                    } else {
-                        int toRemove = Math.min(slot.stackSize, reqStack.stackSize);
-
-                        req.decStackSize(toRemove);
-                        extractedItems.add(new BigItemStack(slot).setStackSize(toRemove));
-
-                        if (!simulate) {
-                            slot.stackSize -= toRemove;
-                            if (slot.stackSize == 0) {
-                                inv[i] = null;
-                            }
-                            player.inventory.markDirty();
-                        }
+                if (fuzzy) {
+                    if (reqStack.getHasSubtypes()) {
+                        if (req.meta != Items.feather.getDamage(slot)) continue;
                     }
+                } else {
+                    if (!MMUtils.areStacksBasicallyEqual(reqStack, slot)) continue;
+                }
+
+                if (slot.stackSize == 111) {
+                    extractedItems.add(new BigItemStack(slot).setStackSize(req.getStackSize()));
+                    req.setStackSize(0);
+                    continue;
+                }
+
+                int toRemove = Math.min(slot.stackSize, reqStack.stackSize);
+
+                req.decStackSize(toRemove);
+                extractedItems.add(new BigItemStack(slot).setStackSize(toRemove));
+
+                if (!simulate) {
+                    slot.stackSize -= toRemove;
+                    if (slot.stackSize == 0) {
+                        inv[i] = null;
+                    }
+                    player.inventory.markDirty();
                 }
             }
         }
