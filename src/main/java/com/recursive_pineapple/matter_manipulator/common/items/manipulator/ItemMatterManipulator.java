@@ -28,8 +28,8 @@ import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.inventory.Container;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.EnumRarity;
 import net.minecraft.item.Item;
@@ -370,12 +370,10 @@ public class ItemMatterManipulator extends Item
     }
 
     // this is super cursed but doing it properly would take a ton of effort for no real gain
-    private static boolean ttHasAE, ttAEWorks, ttHasUplink, ttUplinkWorks;
+    private static boolean ttAEWorks, ttUplinkWorks;
 
     public static void onTooltipResponse(int state) {
-        ttHasAE = (state & MMUtils.TOOLTIP_HAS_AE) != 0;
         ttAEWorks = (state & MMUtils.TOOLTIP_AE_WORKS) != 0;
-        ttHasUplink = (state & MMUtils.TOOLTIP_HAS_UPLINK) != 0;
         ttUplinkWorks = (state & MMUtils.TOOLTIP_UPLINK_WORKS) != 0;
     }
 
@@ -398,30 +396,23 @@ public class ItemMatterManipulator extends Item
                     lastTooltipQueryMS = time;
 
                     int slot = -1;
-                    InventoryPlayer inv = player.inventory;
+                    Container c = player.openContainer;
 
-                    for (int i = 0; i < inv.armorInventory.length; ++i) {
-                        if (inv.armorInventory[i] != null && inv.armorInventory[i].isItemEqual(itemStack)) {
+                    for (int i = 0; i < c.inventorySlots.size(); i++) {
+                        if (c.getSlot(i).getStack() == itemStack) {
                             slot = i;
                             break;
                         }
                     }
-            
-                    if (slot == -1) {
-                        for (int i = 0; i < inv.mainInventory.length; ++i) {
-                            if (inv.mainInventory[i] != null && inv.mainInventory[i].isItemEqual(itemStack)) {
-                                slot = i;
-                                break;
-                            }
-                        }
+
+                    if (slot != -1) {
+                        Messages.TooltipQuery.sendToServer(slot);
                     }
-            
-                    Messages.TooltipQuery.sendToServer(slot);
                 }
             }
 
             if (tier.hasCap(CONNECTS_TO_AE)) {
-                if (ttHasAE) {
+                if (state.encKey != null) {
                     if (ttAEWorks) {
                         desc.add("Has an ME connection. (Can interact currently)");
                     } else {
@@ -433,7 +424,7 @@ public class ItemMatterManipulator extends Item
             }
             
             if (tier.hasCap(CONNECTS_TO_UPLINK)) {
-                if (ttHasUplink) {
+                if (state.uplinkAddress != null) {
                     if (ttUplinkWorks) {
                         desc.add("Has an Uplink connection. (Can interact currently)");
                     } else {

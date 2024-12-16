@@ -275,18 +275,17 @@ public enum Messages {
 
         @Override
         public void handle(EntityPlayer player, IntPacket packet) {
-            if (packet.value < 0 || packet.value > player.inventory.getSizeInventory()) return;
+            if (packet.value < 0 || packet.value >= player.openContainer.inventorySlots.size()) return;
 
-            ItemStack held = player.inventory.getStackInSlot(packet.value);
+            ItemStack stack = player.openContainer.getSlot(packet.value).getStack();
 
-            if (held != null && held.getItem() instanceof ItemMatterManipulator manipulator) {
-                MMState state = ItemMatterManipulator.getState(held);
+            if (stack != null && stack.getItem() instanceof ItemMatterManipulator manipulator) {
+                MMState state = ItemMatterManipulator.getState(stack);
 
                 int result = 0;
 
                 if (manipulator.tier.hasCap(ItemMatterManipulator.CONNECTS_TO_AE) && AppliedEnergistics2.isModLoaded()) {
                     if (state.connectToMESystem()) {
-                        result |= MMUtils.TOOLTIP_HAS_AE;
                         if (state.canInteractWithAE(player)) {
                             result |= MMUtils.TOOLTIP_AE_WORKS;
                         }
@@ -295,7 +294,6 @@ public enum Messages {
 
                 if (manipulator.tier.hasCap(ItemMatterManipulator.CONNECTS_TO_UPLINK) && GregTech.isModLoaded()) {
                     if (state.uplinkAddress != null) {
-                        result |= MMUtils.TOOLTIP_HAS_UPLINK;
                         if (state.connectToUplink()) {
                             result |= MMUtils.TOOLTIP_UPLINK_WORKS;
                         }

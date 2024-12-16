@@ -95,21 +95,13 @@ public class MMUtils {
     public static final int PLAN_ALL = 0b10;
 
     /**
-     * The encryption key refers to a valid ME network and can be connected to.
-     */
-    public static final int TOOLTIP_HAS_AE = 0b1;
-    /**
      * The ME network is online and the player is within range of an access point.
      */
-    public static final int TOOLTIP_AE_WORKS = 0b10;
-    /**
-     * The uplink key is set (can be done on the client, only included to future-proof the mechanism).
-     */
-    public static final int TOOLTIP_HAS_UPLINK = 0b100;
+    public static final int TOOLTIP_AE_WORKS = 0b1;
     /**
      * The uplink is online and active.
      */
-    public static final int TOOLTIP_UPLINK_WORKS = 0b1000;
+    public static final int TOOLTIP_UPLINK_WORKS = 0b10;
 
     /**
      * Formats a number with group separator and at most 2 fraction digits.
