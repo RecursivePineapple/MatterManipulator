@@ -220,7 +220,10 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
             return false;
         }
 
-        context.tryConsumeItems(partStack);
+        if (!context.tryConsumeItems(partStack)) {
+            context.warn("Could not find " + partStack.getDisplayName());
+            return false;
+        }
 
         if (!simulate) {
             if (partHost.addPart(partStack, side, context.getRealPlayer()) == null) {

@@ -67,12 +67,19 @@ public class TileAnalysisResult {
     public boolean apply(IBlockApplyContext ctx) {
         TileEntity te = ctx.getTileEntity();
 
-        if (gt != null) gt.apply(ctx);
-        if (ae != null) ae.apply(ctx);
+        if (gt != null) {
+            if (!gt.apply(ctx)) return false;
+        }
+
+        if (ae != null) {
+            if (!ae.apply(ctx)) return false;
+        }
 
         // update the inventory
         if (te instanceof IInventory inventory && mInventory != null) {
-            mInventory.apply(ctx, inventory, true, false);
+            if (!mInventory.apply(ctx, inventory, true, false)) {
+                return false;
+            }
         }
 
         if (mDirection != null) {
