@@ -263,7 +263,7 @@ public class MMConfig {
 
         VoxelAABB aabb = new VoxelAABB(coordA.toVec(), coordB.toVec());
 
-        aabb.moveOrigin(new Vector3i(0));
+        aabb.moveOrigin(coordC.toVec());
 
         if (arraySpan != null) {
             aabb.scale(arraySpan.x, arraySpan.y, arraySpan.z);
@@ -272,8 +272,6 @@ public class MMConfig {
         if (transform) {
             this.transform.apply(aabb);
         }
-
-        aabb.moveOrigin(coordC.toVec());
 
         return aabb;
     }

@@ -535,13 +535,13 @@ public class MMState {
                     break;
                 }
                 case 1: {
-                    start = b.y < 0 ? ForgeDirection.DOWN.flag : ForgeDirection.UP.flag;
-                    end = b.y > 0 ? ForgeDirection.DOWN.flag : ForgeDirection.UP.flag;
+                    start = b.y < 0 ? ForgeDirection.UP.flag : ForgeDirection.DOWN.flag;
+                    end = b.y > 0 ? ForgeDirection.UP.flag : ForgeDirection.DOWN.flag;
                     break;
                 }
                 case 2: {
-                    start = b.z < 0 ? ForgeDirection.NORTH.flag : ForgeDirection.SOUTH.flag;
-                    end = b.z > 0 ? ForgeDirection.NORTH.flag : ForgeDirection.SOUTH.flag;
+                    start = b.z < 0 ? ForgeDirection.SOUTH.flag : ForgeDirection.NORTH.flag;
+                    end = b.z > 0 ? ForgeDirection.SOUTH.flag : ForgeDirection.NORTH.flag;
                     break;
                 }
             }

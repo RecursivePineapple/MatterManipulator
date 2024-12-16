@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
-import java.util.function.Supplier;
+import java.util.function.IntSupplier;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -565,7 +565,7 @@ public class ItemMatterManipulator extends Item
 
     @Override
     public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer player) {
-        if (player.getItemInUse() != null) return stack;
+        if (player.isUsingItem()) return stack;
 
         MMState state = getState(stack);
 
@@ -1656,7 +1656,7 @@ public class ItemMatterManipulator extends Item
 
     @SideOnly(Side.CLIENT)
     private Row makeCoordinateEditor(EntityPlayer player, int coord, int component) {
-        Supplier<Integer> getter = () -> {
+        IntSupplier getter = () -> {
             MMState currState = getState(player.getHeldItem());
 
             Vector3i l = switch (coord) {
@@ -1683,13 +1683,23 @@ public class ItemMatterManipulator extends Item
             };
         };
 
+        IntSupplier getterVisual = () -> {
+            int k = getter.getAsInt();
+
+            if (coord == 3) {
+                if (k >= 0) k++;
+            }
+
+            return k;
+        };
+
         IntConsumer setter = i -> {
             MMState currState = getState(player.getHeldItem());
 
             Vector3i l = switch (coord) {
-                case 0 -> currState.config.coordA.toVec();
-                case 1 -> currState.config.coordB.toVec();
-                case 2 -> currState.config.coordC.toVec();
+                case 0 -> currState.config.coordA == null ? null : currState.config.coordA.toVec();
+                case 1 -> currState.config.coordB == null ? null : currState.config.coordB.toVec();
+                case 2 -> currState.config.coordC == null ? null : currState.config.coordC.toVec();
                 case 3 -> currState.config.arraySpan;
                 default -> throw new IllegalArgumentException("coord");
             };
@@ -1747,17 +1757,8 @@ public class ItemMatterManipulator extends Item
             new VanillaButtonWidget().setDisplayString(compName + " - 1")
                 .setOnClick(
                     (t, u) -> {
-                        Integer i = getter.get();
+                        int i = getter.getAsInt();
 
-                        if (i == null) {
-                            i = switch (component) {
-                                case 0 -> (int) player.posX;
-                                case 1 -> (int) player.posY;
-                                case 2 -> (int) player.posZ;
-                                default -> throw new IllegalArgumentException("component");
-                            };
-                        }
-                        
                         int offset = 1;
                         
                         if (GuiScreen.isShiftKeyDown()) {
@@ -1806,7 +1807,7 @@ public class ItemMatterManipulator extends Item
                 .addChild(new NumericWidget()
                     .setSynced(false, false)
                     .setIntegerOnly(true)
-                    .setGetter(() -> getter.get())
+                    .setGetter(() -> getterVisual.getAsInt())
                     .setSetter(i -> setter.accept((int) i))
                     .setBounds(coord == 3 ? 1 : Integer.MIN_VALUE, Integer.MAX_VALUE)
                     .setScrollBar()
@@ -1816,7 +1817,7 @@ public class ItemMatterManipulator extends Item
                     .setPos(2, 2)
                     .setTicker(w -> {
                         if (!w.isFocused()) {
-                            ((NumericWidget) w).setValue(getter.get());
+                            ((NumericWidget) w).setValue(getterVisual.getAsInt());
                         }
                     }))
                     .setSize(40, 18),
@@ -1824,17 +1825,8 @@ public class ItemMatterManipulator extends Item
             new VanillaButtonWidget().setDisplayString(compName + " + 1")
                 .setOnClick(
                     (t, u) -> {
-                        Integer i = getter.get();
+                        int i = getter.getAsInt();
 
-                        if (i == null) {
-                            i = switch (component) {
-                                case 0 -> (int) player.posX;
-                                case 1 -> (int) player.posY;
-                                case 2 -> (int) player.posZ;
-                                default -> throw new IllegalArgumentException("component");
-                            };
-                        }
-                        
                         int offset = 1;
 
                         if (GuiScreen.isShiftKeyDown()) {
