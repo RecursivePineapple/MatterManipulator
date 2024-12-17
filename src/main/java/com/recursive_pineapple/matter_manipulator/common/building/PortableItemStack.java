@@ -1,5 +1,6 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
+import net.minecraft.block.Block;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -17,6 +18,8 @@ public class PortableItemStack implements IItemProvider {
     public Integer metadata, amount;
     public NBTTagCompound nbt;
 
+    public transient Item itemRef;
+    public transient Block blockRef;
     public transient ItemStack itemStack;
 
     public PortableItemStack() {}
@@ -55,10 +58,26 @@ public class PortableItemStack implements IItemProvider {
         return portable;
     }
 
+    public int getMeta() {
+        return metadata == null ? 0 : metadata.intValue();
+    }
+
+    public Item getItem() {
+        if (blockRef == null) {
+            itemRef = GameRegistry.findItem(item.modId, item.name);
+        }
+
+        return itemRef;
+    }
+
     public ItemStack toStack() {
         if (itemStack == null) {
+            Item item = getItem();
+
+            if (item == null) return null;
+
             itemStack = new ItemStack(
-                GameRegistry.findItem(item.modId, item.name),
+                item,
                 amount == null ? 1 : amount,
                 metadata == null ? 0 : metadata);
 
@@ -68,6 +87,14 @@ public class PortableItemStack implements IItemProvider {
         }
 
         return itemStack.copy();
+    }
+
+    public Block getBlock() {
+        if (blockRef == null) {
+            blockRef = GameRegistry.findBlock(item.modId, item.name);
+        }
+
+        return blockRef;
     }
 
     @Override

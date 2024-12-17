@@ -85,6 +85,8 @@ public class PendingBlock extends Location {
         this.stack = null;
         this.blockId = null;
         this.metadata = 0;
+        this.flags = 0;
+        this.tileData = null;
 
         return this;
     }

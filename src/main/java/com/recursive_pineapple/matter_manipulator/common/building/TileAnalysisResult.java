@@ -23,9 +23,7 @@ import net.minecraftforge.common.util.ForgeDirection;
  */
 public class TileAnalysisResult {
 
-    // hopefully these field are self explanitory
-
-    public ITileAnalysisIntegration gt, ae;
+    public ITileAnalysisIntegration gt, ae, arch;
 
     public InventoryAnalysis mInventory = null;
     public ForgeDirection mDirection = null;
@@ -44,6 +42,10 @@ public class TileAnalysisResult {
 
         if (Mods.AppliedEnergistics2.isModLoaded()) {
             ae = AEAnalysisResult.analyze(context, te);
+        }
+
+        if (Mods.ArchitectureCraft.isModLoaded()) {
+            arch = ArchitectureCraftAnalysisResult.analyze(context, te);
         }
 
         // check its inventory
@@ -67,12 +69,8 @@ public class TileAnalysisResult {
     public boolean apply(IBlockApplyContext ctx) {
         TileEntity te = ctx.getTileEntity();
 
-        if (gt != null) {
-            if (!gt.apply(ctx)) return false;
-        }
-
-        if (ae != null) {
-            if (!ae.apply(ctx)) return false;
+        for (var analysis : getIntegrations()) {
+            if (!analysis.apply(ctx)) return false;
         }
 
         // update the inventory
@@ -93,6 +91,16 @@ public class TileAnalysisResult {
         return true;
     }
 
+    private List<ITileAnalysisIntegration> getIntegrations() {
+        List<ITileAnalysisIntegration> list = new ArrayList<>();
+
+        if (gt != null) list.add(gt);
+        if (ae != null) list.add(ae);
+        if (arch != null) list.add(arch);
+
+        return list;
+    }
+
     /**
      * Get the required items for a block that exists in the world
      * 
@@ -101,12 +109,8 @@ public class TileAnalysisResult {
     public boolean getRequiredItemsForExistingBlock(IBlockApplyContext context) {
         TileEntity te = context.getTileEntity();
 
-        if (gt != null) {
-            if (!gt.getRequiredItemsForExistingBlock(context)) return false;
-        }
-
-        if (ae != null) {
-            if (!ae.getRequiredItemsForExistingBlock(context)) return false;
+        for (var analysis : getIntegrations()) {
+            if (!analysis.getRequiredItemsForExistingBlock(context)) return false;
         }
 
         if (mInventory != null && te instanceof IInventory inventory) {
@@ -122,12 +126,8 @@ public class TileAnalysisResult {
      * @return True if this tile result is valid, false otherwise
      */
     public boolean getRequiredItemsForNewBlock(IBlockApplyContext context) {
-        if (gt != null) {
-            if (!gt.getRequiredItemsForNewBlock(context)) return false;
-        }
-
-        if (ae != null) {
-            if (!ae.getRequiredItemsForNewBlock(context)) return false;
+        for (var analysis : getIntegrations()) {
+            if (!analysis.getRequiredItemsForNewBlock(context)) return false;
         }
 
         if (mInventory != null) {
@@ -144,8 +144,9 @@ public class TileAnalysisResult {
     public NBTTagCompound getItemTag() {
         NBTTagCompound tag = new NBTTagCompound();
         
-        if (gt != null) gt.getItemTag(tag);
-        if (ae != null) ae.getItemTag(tag);
+        for (var analysis : getIntegrations()) {
+            analysis.getItemTag(tag);
+        }
 
         return tag.hasNoTags() ? null : tag;
     }
@@ -153,15 +154,17 @@ public class TileAnalysisResult {
     public String getItemDetails() {
         List<String> details = new ArrayList<>(0);
 
-        if (gt != null) gt.getItemDetails(details);
-        if (ae != null) ae.getItemDetails(details);
+        for (var analysis : getIntegrations()) {
+            analysis.getItemDetails(details);
+        }
 
         return details.isEmpty() ? "" : String.format(" (%s)", String.join(", ", details));
     }
 
     public void transform(Transform transform) {
-        if (gt != null) gt.transform(transform);
-        if (ae != null) ae.transform(transform);
+        for (var analysis : getIntegrations()) {
+            analysis.transform(transform);
+        }
 
         mDirection = transform.apply(mDirection);
     }
@@ -172,6 +175,7 @@ public class TileAnalysisResult {
         int result = 1;
         result = prime * result + ((gt == null) ? 0 : gt.hashCode());
         result = prime * result + ((ae == null) ? 0 : ae.hashCode());
+        result = prime * result + ((arch == null) ? 0 : arch.hashCode());
         result = prime * result + ((mInventory == null) ? 0 : mInventory.hashCode());
         result = prime * result + ((mDirection == null) ? 0 : mDirection.hashCode());
         return result;
@@ -179,32 +183,23 @@ public class TileAnalysisResult {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         TileAnalysisResult other = (TileAnalysisResult) obj;
         if (gt == null) {
-            if (other.gt != null)
-                return false;
-        } else if (!gt.equals(other.gt))
-            return false;
+            if (other.gt != null) return false;
+        } else if (!gt.equals(other.gt)) return false;
         if (ae == null) {
-            if (other.ae != null)
-                return false;
-        } else if (!ae.equals(other.ae))
-            return false;
+            if (other.ae != null) return false;
+        } else if (!ae.equals(other.ae)) return false;
+        if (arch == null) {
+            if (other.arch != null) return false;
+        } else if (!arch.equals(other.arch)) return false;
         if (mInventory == null) {
-            if (other.mInventory != null)
-                return false;
-        } else if (!mInventory.equals(other.mInventory))
-            return false;
-        if (mDirection != other.mDirection)
-            return false;
+            if (other.mInventory != null) return false;
+        } else if (!mInventory.equals(other.mInventory)) return false;
+        if (mDirection != other.mDirection) return false;
         return true;
     }
-
-    
 }
