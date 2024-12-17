@@ -61,7 +61,7 @@ public class ManipulatorRecipes {
                 GTOreDictUnificator.get(OrePrefixes.itemCasing, Materials.StainlessSteel, 8),
                 getModItem(IndustrialCraft2.ID, "itemBatCrystal", 1), // energy crystal
                 GTOreDictUnificator.get(OrePrefixes.wireGt01, Materials.SuperconductorHV, 12),
-                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.HV, 2),
+                new Object[] { OrePrefixes.circuit.get(Materials.HV), 2 },
                 GTOreDictUnificator.get(OrePrefixes.screw, Materials.StainlessSteel, 16))
             .fluidInputs(Materials.SolderingAlloy.getMolten(L * 4))
             .itemOutputs(MMItemList.PowerCore0.get(1))
@@ -74,7 +74,7 @@ public class ManipulatorRecipes {
             .itemInputs(
                 GTUtility.getIntegratedCircuit(5),
                 GTOreDictUnificator.get(OrePrefixes.itemCasing, Materials.StainlessSteel, 8),
-                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.IV, 2),
+                new Object[] { OrePrefixes.circuit.get(Materials.IV), 2 },
                 getModItem(Mods.EnderIO.ID, "blockEndermanSkull", 1, 2), // tormented enderman skull
                 GTOreDictUnificator.get(OrePrefixes.wireGt01, Materials.SuperconductorHV, 12),
                 GTOreDictUnificator.get(OrePrefixes.screw, Materials.StainlessSteel, 16))
@@ -156,7 +156,7 @@ public class ManipulatorRecipes {
                 ItemList.Energy_LapotronicOrb.get(1),
                 ItemList.Circuit_Chip_PIC.get(4),
                 GTOreDictUnificator.get(OrePrefixes.wireGt02, Materials.SuperconductorIV, 6),
-                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.IV, 2),
+                new Object[] { OrePrefixes.circuit.get(Materials.IV), 2 },
                 GTOreDictUnificator.get(OrePrefixes.screw, Materials.TungstenSteel, 16))
             .fluidInputs(new FluidStack(solderIndalloy, (int) (L * 8)))
             .itemOutputs(MMItemList.PowerCore1.get(1))
@@ -169,7 +169,7 @@ public class ManipulatorRecipes {
             .itemInputs(
                 GTUtility.getIntegratedCircuit(5),
                 GTOreDictUnificator.get(OrePrefixes.frameGt, Materials.TungstenSteel, 1),
-                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.ZPM, 2),
+                new Object[] { OrePrefixes.circuit.get(Materials.ZPM), 2 },
                 GTOreDictUnificator.get(OrePrefixes.wireGt01, Materials.SuperconductorIV, 12),
                 GTOreDictUnificator.get(OrePrefixes.itemCasing, Materials.TungstenSteel, 8),
                 GTOreDictUnificator.get(OrePrefixes.screw, Materials.TungstenSteel, 16))
@@ -251,7 +251,7 @@ public class ManipulatorRecipes {
                 ItemList.Energy_LapotronicOrb2.get(1),
                 ItemList.Circuit_Chip_HPIC.get(4),
                 GTOreDictUnificator.get(OrePrefixes.wireGt02, Materials.SuperconductorLuV, 6),
-                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.LuV, 2),
+                new Object[] { OrePrefixes.circuit.get(Materials.LuV), 2 },
                 GTOreDictUnificator.get(OrePrefixes.screw, Materials.HSSS, 16))
             .fluidInputs(
                 new FluidStack(solderIndalloy, (int) (L * 8)),
@@ -267,7 +267,7 @@ public class ManipulatorRecipes {
             .metadata(RESEARCH_TIME, 40 * MINUTES)
             .itemInputs(
                 GTOreDictUnificator.get(OrePrefixes.frameGt, Materials.HSSS, 1),
-                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.UV, 2),
+                new Object[] { OrePrefixes.circuit.get(Materials.UV), 2 },
                 GTOreDictUnificator.get(OrePrefixes.wireGt01, Materials.SuperconductorLuV, 18),
                 GTOreDictUnificator.get(OrePrefixes.itemCasing, Materials.HSSS, 8),
                 GTOreDictUnificator.get(OrePrefixes.screw, Materials.HSSS, 16))
@@ -359,7 +359,7 @@ public class ManipulatorRecipes {
                 ItemList.Energy_Module.get(1),
                 ItemList.Circuit_Chip_UHPIC.get(8),
                 GTOreDictUnificator.get(OrePrefixes.wireGt02, Materials.SuperconductorZPM, 12),
-                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.ZPM, 2),
+                new Object[] { OrePrefixes.circuit.get(Materials.ZPM), 2 },
                 GTOreDictUnificator.get(OrePrefixes.screw, Materials.NaquadahAlloy, 16))
             .fluidInputs(new FluidStack(solderIndalloy, (int) (L * 16)), Materials.SuperCoolant.getFluid(32000))
             .itemOutputs(MMItemList.PowerCore3.get(1))
@@ -373,7 +373,7 @@ public class ManipulatorRecipes {
             .metadata(RESEARCH_TIME, 60 * MINUTES)
             .itemInputs(
                 GTOreDictUnificator.get(OrePrefixes.frameGt, Materials.NaquadahAlloy, 1),
-                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.UV, 2),
+                new Object[] { OrePrefixes.circuit.get(Materials.UV), 2 },
                 GTOreDictUnificator.get(OrePrefixes.wireGt01, Materials.SuperconductorZPM, 30),
                 GTOreDictUnificator.get(OrePrefixes.itemCasing, Materials.NaquadahAlloy, 8),
                 GTOreDictUnificator.get(OrePrefixes.screw, Materials.NaquadahAlloy, 16))
@@ -457,7 +457,7 @@ public class ManipulatorRecipes {
                 getModItem(AE2FluidCraft.ID, "fluid_interface", 1),
                 ItemList.Conveyor_Module_IV.get(2),
                 ItemList.Electric_Pump_IV.get(2),
-                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.IV, 1))
+                new Object[] { OrePrefixes.circuit.get(Materials.IV), 1 })
             .fluidInputs(new FluidStack(solderIndalloy, (int) (L * 8)))
             .itemOutputs(MMItemList.AEDownlink.get(1))
             .eut((int) TierEU.RECIPE_IV)
@@ -509,7 +509,7 @@ public class ManipulatorRecipes {
                 getModItem(AE2FluidCraft.ID, "fluid_interface", 1),
                 ItemList.Conveyor_Module_ZPM.get(2),
                 ItemList.Electric_Pump_ZPM.get(2),
-                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.UV, 4))
+                new Object[] { OrePrefixes.circuit.get(Materials.UV), 4 })
             .fluidInputs(new FluidStack(solderIndalloy, (int) (L * 32)))
             .itemOutputs(MMItemList.QuantumDownlink.get(1))
             .duration(1 * MINUTES)
@@ -534,6 +534,7 @@ public class ManipulatorRecipes {
             .addTo(RecipeMaps.assemblerRecipes);
     }
 
+    @SuppressWarnings("deprecation")
     @Optional(Names.GREG_TECH)
     private static void addUplinkRecipes() {
         Fluid solderIndalloy = FluidRegistry.getFluid("molten.indalloy140") != null
@@ -570,7 +571,7 @@ public class ManipulatorRecipes {
                     .blankPattern()
                     .maybeStack(64)
                     .get(),
-                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.UV, 4) },
+                new Object[] { OrePrefixes.circuit.get(Materials.UV), 4 } },
             new FluidStack[] { new FluidStack(solderIndalloy, (int) (L * 32)), Materials.Naquadria.getMolten(L * 16), },
             MMItemList.UplinkHatch.get(1),
             60 * SECONDS,
@@ -619,7 +620,7 @@ public class ManipulatorRecipes {
                     .maybeStack(2)
                     .get(),
                 CustomItemList.dataOut_Hatch.get(1), CustomItemList.DATApipe.get(32),
-                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.UHV, 2) },
+                new Object[] { OrePrefixes.circuit.get(Materials.UHV), 2 } },
             new FluidStack[] { new FluidStack(solderIndalloy, (int) (L * 64)), Materials.Naquadria.getMolten(L * 32), },
             MMItemList.UplinkController.get(1),
             60 * SECONDS,
