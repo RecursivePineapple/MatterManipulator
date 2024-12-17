@@ -48,6 +48,7 @@ dependencies {
 
     compileOnly('com.github.GTNewHorizons:Angelica:1.0.0-beta23:api') { transitive = false }
     compileOnly("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-478-GTNH:dev") { transitive = false }
+    compileOnly("com.github.GTNewHorizons:ArchitectureCraft:1.9.5") { transitive = false }
     compileOnly("com.github.GTNewHorizons:BloodMagic:1.6.9:dev") { transitive = false }
     compileOnly("curse.maven:cofh-lib-220333:2388748") { transitive = false }
     compileOnly("com.github.GTNewHorizons:EnderIO:2.8.22:dev") { transitive = false }
@@ -61,6 +62,7 @@ dependencies {
 
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-478-GTNH:dev")
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:GT5-Unofficial:99.99.99:dev")
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:ArchitectureCraft:1.9.5")
 
     compileOnly deobf("https://www.immibis.com/mcmoddl/files/immibis-microblocks-59.1.2.jar", "immibis-microblocks-59.1.2")
     compileOnly deobf("https://www.immibis.com/mcmoddl/files/immibis-core-59.1.4.jar", "immibis-core-59.1.4")
