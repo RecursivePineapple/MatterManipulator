@@ -228,7 +228,7 @@ public class StructureWrapper<MTE extends MTEEnhancedMultiBlockBase<?> & IStruct
             }, casing.casing.asElement());
 
             return HatchElementBuilder.<MTE>builder()
-                .anyOf(casing.hatches)
+                .atLeast(casing.hatches)
                 .casingIndex(casing.casing.getTextureId())
                 .dot(casing.dot)
                 .buildAndChain(adder);
