@@ -21,14 +21,14 @@ public class CommonProxy {
         GlobalMMConfig.init();
         MMItems.registerItems();
         Messages.init();
-
-        if (Mods.GregTech.isModLoaded()) {
-            GregTechAPI.sThirdPartyMultiRegistration.add(MMItems::registerMultis);
-        }
     }
 
     public void init(FMLInitializationEvent event) {
         EntityItemLarge.registerCommon();
+        
+        if (Mods.GregTech.isModLoaded()) {
+            MMItems.registerMultis();
+        }
     }
 
     public void postInit(FMLPostInitializationEvent event) {
