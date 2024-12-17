@@ -181,7 +181,7 @@ public class MMInventory implements IPseudoInventory {
 
         IUplinkMulti uplink = state.uplink;
 
-        for (var entry : pendingItems.object2LongEntrySet()) {
+        outer: for (var entry : pendingItems.object2LongEntrySet()) {
             ItemId item = entry.getKey();
             long amount = entry.getLongValue();
 
@@ -190,7 +190,7 @@ public class MMInventory implements IPseudoInventory {
             if (hasME) {
                 injectItemsIntoAE(stack);
 
-                if (stack.getStackSize() == 0) return;
+                if (stack.getStackSize() == 0) continue;
             }
 
             if (uplink != null) {
@@ -201,7 +201,7 @@ public class MMInventory implements IPseudoInventory {
                     MMUtils.sendErrorToPlayer(player, "Could not push items to uplink: " + status.toString());
                 }
 
-                if (stack.getStackSize() == 0) return;
+                if (stack.getStackSize() == 0) continue;
             }
 
             while (stack.stackSize > 0) {
@@ -213,7 +213,7 @@ public class MMInventory implements IPseudoInventory {
 
                 stack.stackSize += smallStack.stackSize;
 
-                if (smallStack.stackSize == toInsert) break;
+                if (smallStack.stackSize == toInsert) continue outer;
             }
 
             AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(player.posX - 2.5d, player.posY - 1d, player.posX - 2.5d, player.posY + 2.5d, player.getEyeHeight() + 1d, player.posZ + 2.5d);
@@ -251,7 +251,7 @@ public class MMInventory implements IPseudoInventory {
 
         pendingItems.clear();
 
-        for (var entry : pendingFluids.object2LongEntrySet()) {
+        outer: for (var entry : pendingFluids.object2LongEntrySet()) {
             FluidId id = entry.getKey();
             long amount = entry.getLongValue();
 
@@ -260,7 +260,7 @@ public class MMInventory implements IPseudoInventory {
             if (hasME) {
                 injectFluidsIntoAE(stack);
 
-                if (stack.getStackSize() == 0) return;
+                if (stack.getStackSize() == 0) continue outer;
             }
 
             if (uplink != null) {
@@ -271,7 +271,7 @@ public class MMInventory implements IPseudoInventory {
                     MMUtils.sendErrorToPlayer(player, "Could not push fluids to uplink: " + status.toString());
                 }
 
-                if (stack.getStackSize() == 0) return;
+                if (stack.getStackSize() == 0) continue outer;
             }
 
             // this is final because of the lambdas, but its amount field is updated several times
@@ -297,7 +297,7 @@ public class MMInventory implements IPseudoInventory {
             }
 
             if (amount <= 0) {
-                return;
+                continue outer;
             }
 
             fluid.amount = amount > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) amount;
@@ -317,7 +317,7 @@ public class MMInventory implements IPseudoInventory {
                 amount -= ((IFluidContainerItem) cell.getItem()).fill(idealCell, fluid.copy(), true);
 
                 if (amount <= 0) {
-                    return;
+                    continue outer;
                 }
             }
 
