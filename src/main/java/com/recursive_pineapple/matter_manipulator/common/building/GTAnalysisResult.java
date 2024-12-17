@@ -453,7 +453,7 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
         if (te instanceof IGregTechTileEntity gte) {
             for (ForgeDirection side : ForgeDirection.VALID_DIRECTIONS) {
                 CoverData target = mCovers == null ? null : mCovers[side.ordinal()];
-                CoverInfo actual = new CoverInfo(
+                CoverInfo actual = gte.getCoverIDAtSide(side) == 0 ? null : new CoverInfo(
                     side,
                     gte.getCoverIDAtSide(side),
                     gte,
