@@ -2,7 +2,7 @@
 
 This mod adds the matter manipulator, which is meant to be a survival-usable version of world edit. The goal of this tool isn't to replace world edit completely, rather its goal is to help with building large or repetitive structures without forcing the player to resort to world edit.
 
-## Current Status
+## Current Status (Important, read me!)
 
 This tool can be used as a standalone mod with a few dependencies, but it doesn't come with any default recipes since vanilla just doesn't have enough items or mechanics to support it. It's highly recommended to add your own recipes if using this in a pack. The manipulator crafting components will always be present, so it's also recommended to follow the existing pattern of making components, then combining the components into the final tool.
 
@@ -13,6 +13,8 @@ If you're using this in GTNH, you must upgrade your GT5u jar to the latest custo
 This mod will be added to GTNH and its GT5u PR will be merged some time in the new year, after 2.7 is released and stable.
 
 You can find the releases [here](https://github.com/RecursivePineapple/MatterManipulator/releases).
+
+See [here](https://github.com/users/RecursivePineapple/projects/1/views/1) for more information on what's being worked on. I'll use this github project to track what I need to work on and their priorities.
 
 ## Required Dependencies
 
