@@ -29,9 +29,8 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 
-import com.recursive_pineapple.matter_manipulator.GlobalMMConfig;
 import com.recursive_pineapple.matter_manipulator.MMMod;
-import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.InteractionConfig;
+import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.DebugConfig;
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
@@ -393,7 +392,7 @@ public enum Messages {
     }
 
     public void sendToServer(Object data) {
-        if (GlobalMMConfig.D1) {
+        if (DebugConfig.debug) {
             MMMod.LOG.info("Sending packet to server: " + this + "; " + data);
         }
         CHANNEL.sendToServer(getNewPacket(data));
@@ -404,7 +403,7 @@ public enum Messages {
     }
 
     public void sendToPlayer(EntityPlayerMP player, Object data) {
-        if (GlobalMMConfig.D1) {
+        if (DebugConfig.debug) {
             MMMod.LOG.info("Sending packet to player: " + this + "; " + data + "; " + player);
         }
         CHANNEL.sendToPlayer(getNewPacket(data), player);
@@ -415,7 +414,7 @@ public enum Messages {
     }
 
     public void sendToPlayersAround(Location location, Object data) {
-        if (GlobalMMConfig.D1) {
+        if (DebugConfig.debug) {
             MMMod.LOG
                 .info("Sending packet to players around " + location.toString() + ": " + this + "; " + data);
         }
@@ -425,7 +424,7 @@ public enum Messages {
     }
 
     public void sendToPlayersWithinRange(Location location, Object data) {
-        if (GlobalMMConfig.D1) {
+        if (DebugConfig.debug) {
             MMMod.LOG
                 .info("Sending packet to players that are watching " + location.toString() + ": " + this + "; " + data);
         }
@@ -448,7 +447,7 @@ public enum Messages {
 
     @SuppressWarnings("unchecked")
     public void handle(EntityPlayer player, SimplePacket packet) {
-        if (GlobalMMConfig.D1) {
+        if (DebugConfig.debug) {
             MMMod.LOG
                 .info("Handling packet: " + this + "; " + packet + "; " + player + "; " + NetworkUtils.isClient());
         }

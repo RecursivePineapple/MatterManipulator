@@ -30,12 +30,21 @@ public class GlobalMMConfig {
         public static int maxHints;
     }
 
-    public static boolean DEVENV = false, D1 = false;
+    @Config(modid = Names.MATTER_MANIPULATOR, category = "Debug")
+    public static class DebugConfig {
+
+        @Config.DefaultBoolean(false)
+        @Config.Name("Enable Debug Logging")
+        public static boolean debug;
+    }
+
+    public static boolean DEVENV = false;
 
     public static void init() {
         try {
             ConfigurationManager.registerConfig(InteractionConfig.class);
             ConfigurationManager.registerConfig(RenderingConfig.class);
+            ConfigurationManager.registerConfig(DebugConfig.class);
         } catch (ConfigException e) {
             throw new RuntimeException(e);
         }
