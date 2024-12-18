@@ -1919,7 +1919,7 @@ public class ItemMatterManipulator extends Item
 
         private List<PendingBlock> analysisCache = null;
 
-        private ItemStack lastDrawer = null;
+        private ItemMatterManipulator lastDrawer = null;
 
         private static final long ANALYSIS_INTERVAL_MS = 10_000;
 
@@ -2017,7 +2017,7 @@ public class ItemMatterManipulator extends Item
                     e.printStackTrace();
                 }
             } else {
-                if (lastDrawer == held) {
+                if (lastDrawer == ItemMatterManipulator.this) {
                     lastAnalysisMS = 0;
                     lastAnalyzedConfig = null;
                     lastPlayerPosition = null;
@@ -2147,7 +2147,7 @@ public class ItemMatterManipulator extends Item
 
                 if (needsHintDraw) {
                     lastPlayerPosition = playerLocation;
-                    lastDrawer = player.getHeldItem();
+                    lastDrawer = ItemMatterManipulator.this;
                     drawHints(event, state, player, playerLocation);
                 }
             }
@@ -2253,7 +2253,7 @@ public class ItemMatterManipulator extends Item
 
                 if (needsHintDraw) {
                     lastPlayerPosition = playerLocation;
-                    lastDrawer = player.getHeldItem();
+                    lastDrawer = ItemMatterManipulator.this;
                     drawHints(event, state, player, playerLocation);
                 }
             }
