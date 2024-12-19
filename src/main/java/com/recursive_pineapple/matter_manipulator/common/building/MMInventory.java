@@ -124,27 +124,27 @@ public class MMInventory implements IPseudoInventory {
     }
 
     @Override
-    public void givePlayerItems(ItemStack... items) {
+    public void givePlayerItems(List<BigItemStack> items) {
         if (player.capabilities.isCreativeMode) {
             return;
         }
 
-        for (ItemStack item : items) {
+        for (BigItemStack item : items) {
             if (item != null && item.getItem() != null) {
-                pendingItems.addTo(ItemId.create(item), item.stackSize);
+                pendingItems.addTo(item.getId(), item.stackSize);
             }
         }
     }
 
     @Override
-    public void givePlayerFluids(FluidStack... fluids) {
+    public void givePlayerFluids(List<BigFluidStack> fluids) {
         if (player.capabilities.isCreativeMode) {
             return;
         }
 
-        for (FluidStack fluid : fluids) {
+        for (BigFluidStack fluid : fluids) {
             if (fluid != null) {
-                pendingFluids.addTo(FluidId.create(fluid), fluid.amount);
+                pendingFluids.addTo(fluid.getId(), fluid.amount);
             }
         }
     }
@@ -183,9 +183,8 @@ public class MMInventory implements IPseudoInventory {
 
         outer: for (var entry : pendingItems.object2LongEntrySet()) {
             ItemId item = entry.getKey();
-            long amount = entry.getLongValue();
 
-            BigItemStack stack = new BigItemStack(item.getItemStack()).setStackSize(amount);
+            BigItemStack stack = new BigItemStack(item.getItemStack()).setStackSize(entry.getLongValue());
 
             if (hasME) {
                 injectItemsIntoAE(stack);

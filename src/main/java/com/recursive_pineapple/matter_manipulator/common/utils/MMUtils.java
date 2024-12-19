@@ -968,6 +968,18 @@ public class MMUtils {
         }
     }
 
+    public static <T, R> Function<T, R> exposeFieldGetterLambda(Class<? super T> clazz, String... names) {
+        final MethodHandle method = exposeFieldGetter(clazz, names);
+
+        return instance -> {
+            try {
+                return (R) method.invoke(instance);
+            } catch (Throwable e) {
+                throw new RuntimeException("Could not get field " + clazz.getName() + ":" + names[0], e);
+            }
+        };
+    }
+
     public static MethodHandle exposeMethod(Class<?> clazz, MethodType sig, String... names) {
         try {
             Method method = ReflectionHelper.findMethod(clazz, null, names, sig.parameterArray());

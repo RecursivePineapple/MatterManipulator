@@ -1,9 +1,10 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import com.recursive_pineapple.matter_manipulator.common.utils.BigFluidStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
+import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
@@ -47,12 +48,18 @@ public interface IPseudoInventory {
      * @return True when the items were successfully consumed.
      */
     public default boolean tryConsumeItems(ItemStack... items) {
-        List<BigItemStack> stacks = new ArrayList<>(items.length);
-        for (int i = 0; i < items.length; i++) stacks.add(new BigItemStack(items[i]));
-        return tryConsumeItems(stacks, 0).first();
+        return tryConsumeItems(MMUtils.mapToList(items, BigItemStack::new), 0).first();
     }
 
-    public void givePlayerItems(ItemStack... items);
+    public void givePlayerItems(List<BigItemStack> items);
 
-    public void givePlayerFluids(FluidStack... fluids);
+    public default void givePlayerItems(ItemStack... items)  {
+        givePlayerItems(MMUtils.mapToList(items, BigItemStack::new));
+    }
+
+    public void givePlayerFluids(List<BigFluidStack> fluids);
+
+    public default void givePlayerFluids(FluidStack... fluids)  {
+        givePlayerFluids(MMUtils.mapToList(fluids, BigFluidStack::new));
+    }
 }

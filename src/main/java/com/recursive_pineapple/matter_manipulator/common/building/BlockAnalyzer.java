@@ -3,8 +3,8 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 import static gregtech.api.util.GTUtility.sendChatToPlayer;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -16,7 +16,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.fluids.FluidStack;
 
 import org.joml.Vector3i;
 
@@ -25,12 +24,14 @@ import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.DebugConfig;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.PendingBlock;
+import com.recursive_pineapple.matter_manipulator.common.utils.BigFluidStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.FluidId;
 import com.recursive_pineapple.matter_manipulator.common.utils.ItemId;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 
 import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 
 public class BlockAnalyzer {
 
@@ -200,12 +201,12 @@ public class BlockAnalyzer {
         }
 
         @Override
-        public void givePlayerItems(ItemStack... items) {
+        public void givePlayerItems(List<BigItemStack> items) {
             build.givePlayerItems(items);
         }
 
         @Override
-        public void givePlayerFluids(FluidStack... fluids) {
+        public void givePlayerFluids(List<BigFluidStack> fluids) {
             build.givePlayerFluids(fluids);
         }
 
@@ -230,10 +231,10 @@ public class BlockAnalyzer {
         public EntityPlayer player;
         public FakePlayer fakePlayer;
 
-        public HashMap<ItemId, Long> requiredItems = new HashMap<>();
+        public Object2LongOpenHashMap<ItemId> requiredItems = new Object2LongOpenHashMap<>();
 
-        public HashMap<ItemId, Long> storedItems = new HashMap<>();
-        public HashMap<FluidId, Long> storedFluids = new HashMap<>();
+        public Object2LongOpenHashMap<ItemId> storedItems = new Object2LongOpenHashMap<>();
+        public Object2LongOpenHashMap<FluidId> storedFluids = new Object2LongOpenHashMap<>();
 
         @Override
         public EntityPlayer getFakePlayer() {
@@ -272,9 +273,7 @@ public class BlockAnalyzer {
                 }
 
                 if (!fuzzy) {
-                    ItemId id = ItemId.create(req.getItemStack());
-
-                    long amtInPending = storedItems.getOrDefault(id, 0l);
+                    long amtInPending = storedItems.getLong(req.getId());
 
                     long toRemove = Math.min(amtInPending, req.getStackSize());
 
@@ -287,20 +286,20 @@ public class BlockAnalyzer {
 
                         if (!simulate) {
                             if (amtInPending == 0) {
-                                storedItems.remove(id);
+                                storedItems.removeLong(req.getId());
                             } else {
-                                storedItems.put(id, amtInPending);
+                                storedItems.put(req.getId(), amtInPending);
                             }
                         }
                     }
                 } else {
-                    var iter = storedItems.entrySet()
+                    var iter = storedItems.object2LongEntrySet()
                         .iterator();
 
                     while (iter.hasNext()) {
                         var e = iter.next();
 
-                        if (e.getValue() == null || e.getValue() == 0) {
+                        if (e.getLongValue() == 0) {
                             continue;
                         }
 
@@ -315,7 +314,7 @@ public class BlockAnalyzer {
                             continue;
                         }
 
-                        long amtInPending = e.getValue();
+                        long amtInPending = e.getLongValue();
                         long toRemove = Math.min(amtInPending, req.getStackSize());
 
                         if (toRemove > 0) {
@@ -345,23 +344,23 @@ public class BlockAnalyzer {
                     id = ItemId.create(req.getItemStack());
                 }
 
-                requiredItems.merge(id, req.getStackSize(), Long::sum);
+                requiredItems.addTo(id, req.getStackSize());
             }
 
             return Pair.of(true, items);
         }
 
         @Override
-        public void givePlayerItems(ItemStack... items) {
-            for (ItemStack item : items) {
-                storedItems.merge(ItemId.createWithStackSize(item), (long) -item.stackSize, Long::sum);
+        public void givePlayerItems(List<BigItemStack> items) {
+            for (BigItemStack item : items) {
+                storedItems.addTo(item.getId(), item.stackSize);
             }
         }
 
         @Override
-        public void givePlayerFluids(FluidStack... fluids) {
-            for (FluidStack fluid : fluids) {
-                storedFluids.merge(FluidId.createWithAmount(fluid), (long) -fluid.amount, Long::sum);
+        public void givePlayerFluids(List<BigFluidStack> fluids) {
+            for (BigFluidStack fluid : fluids) {
+                storedFluids.addTo(fluid.getId(), fluid.amount);
             }
         }
 
@@ -378,9 +377,9 @@ public class BlockAnalyzer {
 
     public static class RequiredItemAnalysis {
 
-        public HashMap<ItemId, Long> requiredItems;
-        public HashMap<ItemId, Long> storedItems;
-        public HashMap<FluidId, Long> storedFluids;
+        public Map<ItemId, Long> requiredItems;
+        public Map<ItemId, Long> storedItems;
+        public Map<FluidId, Long> storedFluids;
     }
 
     /**

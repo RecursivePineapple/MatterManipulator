@@ -1,10 +1,13 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
 
+import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.AppliedEnergistics2;
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.function.Function;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
@@ -32,6 +35,8 @@ import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMSta
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.PendingBlock;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
 import com.recursive_pineapple.matter_manipulator.common.networking.SoundResource;
+import com.recursive_pineapple.matter_manipulator.common.utils.BigFluidStack;
+import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
@@ -41,7 +46,9 @@ import appeng.api.implementations.tiles.ISegmentedInventory;
 import appeng.api.parts.IPart;
 import appeng.api.parts.IPartHost;
 import appeng.api.parts.PartItemStack;
+import appeng.api.storage.data.IAEFluidStack;
 import appeng.api.storage.data.IAEItemStack;
+import appeng.api.storage.data.IItemList;
 import appeng.helpers.ICustomNameObject;
 import appeng.parts.AEBasePart;
 import crazypants.enderio.conduit.IConduit;
@@ -50,6 +57,8 @@ import gregtech.api.interfaces.tileentity.ICoverable;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.interfaces.tileentity.IRedstoneEmitter;
 import gregtech.common.blocks.BlockOres;
+import gregtech.common.tileentities.machines.MTEHatchOutputBusME;
+import gregtech.common.tileentities.machines.MTEHatchOutputME;
 import gregtech.common.tileentities.storage.MTEDigitalChestBase;
 import it.unimi.dsi.fastutil.Pair;
 
@@ -127,6 +136,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         boolean eio = Mods.EnderIO.isModLoaded();
 
         if (ae && gt) emptySuperchest(te);
+        if (ae && gt) emptyMEOutput(te);
         emptyTileInventory(te);
         emptyTank(te);
         if (gt) removeCovers(te);
@@ -157,6 +167,44 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
                     ItemStack is = stack.getItemStack();
                     stack.decStackSize(is.stackSize);
                     givePlayerItems(is);
+                }
+            }
+        }
+    }
+
+    @Optional({ Names.GREG_TECH, Names.APPLIED_ENERGISTICS2 })
+    private static Function<MTEHatchOutputBusME, IItemList<IAEItemStack>> GET_ITEM_STACK_LIST;
+
+    @Optional({ Names.GREG_TECH, Names.APPLIED_ENERGISTICS2 })
+    private static Function<MTEHatchOutputME, IItemList<IAEFluidStack>> GET_FLUID_STACK_LIST;
+
+    static {
+        if (GregTech.isModLoaded() && AppliedEnergistics2.isModLoaded()) {
+            GET_ITEM_STACK_LIST = MMUtils.exposeFieldGetterLambda(MTEHatchOutputBusME.class, "itemCache");
+            GET_FLUID_STACK_LIST = MMUtils.exposeFieldGetterLambda(MTEHatchOutputME.class, "fluidCache");
+        }
+    }
+
+    @Optional({ Names.GREG_TECH, Names.APPLIED_ENERGISTICS2 })
+    protected void emptyMEOutput(TileEntity te) {
+        if (te instanceof IGregTechTileEntity igte) {
+            if (igte.getMetaTileEntity() instanceof MTEHatchOutputBusME bus) {
+                IItemList<IAEItemStack> items = GET_ITEM_STACK_LIST.apply(bus);
+
+                for (IAEItemStack item : items) {
+                    if (item.getStackSize() == 0) continue;
+
+                    givePlayerItems(Arrays.asList(BigItemStack.create(item)));
+                }
+            }
+
+            if (igte.getMetaTileEntity() instanceof MTEHatchOutputME hatch) {
+                IItemList<IAEFluidStack> fluids = GET_FLUID_STACK_LIST.apply(hatch);
+
+                for (IAEFluidStack fluid : fluids) {
+                    if (fluid.getStackSize() == 0) continue;
+
+                    givePlayerFluids(Arrays.asList(BigFluidStack.create(fluid)));
                 }
             }
         }

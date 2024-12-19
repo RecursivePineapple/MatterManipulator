@@ -21,6 +21,7 @@ import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Pendi
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.PlaceMode;
 import com.recursive_pineapple.matter_manipulator.common.networking.SoundResource;
+import com.recursive_pineapple.matter_manipulator.common.utils.BigFluidStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
@@ -38,7 +39,6 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.ForgeDirection;
-import net.minecraftforge.fluids.FluidStack;
 
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
@@ -474,12 +474,12 @@ public class PendingBuild extends AbstractBuildable {
         }
 
         @Override
-        public void givePlayerItems(ItemStack... items) {
+        public void givePlayerItems(List<BigItemStack> items) {
             PendingBuild.this.givePlayerItems(items);
         }
 
         @Override
-        public void givePlayerFluids(FluidStack... fluids) {
+        public void givePlayerFluids(List<BigFluidStack> fluids) {
             PendingBuild.this.givePlayerFluids(fluids);
         }
 
