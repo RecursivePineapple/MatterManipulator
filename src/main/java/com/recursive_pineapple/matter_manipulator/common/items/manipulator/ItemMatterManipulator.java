@@ -1,5 +1,8 @@
 package com.recursive_pineapple.matter_manipulator.common.items.manipulator;
 
+import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.BLUE;
+import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.GREEN;
+import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.RED;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.formatNumbers;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMValues.V;
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.AppliedEnergistics2;
@@ -85,6 +88,7 @@ import com.gtnewhorizons.modularui.api.drawable.shapes.Rectangle;
 import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.InteractionConfig;
 import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.RenderingConfig;
+import com.recursive_pineapple.matter_manipulator.client.gui.DirectionDrawable;
 import com.recursive_pineapple.matter_manipulator.client.gui.RadialMenuBuilder;
 import com.recursive_pineapple.matter_manipulator.client.rendering.BoxRenderer;
 import com.recursive_pineapple.matter_manipulator.common.building.IBuildable;
@@ -1559,8 +1563,17 @@ public class ItemMatterManipulator extends Item
                                 .setDefaultColor(Color.WHITE.dark(1))
                                 .setSize(80, 36)
                                 .setPos(3, 0))
+                        .addChild(
+                            new DirectionDrawable()
+                                .asWidget()
+                                .setSize(30, 30)
+                                .setPos(3, 36))
+                        .addChild(
+                            new TextWidget(RED + "X+ " + GREEN + "Y+ " + BLUE + "Z+")
+                                .setSize(50, 20)
+                                .setPos(34, 39))
                         .setBackground(background)
-                        .setSize(88, 36),
+                        .setSize(88, 36 + 30),
                     padding(2, 2),
                     new Column()
                         .setAlignment(MainAxisAlignment.CENTER, CrossAxisAlignment.END)
@@ -1568,7 +1581,7 @@ public class ItemMatterManipulator extends Item
                             .setOnClick((t, u) -> { Messages.ResetTransform.sendToServer(); })
                             .setSynced(false, false)
                             .setSize(40, 18))
-                        .setSize(40, 36))
+                        .setSize(40, 36 + 30))
             };
 
             Widget[] right = {

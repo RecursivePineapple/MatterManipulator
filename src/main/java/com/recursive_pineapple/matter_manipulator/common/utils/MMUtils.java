@@ -64,7 +64,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.gtnewhorizon.gtnhlib.util.map.ItemStackMap;
-import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.RequiredItemAnalysis;
 import com.recursive_pineapple.matter_manipulator.common.building.IPseudoInventory;
@@ -107,6 +106,29 @@ public class MMUtils {
      * Formats a number with group separator and at most 2 fraction digits.
      */
     private static final Map<Locale, DecimalFormat> decimalFormatters = new HashMap<>();
+
+    public static final String BLACK = EnumChatFormatting.BLACK.toString();
+    public static final String DARK_BLUE = EnumChatFormatting.DARK_BLUE.toString();
+    public static final String DARK_GREEN = EnumChatFormatting.DARK_GREEN.toString();
+    public static final String DARK_AQUA = EnumChatFormatting.DARK_AQUA.toString();
+    public static final String DARK_RED = EnumChatFormatting.DARK_RED.toString();
+    public static final String DARK_PURPLE = EnumChatFormatting.DARK_PURPLE.toString();
+    public static final String GOLD = EnumChatFormatting.GOLD.toString();
+    public static final String GRAY = EnumChatFormatting.GRAY.toString();
+    public static final String DARK_GRAY = EnumChatFormatting.DARK_GRAY.toString();
+    public static final String BLUE = EnumChatFormatting.BLUE.toString();
+    public static final String GREEN = EnumChatFormatting.GREEN.toString();
+    public static final String AQUA = EnumChatFormatting.AQUA.toString();
+    public static final String RED = EnumChatFormatting.RED.toString();
+    public static final String LIGHT_PURPLE = EnumChatFormatting.LIGHT_PURPLE.toString();
+    public static final String YELLOW = EnumChatFormatting.YELLOW.toString();
+    public static final String WHITE = EnumChatFormatting.WHITE.toString();
+    public static final String OBFUSCATED = EnumChatFormatting.OBFUSCATED.toString();
+    public static final String BOLD = EnumChatFormatting.BOLD.toString();
+    public static final String STRIKETHROUGH = EnumChatFormatting.STRIKETHROUGH.toString();
+    public static final String UNDERLINE = EnumChatFormatting.UNDERLINE.toString();
+    public static final String ITALIC = EnumChatFormatting.ITALIC.toString();
+    public static final String RESET = EnumChatFormatting.RESET.toString();
 
     private MMUtils() {}
 
