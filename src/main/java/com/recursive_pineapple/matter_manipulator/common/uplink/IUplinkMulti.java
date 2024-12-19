@@ -20,13 +20,6 @@ public interface IUplinkMulti {
     
     public boolean isActive();
 
-    public Location getLocation();
-
-    public UplinkState getState();
-    
-    @SideOnly(Side.CLIENT)
-    public void setState(UplinkState state);
-
     /**
      * See {@link IPseudoInventory#tryConsumeItems(List, int)}
      */

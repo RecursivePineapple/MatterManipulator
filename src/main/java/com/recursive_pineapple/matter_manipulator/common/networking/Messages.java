@@ -217,44 +217,6 @@ public enum Messages {
         }
     }))),
     ClearWhitelist(server(simple((player, stack, manipulator, state) -> { state.config.replaceWhitelist = null; }))),
-    UpdateUplinkState(client(new ISimplePacketHandler<UplinkPacket>() {
-
-        @Override
-        @SideOnly(Side.CLIENT)
-        public void handle(EntityPlayer player, UplinkPacket packet) {
-            World theWorld = Minecraft.getMinecraft().theWorld;
-
-            if (theWorld.provider.dimensionId == packet.worldId) {
-                if (Mods.GregTech.isModLoaded() && Mods.AppliedEnergistics2.isModLoaded()) {
-                    Location l = packet.getLocation();
-    
-                    setState(l.getWorld(), l.x, l.y, l.z, packet.getState());
-                }
-            }
-        }
-
-        @Optional({ Names.GREG_TECH, Names.APPLIED_ENERGISTICS2 })
-        private void setState(World world, int x, int y, int z, UplinkState state) {
-            if (world.getTileEntity(x, y, z) instanceof IGregTechTileEntity igte) {
-                if (igte.getMetaTileEntity() instanceof MTEMMUplink uplink) {
-                    uplink.setState(state);
-                }
-            }
-        }
-
-        @Override
-        public UplinkPacket getNewPacket(Messages message, @Nullable Object value) {
-            UplinkPacket packet = new UplinkPacket(message);
-
-            if (value != null) {
-                IUplinkMulti uplink = (IUplinkMulti) value;
-
-                packet.setState(uplink.getLocation(), uplink.getState());
-            }
-
-            return packet;
-        }
-    })),
     TooltipResponse(client(new ISimplePacketHandler<Messages.IntPacket>() {
 
         @Override

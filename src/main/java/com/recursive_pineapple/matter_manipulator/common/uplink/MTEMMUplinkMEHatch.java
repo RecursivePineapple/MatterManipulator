@@ -513,7 +513,7 @@ public class MTEMMUplinkMEHatch extends MTEHatch
 
         onRequestsChanged();
 
-        MMUtils.sendInfoToPlayer(aPlayer, "Cleared all requests and cancelled pending craft jobs.");
+        MMUtils.sendInfoToPlayer(aPlayer, "Cleared all plans and cancelled pending craft jobs.");
     }
 
     public void clearManualPlans(EntityPlayer player) {
@@ -524,7 +524,7 @@ public class MTEMMUplinkMEHatch extends MTEHatch
 
         onRequestsChanged();
 
-        MMUtils.sendInfoToPlayer(player, "Cleared your manual requests.");
+        MMUtils.sendInfoToPlayer(player, "Cleared your manual plans.");
     }
 
     public void cancelAutoPlans(EntityPlayer player) {
@@ -552,7 +552,7 @@ public class MTEMMUplinkMEHatch extends MTEHatch
 
         onRequestsChanged();
 
-        MMUtils.sendInfoToPlayer(player, "Cleared your auto requests and cancelled their crafting jobs.");
+        MMUtils.sendInfoToPlayer(player, "Cleared your auto plans and cancelled their crafting jobs.");
     }
 
     private void onRequestsChanged() {
