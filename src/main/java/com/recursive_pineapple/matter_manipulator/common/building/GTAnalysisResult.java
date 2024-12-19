@@ -521,6 +521,16 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
 
             mCovers = coversOut;
         }
+
+        byte transformedConns = 0;
+
+        for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
+            if ((mConnections & dir.flag) != 0) {
+                transformedConns |= transform.apply(dir).flag;
+            }
+        }
+
+        mConnections = transformedConns;
     }
 
     @Override
