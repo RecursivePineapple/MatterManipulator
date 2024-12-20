@@ -1,5 +1,6 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
+import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendWarningToPlayer;
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.AppliedEnergistics2;
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
 
@@ -162,29 +163,26 @@ public class MMInventory implements IPseudoInventory {
             return;
         }
         
-        boolean hasME;
+        boolean hasME = false;
 
         if (tier.hasCap(ItemMatterManipulator.CONNECTS_TO_AE) && AppliedEnergistics2.isModLoaded()) {
             if (state.encKey != null && !state.hasMEConnection()) {
                 state.connectToMESystem();
             }
             hasME = state.hasMEConnection() && state.canInteractWithAE(player);
-        } else {
-            hasME = false;
         }
+
+        boolean hasUplink = false;
 
         if (tier.hasCap(ItemMatterManipulator.CONNECTS_TO_UPLINK) && GregTech.isModLoaded()) {
             if (state.uplinkAddress != null && !state.hasUplinkConnection()) {
                 state.connectToUplink();
             }
+            hasUplink = state.hasUplinkConnection();
         }
 
-        IUplinkMulti uplink = state.uplink;
-
-        outer: for (var entry : pendingItems.object2LongEntrySet()) {
-            ItemId item = entry.getKey();
-
-            BigItemStack stack = new BigItemStack(item.getItemStack()).setStackSize(entry.getLongValue());
+        for (var entry : pendingItems.object2LongEntrySet()) {
+            BigItemStack stack = new BigItemStack(entry.getKey(), entry.getLongValue());
 
             if (hasME) {
                 injectItemsIntoAE(stack);
@@ -192,143 +190,60 @@ public class MMInventory implements IPseudoInventory {
                 if (stack.getStackSize() == 0) continue;
             }
 
-            if (uplink != null) {
-                UplinkStatus status = uplink.tryGivePlayerItems(Arrays.asList(stack));
-
-                if (status != UplinkStatus.OK && !printedUplinkWarning) {
-                    printedUplinkWarning = true;
-                    MMUtils.sendErrorToPlayer(player, "Could not push items to uplink: " + status.toString());
-                }
+            if (hasUplink) {
+                injectItemsIntoUplink(stack);
 
                 if (stack.getStackSize() == 0) continue;
             }
 
-            while (stack.stackSize > 0) {
-                ItemStack smallStack = stack.remove(item.getItemStack().getMaxStackSize());
+            injectItemsIntoInventory(stack);
 
-                int toInsert = smallStack.stackSize;
+            if (stack.getStackSize() == 0) continue;
 
-                player.inventory.addItemStackToInventory(smallStack);
-
-                stack.stackSize += smallStack.stackSize;
-
-                if (smallStack.stackSize == toInsert) continue outer;
-            }
-
-            AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(player.posX - 2.5d, player.posY - 1d, player.posX - 2.5d, player.posY + 2.5d, player.getEyeHeight() + 1d, player.posZ + 2.5d);
-
-            for(ItemStack smallStack : stack.toStacks()) {
-                var onGround = player.worldObj.getEntitiesWithinAABB(EntityItemLarge.class, aabb);
-
-                for (EntityItemLarge e : onGround) {
-                    if (smallStack.stackSize <= 0) break;
-
-                    ItemStack droppedStack = e.getEntityItem();
-                    if (MMUtils.areStacksBasicallyEqual(droppedStack, smallStack)) {
-                        int toAdd = (int) (Math.min((long) Integer.MAX_VALUE, (long) droppedStack.stackSize + (long) smallStack.stackSize) - droppedStack.stackSize);
-
-                        droppedStack = droppedStack.copy();
-
-                        droppedStack.stackSize += toAdd;
-                        smallStack.stackSize -= toAdd;
-
-                        e.setEntityItemStack(droppedStack);
-                    }
-                }
-
-                if (smallStack.stackSize > 0) {
-                    player.worldObj.spawnEntityInWorld(
-                        new EntityItemLarge(
-                            player.worldObj,
-                            player.posX,
-                            player.posY,
-                            player.posZ,
-                            smallStack));
-                }
-            }
+            injectItemsIntoWorld(stack);
         }
 
         pendingItems.clear();
 
-        outer: for (var entry : pendingFluids.object2LongEntrySet()) {
-            FluidId id = entry.getKey();
-            long amount = entry.getLongValue();
-
-            BigFluidStack stack = new BigFluidStack(id.getFluidStack()).setStackSize(amount);
+        for (var entry : pendingFluids.object2LongEntrySet()) {
+            BigFluidStack stack = new BigFluidStack(entry.getKey(), entry.getLongValue());
 
             if (hasME) {
                 injectFluidsIntoAE(stack);
 
-                if (stack.getStackSize() == 0) continue outer;
+                if (stack.getStackSize() == 0) continue;
             }
 
-            if (uplink != null) {
-                UplinkStatus status = uplink.tryGivePlayerFluids(Arrays.asList(stack));
+            if (hasUplink) {
+                injectFluidsIntoUplink(stack);
 
-                if (status != UplinkStatus.OK && !printedUplinkWarning) {
-                    printedUplinkWarning = true;
-                    MMUtils.sendErrorToPlayer(player, "Could not push fluids to uplink: " + status.toString());
-                }
-
-                if (stack.getStackSize() == 0) continue outer;
+                if (stack.getStackSize() == 0) continue;
             }
 
-            // this is final because of the lambdas, but its amount field is updated several times
-            final FluidStack fluid = id
-                .getFluidStack(amount > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) amount);
+            injectFluidsIntoIdealCell(stack);
 
-            // spotless:off
-            ItemStack idealCell = MMUtils.streamInventory(player.inventory)
-                .sorted(Comparator.comparingInt((ItemStack x) -> (
-                    x != null && x.getItem() instanceof IFluidContainerItem container ? container.getCapacity(x) : 0
-                )))
-                .filter(x -> (
-                    x != null &&
-                    x.getItem() instanceof IFluidContainerItem container &&
-                    container.fill(x, fluid, false) == fluid.amount
-                ))
-                .findFirst()
-                .orElse(null);
-            // spotless:on
+            if (stack.getStackSize() == 0) continue;
 
-            if (idealCell != null) {
-                amount -= ((IFluidContainerItem) idealCell.getItem()).fill(idealCell, fluid.copy(), true);
-            }
+            injectFluidsIntoCells(stack);
 
-            if (amount <= 0) {
-                continue outer;
-            }
+            if (stack.getStackSize() == 0) continue;
 
-            fluid.amount = amount > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) amount;
-
-            // spotless:off
-            List<ItemStack> validCells = MMUtils.streamInventory(player.inventory)
-                .filter(x -> (
-                    x != null &&
-                    x.getItem() instanceof IFluidContainerItem container &&
-                    container.fill(x, fluid, false) > 0
-                ))
-                .collect(Collectors.toList());
-            // spotless:on
-
-            for (ItemStack cell : validCells) {
-                fluid.amount = amount > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) amount;
-                amount -= ((IFluidContainerItem) cell.getItem()).fill(idealCell, fluid.copy(), true);
-
-                if (amount <= 0) {
-                    continue outer;
-                }
-            }
-
-            if (amount > 0 && !player.capabilities.isCreativeMode) {
-                MMUtils.sendWarningToPlayer(player, "Could not find a container for fluid (it was voided): "
-                            + amount
-                            + "L of "
-                            + fluid.getLocalizedName());
+            if (stack.amount > 0 && !player.capabilities.isCreativeMode) {
+                sendWarningToPlayer(player, "Could not find a container for fluid (it was voided): ");
+                sendWarningToPlayer(player, String.format("  %sL of %s", MMUtils.formatNumbers(stack.amount), stack.getFluidStack().getLocalizedName()));
             }
         }
 
         pendingFluids.clear();
+    }
+
+    private void injectItemsIntoUplink(BigItemStack stack) {
+        UplinkStatus status = state.uplink.tryGivePlayerItems(Arrays.asList(stack));
+
+        if (status != UplinkStatus.OK && !printedUplinkWarning) {
+            printedUplinkWarning = true;
+            MMUtils.sendErrorToPlayer(player, "Could not push items to uplink: " + status.toString());
+        }
     }
 
     @Optional(Names.APPLIED_ENERGISTICS2)
@@ -339,12 +254,112 @@ public class MMInventory implements IPseudoInventory {
         stack.setStackSize(result != null ? result.getStackSize() : 0);
     }
 
+    private void injectItemsIntoInventory(BigItemStack stack) {
+        while (stack.stackSize > 0) {
+            ItemStack smallStack = stack.remove(stack.getItemStack().getMaxStackSize());
+
+            int toInsert = smallStack.stackSize;
+
+            player.inventory.addItemStackToInventory(smallStack);
+
+            stack.stackSize += smallStack.stackSize;
+
+            if (smallStack.stackSize == toInsert) break;
+        }
+    }
+
+    private void injectItemsIntoWorld(BigItemStack stack) {
+        AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(player.posX - 2.5d, player.posY - 1d, player.posX - 2.5d, player.posY + 2.5d, player.getEyeHeight() + 1d, player.posZ + 2.5d);
+
+        for(ItemStack smallStack : stack.toStacks()) {
+            var onGround = player.worldObj.getEntitiesWithinAABB(EntityItemLarge.class, aabb);
+
+            for (EntityItemLarge e : onGround) {
+                if (smallStack.stackSize <= 0) break;
+
+                ItemStack droppedStack = e.getEntityItem();
+                if (MMUtils.areStacksBasicallyEqual(droppedStack, smallStack)) {
+                    int toAdd = (int) (Math.min((long) Integer.MAX_VALUE, (long) droppedStack.stackSize + (long) smallStack.stackSize) - droppedStack.stackSize);
+
+                    droppedStack = droppedStack.copy();
+
+                    droppedStack.stackSize += toAdd;
+                    smallStack.stackSize -= toAdd;
+
+                    e.setEntityItemStack(droppedStack);
+                }
+            }
+
+            if (smallStack.stackSize > 0) {
+                player.worldObj.spawnEntityInWorld(
+                    new EntityItemLarge(
+                        player.worldObj,
+                        player.posX,
+                        player.posY,
+                        player.posZ,
+                        smallStack));
+            }
+        }
+    }
+
     @Optional(Names.APPLIED_ENERGISTICS2)
     private void injectFluidsIntoAE(BigFluidStack stack) {
         IAEFluidStack result = state.storageGrid.getFluidInventory()
             .injectItems(stack.getAEFluidStack(), Actionable.MODULATE, new PlayerSource(player, state.securityTerminal));
 
         stack.setStackSize(result != null ? result.getStackSize() : 0);
+    }
+
+    private void injectFluidsIntoUplink(BigFluidStack stack) {
+        UplinkStatus status = state.uplink.tryGivePlayerFluids(Arrays.asList(stack));
+
+        if (status != UplinkStatus.OK && !printedUplinkWarning) {
+            printedUplinkWarning = true;
+            MMUtils.sendErrorToPlayer(player, "Could not push fluids to uplink: " + status.toString());
+        }
+    }
+
+    private void injectFluidsIntoIdealCell(BigFluidStack stack) {
+        final FluidStack fluid = stack.getFluidStack();
+
+        // spotless:off
+        ItemStack idealCell = MMUtils.streamInventory(player.inventory)
+            .sorted(Comparator.comparingInt((ItemStack x) -> (
+                x != null && x.getItem() instanceof IFluidContainerItem container ? container.getCapacity(x) : 0
+            )))
+            .filter(x -> (
+                x != null &&
+                x.getItem() instanceof IFluidContainerItem container &&
+                container.fill(x, fluid, false) == fluid.amount
+            ))
+            .findFirst()
+            .orElse(null);
+        // spotless:on
+
+        if (idealCell != null) {
+            stack.amount -= ((IFluidContainerItem) idealCell.getItem()).fill(idealCell, fluid, true);
+        }
+    }
+
+    private void injectFluidsIntoCells(BigFluidStack stack) {
+        final FluidStack fluid = stack.getFluidStack();
+
+        // spotless:off
+        List<ItemStack> validCells = MMUtils.streamInventory(player.inventory)
+            .filter(x -> (
+                x != null &&
+                x.getItem() instanceof IFluidContainerItem container &&
+                container.fill(x, fluid, false) > 0
+            ))
+            .collect(Collectors.toList());
+        // spotless:on
+
+        for (ItemStack cell : validCells) {
+            FluidStack fluid2 = stack.getFluidStack();
+            stack.amount -= ((IFluidContainerItem) cell.getItem()).fill(cell, fluid2, true);
+
+            if (stack.amount <= 0) return;
+        }
     }
 
     private void consumeItemsFromPending(List<BigItemStack> requestedItems, List<BigItemStack> extractedItems,

@@ -16,14 +16,11 @@ You can find the releases [here](https://github.com/RecursivePineapple/MatterMan
 
 See [here](https://github.com/users/RecursivePineapple/projects/1/views/1) for more information on what's being worked on. I'll use this github project to track what I need to work on and their priorities.
 
-## Required Dependencies
+## Required Dependencies (for non-GTNH modpacks)
 
 - StructureLib
 - ModularUI 1
 - GTNHLib
-- Postea (temporary, needed for migrating items from GT5u)
-
-All of these come with GTNH, so you don't need to install anything else if you're using it in the modpack.
 
 ## Behaviour Overview
 
