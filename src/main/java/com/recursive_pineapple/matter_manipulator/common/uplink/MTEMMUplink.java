@@ -37,6 +37,8 @@ import com.gtnewhorizons.modularui.common.widget.TextWidget;
 import com.recursive_pineapple.matter_manipulator.common.building.IPseudoInventory;
 import com.recursive_pineapple.matter_manipulator.common.items.MMItemList;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
+import com.recursive_pineapple.matter_manipulator.common.networking.Messages;
 import com.recursive_pineapple.matter_manipulator.common.structure.CasingGTFrames;
 import com.recursive_pineapple.matter_manipulator.common.structure.IStructureProvider;
 import com.recursive_pineapple.matter_manipulator.common.structure.MultiblockTooltipBuilder2;
@@ -62,7 +64,6 @@ import gregtech.api.interfaces.IHatchElement;
 import gregtech.api.interfaces.ITexture;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
-import gregtech.api.metatileentity.GregTechTileClientEvents;
 import gregtech.api.metatileentity.implementations.MTEEnhancedMultiBlockBase;
 import gregtech.api.metatileentity.implementations.MTEHatchInput;
 import gregtech.api.recipe.RecipeMaps;
@@ -319,6 +320,29 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
         }
     }
 
+    @Override
+    @SideOnly(Side.CLIENT)
+    public void setState(UplinkState state) {
+        this.state = state;
+        getBaseMetaTileEntity().issueTextureUpdate();
+    }
+
+    @Override
+    public Location getLocation() {
+        IGregTechTileEntity igte = getBaseMetaTileEntity();
+
+        if (igte != null) {
+            return new Location(
+                igte.getWorld(),
+                igte.getXCoord(),
+                igte.getYCoord(),
+                igte.getZCoord());
+        } else {
+            return null;
+        }
+    }
+
+    @Override
     public boolean isActive() {
         return getBaseMetaTileEntity() != null && getBaseMetaTileEntity().isActive();
     }
@@ -676,43 +700,33 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
     private int stateCounter = 0;
 
     @Override
+    public void onPostTick(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
+        super.onPostTick(aBaseMetaTileEntity, aTick);
+
+        if (aBaseMetaTileEntity.isServerSide() && aTick % 5 == 0) {
+            UplinkState state = getState();
+
+            stateCounter++;
+
+            // if the state has changed or 10 seconds have passed, send an update to all nearby clients
+            if (state != lastState || stateCounter > 10) {
+                lastState = state;
+                stateCounter = 0;
+                sendUplinkStateUpdate();
+            }
+        }
+    }
+
+    @Override
     @Nonnull
     public CheckRecipeResult checkProcessing() {
-        if (!getBaseMetaTileEntity().isActive()) {
-            UPLINKS.put(address, this);
-        }
-
         mMaxProgresstime = 20;
         mEUt = (int) -TierEU.RECIPE_ZPM;
         mEfficiency = 10_000;
 
-        UplinkState state = getState();
-
-        stateCounter++;
-
-        // if the state has changed or 10 seconds have passed, send an update to all nearby clients
-        if (state != lastState || stateCounter > 30) {
-            lastState = state;
-            stateCounter = 0;
-            getBaseMetaTileEntity().sendBlockEvent(GregTechTileClientEvents.CHANGE_CUSTOM_DATA, (byte) state.ordinal());
-        }
+        UPLINKS.put(address, this);
 
         return CheckRecipeResultRegistry.SUCCESSFUL;
-    }
-
-    @Override
-    public void receiveClientEvent(byte aEventID, byte aValue) {
-        super.receiveClientEvent(aEventID, aValue);
-
-        if (aEventID == GregTechTileClientEvents.CHANGE_CUSTOM_DATA) {
-            setState(MMUtils.getIndexSafe(UplinkState.values(), aValue));
-        }
-    }
-
-    @SideOnly(Side.CLIENT)
-    public void setState(UplinkState state) {
-        this.state = state;
-        getBaseMetaTileEntity().issueTextureUpdate();
     }
 
     @Override
@@ -720,7 +734,7 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
         super.stopMachine(reason);
 
         UPLINKS.remove(address);
-        getBaseMetaTileEntity().sendBlockEvent(GregTechTileClientEvents.CHANGE_CUSTOM_DATA, (byte) getState().ordinal());
+        sendUplinkStateUpdate();
     }
 
     @Override
@@ -728,5 +742,19 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
         super.onBlockDestroyed();
 
         UPLINKS.remove(address);
+    }
+
+    private void sendUplinkStateUpdate() {
+        IGregTechTileEntity igte = getBaseMetaTileEntity();
+
+        if (igte != null) {
+            Location l = new Location(
+                igte.getWorld(),
+                igte.getXCoord(),
+                igte.getYCoord(),
+                igte.getZCoord());
+    
+            Messages.UpdateUplinkState.sendToPlayersAround(l, this);
+        }
     }
 }
