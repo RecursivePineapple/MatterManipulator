@@ -25,7 +25,6 @@ public enum InteropConstants {
     @Optional(Names.GREG_TECH)
     private static boolean shouldBeSkippedGT(Block block, int meta) {
         if (block == GregTechAPI.sDroneRender) return true;
-        if (block == GregTechAPI.sLaserRender) return true;
         if (block == GregTechAPI.sWormholeRender) return true;
         if (block == GregTechAPI.sBlackholeRender) return true;
         if (block == TTCasingsContainer.eyeOfHarmonyRenderBlock) return true;
