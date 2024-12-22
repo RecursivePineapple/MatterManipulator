@@ -427,15 +427,24 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
         }
     }
 
-    private void installCover(IBlockApplyContext context, IGregTechTileEntity gte, ForgeDirection side,
-        CoverData cover) {
-        if (gte.canPlaceCoverItemAtSide(side, cover.getCover()) && context.tryConsumeItems(cover.getCover())) {
-            gte.setCoverIdAndDataAtSide(
-                side,
-                cover.getCoverID(),
-                cover.getCoverBehaviour()
-                    .allowsCopyPasteTool() ? cover.getCoverData() : null);
+    private void installCover(IBlockApplyContext context, IGregTechTileEntity gte, ForgeDirection side, CoverData cover) {
+        ItemStack stack = cover.getCover();
+
+        if (!gte.canPlaceCoverItemAtSide(side, stack)) {
+            context.error("was not allowed to put cover on " + side.name().toLowerCase() + "side: " + stack.getDisplayName());
+            return;
         }
+
+        if (!context.tryConsumeItems(stack)) {
+            context.error("could not find cover: " + stack.getDisplayName());
+            return;
+        }
+
+        gte.setCoverIdAndDataAtSide(
+            side,
+            cover.getCoverID(),
+            cover.getCoverBehaviour()
+                .allowsCopyPasteTool() ? cover.getCoverData() : null);
     }
 
     private void updateCover(IBlockApplyContext context, IGregTechTileEntity gte, ForgeDirection side,
