@@ -2224,78 +2224,80 @@ public class ItemMatterManipulator extends Item
 
             BoxRenderer.INSTANCE.start(event.partialTicks);
 
-            if (isSourceAValid && isSourceBValid) {
-                Objects.requireNonNull(sourceA);
-                Objects.requireNonNull(sourceB);
-
-                copyDeltas = new VoxelAABB(sourceA.toVec(), sourceB.toVec());
-
-                BoxRenderer.INSTANCE
-                    .drawAround(copyDeltas.toBoundingBox(), new Vector3f(0.15f, 0.6f, 0.75f));
-            }
-
-            VoxelAABB pasteDeltas = null;
-
-            if (isPasteValid) {
-                Objects.requireNonNull(paste);
-
-                pasteDeltas = state.config.getPasteVisualDeltas(player.worldObj, true);
-
-                if (pasteDeltas == null) {
-                    pasteDeltas = new VoxelAABB(paste.toVec(), paste.toVec());
-                }
-
-                BoxRenderer.INSTANCE.drawAround(pasteDeltas.toBoundingBox(), new Vector3f(0.75f, 0.5f, 0.15f));
-
-                Location playerLocation = new Location(
-                    player.getEntityWorld(),
-                    MathHelper.floor_double(player.posX),
-                    MathHelper.floor_double(player.posY),
-                    MathHelper.floor_double(player.posZ));
-
-                boolean needsAnalysis = (System.currentTimeMillis() - lastAnalysisMS) >= ANALYSIS_INTERVAL_MS
-                    || !Objects.equals(lastAnalyzedConfig, state.config);
-
-                boolean needsHintDraw = needsAnalysis || !Objects.equals(lastPlayerPosition, playerLocation);
-
-                if (needsAnalysis) {
-                    lastAnalysisMS = System.currentTimeMillis();
-                    lastAnalyzedConfig = state.config;
-                    analysisCache = state.getPendingBlocks(tier, player.getEntityWorld());
-                }
-
-                if (needsHintDraw) {
-                    lastPlayerPosition = playerLocation;
-                    lastDrawer = ItemMatterManipulator.this;
-                    drawHints(event, state, player, playerLocation);
-                }
-            }
-
-            if (pasteDeltas != null) {
-                String array = "";
-        
-                if (state.config.arraySpan != null) {
-                    array = String.format(
-                        " stX=%d stY=%d stZ=%d",
-                        state.config.arraySpan.x,
-                        state.config.arraySpan.y,
-                        state.config.arraySpan.z);
+            try {
+                if (isSourceAValid && isSourceBValid) {
+                    Objects.requireNonNull(sourceA);
+                    Objects.requireNonNull(sourceB);
+    
+                    copyDeltas = new VoxelAABB(sourceA.toVec(), sourceB.toVec());
+    
+                    BoxRenderer.INSTANCE
+                        .drawAround(copyDeltas.toBoundingBox(), new Vector3f(0.15f, 0.6f, 0.75f));
                 }
     
-                AboveHotbarHUD.renderTextAboveHotbar(
-                    pasteDeltas.describe() + array,
-                    (int) (ANALYSIS_INTERVAL_MS * 20 / 1000),
-                    false,
-                    false);
-            } else if (copyDeltas != null) {
-                AboveHotbarHUD.renderTextAboveHotbar(
-                    copyDeltas.describe(),
-                    (int) (ANALYSIS_INTERVAL_MS * 20 / 1000),
-                    false,
-                    false);
+                VoxelAABB pasteDeltas = null;
+    
+                if (isPasteValid) {
+                    Objects.requireNonNull(paste);
+    
+                    pasteDeltas = state.config.getPasteVisualDeltas(player.worldObj, true);
+    
+                    if (pasteDeltas == null) {
+                        pasteDeltas = new VoxelAABB(paste.toVec(), paste.toVec());
+                    }
+    
+                    BoxRenderer.INSTANCE.drawAround(pasteDeltas.toBoundingBox(), new Vector3f(0.75f, 0.5f, 0.15f));
+    
+                    Location playerLocation = new Location(
+                        player.getEntityWorld(),
+                        MathHelper.floor_double(player.posX),
+                        MathHelper.floor_double(player.posY),
+                        MathHelper.floor_double(player.posZ));
+    
+                    boolean needsAnalysis = (System.currentTimeMillis() - lastAnalysisMS) >= ANALYSIS_INTERVAL_MS
+                        || !Objects.equals(lastAnalyzedConfig, state.config);
+    
+                    boolean needsHintDraw = needsAnalysis || !Objects.equals(lastPlayerPosition, playerLocation);
+    
+                    if (needsAnalysis) {
+                        lastAnalysisMS = System.currentTimeMillis();
+                        lastAnalyzedConfig = state.config;
+                        analysisCache = state.getPendingBlocks(tier, player.getEntityWorld());
+                    }
+    
+                    if (needsHintDraw) {
+                        lastPlayerPosition = playerLocation;
+                        lastDrawer = ItemMatterManipulator.this;
+                        drawHints(event, state, player, playerLocation);
+                    }
+                }
+    
+                if (pasteDeltas != null) {
+                    String array = "";
+            
+                    if (state.config.arraySpan != null) {
+                        array = String.format(
+                            " stX=%d stY=%d stZ=%d",
+                            state.config.arraySpan.x,
+                            state.config.arraySpan.y,
+                            state.config.arraySpan.z);
+                    }
+        
+                    AboveHotbarHUD.renderTextAboveHotbar(
+                        pasteDeltas.describe() + array,
+                        (int) (ANALYSIS_INTERVAL_MS * 20 / 1000),
+                        false,
+                        false);
+                } else if (copyDeltas != null) {
+                    AboveHotbarHUD.renderTextAboveHotbar(
+                        copyDeltas.describe(),
+                        (int) (ANALYSIS_INTERVAL_MS * 20 / 1000),
+                        false,
+                        false);
+                }
+            } finally {
+                BoxRenderer.INSTANCE.finish();
             }
-
-            BoxRenderer.INSTANCE.finish();
         }
 
         private void drawHints(RenderWorldLastEvent event, MMState state, EntityPlayer player,
@@ -2384,26 +2386,32 @@ public class ItemMatterManipulator extends Item
 
             Tessellator tessellator = Tessellator.instance;
 
-            tessellator.startDrawing(GL11.GL_LINES);
-
-            for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
-                Vector3d delta = getVecForDir(dir);
-
-                if (fromSurface) {
-                    tessellator.addVertex(delta.x * 0.5, delta.y * 0.5, delta.z * 0.5);
-                } else {
-                    tessellator.addVertex(0, 0, 0);
+            try {
+                tessellator.startDrawing(GL11.GL_LINES);
+    
+                for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
+                    Vector3d delta = getVecForDir(dir);
+    
+                    if (fromSurface) {
+                        tessellator.addVertex(delta.x * 0.5, delta.y * 0.5, delta.z * 0.5);
+                    } else {
+                        tessellator.addVertex(0, 0, 0);
+                    }
+                    tessellator.addVertex(delta.x * RULER_LENGTH, delta.y * RULER_LENGTH, delta.z * RULER_LENGTH);
                 }
-                tessellator.addVertex(delta.x * RULER_LENGTH, delta.y * RULER_LENGTH, delta.z * RULER_LENGTH);
+            } finally {
+                try {
+                    tessellator.draw();
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                }
+    
+                GL11.glPopMatrix();
+    
+                GL11.glDepthMask(true);
+                GL11.glEnable(GL11.GL_TEXTURE_2D);
+                GL11.glDisable(GL11.GL_BLEND);
             }
-
-            tessellator.draw();
-
-            GL11.glPopMatrix();
-
-            GL11.glDepthMask(true);
-            GL11.glEnable(GL11.GL_TEXTURE_2D);
-            GL11.glDisable(GL11.GL_BLEND);
         }
     }
 
