@@ -319,11 +319,12 @@ public enum Messages {
         state.config.transform = new Transform();
     }))),
     ToggleTransformFlip(server(intPacket((player, stack, manipulator, state, value) -> {
-        if (state.config.transform == null) state.config.transform = new Transform();
+        Transform transform = state.config.transform;
+        if (transform == null) state.config.transform  = (transform = new Transform());
 
-        if ((value & Transform.FLIP_X) != 0) state.config.transform.flipX ^= true;
-        if ((value & Transform.FLIP_Y) != 0) state.config.transform.flipY ^= true;
-        if ((value & Transform.FLIP_Z) != 0) state.config.transform.flipZ ^= true;
+        if ((value & Transform.FLIP_X) != 0) transform.flipX ^= true;
+        if ((value & Transform.FLIP_Y) != 0) transform.flipY ^= true;
+        if ((value & Transform.FLIP_Z) != 0) transform.flipZ ^= true;
     }))),
     RotateTransform(server(intPacket((player, stack, manipulator, state, value) -> {
         if (state.config.transform == null) state.config.transform = new Transform();
@@ -334,7 +335,10 @@ public enum Messages {
 
         int amount = ((value >> 8) & 0xFF) != 0 ? 1 : -1;
 
-        state.config.transform.rotate(ForgeDirection.VALID_DIRECTIONS[dir], amount);
+        Transform transform = state.config.transform;
+        if (transform == null) state.config.transform  = (transform = new Transform());
+
+        transform.rotate(ForgeDirection.VALID_DIRECTIONS[dir], amount);
     }))),
     PlaySound(client(new ISimplePacketHandler<Messages.SoundPacket>() {
 

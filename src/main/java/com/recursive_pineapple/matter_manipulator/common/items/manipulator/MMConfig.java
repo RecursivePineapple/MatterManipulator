@@ -2,6 +2,8 @@ package com.recursive_pineapple.matter_manipulator.common.items.manipulator;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
@@ -39,6 +41,7 @@ public class MMConfig {
     /** These blocks are what gets placed when exchanging */
     public JsonElement replaceWith;
 
+    @Nullable
     public Transform transform;
     /** The array size in repetitions */
     public Vector3i arraySpan;
@@ -269,7 +272,7 @@ public class MMConfig {
             aabb.scale(arraySpan.x, arraySpan.y, arraySpan.z);
         }
 
-        if (transform) {
+        if (transform && this.transform != null) {
             this.transform.apply(aabb);
         }
 
@@ -310,6 +313,7 @@ public class MMConfig {
         return result;
     }
 
+    @SuppressWarnings("null")
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
