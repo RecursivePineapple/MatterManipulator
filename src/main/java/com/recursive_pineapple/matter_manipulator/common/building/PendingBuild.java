@@ -283,7 +283,7 @@ public class PendingBuild extends AbstractBuildable {
                     visited.remove(coord);
                 }
                 
-                return;
+                toPlace.clear();
             }
         }
 
