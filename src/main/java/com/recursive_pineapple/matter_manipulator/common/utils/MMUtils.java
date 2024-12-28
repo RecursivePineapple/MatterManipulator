@@ -1,5 +1,8 @@
 package com.recursive_pineapple.matter_manipulator.common.utils;
 
+import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.AppliedEnergistics2;
+import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
+
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -56,6 +59,7 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.common.util.ForgeDirection;
+import net.minecraftforge.fluids.IFluidHandler;
 
 import org.joml.Vector3i;
 
@@ -64,6 +68,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.gtnewhorizon.gtnhlib.util.map.ItemStackMap;
+import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.RequiredItemAnalysis;
 import com.recursive_pineapple.matter_manipulator.common.building.IPseudoInventory;
@@ -74,12 +79,17 @@ import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Locat
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.PendingBlock;
 import com.recursive_pineapple.matter_manipulator.common.networking.Messages;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
 import appeng.api.implementations.items.IUpgradeModule;
 import appeng.api.storage.ICellWorkbenchItem;
 import appeng.parts.automation.UpgradeInventory;
 import appeng.util.Platform;
 import cpw.mods.fml.relauncher.ReflectionHelper;
+import gregtech.api.interfaces.tileentity.IHasInventory;
+import gregtech.api.metatileentity.BaseMetaTileEntity;
+import gregtech.common.tileentities.machines.MTEHatchInputBusME;
+import gregtech.common.tileentities.machines.MTEHatchInputME;
 import it.unimi.dsi.fastutil.Pair;
 
 public class MMUtils {
@@ -555,37 +565,81 @@ public class MMUtils {
     public static void emptyInventory(IPseudoInventory dest, IInventory src) {
         if (src == null) return;
 
+        InventoryAdapter adapter = InventoryAdapter.findAdapter(src);
+
+        if (adapter == null) return;
+
         int size = src.getSizeInventory();
 
-        for (int i = 0; i < size; i++) {
-            ItemStack stack = src.getStackInSlot(i);
+        for (int slot = 0; slot < size; slot++) {
+            if (!adapter.isValidSlot(src, size)) continue;
+
+            ItemStack stack = adapter.extract(src, slot);
 
             if (stack != null && stack.getItem() != null) {
-                src.setInventorySlotContents(i, null);
-
-                if (stack.getItem() instanceof ICellWorkbenchItem cellWorkbenchItem
-                    && cellWorkbenchItem.isEditable(stack)) {
-                    emptyInventory(dest, cellWorkbenchItem.getUpgradesInventory(stack));
-                    clearInventory(cellWorkbenchItem.getConfigInventory(stack));
-
-                    NBTTagCompound tag = Platform.openNbtData(stack);
-                    tag.removeTag("FuzzyMode");
-                    tag.removeTag("upgrades");
-                    tag.removeTag("list");
-                    tag.removeTag("OreFilter");
-
-                    if (tag.hasNoTags()) tag = null;
-
-                    stack.setTagCompound(tag);
-
-                    dest.givePlayerItems(stack);
-                } else {
-                    dest.givePlayerItems(stack);
-                }
+                dest.givePlayerItems(resetItem(dest, stack));
             }
         }
 
         src.markDirty();
+    }
+
+    public static ItemStack resetItem(IPseudoInventory dest, ItemStack stack) {
+        if (AppliedEnergistics2.isModLoaded()) stack = resetAEItem(dest, stack);
+
+        return stack;
+    }
+
+    @Optional(Names.APPLIED_ENERGISTICS2)
+    private static ItemStack resetAEItem(IPseudoInventory dest, ItemStack stack) {
+        if (stack.getItem() instanceof ICellWorkbenchItem cellWorkbenchItem && cellWorkbenchItem.isEditable(stack)) {
+            emptyInventory(dest, cellWorkbenchItem.getUpgradesInventory(stack));
+            clearInventory(cellWorkbenchItem.getConfigInventory(stack));
+
+            NBTTagCompound tag = Platform.openNbtData(stack);
+            tag.removeTag("FuzzyMode");
+            tag.removeTag("upgrades");
+            tag.removeTag("list");
+            tag.removeTag("OreFilter");
+
+            if (tag.hasNoTags()) tag = null;
+
+            stack.setTagCompound(tag);
+        }
+
+        return stack;
+    }
+
+    public static boolean isSlotValid(IInventory inv, int slot) {
+        if (GregTech.isModLoaded() && !isSlotValidGT(inv, slot)) return false;
+
+        return true;
+    }
+
+    private static boolean isSlotValidGT(IInventory inv, int slot) {
+        if (inv instanceof IHasInventory hasInv) {
+            return hasInv.isValidSlot(slot);
+        } else {
+            return true;
+        }
+    }
+
+    @Optional(Names.GREG_TECH)
+    public static boolean isStockingBus(IInventory inv) {
+        if (inv instanceof BaseMetaTileEntity base && base.getMetaTileEntity() instanceof MTEHatchInputBusME) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Optional(Names.GREG_TECH)
+    public static boolean isStockingHatch(IFluidHandler tank) {
+        if (tank instanceof BaseMetaTileEntity base && base.getMetaTileEntity() instanceof MTEHatchInputME) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**

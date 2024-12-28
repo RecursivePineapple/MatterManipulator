@@ -2,7 +2,10 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 
 import java.util.Objects;
 
+import javax.annotation.Nullable;
+
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
+import com.recursive_pineapple.matter_manipulator.common.utils.InventoryAdapter;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 
 import net.minecraft.inventory.IInventory;
@@ -23,14 +26,20 @@ public class InventoryAnalysis {
      * 
      * @param fuzzy When true, NBT will be ignored and items will be fuzzily-retrieved.
      */
-    public static InventoryAnalysis fromInventory(IInventory inv, boolean fuzzy) {
+    public static @Nullable InventoryAnalysis fromInventory(IInventory inv, boolean fuzzy) {
         InventoryAnalysis analysis = new InventoryAnalysis();
         analysis.mFuzzy = fuzzy;
 
         analysis.mItems = new IItemProvider[inv.getSizeInventory()];
 
-        for (int i = 0; i < analysis.mItems.length; i++) {
-            analysis.mItems[i] = getProviderFor(inv.getStackInSlot(i), fuzzy);
+        InventoryAdapter adapter = InventoryAdapter.findAdapter(inv);
+
+        if (adapter == null) return null;
+
+        for (int slot = 0; slot < analysis.mItems.length; slot++) {
+            if (!adapter.isValidSlot(inv, slot)) continue;
+
+            analysis.mItems[slot] = getProviderFor(inv.getStackInSlot(slot), fuzzy);
         }
 
         return analysis;
@@ -63,36 +72,63 @@ public class InventoryAnalysis {
      */
     public boolean apply(IBlockApplyContext context, IInventory inv, boolean consume, boolean simulate) {
         if (inv.getSizeInventory() != mItems.length) {
-            context.warn(
-                "inventory was the wrong size (expected " + mItems.length + ", was " + inv.getSizeInventory() + ")");
+            context.warn("inventory was the wrong size (expected " + mItems.length + ", was " + inv.getSizeInventory() + ")");
             return false;
         }
 
-        boolean didSomething = false;
+        InventoryAdapter adapter = InventoryAdapter.findAdapter(inv);
 
-        for (int i = 0; i < mItems.length; i++) {
-            IItemProvider target = mItems[i];
-            IItemProvider actual = getProviderFor(inv.getStackInSlot(i), mFuzzy);
+        if (adapter != null) {
+            return apply(context, inv, adapter, consume, simulate);
+        } else {
+            return false;
+        }
+    }
+
+    public boolean apply(IBlockApplyContext context, IInventory inv, InventoryAdapter adapter, boolean consume, boolean simulate) {
+        boolean didSomething = false;
+        boolean success = true;
+
+        for (int slot = 0; slot < mItems.length; slot++) {
+            if (!adapter.isValidSlot(inv, slot)) continue;
+
+            IItemProvider target = mItems[slot];
+            IItemProvider actual = getProviderFor(inv.getStackInSlot(slot), mFuzzy);
 
             if (!Objects.equals(target, actual)) {
-                ItemStack stack = inv.getStackInSlot(i);
+                ItemStack stack = inv.getStackInSlot(slot);
                 if (stack != null) {
-                    if (!simulate) {
-                        inv.setInventorySlotContents(i, null);
-                        didSomething = true;
+                    if (!adapter.canExtract(inv, slot)) {
+                        context.warn("could not extract item in slot " + slot + ": " + stack.getDisplayName());
+                        continue;
                     }
-                    if (consume) context.givePlayerItems(stack);
+
+                    if (!simulate) {
+                        stack = adapter.extract(inv, slot);
+                        if (stack != null) didSomething = true;
+                    }
+
+                    if (stack != null && consume) context.givePlayerItems(stack);
                 }
 
                 if (target != null) {
+                    if (!adapter.canInsert(inv, slot, target.getStack(null, false))) {
+                        context.warn("invalid item for slot " + slot + ": " + target.toString());
+                        continue;
+                    }
+
                     ItemStack toInsert = target.getStack(context, consume);
 
                     if (toInsert == null) {
                         context.warn("could not gather item for inventory: " + target.toString());
+                        success = false;
                     } else {
                         if (!simulate) {
-                            inv.setInventorySlotContents(i, toInsert);
-                            didSomething = true;
+                            if (adapter.insert(inv, slot, toInsert)) {
+                                didSomething = true;
+                            } else {
+                                context.givePlayerItems(toInsert);
+                            }
                         }
                     }
                 }
@@ -101,6 +137,6 @@ public class InventoryAnalysis {
 
         if (didSomething) inv.markDirty();
 
-        return true;
+        return success;
     }
 }

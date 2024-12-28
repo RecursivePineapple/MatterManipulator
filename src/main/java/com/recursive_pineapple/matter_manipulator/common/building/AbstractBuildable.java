@@ -218,6 +218,8 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
 
     protected void emptyTank(TileEntity te) {
         if (te instanceof IFluidHandler handler) {
+            if (GregTech.isModLoaded() && MMUtils.isStockingHatch(handler)) return;
+
             FluidStack fluid = null;
             while ((fluid = handler.drain(ForgeDirection.UNKNOWN, Integer.MAX_VALUE, true)) != null
                 && fluid.getFluid() != null
