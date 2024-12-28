@@ -208,7 +208,7 @@ public class Transform {
             if (candidate.getRelativeLeftInWorld() != left) continue;
             if (candidate.getRelativeDownInWorld() != down) continue;
             if (candidate.getFlip()
-                .isBothFlipped()) continue;
+                .isVerticallyFliped()) continue;
 
             return candidate;
         }
