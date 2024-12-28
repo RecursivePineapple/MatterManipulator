@@ -572,7 +572,7 @@ public class MMUtils {
         int size = src.getSizeInventory();
 
         for (int slot = 0; slot < size; slot++) {
-            if (!adapter.isValidSlot(src, size)) continue;
+            if (!adapter.isValidSlot(src, slot)) continue;
 
             ItemStack stack = adapter.extract(src, slot);
 
