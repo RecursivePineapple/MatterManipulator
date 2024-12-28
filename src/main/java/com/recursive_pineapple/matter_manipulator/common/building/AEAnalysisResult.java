@@ -14,6 +14,7 @@ import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Trans
 import com.recursive_pineapple.matter_manipulator.common.utils.ItemId;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 
+import appeng.api.implementations.tiles.IColorableTile;
 import appeng.api.implementations.tiles.ISegmentedInventory;
 import appeng.api.networking.IGridHost;
 import appeng.api.parts.IPart;
@@ -67,6 +68,10 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
             mAEConfig = MMUtils.toJsonObject(ae.downloadSettings(SettingsFrom.MEMORY_CARD));
         }
 
+        if (te instanceof IColorableTile colorable) {
+            mAEColour = colorable.getColor();
+        }
+
         // check if the tile has a custom name
         if (te instanceof ICustomNameObject customName && !(te instanceof TileCableBus)) {
             mAECustomName = customName.hasCustomName() ? customName.getCustomName() : null;
@@ -104,6 +109,10 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
     @Override
     public boolean apply(IBlockApplyContext ctx) {
         TileEntity te = ctx.getTileEntity();
+
+        if (te instanceof IColorableTile colorable && mAEColour != null) {
+            colorable.recolourBlock(ForgeDirection.NORTH, mAEColour, ctx.getRealPlayer());
+        }
 
         // apply upgrades, cells, and patterns
         if (te instanceof ISegmentedInventory segmentedInventory) {
