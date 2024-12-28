@@ -1,7 +1,6 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
 
-import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.AppliedEnergistics2;
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
 
 import java.util.ArrayList;
@@ -37,11 +36,13 @@ import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemM
 import com.recursive_pineapple.matter_manipulator.common.networking.SoundResource;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigFluidStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
+import com.recursive_pineapple.matter_manipulator.common.utils.LazyBlock;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
 import appeng.api.config.Actionable;
+import appeng.api.implementations.tiles.IColorableTile;
 import appeng.api.implementations.tiles.ISegmentedInventory;
 import appeng.api.parts.IPart;
 import appeng.api.parts.IPartHost;
@@ -49,6 +50,7 @@ import appeng.api.parts.PartItemStack;
 import appeng.api.storage.data.IAEFluidStack;
 import appeng.api.storage.data.IAEItemStack;
 import appeng.api.storage.data.IItemList;
+import appeng.api.util.AEColor;
 import appeng.helpers.ICustomNameObject;
 import appeng.parts.AEBasePart;
 import crazypants.enderio.conduit.IConduit;
@@ -99,6 +101,8 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         return ((ItemMatterManipulator) stack.getItem()).use(stack, euUsage, player);
     }
 
+    private static final LazyBlock WIRELESS_CONNECTOR = new LazyBlock(Mods.AE2Stuff, "Wireless");
+
     /**
      * Removes a block and stores its items in this object. Items & fluids must delivered by calling
      * {@link #actuallyGivePlayerStuff()} or they will be deleted.
@@ -143,6 +147,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         if (ae) resetAEMachine(te);
         if (gt) resetGTMachine(te);
         if (eio) resetConduitBundle(te);
+        if (WIRELESS_CONNECTOR.matches(existing, existingMeta)) resetTileColour(te);
 
         if (existing instanceof IFluidBlock fluidBlock && fluidBlock.canDrain(world, x, y, z)) {
             givePlayerFluids(fluidBlock.drain(world, x, y, z, true));
@@ -320,6 +325,13 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
                 givePlayerItems(conduit.getDrops().toArray(new ItemStack[0]));
                 bundle.removeConduit(conduit);
             }
+        }
+    }
+
+    @Optional(Names.APPLIED_ENERGISTICS2)
+    protected void resetTileColour(TileEntity te) {
+        if (te instanceof IColorableTile colorable) {
+            colorable.recolourBlock(ForgeDirection.NORTH, AEColor.Transparent, player);
         }
     }
 
