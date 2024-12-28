@@ -161,6 +161,11 @@ public class PendingMove extends AbstractBuildable {
         MMUtils.sendInfoToPlayer(player, "Finished placing blocks.");
     }
 
+    @Override
+    public void onStopped() {
+        
+    }
+
     private void initMoves() {
         moves = new ArrayList<>();
 

@@ -400,6 +400,14 @@ public class PendingBuild extends AbstractBuildable {
         playSounds();
     }
 
+    @Override
+    public void onStopped() {
+        if (pendingItems.size() > 0 || pendingFluids.size() > 0) {
+            MMMod.LOG.error("Build stopped without delivering all items! There's a bug somewhere!");
+        }
+        actuallyGivePlayerStuff();
+    }
+
     private boolean supportsConfiguring() {
         // self-explanitory
         if (tier.hasCap(ItemMatterManipulator.ALLOW_CONFIGURING)) return true;

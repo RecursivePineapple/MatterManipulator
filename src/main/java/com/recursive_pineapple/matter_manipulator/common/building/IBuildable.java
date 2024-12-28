@@ -9,4 +9,6 @@ import net.minecraft.item.ItemStack;
 public interface IBuildable {
 
     public void tryPlaceBlocks(ItemStack stack, EntityPlayer player);
+
+    public void onStopped();
 }

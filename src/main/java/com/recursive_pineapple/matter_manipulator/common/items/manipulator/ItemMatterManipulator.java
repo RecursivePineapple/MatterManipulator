@@ -48,6 +48,7 @@ import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.ForgeDirection;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
 import org.joml.Vector3d;
 import org.joml.Vector3f;
@@ -105,6 +106,7 @@ import cpw.mods.fml.common.Optional.Interface;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.InputEvent;
+import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
@@ -951,10 +953,28 @@ public class ItemMatterManipulator extends Item
         return Integer.MAX_VALUE;
     }
 
+    private void stopBuildable(EntityPlayer player) {
+        if (!player.worldObj.isRemote) {
+            IBuildable buildable = PENDING_BUILDS.remove(player);
+    
+            if (buildable != null) buildable.onStopped();
+        }
+    }
+
     @Override
     public void onPlayerStoppedUsing(ItemStack stack, World world, EntityPlayer player, int itemUseCount) {
-        if (!world.isRemote) {
-            PENDING_BUILDS.remove(player);
+        stopBuildable(player);
+    }
+
+    @SubscribeEvent
+    public void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
+        stopBuildable(event.player);
+    }
+
+    @SubscribeEvent
+    public void onPlayerKilled(LivingDeathEvent event) {
+        if (event.entity instanceof EntityPlayer player) {
+            stopBuildable(player);
         }
     }
 
@@ -983,8 +1003,9 @@ public class ItemMatterManipulator extends Item
 
             if (ticksUsed >= 10 && (ticksUsed % tier.placeTicks) == 0) {
                 try {
-                    PENDING_BUILDS.get(player)
-                        .tryPlaceBlocks(stack, player);
+                    IBuildable buildable = PENDING_BUILDS.get(player);
+
+                    if (buildable != null) buildable.tryPlaceBlocks(stack, player);
                 } catch (Throwable t) {
                     MMMod.LOG.error("Could not place blocks", t);
                     MMUtils.sendErrorToPlayer(
