@@ -593,19 +593,31 @@ public class MMState {
             if (partItem.createPartFromItemStack(cableStack) instanceof IPartCable cable) {
                 Block cableBus = PendingBlock.AE_BLOCK_CABLE.get().getBlock();
 
+                BlockAnalysisContext context = new BlockAnalysisContext(world);
+
                 for (Vector3i voxel : getLineVoxels(a.x, a.y, a.z, b.x, b.y, b.z)) {
+
+                    int x = voxel.x, y = voxel.y, z = voxel.z;
+
                     PendingBlock pendingBlock = new PendingBlock(
                         world.provider.dimensionId,
-                        voxel.x,
-                        voxel.y,
-                        voxel.z,
+                        x,
+                        y,
+                        z,
                         cableStack);
 
                     pendingBlock.setBlock(cableBus, 0);
 
-                    AEAnalysisResult ae = new AEAnalysisResult();
-                    ae.mAEParts = new AEPartData[7];
-                    ae.mAEParts[ForgeDirection.UNKNOWN.ordinal()] = new AEPartData(cable);
+                    AEAnalysisResult ae;
+
+                    if (PendingBlock.AE_BLOCK_CABLE.matches(world.getBlock(x, y, z), 0)) {
+                        ae = AEAnalysisResult.analyze(context, world.getTileEntity(voxel.x, voxel.y, voxel.z));
+                        ae.mAEParts[ForgeDirection.UNKNOWN.ordinal()] = new AEPartData(cable);
+                    } else {
+                        ae = new AEAnalysisResult();
+                        ae.mAEParts = new AEPartData[7];
+                        ae.mAEParts[ForgeDirection.UNKNOWN.ordinal()] = new AEPartData(cable);
+                    }
 
                     pendingBlock.tileData = new TileAnalysisResult();
                     pendingBlock.tileData.ae = ae;
