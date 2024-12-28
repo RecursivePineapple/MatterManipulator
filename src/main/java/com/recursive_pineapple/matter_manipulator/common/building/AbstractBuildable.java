@@ -172,24 +172,16 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         }
     }
 
-    @Optional({ Names.GREG_TECH, Names.APPLIED_ENERGISTICS2 })
-    private static Function<MTEHatchOutputBusME, IItemList<IAEItemStack>> GET_ITEM_STACK_LIST;
-
-    @Optional({ Names.GREG_TECH, Names.APPLIED_ENERGISTICS2 })
-    private static Function<MTEHatchOutputME, IItemList<IAEFluidStack>> GET_FLUID_STACK_LIST;
-
-    static {
-        if (GregTech.isModLoaded() && AppliedEnergistics2.isModLoaded()) {
-            GET_ITEM_STACK_LIST = MMUtils.exposeFieldGetterLambda(MTEHatchOutputBusME.class, "itemCache");
-            GET_FLUID_STACK_LIST = MMUtils.exposeFieldGetterLambda(MTEHatchOutputME.class, "fluidCache");
-        }
+    private static class MEOutputCaches {
+        private static final Function<MTEHatchOutputBusME, IItemList<IAEItemStack>> GET_ITEM_STACK_LIST = MMUtils.exposeFieldGetterLambda(MTEHatchOutputBusME.class, "itemCache");
+        private static final Function<MTEHatchOutputME, IItemList<IAEFluidStack>> GET_FLUID_STACK_LIST = MMUtils.exposeFieldGetterLambda(MTEHatchOutputME.class, "fluidCache");
     }
 
     @Optional({ Names.GREG_TECH, Names.APPLIED_ENERGISTICS2 })
     protected void emptyMEOutput(TileEntity te) {
         if (te instanceof IGregTechTileEntity igte) {
             if (igte.getMetaTileEntity() instanceof MTEHatchOutputBusME bus) {
-                IItemList<IAEItemStack> items = GET_ITEM_STACK_LIST.apply(bus);
+                IItemList<IAEItemStack> items = MEOutputCaches.GET_ITEM_STACK_LIST.apply(bus);
 
                 for (IAEItemStack item : items) {
                     if (item.getStackSize() == 0) continue;
@@ -199,7 +191,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
             }
 
             if (igte.getMetaTileEntity() instanceof MTEHatchOutputME hatch) {
-                IItemList<IAEFluidStack> fluids = GET_FLUID_STACK_LIST.apply(hatch);
+                IItemList<IAEFluidStack> fluids = MEOutputCaches.GET_FLUID_STACK_LIST.apply(hatch);
 
                 for (IAEFluidStack fluid : fluids) {
                     if (fluid.getStackSize() == 0) continue;
