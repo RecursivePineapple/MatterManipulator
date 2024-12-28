@@ -808,7 +808,7 @@ public class ItemMatterManipulator extends Item
         ItemStack selected = block == null ? null : block.toStack();
 
         if (tier.hasCap(ALLOW_CABLES) && AppliedEnergistics2.isModLoaded()) {
-            if (selected != null && selected.getItem() == Item.getItemFromBlock(PendingBlock.AE_BLOCK_CABLE.get())) {
+            if (selected != null && selected.getItem() == PendingBlock.AE_BLOCK_CABLE.get().getItem()) {
                 selected = MMState.getAECable(world, hit.blockX, hit.blockY, hit.blockZ);
             }
         }
@@ -828,7 +828,7 @@ public class ItemMatterManipulator extends Item
         ItemStack selected = block == null ? null : block.toStack();
 
         if (tier.hasCap(ALLOW_CABLES) && AppliedEnergistics2.isModLoaded()) {
-            if (selected != null && selected.getItem() == Item.getItemFromBlock(PendingBlock.AE_BLOCK_CABLE.get())) {
+            if (selected != null && selected.getItem() == PendingBlock.AE_BLOCK_CABLE.get().getItem()) {
                 selected = MMState.getAECable(world, hit.blockX, hit.blockY, hit.blockZ);
             }
         }
@@ -856,7 +856,7 @@ public class ItemMatterManipulator extends Item
         ItemStack selected = block == null ? null : block.toStack();
 
         if (tier.hasCap(ALLOW_CABLES) && AppliedEnergistics2.isModLoaded()) {
-            if (selected != null && selected.getItem() == Item.getItemFromBlock(PendingBlock.AE_BLOCK_CABLE.get())) {
+            if (selected != null && selected.getItem() == PendingBlock.AE_BLOCK_CABLE.get().getItem()) {
                 selected = MMState.getAECable(world, hit.blockX, hit.blockY, hit.blockZ);
             }
         }

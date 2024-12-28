@@ -7,12 +7,10 @@ import java.util.Optional;
 
 import com.recursive_pineapple.matter_manipulator.common.building.InteropConstants;
 import com.recursive_pineapple.matter_manipulator.common.building.TileAnalysisResult;
-import com.recursive_pineapple.matter_manipulator.common.utils.Lazy;
+import com.recursive_pineapple.matter_manipulator.common.utils.LazyBlock;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
-import appeng.api.AEApi;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
 import net.minecraft.block.Block;
@@ -194,33 +192,15 @@ public class PendingBlock extends Location {
         return InteropConstants.shouldBeSkipped(getBlock(), metadata);
     }
 
-    @com.recursive_pineapple.matter_manipulator.asm.Optional(Names.APPLIED_ENERGISTICS2)
-    public static Lazy<Block> AE_BLOCK_CABLE;
-
-    static {
-        if (Mods.AppliedEnergistics2.isModLoaded()) {
-            AE_BLOCK_CABLE = new Lazy<>(() -> AEApi.instance()
-                .definitions()
-                .blocks()
-                .multiPart()
-                .maybeBlock()
-                .get());
-        }
-    }
+    public static final LazyBlock AE_BLOCK_CABLE = new LazyBlock(Mods.AppliedEnergistics2, "tile.BlockCableBus");
 
     public boolean isFree() {
         Block block = getBlock();
 
-        if (block == Blocks.air) {
-            return true;
-        }
+        if (block == Blocks.air) return true;
 
-        if (Mods.AppliedEnergistics2.isModLoaded()) {
-            if (block == AE_BLOCK_CABLE.get() && tileData != null) {
-                return true;
-            }
-        }
-
+        if (AE_BLOCK_CABLE.matches(block, metadata)) return true;
+        
         return false;
     }
 

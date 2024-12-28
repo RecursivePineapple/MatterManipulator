@@ -401,7 +401,7 @@ public class MMState {
 
                 pending.add(rep);
             } else if (replacingWithAECable) {
-                PendingBlock rep = new PendingBlock(world.provider.dimensionId, x, y, z, PendingBlock.AE_BLOCK_CABLE.get(), 0);
+                PendingBlock rep = new PendingBlock(world.provider.dimensionId, x, y, z, PendingBlock.AE_BLOCK_CABLE.get().getBlock(), 0);
 
                 if (world.getTileEntity(x, y, z) instanceof IPartHost) {
                     context.voxel = voxel;
@@ -591,7 +591,7 @@ public class MMState {
     private void getAECables(Vector3i a, Vector3i b, List<PendingBlock> out, Block block, World world, ItemStack cableStack) {
         if (cableStack.getItem() instanceof IPartItem partItem) {
             if (partItem.createPartFromItemStack(cableStack) instanceof IPartCable cable) {
-                Block cableBus = PendingBlock.AE_BLOCK_CABLE.get();
+                Block cableBus = PendingBlock.AE_BLOCK_CABLE.get().getBlock();
 
                 for (Vector3i voxel : getLineVoxels(a.x, a.y, a.z, b.x, b.y, b.z)) {
                     PendingBlock pendingBlock = new PendingBlock(
