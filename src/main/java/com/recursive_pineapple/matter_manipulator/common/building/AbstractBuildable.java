@@ -58,7 +58,7 @@ import crazypants.enderio.conduit.IConduitBundle;
 import gregtech.api.interfaces.tileentity.ICoverable;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.interfaces.tileentity.IRedstoneEmitter;
-import gregtech.common.blocks.BlockOres;
+import gregtech.api.util.GTUtility;
 import gregtech.common.tileentities.machines.MTEHatchOutputBusME;
 import gregtech.common.tileentities.machines.MTEHatchOutputME;
 import gregtech.common.tileentities.storage.MTEDigitalChestBase;
@@ -116,7 +116,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
 
             boolean isOre = false;
 
-            if (GregTech.isModLoaded() && existing instanceof BlockOres) {
+            if (GregTech.isModLoaded() && GTUtility.isOre(block.getBlock(), block.metadata)) {
                 isOre = true;
             } else {
                 for (int id : OreDictionary.getOreIDs(stack)) {
