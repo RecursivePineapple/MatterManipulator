@@ -103,6 +103,7 @@ import appeng.api.parts.PartItemStack;
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Optional.Interface;
+import cpw.mods.fml.common.Optional.InterfaceList;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.InputEvent;
@@ -129,7 +130,11 @@ import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 import ic2.api.item.IElectricItemManager;
 import ic2.api.item.ISpecialElectricItem;
 
-@Interface(modid = Names.APPLIED_ENERGISTICS2, iface = "appeng.api.features.INetworkEncodable")
+@InterfaceList({
+    @Interface(modid = Names.APPLIED_ENERGISTICS2, iface = "appeng.api.features.INetworkEncodable", striprefs = true),
+    @Interface(modid = Names.INDUSTRIAL_CRAFT2, iface = "ic2.api.item.ISpecialElectricItem"),
+    @Interface(modid = Names.INDUSTRIAL_CRAFT2, iface = "ic2.api.item.IElectricItemManager"),
+})
 public class ItemMatterManipulator extends Item
     implements ISpecialElectricItem, IElectricItemManager, INetworkEncodable {
 

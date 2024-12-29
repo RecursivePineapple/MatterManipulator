@@ -20,6 +20,7 @@ public enum Mods {
     GTPlusPlus(Names.G_T_PLUS_PLUS),
     GraviSuite(Names.GRAVI_SUITE),
     Hodgepodge(Names.HODGEPODGE),
+    IndustrialCraft2(Names.INDUSTRIAL_CRAFT2),
     LogisticsPipes(Names.LOGISTICS_PIPES),
     MatterManipulator(Names.MATTER_MANIPULATOR),
     Minecraft(Names.MINECRAFT),
@@ -43,6 +44,7 @@ public enum Mods {
         public static final String GRAVI_SUITE = "GraviSuite";
         public static final String G_T_PLUS_PLUS = "miscutils";
         public static final String HODGEPODGE = "hodgepodge";
+        public static final String INDUSTRIAL_CRAFT2 = "IC2";
         public static final String LOGISTICS_PIPES = "LogisticsPipes";
         public static final String MATTER_MANIPULATOR = "matter-manipulator";
         public static final String MINECRAFT = "minecraft";
