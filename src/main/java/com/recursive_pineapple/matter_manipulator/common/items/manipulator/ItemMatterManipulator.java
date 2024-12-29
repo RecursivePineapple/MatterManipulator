@@ -1479,7 +1479,10 @@ public class ItemMatterManipulator extends Item
             .done();
     }
 
-    // spotless:on
+    private static final IDrawable[] BACKGROUND = {
+        new Rectangle().setColor(0xFF888888),
+        new OffsetDrawable(new Rectangle().setColor(0xFF111111), 2, 2, -4, -4),
+    };
 
     private static Widget padding(int width, int height) {
         return new Row().setSize(width, height);
@@ -1493,13 +1496,7 @@ public class ItemMatterManipulator extends Item
 
         builder.bindPlayerInventory(buildContext.getPlayer(), 0, -9001);
 
-        IDrawable[] background = {
-            new Rectangle().setColor(0xFF888888),
-            new OffsetDrawable(new Rectangle().setColor(0xFF111111), 2, 2, -4, -4),
-        };
-
         if (NetworkUtils.isClient()) {
-
             DynamicTextWidget rotationInfo = DynamicTextWidget.dynamicString(() -> {
                 MMState currState = getState(
                     buildContext.getPlayer()
@@ -1593,7 +1590,7 @@ public class ItemMatterManipulator extends Item
                             new TextWidget(RED + "X+ " + GREEN + "Y+ " + BLUE + "Z+")
                                 .setSize(50, 20)
                                 .setPos(34, 39))
-                        .setBackground(background)
+                        .setBackground(BACKGROUND)
                         .setSize(88, 36 + 30),
                     padding(2, 2),
                     new Column()
@@ -1606,6 +1603,14 @@ public class ItemMatterManipulator extends Item
             };
 
             Widget[] right = {
+                makeHeader("Copy"),
+                padding(2, 2),
+                makeCoordinateEditor(buildContext.getPlayer(), -1, 0),
+                padding(2, 2),
+                makeCoordinateEditor(buildContext.getPlayer(), -1, 1),
+                padding(2, 2),
+                makeCoordinateEditor(buildContext.getPlayer(), -1, 2),
+                padding(2, 2),
                 makeHeader("Copy (A)"),
                 padding(2, 2),
                 makeCoordinateEditor(buildContext.getPlayer(), 0, 0),
@@ -1662,11 +1667,6 @@ public class ItemMatterManipulator extends Item
     }
 
     private static Widget makeHeader(String text) {
-        IDrawable[] background = {
-            new Rectangle().setColor(0xFF888888),
-            new OffsetDrawable(new Rectangle().setColor(0xFF111111), 2, 2, -4, -4),
-        };
-
         return new MultiChildWidget()
             .addChild(
                 new MultiChildWidget()
@@ -1675,7 +1675,7 @@ public class ItemMatterManipulator extends Item
                             .setTextAlignment(Alignment.BottomCenter)
                             .setDefaultColor(Color.WHITE.dark(1))
                             .setSize(60, 13))
-                    .setBackground(background)
+                    .setBackground(BACKGROUND)
                     .setSize(60, 18)
                     .setPos((130 - 60) / 2, 0))
             .setSize(130, 18);
@@ -1694,6 +1694,7 @@ public class ItemMatterManipulator extends Item
             MMState currState = getState(player.getHeldItem());
 
             Vector3i l = switch (coord) {
+                case -1 -> new Vector3i(0);
                 case 0 -> currState.config.coordA == null ? null : currState.config.coordA.toVec();
                 case 1 -> currState.config.coordB == null ? null : currState.config.coordB.toVec();
                 case 2 -> currState.config.coordC == null ? null : currState.config.coordC.toVec();
@@ -1731,6 +1732,7 @@ public class ItemMatterManipulator extends Item
             MMState currState = getState(player.getHeldItem());
 
             Vector3i l = switch (coord) {
+                case -1 -> new Vector3i(0);
                 case 0 -> currState.config.coordA == null ? null : currState.config.coordA.toVec();
                 case 1 -> currState.config.coordB == null ? null : currState.config.coordB.toVec();
                 case 2 -> currState.config.coordC == null ? null : currState.config.coordC.toVec();
@@ -1744,14 +1746,6 @@ public class ItemMatterManipulator extends Item
                 } else {
                     l = getDefaultLocation(player);
                 }
-
-                switch (coord) {
-                    case 0 -> currState.config.coordA = new Location(player.worldObj, l);
-                    case 1 -> currState.config.coordB = new Location(player.worldObj, l);
-                    case 2 -> currState.config.coordC = new Location(player.worldObj, l);
-                    case 3 -> currState.config.arraySpan = l;
-                    default -> throw new IllegalArgumentException("coord");
-                }
             }
 
             switch (component) {
@@ -1761,9 +1755,35 @@ public class ItemMatterManipulator extends Item
                 default -> throw new IllegalArgumentException("component");
             }
 
+            switch (coord) {
+                case -1 -> {
+                    if (currState.config.coordA != null) {
+                        currState.config.coordA = new Location(player.worldObj, currState.config.coordA.toVec().add(l));
+                    }
+                    
+                    if (currState.config.coordB != null) {
+                        currState.config.coordB = new Location(player.worldObj, currState.config.coordB.toVec().add(l));
+                    }
+                }
+                case 0 -> currState.config.coordA = new Location(player.worldObj, l);
+                case 1 -> currState.config.coordB = new Location(player.worldObj, l);
+                case 2 -> currState.config.coordC = new Location(player.worldObj, l);
+                case 3 -> currState.config.arraySpan = l;
+                default -> throw new IllegalArgumentException("coord");
+            }
+
             ItemMatterManipulator.setState(player.getHeldItem(), currState);
 
             switch (coord) {
+                case -1 -> {
+                    if (currState.config.coordA != null) {
+                        Messages.SetA.sendToServer(currState.config.coordA.toVec().add(l));
+                    }
+                    
+                    if (currState.config.coordB != null) {
+                        Messages.SetB.sendToServer(currState.config.coordB.toVec().add(l));
+                    }
+                }
                 case 0 -> {
                     Messages.SetA.sendToServer(l);
                 }
@@ -1787,124 +1807,119 @@ public class ItemMatterManipulator extends Item
             default -> throw new IllegalArgumentException("component");
         };
 
+        class SizeStorage {
+            public int x, y, z;
+            public boolean present = false;
+
+            public Vector3i get() {
+                if (!present && GuiScreen.isCtrlKeyDown()) {
+                    MMState currState = getState(player.getHeldItem());
+
+                    Vector3i size;
+                    
+                    if (coord == 2) {
+                        size = currState.config.getPasteVisualDeltas(null, false).size();
+                    } else {
+                        size = currState.config.getCopyVisualDeltas(null).size();
+                    }
+
+                    x = size.x;
+                    y = size.y;
+                    z = size.z;
+                    present = true;
+                }
+
+                if (!GuiScreen.isCtrlKeyDown()) {
+                    present = false;
+                }
+
+                return present ? new Vector3i(x, y, z) : new Vector3i(1);
+            }
+
+            public int getOffset() {
+                int offset = 1;
+
+                if (GuiScreen.isShiftKeyDown()) {
+                    offset = 10;
+                } else if (coord != 3 && GuiScreen.isCtrlKeyDown()) {
+                    Vector3i size = get();
+
+                    offset = switch (component) {
+                        case 0 -> size.x;
+                        case 1 -> size.y;
+                        case 2 -> size.z;
+                        default -> throw new IllegalArgumentException("component");
+                    };
+                } else {
+                    present = false;
+                }
+
+                return offset;
+            }
+        }
+
+        SizeStorage storage = new SizeStorage();
+
         return new Row().widgets(
             new VanillaButtonWidget().setDisplayString(compName + " - 1")
                 .setOnClick(
                     (t, u) -> {
                         int i = getter.getAsInt();
-
-                        int offset = 1;
                         
-                        if (GuiScreen.isShiftKeyDown()) {
-                            offset = 10;
-                        } else if (GuiScreen.isCtrlKeyDown()) {
-                            MMState currState = getState(player.getHeldItem());
-
-                            Vector3i size = currState.config.getPasteVisualDeltas(null, false).size();
-
-                            offset = switch (component) {
-                                case 0 -> size.x;
-                                case 1 -> size.y;
-                                case 2 -> size.z;
-                                case 3 -> 1;
-                                default -> throw new IllegalArgumentException("component");
-                            };
-                        }
-
-                        i -= offset;
+                        i -= storage.getOffset();
 
                         setter.accept(i);
                     })
                 .setSynced(false, false)
                 .setSize(40, 18)
                 .setTicker(w -> {
-                    int offset = 1;
-                    if (GuiScreen.isShiftKeyDown()) {
-                        offset = 10;
-                    } else if (GuiScreen.isCtrlKeyDown()) {
-                        MMState currState = getState(player.getHeldItem());
-
-                        Vector3i size = currState.config.getPasteVisualDeltas(null, false).size();
-
-                        offset = switch (component) {
-                            case 0 -> size.x;
-                            case 1 -> size.y;
-                            case 2 -> size.z;
-                            case 3 -> 1;
-                            default -> throw new IllegalArgumentException("component");
-                        };
-                    }
-                    ((VanillaButtonWidget) w).setDisplayString(compName + " - " + offset);
+                    ((VanillaButtonWidget) w).setDisplayString(compName + " - " + storage.getOffset());
                 }),
             padding(5, 5),
             new MultiChildWidget()
-                .addChild(new NumericWidget()
-                    .setSynced(false, false)
-                    .setIntegerOnly(true)
-                    .setGetter(() -> getterVisual.getAsInt())
-                    .setSetter(i -> setter.accept((int) i))
-                    .setBounds(coord == 3 ? 1 : Integer.MIN_VALUE, Integer.MAX_VALUE)
-                    .setScrollBar()
-                    .setTextColor(Color.WHITE.dark(1))
-                    .setBackground(DISPLAY.withOffset(-2, -2, 4, 4))
-                    .setSize(36, 14)
-                    .setPos(2, 2)
-                    .setTicker(w -> {
-                        if (!w.isFocused()) {
-                            ((NumericWidget) w).setValue(getterVisual.getAsInt());
-                        }
-                    }))
-                    .setSize(40, 18),
+                .addChild(coord != -1 ? (
+                    new NumericWidget()
+                        .setSynced(false, false)
+                        .setIntegerOnly(true)
+                        .setGetter(() -> getterVisual.getAsInt())
+                        .setSetter(i -> {
+                            setter.accept((int) i);
+                        })
+                        .setBounds(Integer.MIN_VALUE, Integer.MAX_VALUE)
+                        .setScrollBar()
+                        .setTextColor(Color.WHITE.dark(1))
+                        .setBackground(DISPLAY.withOffset(-2, -2, 4, 4))
+                        .setSize(36, 14)
+                        .setPos(2, 2)
+                        .setTicker(w -> {
+                            if (!w.isFocused()) {
+                                ((NumericWidget) w).setValue(getterVisual.getAsInt());
+                            }
+                        })
+                ) : (
+                    new TextWidget("N/A")
+                        .setDefaultColor(Color.WHITE.dark(1))
+                        .setBackground(BACKGROUND)
+                        .setSize(40, 18)
+                ))
+                .setSize(40, 18),
             padding(5, 5),
             new VanillaButtonWidget().setDisplayString(compName + " + 1")
                 .setOnClick(
                     (t, u) -> {
                         int i = getter.getAsInt();
 
-                        int offset = 1;
-
-                        if (GuiScreen.isShiftKeyDown()) {
-                            offset = 10;
-                        } else if (GuiScreen.isCtrlKeyDown()) {
-                            MMState currState = getState(player.getHeldItem());
-
-                            Vector3i size = currState.config.getPasteVisualDeltas(null, false).size();
-
-                            offset = switch (component) {
-                                case 0 -> size.x;
-                                case 1 -> size.y;
-                                case 2 -> size.z;
-                                case 3 -> 1;
-                                default -> throw new IllegalArgumentException("component");
-                            };
-                        }
-
-                        i += offset;
+                        i += storage.getOffset();
 
                         setter.accept(i);
                     })
                 .setSynced(false, false)
                 .setSize(40, 18)
                 .setTicker(w -> {
-                    int offset = 1;
-                    if (GuiScreen.isShiftKeyDown()) {
-                        offset = 10;
-                    } else if (GuiScreen.isCtrlKeyDown()) {
-                        MMState currState = getState(player.getHeldItem());
-
-                        Vector3i size = currState.config.getPasteVisualDeltas(null, false).size();
-
-                        offset = switch (component) {
-                            case 0 -> size.x;
-                            case 1 -> size.y;
-                            case 2 -> size.z;
-                            case 3 -> 1;
-                            default -> throw new IllegalArgumentException("component");
-                        };
-                    }
-                    ((VanillaButtonWidget) w).setDisplayString(compName + " + " + offset);
+                    ((VanillaButtonWidget) w).setDisplayString(compName + " + " + storage.getOffset());
                 }));
     }
+    // spotless:on
 
     // #endregion
 
@@ -2296,12 +2311,13 @@ public class ItemMatterManipulator extends Item
                 if (pasteDeltas != null) {
                     String array = "";
             
-                    if (state.config.arraySpan != null) {
+                    Vector3i span = state.config.arraySpan;
+                    if (span != null) {
                         array = String.format(
                             " stX=%d stY=%d stZ=%d",
-                            state.config.arraySpan.x,
-                            state.config.arraySpan.y,
-                            state.config.arraySpan.z);
+                            span.x >= 0 ? span.x + 1 : span.x,
+                            span.y >= 0 ? span.y + 1 : span.y,
+                            span.z >= 0 ? span.z + 1 : span.z);
                     }
         
                     AboveHotbarHUD.renderTextAboveHotbar(
