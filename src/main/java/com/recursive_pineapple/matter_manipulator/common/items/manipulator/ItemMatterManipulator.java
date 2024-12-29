@@ -6,6 +6,7 @@ import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.RE
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.formatNumbers;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMValues.V;
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.AppliedEnergistics2;
+import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
 import static net.minecraftforge.common.util.ForgeDirection.EAST;
 import static net.minecraftforge.common.util.ForgeDirection.SOUTH;
 import static net.minecraftforge.common.util.ForgeDirection.UP;
@@ -313,6 +314,16 @@ public class ItemMatterManipulator extends Item
     @Override
     public final String getToolTip(ItemStack aStack) {
         return null;
+    }
+
+    @Override
+    public boolean showDurabilityBar(ItemStack stack) {
+        return !GregTech.isModLoaded();
+    }
+
+    @Override
+    public double getDurabilityForDisplay(ItemStack stack) {
+        return 1d - getCharge(stack) / tier.maxCharge;
     }
 
     // #endregion
