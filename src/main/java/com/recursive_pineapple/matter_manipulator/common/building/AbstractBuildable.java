@@ -6,6 +6,7 @@ import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregT
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.function.Function;
 
 import net.minecraft.block.Block;
@@ -18,6 +19,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidBlock;
@@ -154,9 +156,19 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         } else if (existing == Blocks.water || existing == Blocks.lava) {
             givePlayerFluids(new FluidStack(existing == Blocks.water ? FluidRegistry.WATER : FluidRegistry.LAVA, 1000));
         } else {
-            givePlayerItems(
-                existing.getDrops(world, x, y, z, existingMeta, 0)
-                    .toArray(new ItemStack[0]));
+            ArrayList<ItemStack> items = existing.getDrops(world, x, y, z, existingMeta, 0);
+            float chance = ForgeEventFactory.fireBlockHarvesting(items, world, existing, x, y, z, existingMeta, 0, 1, false, player);
+    
+            Iterator<ItemStack> iter = items.iterator();
+    
+            while (iter.hasNext()) {
+                iter.next();
+                if (world.rand.nextFloat() > chance) {
+                    iter.remove();
+                }
+            }
+    
+            givePlayerItems(items.toArray(new ItemStack[0]));
         }
 
         world.setBlockToAir(x, y, z);
