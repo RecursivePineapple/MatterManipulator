@@ -382,6 +382,12 @@ public class MMUtils {
         }
     }
 
+    public static void sendChatToPlayer(EntityPlayer aPlayer, String aChatMessage) {
+        if (aPlayer instanceof EntityPlayerMP && aChatMessage != null) {
+            aPlayer.addChatComponentMessage(new ChatComponentText(aChatMessage));
+        }
+    }
+
     private static DecimalFormat getDecimalFormat() {
         return decimalFormatters.computeIfAbsent(Locale.getDefault(Locale.Category.FORMAT), locale -> {
             DecimalFormat numberFormat = new DecimalFormat(); // uses the necessary locale inside anyway
@@ -556,6 +562,10 @@ public class MMUtils {
 
     public static <T> T getIndexSafe(T[] array, int index) {
         return index < 0 || index >= array.length ? null : array[index];
+    }
+    
+    public static <T> T getIndexSafe(List<T> list, int index) {
+        return index < 0 || index >= list.size() ? null : list.get(index);
     }
     
     /**
