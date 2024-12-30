@@ -94,6 +94,7 @@ import com.recursive_pineapple.matter_manipulator.client.gui.DirectionDrawable;
 import com.recursive_pineapple.matter_manipulator.client.gui.RadialMenuBuilder;
 import com.recursive_pineapple.matter_manipulator.client.rendering.BoxRenderer;
 import com.recursive_pineapple.matter_manipulator.common.building.IBuildable;
+import com.recursive_pineapple.matter_manipulator.common.building.PendingBlock;
 import com.recursive_pineapple.matter_manipulator.common.building.PendingBuild;
 import com.recursive_pineapple.matter_manipulator.common.building.PendingMove;
 

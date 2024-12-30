@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.common.items.manipulator;
+package com.recursive_pineapple.matter_manipulator.common.building;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
@@ -14,11 +14,11 @@ import org.joml.Vector3f;
 import com.google.common.collect.ImmutableList;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
 import com.recursive_pineapple.matter_manipulator.MMMod;
-import com.recursive_pineapple.matter_manipulator.common.building.InteropConstants;
-import com.recursive_pineapple.matter_manipulator.common.building.TileAnalysisResult;
 import com.recursive_pineapple.matter_manipulator.common.compat.BlockProperty;
 import com.recursive_pineapple.matter_manipulator.common.compat.BlockPropertyRegistry;
 import com.recursive_pineapple.matter_manipulator.common.compat.Orientation;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
 import com.recursive_pineapple.matter_manipulator.common.utils.LazyBlock;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;

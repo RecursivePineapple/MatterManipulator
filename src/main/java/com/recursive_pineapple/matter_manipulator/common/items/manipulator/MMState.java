@@ -28,6 +28,7 @@ import com.recursive_pineapple.matter_manipulator.common.building.AEAnalysisResu
 import com.recursive_pineapple.matter_manipulator.common.building.AEPartData;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer;
 import com.recursive_pineapple.matter_manipulator.common.building.GTAnalysisResult;
+import com.recursive_pineapple.matter_manipulator.common.building.PendingBlock;
 import com.recursive_pineapple.matter_manipulator.common.building.TileAnalysisResult;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.BlockAnalysisContext;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.RegionAnalysis;
