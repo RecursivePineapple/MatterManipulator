@@ -543,6 +543,30 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
     }
 
     @Override
+    public GTAnalysisResult clone() {
+        GTAnalysisResult dup = new GTAnalysisResult();
+
+        dup.mConnections = mConnections;
+        dup.mGTColour = mGTColour;
+        dup.mGTFront = mGTFront;
+        dup.mGTMainFacing = mGTMainFacing;
+        dup.mGTFlags = mGTFlags;
+        dup.mGTFacing = mGTFacing;
+        dup.mCovers = mCovers == null ? null : MMUtils.mapToArray(mCovers, CoverData[]::new, x -> x == null ? null : x.clone());
+        dup.mStrongRedstone = mStrongRedstone;
+        dup.mGTCustomName = mGTCustomName;
+        dup.mGTGhostCircuit = mGTGhostCircuit;
+        dup.mGTItemLock = mGTItemLock == null ? null : mGTItemLock.clone();
+        dup.mGTFluidLock = mGTFluidLock;
+        dup.mGTMode = mGTMode;
+        dup.mGTData = mGTData == null ? null : MMUtils.toJsonObject(MMUtils.toNbt(mGTData));
+        dup.mGTMEBusCapacity = mGTMEBusCapacity;
+        dup.mTTParams = mTTParams == null ? null : mTTParams.clone();
+
+        return dup;
+    }
+
+    @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;

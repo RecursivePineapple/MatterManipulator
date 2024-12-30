@@ -20,4 +20,6 @@ public interface ITileAnalysisIntegration {
     public void getItemDetails(List<String> details);
 
     public void transform(Transform transform);
+
+    public ITileAnalysisIntegration clone();
 }

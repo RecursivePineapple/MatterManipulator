@@ -23,6 +23,8 @@ public class CoverData {
     public transient CoverBehaviorBase<?> behaviour;
     public transient ISerializableObject coverDataObject;
 
+    public CoverData() { }
+
     public CoverData(PortableItemStack cover, NBTBase coverData, int tickRateAddition) {
         this.cover = cover;
         this.coverData = coverData;
@@ -58,6 +60,18 @@ public class CoverData {
         }
 
         return coverDataObject;
+    }
+
+    @Override
+    public CoverData clone() {
+        CoverData dup = new CoverData();
+
+        dup.cover = cover.clone();
+        dup.coverData = coverData.copy();
+        dup.tickRateAddition = tickRateAddition;
+        dup.coverID = coverID;
+        
+        return dup;
     }
 
     /**

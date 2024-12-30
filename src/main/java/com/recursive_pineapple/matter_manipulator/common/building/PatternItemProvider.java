@@ -60,4 +60,14 @@ public class PatternItemProvider implements IItemProvider {
 
         return stack;
     }
+
+    @Override
+    public PatternItemProvider clone() {
+        PatternItemProvider dup = new PatternItemProvider();
+
+        dup.amount = amount;
+        dup.pattern = (NBTTagCompound) pattern.copy();
+
+        return dup;
+    }
 }

@@ -147,6 +147,19 @@ public class AECellItemProvider implements IItemProvider {
     }
 
     @Override
+    public AECellItemProvider clone() {
+        AECellItemProvider dup = new AECellItemProvider();
+
+        dup.mCell = mCell.clone();
+        dup.mUpgrades = MMUtils.mapToArray(mUpgrades, PortableItemStack[]::new, x -> x == null ? null : x.clone());
+        dup.mConfig = MMUtils.mapToArray(mConfig, PortableItemStack[]::new, x -> x == null ? null : x.clone());
+        dup.mOreDict = mOreDict;
+        dup.mFuzzyMode = mFuzzyMode;
+
+        return dup;
+    }
+
+    @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;

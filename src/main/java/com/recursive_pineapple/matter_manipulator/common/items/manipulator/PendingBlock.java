@@ -214,7 +214,7 @@ public class PendingBlock extends Location {
         dup.blockId = blockId;
         dup.metadata = metadata;
         dup.flags = flags;
-        dup.tileData = tileData;
+        dup.tileData = tileData == null ? null : tileData.clone();
         dup.renderOrder = renderOrder;
         dup.buildOrder = buildOrder;
         dup.item = item;

@@ -152,4 +152,17 @@ public class ArchitectureCraftAnalysisResult implements ITileAnalysisIntegration
     public void transform(Transform transform) {
 
     }
+
+    @Override
+    public ArchitectureCraftAnalysisResult clone() {
+        ArchitectureCraftAnalysisResult dup = new ArchitectureCraftAnalysisResult();
+
+        dup.shape = shape;
+        dup.side = side;
+        dup.turn = turn;
+        dup.material = material == null ? null : material.clone();
+        dup.cladding = cladding == null ? null : cladding.clone();
+
+        return dup;
+    }
 }

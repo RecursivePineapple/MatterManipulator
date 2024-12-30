@@ -287,6 +287,24 @@ public class AEPartData {
         }
     }
 
+    public AEPartData clone() {
+        AEPartData dup = new AEPartData();
+
+        dup.mPart = mPart == null ? null : mPart.clone();
+        dup.mSettingsName = mSettingsName;
+        dup.mSettings = mSettings == null ? null : (NBTTagCompound) mSettings.copy();
+        dup.mCustomName = mCustomName;
+        dup.mAEUpgrades = mAEUpgrades == null ? null : MMUtils.mapToArray(mAEUpgrades, PortableItemStack[]::new, x -> x == null ? null : x.clone());
+        dup.mConfig = mConfig == null ? null : mConfig.clone();
+        dup.mAEPatterns = mAEPatterns == null ? null : mAEPatterns.clone();
+        dup.mOreDict = mOreDict;
+        dup.mP2POutput = mP2POutput;
+        dup.mP2PFreq = mP2PFreq;
+        dup.priority = priority;
+
+        return dup;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;

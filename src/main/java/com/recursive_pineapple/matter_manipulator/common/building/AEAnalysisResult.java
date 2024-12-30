@@ -365,6 +365,23 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
     }
 
     @Override
+    public AEAnalysisResult clone() {
+        AEAnalysisResult dup = new AEAnalysisResult();
+
+        dup.mAEColour = mAEColour;
+        dup.mAEUp = mAEUp;
+        dup.mAEForward = mAEForward;
+        dup.mAEConfig = mAEConfig == null ? null : MMUtils.toJsonObject(MMUtils.toNbt(mAEConfig));
+        dup.mAEUpgrades = mAEUpgrades == null ? null : MMUtils.mapToArray(mAEUpgrades, PortableItemStack[]::new, x -> x == null ? null : x.clone());
+        dup.mAECustomName = mAECustomName;
+        dup.mAEParts = mAEParts == null ? null : MMUtils.mapToArray(mAEParts, AEPartData[]::new, x -> x == null ? null : x.clone());
+        dup.mAECells = mAECells == null ? null : mAECells.clone();
+        dup.mAEPatterns = mAEPatterns == null ? null : mAEPatterns.clone();
+
+        return dup;
+    }
+
+    @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;

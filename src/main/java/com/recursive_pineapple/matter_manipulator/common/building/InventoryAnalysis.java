@@ -6,6 +6,7 @@ import javax.annotation.Nullable;
 
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
 import com.recursive_pineapple.matter_manipulator.common.utils.InventoryAdapter;
+import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 
 import net.minecraft.inventory.IInventory;
@@ -138,5 +139,15 @@ public class InventoryAnalysis {
         if (didSomething) inv.markDirty();
 
         return success;
+    }
+
+    @Override
+    protected InventoryAnalysis clone() {
+        InventoryAnalysis dup = new InventoryAnalysis();
+        
+        dup.mFuzzy = mFuzzy;
+        dup.mItems = MMUtils.mapToArray(mItems, IItemProvider[]::new, x -> x == null ? null : x.clone());
+
+        return dup;
     }
 }

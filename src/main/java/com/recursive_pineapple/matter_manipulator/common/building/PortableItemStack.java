@@ -118,6 +118,21 @@ public class PortableItemStack implements IItemProvider {
     }
 
     @Override
+    public PortableItemStack clone() {
+        PortableItemStack dup = new PortableItemStack();
+
+        dup.item = item;
+        dup.metadata = metadata;
+        dup.amount = amount;
+        dup.nbt = nbt == null ? null : (NBTTagCompound) nbt.copy();
+        dup.itemRef = itemRef;
+        dup.blockRef = blockRef;
+        dup.itemStack = itemStack;
+
+        return dup;
+    }
+
+    @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;

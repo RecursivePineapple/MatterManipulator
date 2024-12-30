@@ -18,4 +18,6 @@ public interface IItemProvider {
      * @return The item, or null if the pseudo inventory didn't have the required items.
      */
     public @Nullable ItemStack getStack(IPseudoInventory inv, boolean consume);
+
+    public IItemProvider clone();
 }

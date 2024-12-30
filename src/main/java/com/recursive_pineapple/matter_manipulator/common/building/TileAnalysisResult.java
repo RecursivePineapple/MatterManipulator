@@ -169,6 +169,17 @@ public class TileAnalysisResult {
         mDirection = transform.apply(mDirection);
     }
 
+    public TileAnalysisResult clone() {
+        TileAnalysisResult dup = new TileAnalysisResult();
+
+        if (gt != null) dup.gt = gt.clone();
+        if (ae != null) dup.ae = ae.clone();
+        if (arch != null) dup.arch = arch.clone();
+        if (mInventory != null) dup.mInventory = mInventory.clone();
+
+        return dup;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
