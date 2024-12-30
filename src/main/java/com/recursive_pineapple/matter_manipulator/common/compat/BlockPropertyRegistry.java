@@ -777,6 +777,9 @@ public class BlockPropertyRegistry {
                     TileEntity tile = world.getTileEntity(x, y, z);
 
                     setterFn.set(tile, value.ordinal());
+
+                    tile.markDirty();
+                    world.markBlockForUpdate(x, y, z);
                 }
             };
         } catch (Throwable t) {
