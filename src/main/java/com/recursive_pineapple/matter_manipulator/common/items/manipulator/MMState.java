@@ -268,11 +268,7 @@ public class MMState {
                 block.y = v.y;
                 block.z = v.z;
 
-                TileAnalysisResult d = block.tileData;
-
-                if (d != null) {
-                    d.transform(t);
-                }
+                block.transform(t);
             }
 
             // offset to the correct location (needs to be after rotating)

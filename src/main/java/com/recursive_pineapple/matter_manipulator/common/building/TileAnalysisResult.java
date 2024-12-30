@@ -1,18 +1,13 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
-import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.nullIfUnknown;
-
 import java.util.ArrayList;
 import java.util.List;
 
-import com.recursive_pineapple.matter_manipulator.common.building.AnalysisHacks.RotationHacks;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockAnalysisContext;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 
-import ic2.api.tile.IWrenchable;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -26,7 +21,6 @@ public class TileAnalysisResult {
     public ITileAnalysisIntegration gt, ae, arch;
 
     public InventoryAnalysis mInventory = null;
-    public ForgeDirection mDirection = null;
 
     public static final ForgeDirection[] ALL_DIRECTIONS = ForgeDirection.values();
 
@@ -48,15 +42,8 @@ public class TileAnalysisResult {
             arch = ArchitectureCraftAnalysisResult.analyze(context, te);
         }
 
-        // check its inventory
         if (te instanceof IInventory inventory) {
             mInventory = InventoryAnalysis.fromInventory(inventory, false);
-        }
-
-        if (te instanceof IWrenchable wrenchable) {
-            mDirection = MMUtils.getIndexSafe(ForgeDirection.VALID_DIRECTIONS, wrenchable.getFacing());
-        } else {
-            mDirection = nullIfUnknown(RotationHacks.getRotation(te));
         }
     }
 
@@ -77,14 +64,6 @@ public class TileAnalysisResult {
         if (te instanceof IInventory inventory && mInventory != null) {
             if (!mInventory.apply(ctx, inventory, true, false)) {
                 return false;
-            }
-        }
-
-        if (mDirection != null) {
-            if (te instanceof IWrenchable wrenchable) {
-                wrenchable.setFacing((short) mDirection.ordinal());
-            } else {
-                RotationHacks.setRotation(te, mDirection);
             }
         }
 
@@ -165,8 +144,6 @@ public class TileAnalysisResult {
         for (var analysis : getIntegrations()) {
             analysis.transform(transform);
         }
-
-        mDirection = transform.apply(mDirection);
     }
 
     public TileAnalysisResult clone() {
@@ -188,7 +165,6 @@ public class TileAnalysisResult {
         result = prime * result + ((ae == null) ? 0 : ae.hashCode());
         result = prime * result + ((arch == null) ? 0 : arch.hashCode());
         result = prime * result + ((mInventory == null) ? 0 : mInventory.hashCode());
-        result = prime * result + ((mDirection == null) ? 0 : mDirection.hashCode());
         return result;
     }
 
@@ -210,7 +186,6 @@ public class TileAnalysisResult {
         if (mInventory == null) {
             if (other.mInventory != null) return false;
         } else if (!mInventory.equals(other.mInventory)) return false;
-        if (mDirection != other.mDirection) return false;
         return true;
     }
 }

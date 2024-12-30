@@ -28,7 +28,6 @@ import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockSlab;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
@@ -123,40 +122,9 @@ public class PendingBuild extends AbstractBuildable {
             if (PendingBlock.isSameBlock(next, existing)) {
                 PendingBlock block = pendingBlocks.removeFirst();
 
-                boolean didSomething = false;
-
-                if (block.getItem() != null && !block.getItem()
-                    .getHasSubtypes()) {
-                    if (world.getBlockMetadata(block.x, block.y, block.z) != block.metadata) {
-                        world.setBlockMetadataWithNotify(block.x, block.y, block.z, block.metadata, 3);
-                        didSomething = true;
-                    }
-                }
-
-                if (block.getBlock() instanceof BlockSlab) {
-                    int meta = world.getBlockMetadata(x, y, z);
-                    boolean isUp = (meta & 8) != 0;
-                    boolean shouldBeUp = (block.flags & PendingBlock.SLAB_TOP) != 0;
-
-                    if (isUp != shouldBeUp) {
-                        if (shouldBeUp) {
-                            meta |= 8;
-                        } else {
-                            meta &= 7;
-                        }
-
-                        world.setBlockMetadataWithNotify(x, y, z, meta, 3);
-                        didSomething = true;
-                    }
-                }
-
-                if (block.tileData != null && supportsConfiguring()) {
+                if (supportsConfiguring()) {
                     applyContext.pendingBlock = block;
-                    block.tileData.apply(applyContext);
-                    didSomething = true;
-                }
-
-                if (didSomething) {
+                    block.apply(applyContext, world);
                     playSound(world, x, y, z, SoundResource.MOB_ENDERMEN_PORTAL);
                 }
 
@@ -307,9 +275,9 @@ public class PendingBuild extends AbstractBuildable {
             if (world.getBlock(x, y, z) == block && world.getBlockMetadata(x, y, z) == metadata) {
                 // somehow the block already exists, despite us checking to make sure that this shouldn't happen
                 // just to be safe, we only consume the item when we actually place something
-                if (pending.tileData != null && supportsConfiguring()) {
+                if (supportsConfiguring()) {
                     applyContext.pendingBlock = pending;
-                    pending.tileData.apply(applyContext);
+                    pending.apply(applyContext, world);
                 }
     
                 world.notifyBlockOfNeighborChange(x, y, z, Blocks.air);
@@ -348,24 +316,8 @@ public class PendingBuild extends AbstractBuildable {
                 extracted.stackSize -= perBlock.stackSize;
             }
 
-            if (!item.getHasSubtypes()) {
-                world.setBlockMetadataWithNotify(x, y, z, metadata, 3);
-            }
-
-            if (block instanceof BlockSlab) {
-                if ((pending.flags & PendingBlock.SLAB_TOP) != 0) {
-                    world.setBlockMetadataWithNotify(x, y, z, world.getBlockMetadata(x, y, z) | 8, 3);
-                } else {
-                    world.setBlockMetadataWithNotify(x, y, z, world.getBlockMetadata(x, y, z) & 7, 3);
-                }
-            }
-
-            if (pending.tileData != null && supportsConfiguring()) {
-                applyContext.pendingBlock = pending;
-                pending.tileData.apply(applyContext);
-            }
-
-            world.notifyBlockOfNeighborChange(x, y, z, Blocks.air);
+            applyContext.pendingBlock = pending;
+            pending.apply(applyContext, world);
         }
 
         if (extracted != null && i < toPlace.size()) {
@@ -433,7 +385,7 @@ public class PendingBuild extends AbstractBuildable {
         return ForgeDirection.NORTH;
     }
 
-    private class PendingBuildApplyContext implements IBlockApplyContext {
+    public class PendingBuildApplyContext implements IBlockApplyContext {
 
         public static final double EU_PER_ACTION = 8192;
 

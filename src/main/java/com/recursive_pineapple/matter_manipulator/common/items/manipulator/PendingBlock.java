@@ -3,10 +3,20 @@ package com.recursive_pineapple.matter_manipulator.common.items.manipulator;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.util.Comparator;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
+import org.joml.Vector3f;
+
+import com.google.common.collect.ImmutableList;
+import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
+import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.common.building.InteropConstants;
 import com.recursive_pineapple.matter_manipulator.common.building.TileAnalysisResult;
+import com.recursive_pineapple.matter_manipulator.common.compat.BlockProperty;
+import com.recursive_pineapple.matter_manipulator.common.compat.BlockPropertyRegistry;
 import com.recursive_pineapple.matter_manipulator.common.utils.LazyBlock;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
@@ -21,9 +31,11 @@ import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.ForgeDirection;
 
 /**
  * This represents a block in the world.
@@ -34,11 +46,7 @@ public class PendingBlock extends Location {
     public UniqueIdentifier blockId;
     public int metadata;
 
-    /**
-     * Some extra metadata that isn't saved in the item, but needs to be applied when the block is placed.
-     * Currently this is only used for slabs, since their metadata is a combination of their item and whether they're on the top or bottom.
-     */
-    public int flags;
+    public EnumMap<CopyableProperties, String> properties = null;
 
     public TileAnalysisResult tileData;
     // various sort orders, one is for drawing hints and one is for the build order
@@ -47,9 +55,6 @@ public class PendingBlock extends Location {
     private transient Item item;
     private transient Block block;
     private transient Optional<ItemStack> stack;
-
-    private static int counter = 0;
-    public static final int SLAB_TOP = 0b1 << counter++;
 
     public PendingBlock(int worldId, int x, int y, int z, ItemStack block) {
         super(worldId, x, y, z);
@@ -67,11 +72,6 @@ public class PendingBlock extends Location {
         setBlock(block, meta);
     }
 
-    public PendingBlock(int worldId, int x, int y, int z, Block block, int meta, int flags) {
-        this(worldId, x, y, z, block, meta);
-        this.flags = flags;
-    }
-
     private PendingBlock() {}
 
     /**
@@ -83,7 +83,7 @@ public class PendingBlock extends Location {
         this.stack = null;
         this.blockId = null;
         this.metadata = 0;
-        this.flags = 0;
+        this.properties = null;
         this.tileData = null;
 
         return this;
@@ -213,7 +213,7 @@ public class PendingBlock extends Location {
         dup.z = z;
         dup.blockId = blockId;
         dup.metadata = metadata;
-        dup.flags = flags;
+        dup.properties = properties == null ? null : properties.clone();
         dup.tileData = tileData == null ? null : tileData.clone();
         dup.renderOrder = renderOrder;
         dup.buildOrder = buildOrder;
@@ -224,6 +224,103 @@ public class PendingBlock extends Location {
         return dup;
     }
 
+    public void transform(Transform transform) {
+        if (properties != null) {
+            transform(CopyableProperties.FACING, transform);
+            transform(CopyableProperties.FORWARD, transform);
+            transform(CopyableProperties.UP, transform);
+            transform(CopyableProperties.LEFT, transform);
+
+            if (properties.containsKey(CopyableProperties.TOP) && transform.apply(ForgeDirection.UP) == ForgeDirection.DOWN) {
+                String value = properties.get(CopyableProperties.TOP);
+                properties.put(CopyableProperties.TOP, "true".equals(value) ? "false" : "true");
+            }
+
+            if (properties.containsKey(CopyableProperties.ROTATION)) {
+                try {
+                    int rotation = Integer.parseInt(properties.get(CopyableProperties.ROTATION));
+
+                    Vector3f v = new Vector3f(0, 0, 1)
+                        .rotateAxis(rotation * (float)Math.PI * 2f / 360f, 0, 1, 0)
+                        .mulTransposeDirection(transform.getRotation());
+
+                    rotation = MathHelper.floor_double(Math.atan2(v.x, v.z) * 360d / Math.PI / 2d + 0.5);
+                    rotation = (rotation % 360 + 360) % 360;
+
+                    properties.put(CopyableProperties.ROTATION, Integer.toString(rotation));
+                } catch (NumberFormatException e) {
+                    MMMod.LOG.error("could not transform rotation", e);
+                }
+            }
+        }
+
+        if (tileData != null) {
+            tileData.transform(transform);
+        }
+    }
+
+    private void transform(CopyableProperties prop, Transform transform) {
+        String value = properties.get(prop);
+
+        if (value == null || value.isEmpty()) return;
+
+        ForgeDirection dir;
+
+        try {
+            dir = ForgeDirection.valueOf(value.toUpperCase());
+        } catch (Exception e) {
+            MMMod.LOG.error("could not transform " + prop, e);
+            return;
+        }
+
+        dir = transform.apply(dir);
+
+        properties.put(prop, dir.name().toLowerCase());
+    }
+
+    public boolean apply(IBlockApplyContext context, World world) {
+        class RefCell { public boolean didSomething = false; }
+
+        RefCell ref = new RefCell();
+
+        if (properties == null) {
+            if (getItem() != null && !getItem().getHasSubtypes()) {
+                if (world.getBlockMetadata(x, y, z) != metadata) {
+                    world.setBlockMetadataWithNotify(x, y, z, metadata, 3);
+                    ref.didSomething = true;
+                }
+            }
+        } else {
+            Map<String, BlockProperty<?>> properties = new HashMap<>();
+            BlockPropertyRegistry.getProperties(world, x, y, z, properties);
+
+            this.properties.forEach((name, value) -> {
+                BlockProperty<?> prop = properties.get(name.toString());
+
+                String existing = prop.getValueAsString(world, x, y, z);
+
+                if (!existing.equals(value)) {
+                    ref.didSomething = true;
+
+                    try {
+                        prop.setValueFromText(world, x, y, z, value);
+                    } catch (Exception e) {
+                        context.error("could not apply property " + name + ": " + e.getMessage());
+                    }
+                }
+            });
+        }
+
+        if (tileData != null) {
+            tileData.apply(context);
+            ref.didSomething = true;
+        }
+
+        world.notifyBlockOfNeighborChange(x, y, z, Blocks.air);
+
+        return ref.didSomething;
+    }
+
     public static PendingBlock fromBlock(World world, int x, int y, int z, Block block, int meta) {
         Item item = MMUtils.getItemFromBlock(block, meta);
 
@@ -231,19 +328,32 @@ public class PendingBlock extends Location {
             return new PendingBlock(world.provider.dimensionId, x, y, z, Blocks.air, 0);
         }
 
-        block = MMUtils.getBlockFromItem(item, meta);
+        if (block != Blocks.wall_sign && block != Blocks.standing_sign) {
+            block = MMUtils.getBlockFromItem(item, meta);
+        }
 
         meta = item.getHasSubtypes() ? block.getDamageValue(world, x, y, z) : meta;
 
-        int flags = 0;
+        PendingBlock pendingBlock = new PendingBlock(world.provider.dimensionId, x, y, z, block, meta);
 
-        if (block instanceof BlockSlab) {
-            if ((world.getBlockMetadata(x, y, z) & 8) != 0) {
-                flags |= SLAB_TOP;
+        Map<String, BlockProperty<?>> properties = new HashMap<>();
+        BlockPropertyRegistry.getProperties(world, x, y, z, properties);
+
+        if (!properties.isEmpty()) {
+            EnumMap<CopyableProperties, String> values = new EnumMap<>(CopyableProperties.class);
+
+            for (CopyableProperties name : CopyableProperties.VALUES) {
+                BlockProperty<?> property = properties.get(name.toString());
+    
+                if (property == null) continue;
+
+                values.put(name, property.getValueAsString(world, x, y, z));
             }
+
+            if (!values.isEmpty()) pendingBlock.properties = values;
         }
 
-        return new PendingBlock(world.provider.dimensionId, x, y, z, block, meta, flags);
+        return pendingBlock;
     }
 
     /**
@@ -349,5 +459,24 @@ public class PendingBlock extends Location {
 
                 return chunkX | (chunkZ << 32);
             });
+    }
+
+    public static enum CopyableProperties {
+        FACING,
+        FORWARD,
+        UP,
+        LEFT,
+        TOP,
+        ROTATION,
+        MODE,
+        TEXT,
+        ;
+
+        public static final ImmutableList<CopyableProperties> VALUES = ImmutableList.copyOf(values());
+
+        @Override
+        public String toString() {
+            return name().toLowerCase();
+        }
     }
 }
