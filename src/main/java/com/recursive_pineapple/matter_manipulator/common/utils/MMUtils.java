@@ -560,12 +560,24 @@ public class MMUtils {
         return dir == ForgeDirection.UNKNOWN ? null : dir;
     }
 
+    public static <T> int indexOf(T[] array, T value) {
+        int l = array.length;
+
+        for (int i = 0; i < l; i++) {
+            if (array[i] == value) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+    
     public static <T> T getIndexSafe(T[] array, int index) {
-        return index < 0 || index >= array.length ? null : array[index];
+        return array == null || index < 0 || index >= array.length ? null : array[index];
     }
     
     public static <T> T getIndexSafe(List<T> list, int index) {
-        return index < 0 || index >= list.size() ? null : list.get(index);
+        return list == null || index < 0 || index >= list.size() ? null : list.get(index);
     }
     
     /**

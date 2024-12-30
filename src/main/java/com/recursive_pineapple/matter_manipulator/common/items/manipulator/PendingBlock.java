@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.joml.Vector3f;
@@ -17,6 +18,7 @@ import com.recursive_pineapple.matter_manipulator.common.building.InteropConstan
 import com.recursive_pineapple.matter_manipulator.common.building.TileAnalysisResult;
 import com.recursive_pineapple.matter_manipulator.common.compat.BlockProperty;
 import com.recursive_pineapple.matter_manipulator.common.compat.BlockPropertyRegistry;
+import com.recursive_pineapple.matter_manipulator.common.compat.Orientation;
 import com.recursive_pineapple.matter_manipulator.common.utils.LazyBlock;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
@@ -252,6 +254,20 @@ public class PendingBlock extends Location {
                     MMMod.LOG.error("could not transform rotation", e);
                 }
             }
+
+            if (properties.containsKey(CopyableProperties.ORIENTATION)) {
+                try {
+                    Orientation o = Orientation.valueOf(properties.get(CopyableProperties.ORIENTATION).toUpperCase());
+
+                    o = Orientation.getOrientation(
+                        transform.apply(o.a),
+                        transform.apply(o.b));
+
+                    properties.put(CopyableProperties.ORIENTATION, o.name().toLowerCase());
+                } catch (Exception e) {
+                    MMMod.LOG.error("could not transform orientation", e);
+                }
+            }
         }
 
         if (tileData != null) {
@@ -457,8 +473,9 @@ public class PendingBlock extends Location {
                 int chunkX = b.x >> 4;
                 int chunkZ = b.z >> 4;
 
-                return chunkX | (chunkZ << 32);
-            });
+                return (long) chunkX | (long) (chunkZ << 32);
+            })
+            .thenComparing(b -> Objects.hashCode(b.tileData));
     }
 
     public static enum CopyableProperties {
@@ -470,6 +487,7 @@ public class PendingBlock extends Location {
         ROTATION,
         MODE,
         TEXT,
+        ORIENTATION,
         ;
 
         public static final ImmutableList<CopyableProperties> VALUES = ImmutableList.copyOf(values());

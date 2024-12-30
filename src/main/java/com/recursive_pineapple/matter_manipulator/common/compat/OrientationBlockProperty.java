@@ -15,6 +15,11 @@ public interface OrientationBlockProperty extends BlockProperty<Orientation> {
         throw new Exception("illegal orientation: '" + text + "'");
     }
 
+    @Override
+    default String stringify(Orientation value) {
+        return value.name().toLowerCase();
+    }
+
     public static interface O2M {
         int getMeta(Orientation dir);
     }

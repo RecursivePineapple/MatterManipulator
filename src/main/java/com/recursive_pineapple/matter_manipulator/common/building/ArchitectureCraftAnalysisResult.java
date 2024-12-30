@@ -20,7 +20,6 @@ import net.minecraft.tileentity.TileEntity;
 public class ArchitectureCraftAnalysisResult implements ITileAnalysisIntegration {
 
     public int shape;
-    public byte side, turn;
     public PortableItemStack material, cladding;
 
     public static ArchitectureCraftAnalysisResult analyze(IBlockAnalysisContext context, TileEntity te) {
@@ -29,8 +28,6 @@ public class ArchitectureCraftAnalysisResult implements ITileAnalysisIntegration
         ArchitectureCraftAnalysisResult result = new ArchitectureCraftAnalysisResult();
 
         result.shape = tileShape.shape.id;
-        result.side = tileShape.side;
-        result.turn = tileShape.turn;
 
         result.material = new PortableItemStack(new ItemStack(tileShape.baseBlockState.getBlock(), 0, BlockCompatUtils.getMetaFromBlockState(tileShape.baseBlockState)));
 
@@ -46,9 +43,6 @@ public class ArchitectureCraftAnalysisResult implements ITileAnalysisIntegration
         TileEntity te = ctx.getTileEntity();
 
         if (te instanceof TileShape tileShape) {
-            tileShape.setSide(side);
-            tileShape.setTurn(turn);
-
             if (tileShape.secondaryBlockState != null) {
                 removeCladding(ctx, tileShape, false);
             }
@@ -158,11 +152,49 @@ public class ArchitectureCraftAnalysisResult implements ITileAnalysisIntegration
         ArchitectureCraftAnalysisResult dup = new ArchitectureCraftAnalysisResult();
 
         dup.shape = shape;
-        dup.side = side;
-        dup.turn = turn;
         dup.material = material == null ? null : material.clone();
         dup.cladding = cladding == null ? null : cladding.clone();
 
         return dup;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + shape;
+        result = prime * result + ((material == null) ? 0 : material.hashCode());
+        result = prime * result + ((cladding == null) ? 0 : cladding.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ArchitectureCraftAnalysisResult other = (ArchitectureCraftAnalysisResult) obj;
+        if (shape != other.shape)
+            return false;
+        if (material == null) {
+            if (other.material != null)
+                return false;
+        } else if (!material.equals(other.material))
+            return false;
+        if (cladding == null) {
+            if (other.cladding != null)
+                return false;
+        } else if (!cladding.equals(other.cladding))
+            return false;
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "ArchitectureCraftAnalysisResult [shape=" + shape + ", material=" + material + ", cladding=" + cladding
+                + "]";
     }
 }

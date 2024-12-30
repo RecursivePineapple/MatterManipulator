@@ -18,6 +18,7 @@ import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
+import gcewing.architecture.common.tile.TileArchitecture;
 import ic2.api.tile.IWrenchable;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -172,6 +173,7 @@ public class BlockPropertyRegistry {
 
         if (Mods.StorageDrawers.isModLoaded()) initStorageDrawers();
         if (Mods.IndustrialCraft2.isModLoaded()) initIC2();
+        if (Mods.ArchitectureCraft.isModLoaded()) initArch();
     }
 
     //#region Vanilla
@@ -720,6 +722,66 @@ public class BlockPropertyRegistry {
                     wrenchable.setFacing((short) value.ordinal());
                 }
             });
+    }
+
+    //#endregion
+
+    //#region Architecturecraft
+
+    private static void initArch() {
+
+        final ForgeDirection[][] FORWARDS = {
+            {SOUTH, EAST, NORTH, WEST}, // down = DOWN
+            {NORTH, EAST, SOUTH, WEST}, // down = UP
+            {DOWN, EAST, UP, WEST}, // down = NORTH
+            {DOWN, WEST, UP, EAST}, // down = SOUTH
+            {DOWN, NORTH, UP, SOUTH}, // down = WEST
+            {DOWN, SOUTH, UP, NORTH}, // down = EAST
+        };
+
+        registerTileEntityInterfaceProperty(
+            TileArchitecture.class,
+            new OrientationBlockProperty() {
+                @Override
+                public String getName() { return "orientation"; }
+
+                @Override
+                public Orientation getValue(World world, int x, int y, int z) {
+                    if (!(world.getTileEntity(x, y, z) instanceof TileArchitecture tile)) return Orientation.NONE;
+                    
+                    return Orientation.getOrientation(
+                        ForgeDirection.getOrientation(tile.side),
+                        MMUtils.getIndexSafe(MMUtils.getIndexSafe(FORWARDS, tile.side), tile.turn));
+                }
+
+                @Override
+                public void setValue(World world, int x, int y, int z, Orientation value) {
+                    if (!(world.getTileEntity(x, y, z) instanceof TileArchitecture tile)) return;
+
+                    if (value == null || value == Orientation.NONE || value.a == value.b || value.a.getOpposite() == value.b) value = Orientation.DOWN_NORTH;
+
+                    int index = MMUtils.indexOf(MMUtils.getIndexSafe(FORWARDS, value.a.ordinal()), value.b);
+
+                    if (index != -1) {
+                        tile.turn = (byte) index;
+                        tile.side = (byte) value.a.ordinal();
+                    } else {
+                        for (int side = 0; side < FORWARDS.length; side++) {
+                            index = MMUtils.indexOf(FORWARDS[side], value);
+    
+                            if (index != -1) {
+                                tile.side = (byte) side;
+                                tile.turn = (byte) index;
+                                break;
+                            }
+                        }
+                    }
+
+                    tile.markDirty();
+                    world.markBlockForUpdate(x, y, z);
+                }
+            }
+        );
     }
 
     //#endregion
