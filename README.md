@@ -14,7 +14,7 @@ You can find the releases [here](https://github.com/RecursivePineapple/MatterMan
 
 See [here](https://github.com/users/RecursivePineapple/projects/1/views/1) for more information on what's being worked on. I'll use this github project to track what I need to work on and their priorities.
 
-## For Non-GTNH modpacks
+## For Non-GTNH Modpacks
 
 This tool can be used as a standalone mod with a few dependencies, but it doesn't come with any default recipes since vanilla just doesn't have enough items or mechanics to support it. It's highly recommended to add your own recipes if using this in a non-GTNH pack. The manipulator crafting components will always be present, so it's also recommended to follow the existing pattern of making components, then combining the components into the final tool.
 
@@ -103,9 +103,9 @@ Note: attunable P2Ps (non-interface P2Ps) will also be attuned automatically fro
 ### Miscellaneous
 
 - Inventories
-- Storage Drawer rotation
+- Block rotations (vanilla mainly, with a handful of supported mods)
 
-Note: any block that uses metadata to store its rotation (pistons, stairs, etc) will be automatically rotated. Some mod TileEntities (such as drawers) will need to have their own logic added, since they may not use metadata for this.
+Note: certain blocks may need extra logic for their rotations. If you find a block that can't be rotated but should be, please open an issue or DM me.
 
 ## How to use the tool
 
