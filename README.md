@@ -4,19 +4,21 @@ This mod adds the matter manipulator, which is meant to be a survival-usable ver
 
 ## Current Status (Important, read me!)
 
-This tool can be used as a standalone mod with a few dependencies, but it doesn't come with any default recipes since vanilla just doesn't have enough items or mechanics to support it. It's highly recommended to add your own recipes if using this in a pack. The manipulator crafting components will always be present, so it's also recommended to follow the existing pattern of making components, then combining the components into the final tool.
-
 This tool is in beta, meaning that it can be used in survival worlds if you're fine with loading backups. There are certainly still bugs that aren't known, but it seems stable enough to be used.
 
-If you're using this in GTNH, you must upgrade your GT5u jar to the latest custom release found [here](https://github.com/RecursivePineapple/GT5-Unofficial/releases) that matches your modpack version. This patched GT5u contains several patches that are required for the matter manipulator to properly interact with GT machines. Your game will crash if you try to use a matter manipulator in GTNH without this jar.
+If you're using this in GTNH 2.7.x, you must upgrade your GT5u jar to the latest custom release found [here](https://github.com/RecursivePineapple/GT5-Unofficial/releases) that matches your modpack version. This patched GT5u contains several patches that are required for the matter manipulator to properly interact with GT machines. Your game will crash if you try to use a matter manipulator in GTNH without this jar.
 
-This mod will be added to GTNH and its GT5u PR will be merged some time in the new year, after 2.7 is released and stable.
+This mod will be added to GTNH some time in the new year, after 2.7 is released and stable. The compat PR has been merged, so you can use the mod in any nightly from 2025.
 
 You can find the releases [here](https://github.com/RecursivePineapple/MatterManipulator/releases).
 
 See [here](https://github.com/users/RecursivePineapple/projects/1/views/1) for more information on what's being worked on. I'll use this github project to track what I need to work on and their priorities.
 
-## Required Dependencies (for non-GTNH modpacks)
+## For Non-GTNH modpacks
+
+This tool can be used as a standalone mod with a few dependencies, but it doesn't come with any default recipes since vanilla just doesn't have enough items or mechanics to support it. It's highly recommended to add your own recipes if using this in a non-GTNH pack. The manipulator crafting components will always be present, so it's also recommended to follow the existing pattern of making components, then combining the components into the final tool.
+
+### Required Dependencies
 
 - StructureLib
 - ModularUI 1
