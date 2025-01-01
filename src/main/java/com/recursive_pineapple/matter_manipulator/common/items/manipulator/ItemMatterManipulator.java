@@ -12,6 +12,7 @@ import static net.minecraftforge.common.util.ForgeDirection.SOUTH;
 import static net.minecraftforge.common.util.ForgeDirection.UP;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
+import java.util.stream.Collectors;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -39,7 +41,6 @@ import net.minecraft.item.EnumRarity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MathHelper;
@@ -58,7 +59,6 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
 import com.google.common.collect.MapMaker;
-import com.google.gson.JsonElement;
 import com.gtnewhorizon.gtnhlib.util.AboveHotbarHUD;
 import com.gtnewhorizon.structurelib.StructureLibAPI;
 import com.gtnewhorizon.structurelib.entity.fx.WeightlessParticleFX;
@@ -93,15 +93,13 @@ import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.RenderingConfig
 import com.recursive_pineapple.matter_manipulator.client.gui.DirectionDrawable;
 import com.recursive_pineapple.matter_manipulator.client.gui.RadialMenuBuilder;
 import com.recursive_pineapple.matter_manipulator.client.rendering.BoxRenderer;
+import com.recursive_pineapple.matter_manipulator.common.building.BlockSpec;
 import com.recursive_pineapple.matter_manipulator.common.building.IBuildable;
 import com.recursive_pineapple.matter_manipulator.common.building.PendingBlock;
 import com.recursive_pineapple.matter_manipulator.common.building.PendingBuild;
 import com.recursive_pineapple.matter_manipulator.common.building.PendingMove;
 
 import appeng.api.features.INetworkEncodable;
-import appeng.api.implementations.parts.IPartCable;
-import appeng.api.parts.IPartHost;
-import appeng.api.parts.PartItemStack;
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Optional.Interface;
@@ -114,10 +112,7 @@ import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import gregtech.api.interfaces.metatileentity.IConnectable;
-import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 
-import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMConfig.VoxelAABB;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.BlockRemoveMode;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.BlockSelectMode;
@@ -505,10 +500,10 @@ public class ItemMatterManipulator extends Item
                 addInfoLine(desc, "Coordinate A: %s", state.config.coordA);
                 addInfoLine(desc, "Coordinate B: %s", state.config.coordB);
         
-                addInfoLine(desc, "Corner block: %s", state.config.getCorners(), ItemStack::getDisplayName);
-                addInfoLine(desc, "Edge block: %s", state.config.getEdges(), ItemStack::getDisplayName);
-                addInfoLine(desc, "Face block: %s", state.config.getFaces(), ItemStack::getDisplayName);
-                addInfoLine(desc, "Volume block: %s", state.config.getVolumes(), ItemStack::getDisplayName);
+                addInfoLine(desc, "Corner block: %s", state.config.corners, ItemMatterManipulator::specsToString);
+                addInfoLine(desc, "Edge block: %s", state.config.edges, ItemMatterManipulator::specsToString);
+                addInfoLine(desc, "Face block: %s", state.config.faces, ItemMatterManipulator::specsToString);
+                addInfoLine(desc, "Volume block: %s", state.config.volumes, ItemMatterManipulator::specsToString);
             }
 
             if (state.config.placeMode == PlaceMode.COPYING) {
@@ -535,25 +530,15 @@ public class ItemMatterManipulator extends Item
             }
 
             if (state.config.placeMode == PlaceMode.EXCHANGING) {
-                List<JsonElement> whitelist = state.config.replaceWhitelist;
-
-                if (whitelist != null && whitelist.isEmpty()) whitelist = null;
-
-                addInfoLine(desc, "Removable blocks: %s", whitelist, (List<JsonElement> blocks) -> {
-                    return blocks.stream()
-                        .map(MMConfig::loadStack)
-                        .map(stack -> stack.getDisplayName())
-                        .reduce((a, b) -> a + ", " + b)
-                        .get();
-                });
-                addInfoLine(desc, "Replacing blocks with: %s", state.config.replaceWith, with -> MMConfig.loadStack(with).getDisplayName());
+                addInfoLine(desc, "Removable blocks: %s", state.config.replaceWhitelist, ItemMatterManipulator::specsToString);
+                addInfoLine(desc, "Replacing blocks with: %s", state.config.replaceWith, ItemMatterManipulator::specsToString);
             }
 
             if (state.config.placeMode == PlaceMode.CABLES) {
                 addInfoLine(desc, "Coordinate A: %s", state.config.coordA);
                 addInfoLine(desc, "Coordinate B: %s", state.config.coordB);
         
-                addInfoLine(desc, "Cable: %s", state.config.getCables(), ItemStack::getDisplayName);
+                addInfoLine(desc, "Cable: %s", state.config.cables);
             }
         }
 
@@ -569,8 +554,14 @@ public class ItemMatterManipulator extends Item
         // spotless:on
     }
 
+    private static String specsToString(List<BlockSpec> specs) {
+        return specs.stream()
+            .map(BlockSpec::getDisplayName)
+            .collect(Collectors.joining(", "));
+    }
+
     private <T> void addInfoLine(List<String> desc, String format, T value) {
-        addInfoLine(desc, format, value, obj -> obj.toString());
+        addInfoLine(desc, format, value, T::toString);
     }
 
     private <T> void addInfoLine(List<String> desc, String format, T value, Function<T, String> toString) {
@@ -777,110 +768,105 @@ public class ItemMatterManipulator extends Item
     private void onPickBlock(World world, EntityPlayer player, ItemStack stack, MMState state,
         MovingObjectPosition hit) {
 
-        PendingBlock block = PendingBlock.fromPickBlock(world, player, hit);
-        ItemStack selected = block == null ? null : block.toStack();
+        BlockSpec block = BlockSpec.fromPickBlock(world, player, hit);
 
         String what = null;
 
+        boolean add = player.isSneaking();
+
         switch (state.config.blockSelectMode) {
             case CORNERS: {
-                state.config.setCorners(selected);
+                if (state.config.corners == null || !add) state.config.corners = new ArrayList<>();
+                state.config.corners.add(block);
                 what = "corners";
                 break;
             }
             case EDGES: {
-                state.config.setEdges(selected);
+                if (state.config.edges == null || !add) state.config.edges = new ArrayList<>();
+                state.config.edges.add(block);
                 what = "edges";
                 break;
             }
             case FACES: {
-                state.config.setFaces(selected);
+                if (state.config.faces == null || !add) state.config.faces = new ArrayList<>();
+                state.config.faces.add(block);
                 what = "faces";
                 break;
             }
             case VOLUMES: {
-                state.config.setVolumes(selected);
+                if (state.config.volumes == null || !add) state.config.volumes = new ArrayList<>();
+                state.config.volumes.add(block);
                 what = "volumes";
                 break;
             }
             case ALL: {
-                state.config.setCorners(selected);
-                state.config.setEdges(selected);
-                state.config.setFaces(selected);
-                state.config.setVolumes(selected);
+                if (state.config.corners == null || !add) state.config.corners = new ArrayList<>();
+                if (state.config.edges == null || !add) state.config.edges = new ArrayList<>();
+                if (state.config.faces == null || !add) state.config.faces = new ArrayList<>();
+                if (state.config.volumes == null || !add) state.config.volumes = new ArrayList<>();
+                state.config.corners.add(block);
+                state.config.edges.add(block);
+                state.config.faces.add(block);
+                state.config.volumes.add(block);
                 what = "all blocks";
                 break;
             }
         }
 
-        MMUtils.sendInfoToPlayer(
-            player,
-            String.format("Set %s to: %s", what, selected == null ? "nothing" : selected.getDisplayName()));
+        if (add) {
+            MMUtils.sendInfoToPlayer(
+                player,
+                String.format("Added %s to %s", block.getDisplayName(), what));
+        } else {
+            MMUtils.sendInfoToPlayer(
+                player,
+                String.format("Set %s to: %s", what, block.getDisplayName()));
+        }
     }
 
     private void onExchangeSetTarget(World world, EntityPlayer player, ItemStack stack, MMState state,
         MovingObjectPosition hit) {
 
-        PendingBlock block = PendingBlock.fromPickBlock(player.worldObj, player, hit);
-        ItemStack selected = block == null ? null : block.toStack();
+        BlockSpec block = BlockSpec.fromPickBlock(player.worldObj, player, hit);
 
-        if (tier.hasCap(ALLOW_CABLES) && AppliedEnergistics2.isModLoaded()) {
-            if (selected != null && selected.getItem() == PendingBlock.AE_BLOCK_CABLE.get().getItem()) {
-                selected = MMState.getAECable(world, hit.blockX, hit.blockY, hit.blockZ);
-            }
-        }
+        checkForAECables(block, world, hit.blockX, hit.blockY, hit.blockZ);
 
-        state.config.replaceWith = MMConfig.saveStack(selected);
+        state.config.replaceWith = new ArrayList<>(Arrays.asList(block));
 
         MMUtils.sendInfoToPlayer(
             player,
             String.format(
                 "Set block to replace with to: %s",
-                selected == null ? "nothing" : selected.getDisplayName()));
+                block.getDisplayName()));
     }
 
     private void onExchangeAddWhitelist(World world, EntityPlayer player, ItemStack stack, MMState state,
         MovingObjectPosition hit) {
-        PendingBlock block = PendingBlock.fromPickBlock(player.worldObj, player, hit);
-        ItemStack selected = block == null ? null : block.toStack();
+        
+        BlockSpec block = BlockSpec.fromPickBlock(player.worldObj, player, hit);
 
-        if (tier.hasCap(ALLOW_CABLES) && AppliedEnergistics2.isModLoaded()) {
-            if (selected != null && selected.getItem() == PendingBlock.AE_BLOCK_CABLE.get().getItem()) {
-                selected = MMState.getAECable(world, hit.blockX, hit.blockY, hit.blockZ);
-            }
+        checkForAECables(block, world, hit.blockX, hit.blockY, hit.blockZ);
+
+        if (state.config.replaceWhitelist == null) {
+            state.config.replaceWhitelist = new ArrayList<>();
         }
 
-        if (selected != null) {
-            if (state.config.replaceWhitelist == null) {
-                state.config.replaceWhitelist = new ArrayList<>();
-            }
+        state.config.replaceWhitelist.add(block);
 
-            state.config.replaceWhitelist.add(MMConfig.saveStack(selected));
-        }
-
-        if (selected != null) {
-            MMUtils.sendInfoToPlayer(
-                player,
-                String.format(
-                    "Added block to exchange whitelist: %s",
-                    selected == null ? "nothing" : selected.getDisplayName()));
-        }
+        MMUtils.sendInfoToPlayer(
+            player,
+            String.format(
+                "Added block to exchange whitelist: %s",
+                block.getDisplayName()));
     }
 
-    private void onExchangeSetWhitelist(World world, EntityPlayer player, ItemStack stack, MMState state,
-        MovingObjectPosition hit) {
-        PendingBlock block = PendingBlock.fromPickBlock(player.worldObj, player, hit);
-        ItemStack selected = block == null ? null : block.toStack();
+    private void onExchangeSetWhitelist(World world, EntityPlayer player, ItemStack stack, MMState state, MovingObjectPosition hit) {
+        BlockSpec block = BlockSpec.fromPickBlock(player.worldObj, player, hit);
 
-        if (tier.hasCap(ALLOW_CABLES) && AppliedEnergistics2.isModLoaded()) {
-            if (selected != null && selected.getItem() == PendingBlock.AE_BLOCK_CABLE.get().getItem()) {
-                selected = MMState.getAECable(world, hit.blockX, hit.blockY, hit.blockZ);
-            }
-        }
+        checkForAECables(block, world, hit.blockX, hit.blockY, hit.blockZ);
 
-        if (selected != null) {
-            state.config.replaceWhitelist = new ArrayList<>();
-            state.config.replaceWhitelist.add(MMConfig.saveStack(selected));
+        if (!block.isAir()) {
+            state.config.replaceWhitelist = new ArrayList<>(Arrays.asList(block));
         } else {
             state.config.replaceWhitelist = null;
         }
@@ -889,47 +875,34 @@ public class ItemMatterManipulator extends Item
             player,
             String.format(
                 "Set exchange whitelist to only contain: %s",
-                selected == null ? "nothing" : selected.getDisplayName()));
+                block.getDisplayName()));
     }
 
-    private void onPickCable(World world, EntityPlayer player, ItemStack stack, MMState state,
-        MovingObjectPosition hit) {
-        TileEntity te = hit == null ? null : world.getTileEntity(hit.blockX, hit.blockY, hit.blockZ);
+    private void onPickCable(World world, EntityPlayer player, ItemStack stack, MMState state, MovingObjectPosition hit) {
+        BlockSpec cable = new BlockSpec();
 
-        ItemStack selected = null;
-
-        if (Mods.GregTech.isModLoaded()) {
-            selected = pickGTCable(world, player, hit, te);
+        if (hit != null) {
+            if (Mods.GregTech.isModLoaded()) {
+                MMUtils.getGTCable(cable, world, hit.blockX, hit.blockY, hit.blockZ);
+            }
+    
+            if (cable.isAir() && Mods.AppliedEnergistics2.isModLoaded()) {
+                MMUtils.getAECable(cable, world, hit.blockX, hit.blockY, hit.blockZ);
+            }
         }
 
-        if (selected == null && Mods.AppliedEnergistics2.isModLoaded()) {
-            selected = pickAECable(te);
-        }
-
-        state.config.setCables(selected);
+        state.config.cables = cable.isAir() ? null : cable;
 
         MMUtils.sendInfoToPlayer(
             player,
-            String.format("Set cables to: %s", selected == null ? "nothing" : selected.getDisplayName()));
+            String.format("Set cables to: %s", cable.getDisplayName()));
     }
 
-    @Optional(Names.GREG_TECH)
-    private ItemStack pickGTCable(World world, EntityPlayer player, MovingObjectPosition hit, TileEntity te) {
-        if (te instanceof IGregTechTileEntity igte && igte.getMetaTileEntity() instanceof IConnectable) {
-            PendingBlock block = PendingBlock.fromPickBlock(world, player, hit);
-
-            return block == null ? null : block.toStack();
-        } else {
-            return null;
-        }
-    }
-
-    @Optional(Names.APPLIED_ENERGISTICS2)
-    private ItemStack pickAECable(TileEntity te) {
-        if (te instanceof IPartHost partHost && partHost.getPart(ForgeDirection.UNKNOWN) instanceof IPartCable cable) {
-            return cable.getItemStack(PartItemStack.Pick);
-        } else {
-            return null;
+    private void checkForAECables(BlockSpec spec, World world, int x, int y, int z) {
+        if (tier.hasCap(ALLOW_CABLES) && AppliedEnergistics2.isModLoaded()) {
+            if (spec.getItem() == PendingBlock.AE_BLOCK_CABLE.get().getItem()) {
+                MMUtils.getAECable(spec, world, x, y, z);
+            }
         }
     }
 
@@ -2362,6 +2335,8 @@ public class ItemMatterManipulator extends Item
 
             int i = 0;
 
+            BlockSpec pooled = new BlockSpec();
+
             for (PendingBlock pendingBlock : analysisCache) {
                 if (tier.maxRange != -1) {
                     int dist2 = pendingBlock.distanceTo2(playerLocation);
@@ -2369,17 +2344,16 @@ public class ItemMatterManipulator extends Item
                     if (dist2 > buildable) continue;
                 }
 
-                if (pendingBlock.blockId.name.equals("air") && player.worldObj.isAirBlock(pendingBlock.x, pendingBlock.y, pendingBlock.z)) {
+                if (pendingBlock.spec.isAir() && player.worldObj.isAirBlock(pendingBlock.x, pendingBlock.y, pendingBlock.z)) {
                     continue;
                 }
 
                 Block block = pendingBlock.getBlock();
-                PendingBlock existing = PendingBlock
-                    .fromBlock(player.worldObj, pendingBlock.x, pendingBlock.y, pendingBlock.z);
+                BlockSpec.fromBlock(pooled, player.worldObj, pendingBlock.x, pendingBlock.y, pendingBlock.z);
 
                 if (pendingBlock.isInWorld(player.worldObj) && block != null
                     && block != Blocks.air
-                    && !PendingBlock.isSameBlock(existing, pendingBlock)) {
+                    && !pooled.isEquivalent(pendingBlock.spec)) {
 
                     if (++i > RenderingConfig.maxHints) break;
 
@@ -2389,7 +2363,7 @@ public class ItemMatterManipulator extends Item
                         pendingBlock.y,
                         pendingBlock.z,
                         block,
-                        pendingBlock.metadata);
+                        pendingBlock.spec.getBlockMeta());
 
                     // Exchanging hints should be shown through the block
                     if (state.config.placeMode == PlaceMode.EXCHANGING) {

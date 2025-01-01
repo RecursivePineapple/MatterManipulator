@@ -29,7 +29,6 @@ import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -67,6 +66,8 @@ public class PendingBuild extends AbstractBuildable {
 
         PendingBuildApplyContext applyContext = new PendingBuildApplyContext(stack);
 
+        BlockSpec pooled = new BlockSpec();
+
         // check every pending block that's left
         while (toPlace.size() < tier.placeSpeed && pendingBlocks.size() > 0) {
             PendingBlock next = pendingBlocks.getFirst();
@@ -101,24 +102,24 @@ public class PendingBuild extends AbstractBuildable {
 
             // if this block is different from the last one, stop checking blocks
             // since the pending blocks are sorted by their contained block, this is usually true
-            if (!toPlace.isEmpty() && !PendingBlock.isSameBlock(next, toPlace.get(0))) {
+            if (!toPlace.isEmpty() && !next.spec.isEquivalent(toPlace.get(0).spec)) {
                 break;
             }
 
-            PendingBlock existing = PendingBlock.fromBlock(world, x, y, z);
+            BlockSpec existing = BlockSpec.fromBlock(pooled, world, x, y, z);
 
             if (existing.shouldBeSkipped()) {
                 pendingBlocks.removeFirst();
                 continue;
             }
 
-            if (next.getBlock() == Blocks.air && existing.getBlock() == Blocks.air) {
+            if (next.spec.isAir() && existing.getBlock().isAir(world, x, y, z)) {
                 pendingBlocks.removeFirst();
                 continue;
             }
 
             // if the existing block is the same as the one we're trying to place, just apply its tile data
-            if (PendingBlock.isSameBlock(next, existing)) {
+            if (next.spec.isEquivalent(existing)) {
                 PendingBlock block = pendingBlocks.removeFirst();
 
                 if (supportsConfiguring()) {
@@ -130,16 +131,14 @@ public class PendingBuild extends AbstractBuildable {
                 continue;
             }
 
-            Block existingBlock = existing == null ? Blocks.air : existing.getBlock();
-
             // checks if the existing block is removable
             boolean canPlace = switch (state.config.removeMode) {
-                case NONE -> existingBlock.isAir(world, x, y, z);
-                case REPLACEABLE -> existingBlock.isReplaceable(world, x, y, z);
+                case NONE -> existing.getBlock().isAir(world, x, y, z);
+                case REPLACEABLE -> existing.getBlock().isReplaceable(world, x, y, z);
                 case ALL -> true;
             };
 
-            canPlace &= existingBlock.getBlockHardness(world, x, y, z) >= 0;
+            canPlace &= existing.getBlock().getBlockHardness(world, x, y, z) >= 0;
 
             // we don't want to remove these even though they'll never be placed because we want to see how many blocks
             // couldn't be placed
@@ -155,36 +154,34 @@ public class PendingBuild extends AbstractBuildable {
             }
 
             // if there's an existing block then remove it if possible
-            if (!existingBlock.isAir(world, x, y, z)) {
+            if (!existing.getBlock().isAir(world, x, y, z)) {
                 if (!tier.hasCap(ItemMatterManipulator.ALLOW_REMOVING)) {
                     pendingBlocks.removeFirst();
                     continue;
                 }
 
-                if (!tryConsumePower(stack, existing)) {
+                if (!tryConsumePower(stack, world, x, y, z, existing)) {
                     MMUtils.sendErrorToPlayer(player, "Matter Manipulator ran out of EU.");
                     break;
                 }
-
-                removeBlock(world, x, y, z, existingBlock, existing == null ? 0 : existing.metadata);
             }
 
             // check block dependencies for things like levers
             // if we can't place this block, shuffle it to the back of the list
-            if (!next.getBlock()
-                .canPlaceBlockAt(world, next.x, next.y, next.z)) {
-                pendingBlocks.addLast(pendingBlocks.removeFirst());
-                shuffleCount++;
+            // if (!next.getBlock()
+            //     .canPlaceBlockAt(world, next.x, next.y, next.z)) {
+            //     pendingBlocks.addLast(pendingBlocks.removeFirst());
+            //     shuffleCount++;
 
-                // if we've shuffled every block, then we'll never be able to place any of them
-                if (shuffleCount > pendingBlocks.size()) {
-                    break;
-                } else {
-                    continue;
-                }
-            }
+            //     // if we've shuffled every block, then we'll never be able to place any of them
+            //     if (shuffleCount > pendingBlocks.size()) {
+            //         break;
+            //     } else {
+            //         continue;
+            //     }
+            // }
 
-            if (!tryConsumePower(stack, next)) {
+            if (!tryConsumePower(stack, world, x, y, z, next.spec)) {
                 MMUtils.sendErrorToPlayer(player, "Matter Manipulator ran out of EU.");
                 break;
             }
@@ -215,7 +212,7 @@ public class PendingBuild extends AbstractBuildable {
 
         PendingBlock first = toPlace.get(0);
 
-        ItemStack perBlock = first.toStack();
+        ItemStack perBlock = first.getStack();
         long total = 0;
         BigItemStack extracted = null;
 
@@ -264,14 +261,11 @@ public class PendingBuild extends AbstractBuildable {
 
             playSound(world, x, y, z, SoundResource.MOB_ENDERMEN_PORTAL);
 
-            Block block = pending.getBlock();
-            Item item = pending.getItem();
+            int metadata = pending.spec.getBlockMeta();
 
-            if (item == null) continue;
+            BlockSpec existing = BlockSpec.fromBlock(pooled, world, x, y, z);
 
-            int metadata = item.getHasSubtypes() ? item.getMetadata(pending.metadata) : pending.metadata;
-
-            if (world.getBlock(x, y, z) == block && world.getBlockMetadata(x, y, z) == metadata) {
+            if (existing.isEquivalent(pending.spec)) {
                 // somehow the block already exists, despite us checking to make sure that this shouldn't happen
                 // just to be safe, we only consume the item when we actually place something
                 if (supportsConfiguring()) {
@@ -287,27 +281,35 @@ public class PendingBuild extends AbstractBuildable {
                 break;
             }
 
-            if (item instanceof ItemBlock itemBlock) {
-                itemBlock.placeBlockAt(
-                    perBlock,
-                    player,
-                    player.worldObj,
-                    x,
-                    y,
-                    z,
-                    getDefaultPlaceSide(perBlock).ordinal(),
-                    0,
-                    0,
-                    0,
-                    metadata);
-            } else {
-                if (!world.setBlock(x, y, z, block, metadata, 3)) {
-                    continue;
-                }
+            if (!existing.isAir()) {
+                removeBlock(world, x, y, z, existing);
+            }
 
-                if (world.getBlock(x, y, z) == block) {
-                    block.onBlockPlacedBy(world, x, y, z, player, stack);
-                    block.onPostBlockPlaced(world, x, y, z, metadata);
+            if (!pending.spec.isAir()) {
+                Block block = pending.getBlock();
+
+                if (pending.getItem() instanceof ItemBlock itemBlock) {
+                    itemBlock.placeBlockAt(
+                        perBlock,
+                        player,
+                        player.worldObj,
+                        x,
+                        y,
+                        z,
+                        getDefaultPlaceSide(pending.spec).ordinal(),
+                        0,
+                        0,
+                        0,
+                        metadata);
+                } else {
+                    if (!world.setBlock(x, y, z, block, metadata, 3)) {
+                        continue;
+                    }
+    
+                    if (world.getBlock(x, y, z) == block) {
+                        block.onBlockPlacedBy(world, x, y, z, player, stack);
+                        block.onPostBlockPlaced(world, x, y, z, metadata);
+                    }
                 }
             }
 
@@ -376,8 +378,8 @@ public class PendingBuild extends AbstractBuildable {
         return false;
     }
 
-    private ForgeDirection getDefaultPlaceSide(ItemStack stack) {
-        if (Mods.GregTech.isModLoaded() && MMState.isGTCable(stack)) {
+    private ForgeDirection getDefaultPlaceSide(ImmutableBlockSpec spec) {
+        if (Mods.GregTech.isModLoaded() && MMUtils.isGTCable(spec)) {
             return ForgeDirection.UNKNOWN;
         }
 
@@ -455,9 +457,7 @@ public class PendingBuild extends AbstractBuildable {
                 if (GregTech.isModLoaded()) blockName = getGTBlockName(pendingBlock);
 
                 if (blockName == null) {
-                    blockName = PendingBlock.fromBlock(player.worldObj, pendingBlock.x, pendingBlock.y, pendingBlock.z)
-                        .toStack()
-                        .getDisplayName();
+                    blockName = BlockSpec.fromBlock(null, player.worldObj, pendingBlock.x, pendingBlock.y, pendingBlock.z).getDisplayName();
                 }
             }
 
@@ -481,9 +481,7 @@ public class PendingBuild extends AbstractBuildable {
                 if (GregTech.isModLoaded()) blockName = getGTBlockName(pendingBlock);
 
                 if (blockName == null) {
-                    blockName = PendingBlock.fromBlock(player.worldObj, pendingBlock.x, pendingBlock.y, pendingBlock.z)
-                        .toStack()
-                        .getDisplayName();
+                    blockName = BlockSpec.fromBlock(null, player.worldObj, pendingBlock.x, pendingBlock.y, pendingBlock.z).getDisplayName();
                 }
             }
 

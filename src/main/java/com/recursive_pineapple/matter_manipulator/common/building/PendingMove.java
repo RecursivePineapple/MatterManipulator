@@ -1,7 +1,8 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
+import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendInfoToPlayer;
+
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
@@ -34,9 +35,6 @@ import it.unimi.dsi.fastutil.Pair;
 public class PendingMove extends AbstractBuildable {
 
     private List<Pair<Location, Location>> moves = null;
-    private boolean[] remaining = null;
-
-    private int cursor = 0;
 
     public PendingMove(EntityPlayer player, MMState state, ManipulatorTier tier) {
         super(player, state, tier);
@@ -50,47 +48,43 @@ public class PendingMove extends AbstractBuildable {
 
         World world = player.worldObj;
 
+        BlockSpec source = new BlockSpec();
+        BlockSpec target = new BlockSpec();
+
+        int ops = 0;
+        var iter = moves.listIterator(moves.size());
+
         // try to move `placeSpeed` blocks from here to there
-        for (int i = 0; i < Math.min(tier.placeSpeed, moves.size()); i++) {
-            Pair<Location, Location> move = moves.get(cursor);
-            int curr = cursor;
-            cursor = (cursor + 1) % moves.size();
+        while (ops < tier.placeSpeed && iter.hasPrevious()) {
+            Pair<Location, Location> move = iter.previous();
 
             Location s = move.left();
             Location d = move.right();
-
-            if (!remaining[curr] || world.isAirBlock(s.x, s.y, s.z)) {
-                remaining[curr] = false;
-                continue;
-            }
 
             // if either block is protected, ignore them completely and print a warning
             if (!isEditable(world, s.x, s.y, s.z) || !isEditable(world, d.x, d.y, d.z)) {
                 continue;
             }
 
-            PendingBlock source = PendingBlock.fromBlock(world, s.x, s.y, s.z);
+            BlockSpec.fromBlock(source, world, s.x, s.y, s.z);
 
-            if (source.getBlock()
-                .getBlockHardness(world, s.x, s.y, s.z) < 0) {
+            if (source.getBlock().getBlockHardness(world, s.x, s.y, s.z) < 0) {
                 MMUtils.sendErrorToPlayer(
                     player,
                     String.format("Could not move invulnerable source block X=%d, Y=%d, Z=%d", s.x, s.y, s.z));
                 continue;
             }
 
-            PendingBlock target = PendingBlock.fromBlock(world, d.x, d.y, d.z);
-
-            Block existingBlock = target == null ? Blocks.air : target.getBlock();
+            BlockSpec.fromBlock(target, world, d.x, d.y, d.z);
 
             // check if we can remove the existing target block
             boolean canPlace = switch (state.config.removeMode) {
-                case NONE -> existingBlock.isAir(world, d.x, d.y, d.z);
-                case REPLACEABLE -> existingBlock.isReplaceable(world, d.x, d.y, d.z);
+                case NONE -> target.getBlock().isAir(world, d.x, d.y, d.z);
+                case REPLACEABLE -> target.getBlock().isReplaceable(world, d.x, d.y, d.z);
                 case ALL -> true;
             };
 
-            canPlace &= existingBlock.getBlockHardness(world, d.x, d.y, d.z) >= 0;
+            canPlace &= target.getBlock().getBlockHardness(world, d.x, d.y, d.z) >= 0;
 
             if (!canPlace) {
                 MMUtils.sendErrorToPlayer(
@@ -100,64 +94,47 @@ public class PendingMove extends AbstractBuildable {
             }
 
             // remove the existing block if needed
-            if (!existingBlock.isAir(world, d.x, d.y, d.z)) {
-                if (!tryConsumePower(stack, target)) {
+            if (!target.getBlock().isAir(world, d.x, d.y, d.z)) {
+                if (!tryConsumePower(stack, world, d.x, d.y, d.z, target)) {
                     MMUtils.sendErrorToPlayer(player, "Matter Manipulator ran out of EU.");
                     break;
                 }
 
-                removeBlock(world, d.x, d.y, d.z, existingBlock, target == null ? 0 : target.metadata);
+                removeBlock(world, d.x, d.y, d.z, target);
             }
 
             // if we can't move the source block then skip it for now
-            if (!source.getBlock()
-                .canPlaceBlockAt(world, d.x, d.y, d.z)) {
+            if (!source.getBlock().canPlaceBlockAt(world, d.x, d.y, d.z)) {
                 continue;
             }
 
-            if (!tryConsumePower(stack, source)) {
+            if (!tryConsumePower(stack, world, s.x, s.y, s.z, source)) {
                 MMUtils.sendErrorToPlayer(player, "Matter Manipulator ran out of EU.");
                 break;
             }
 
             // try to move the source block into the (now empty) target block
-            if (!swapBlocks(source, target)) {
+            if (!swapBlocks(world, s, source, d, target)) {
                 MMUtils.sendErrorToPlayer(
                     player,
-                    "Could not swap block: " + source
-                        + " ("
-                        + source.getBlock()
-                            .getLocalizedName()
-                        + "@"
-                        + source.metadata
-                        + ")");
+                    String.format("Could not move block X=%d, Y=%d, Z=%d: %s", s.x, s.y, s.z, source.getDisplayName()));
             }
 
             playSound(world, s.x, s.y, s.z, SoundResource.MOB_ENDERMEN_PORTAL);
             playSound(world, d.x, d.y, d.z, SoundResource.MOB_ENDERMEN_PORTAL);
-            remaining[curr] = false;
+
+            iter.remove();
+            ops++;
         }
 
         playSounds();
         actuallyGivePlayerStuff();
 
-        // bail if there are any remaining blocks
-        for (int i = 0; i < remaining.length; i++) {
-            if (remaining[i]) {
-                return;
-            }
+        if (ops > 0) {
+            sendInfoToPlayer(player, "Moved " + ops + " blocks (" + moves.size() + " remaining)");
+        } else {
+            sendInfoToPlayer(player, "Finished moving blocks.");
         }
-
-        // make sure all of the source blocks are actually air
-        for (Pair<Location, Location> move : moves) {
-            Location source = move.left();
-
-            if (!world.isAirBlock(source.x, source.y, source.z)) {
-                return;
-            }
-        }
-
-        MMUtils.sendInfoToPlayer(player, "Finished placing blocks.");
     }
 
     @Override
@@ -202,20 +179,17 @@ public class PendingMove extends AbstractBuildable {
                 }
             }
         }
-
-        remaining = new boolean[moves.size()];
-        Arrays.fill(remaining, true);
     }
 
     // 'borrowed' from
     // https://github.com/GTNewHorizons/BloodMagic/blob/master/src/main/java/WayofTime/alchemicalWizardry/common/block/BlockTeleposer.java#L158
-    public static boolean swapBlocks(PendingBlock s, PendingBlock d) {
+    public static boolean swapBlocks(World world, Location s, BlockSpec spec1, Location d, BlockSpec spec2) {
 
-        World worldI = s.getWorld();
+        World worldI = world.provider.dimensionId == s.worldId ? world : s.getWorld();
         int xi = s.x;
         int yi = s.y;
         int zi = s.z;
-        World worldF = d.getWorld();
+        World worldF = world.provider.dimensionId == d.worldId ? world : d.getWorld();
         int xf = d.x;
         int yf = d.y;
         int zf = d.z;
@@ -245,7 +219,7 @@ public class PendingMove extends AbstractBuildable {
         int metaF = worldF.getBlockMetadata(xf, yf, zf);
 
         if (Mods.BloodMagic.isModLoaded()) {
-            if (!allowTelepose(worldI, worldF, s, d)) {
+            if (!allowTelepose(worldI, worldF, s, spec1, d, spec2)) {
                 return false;
             }
         }
@@ -305,20 +279,20 @@ public class PendingMove extends AbstractBuildable {
     }
 
     @Optional(Names.BLOOD_MAGIC)
-    private static boolean allowTelepose(World worldI, World worldF, PendingBlock s, PendingBlock d) {
+    private static boolean allowTelepose(World worldI, World worldF, Location s, BlockSpec spec1, Location d, BlockSpec spec2) {
         TeleposeEvent evt = new TeleposeEvent(
             worldI,
             s.x,
             s.y,
             s.z,
-            s.getBlock(),
-            s.metadata,
+            spec1.getBlock(),
+            spec2.getBlockMeta(),
             worldF,
             d.x,
             d.y,
             d.z,
-            d.getBlock(),
-            d.metadata);
+            spec2.getBlock(),
+            spec2.getBlockMeta());
         if (MinecraftForge.EVENT_BUS.post(evt)) return false;
         return true;
     }

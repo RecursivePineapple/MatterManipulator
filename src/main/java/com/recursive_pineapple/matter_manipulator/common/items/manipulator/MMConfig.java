@@ -9,6 +9,7 @@ import org.joml.Vector3f;
 import org.joml.Vector3i;
 
 import com.google.gson.JsonElement;
+import com.recursive_pineapple.matter_manipulator.common.building.BlockSpec;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.BlockRemoveMode;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.BlockSelectMode;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.PendingAction;
@@ -34,12 +35,13 @@ public class MMConfig {
     // if any are non-null, then the corresponding block is being moved
     public Vector3i coordAOffset, coordBOffset, coordCOffset;
 
-    public JsonElement corners, edges, faces, volumes, cables;
+    public List<BlockSpec> corners, edges, faces, volumes;
+    public BlockSpec cables;
 
-    /** These blocks should be replaced when exchanging */
-    public List<JsonElement> replaceWhitelist;
+    /** These blocks are what gets removed when exchanging */
+    public List<BlockSpec> replaceWhitelist;
     /** These blocks are what gets placed when exchanging */
-    public JsonElement replaceWith;
+    public List<BlockSpec> replaceWith;
 
     @Nullable
     public Transform transform;
@@ -52,52 +54,6 @@ public class MMConfig {
         }
 
         return MMUtils.toJsonObject(stack.writeToNBT(new NBTTagCompound()));
-    }
-
-    public static ItemStack loadStack(JsonElement stack) {
-        if (stack == null) return null;
-
-        return ItemStack.loadItemStackFromNBT((NBTTagCompound) MMUtils.toNbt(stack));
-    }
-
-    public void setCorners(ItemStack corners) {
-        this.corners = saveStack(corners);
-    }
-
-    public ItemStack getCorners() {
-        return loadStack(corners);
-    }
-
-    public void setEdges(ItemStack edges) {
-        this.edges = saveStack(edges);
-    }
-
-    public ItemStack getEdges() {
-        return loadStack(edges);
-    }
-
-    public void setFaces(ItemStack faces) {
-        this.faces = saveStack(faces);
-    }
-
-    public ItemStack getFaces() {
-        return loadStack(faces);
-    }
-
-    public void setVolumes(ItemStack volumes) {
-        this.volumes = saveStack(volumes);
-    }
-
-    public ItemStack getVolumes() {
-        return loadStack(volumes);
-    }
-
-    public void setCables(ItemStack cables) {
-        this.cables = saveStack(cables);
-    }
-
-    public ItemStack getCables() {
-        return loadStack(cables);
     }
 
     public Location getCoordA(World world, Vector3i lookingAt) {

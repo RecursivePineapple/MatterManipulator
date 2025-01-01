@@ -1,0 +1,350 @@
+package com.recursive_pineapple.matter_manipulator.common.building;
+
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodType;
+import java.util.Collection;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Random;
+
+import com.recursive_pineapple.matter_manipulator.common.compat.BlockProperty;
+import com.recursive_pineapple.matter_manipulator.common.compat.BlockPropertyRegistry;
+import com.recursive_pineapple.matter_manipulator.common.utils.ItemId;
+import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+
+import cpw.mods.fml.common.registry.GameRegistry;
+import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
+import net.minecraft.block.Block;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.MovingObjectPosition.MovingObjectType;
+import net.minecraft.world.World;
+
+public class BlockSpec implements ImmutableBlockSpec {
+    
+    public static final UniqueIdentifier AIR_ID = new UniqueIdentifier("minecraft:air");
+
+    private boolean isBlock;
+    private UniqueIdentifier objectId;
+
+    /**
+     * The item metadata.
+     * Block => item: {@link Block#damageDropped(int)}
+     * Item => block: {@link Item#getMetadata(int)}
+     */
+    private int metadata;
+
+    public Map<CopyableProperty, String> properties;
+
+    private transient Block block;
+    private transient Optional<Item> item;
+    private transient Optional<ItemId> itemId;
+    private transient Optional<ItemStack> stack;
+
+    public BlockSpec() {
+        reset();
+    }
+
+    private BlockSpec reset() {
+        isBlock = true;
+        objectId = AIR_ID;
+        metadata = 0;
+        properties = null;
+        block = null;
+        item = null;
+        itemId = null;
+        stack = null;
+
+        return this;
+    }
+
+    public BlockSpec setObject(Block block, int meta) {
+        reset();
+        this.isBlock = true;
+        this.objectId = GameRegistry.findUniqueIdentifierFor(block);
+        this.metadata = block.damageDropped(meta);
+        this.block = block;
+
+        return this;
+    }
+
+    public BlockSpec setObject(ItemStack stack) {
+        reset();
+        this.isBlock = false;
+        this.objectId = GameRegistry.findUniqueIdentifierFor(stack.getItem());
+        this.metadata = Items.feather.getDamage(stack);
+
+        return this;
+    }
+
+    public BlockSpec setObject(Item item, int meta) {
+        reset();
+        this.isBlock = false;
+        this.objectId = GameRegistry.findUniqueIdentifierFor(item);
+        this.metadata = meta;
+
+        return this;
+    }
+
+    public BlockSpec populate() {
+        if (isBlock) {
+            block = GameRegistry.findBlock(objectId.modId, objectId.name);
+            item = Optional.ofNullable(MMUtils.getItemFromBlock(block, metadata));
+        } else {
+            item = Optional.of(GameRegistry.findItem(objectId.modId, objectId.name));
+            block = MMUtils.getBlockFromItem(item.get(), item.get().getMetadata(metadata));
+        }
+
+        return this;
+    }
+
+    @Override
+    public UniqueIdentifier getObjectId() {
+        return objectId;
+    }
+
+    @Override
+    public Block getBlock() {
+        if (block == null) populate();
+
+        return block;
+    }
+
+    @Override
+    public Item getItem() {
+        if (item == null) populate();
+
+        return item.orElse(null);
+    }
+
+    @Override
+    public ItemId getItemId() {
+        if (itemId == null) {
+            if (item == null) populate();
+
+            if (item.isPresent()) {
+                itemId = Optional.of(ItemId.create(item.get(), metadata, null));
+            } else {
+                itemId = Optional.empty();
+            }    
+        }
+
+        return itemId.orElse(null);
+    }
+
+    @Override
+    public int getMeta() {
+        return metadata;
+    }
+
+    @Override
+    public int getBlockMeta() {
+        return getItem() == null ? 0 : getItem().getMetadata(getMeta());
+    }
+
+    private static final MethodHandle CREATE_STACKED_BLOCK = MMUtils.exposeMethod(Block.class, MethodType.methodType(ItemStack.class, int.class), "createStackedBlock", "func_149644_j", "j");
+
+    @Override
+    public ItemStack getStack() {
+        if (this.stack == null) {
+            ItemStack stack = null;
+
+            if (isBlock) {
+                try {
+                    stack = (ItemStack) CREATE_STACKED_BLOCK.invoke(getBlock(), metadata);
+                } catch (Throwable t) {
+                    throw new RuntimeException("Could not invoke " + CREATE_STACKED_BLOCK, t);
+                }
+            }
+    
+            if (stack == null || stack.getItem() == null) {
+                Item item = getItem();
+    
+                if (item == null) {
+                    this.stack = Optional.empty();
+                    return null;
+                }
+    
+                if (item.getHasSubtypes()) {
+                    stack = new ItemStack(item, 1, metadata);
+                } else {
+                    stack = new ItemStack(item, 1, 0);
+                }
+            }
+
+            if (stack != null && stack.getItem() != null) {
+                this.stack = Optional.of(stack);
+            } else {
+                this.stack = Optional.empty();
+            }
+        }
+
+        return ItemStack.copyItemStack(this.stack.orElse(null));
+    }
+
+    @Override
+    public PendingBlock instantiate(int worldId, int x, int y, int z) {
+        return new PendingBlock(worldId, x, y, z, this);
+    }
+
+    public BlockSpec clone() {
+        BlockSpec dup = new BlockSpec();
+
+        dup.isBlock = isBlock;
+        dup.objectId = objectId;
+        dup.metadata = metadata;
+        dup.properties = properties;
+        dup.block = block;
+        dup.item = item;
+        dup.itemId = itemId;
+        dup.stack = stack;
+
+        return dup;
+    }
+
+    @Override
+    public String getProperty(CopyableProperty property) {
+        if (properties == null) return null;
+
+        return properties.get(property);
+    }
+
+    @Override
+    public BlockSpec withProperties(Map<CopyableProperty, String> properties) {
+        if (Objects.equals(properties, this.properties)) return this;
+
+        BlockSpec spec = clone();
+        
+        spec.properties = properties == null || properties.isEmpty() ? null : new EnumMap<>(properties);
+
+        return spec;
+    }
+
+    public String getDisplayName() {
+        return getStack() == null ? "air" : getStack().getDisplayName();
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + (isBlock ? 1231 : 1237);
+        result = prime * result + ((objectId == null) ? 0 : objectId.hashCode());
+        result = prime * result + metadata;
+        result = prime * result + ((properties == null) ? 0 : properties.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
+        BlockSpec other = (BlockSpec) obj;
+        if (isBlock != other.isBlock) return false;
+        if (objectId == null) {
+            if (other.objectId != null) return false;
+        } else if (!objectId.equals(other.objectId)) return false;
+        if (metadata != other.metadata) return false;
+        if (properties == null) {
+            if (other.properties != null) return false;
+        } else if (!properties.equals(other.properties)) return false;
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "BlockSpec [isBlock=" + isBlock + ", objectId=" + objectId + ", metadata=" + metadata + ", properties="
+                + properties + ", block=" + block + ", item=" + item + ", itemId=" + itemId + ", stack=" + stack + "]";
+    }
+
+    public static boolean contains(Collection<BlockSpec> specs, BlockSpec spec) {
+        for (BlockSpec candidate : specs) {
+            if (candidate != null && candidate.equals(spec)) return true;
+        }
+
+        return false;
+    }
+
+    public static boolean contains(Collection<BlockSpec> specs, ItemStack stack) {
+        for (BlockSpec candidate : specs) {
+            if (candidate != null && candidate.matches(stack)) return true;
+        }
+
+        return false;
+    }
+
+    public static BlockSpec fromPickBlock(World world, EntityPlayer player, MovingObjectPosition hit) {
+        if (hit == null || hit.typeOfHit != MovingObjectType.BLOCK) return new BlockSpec();
+
+        return fromBlock(null, world, hit.blockX, hit.blockY, hit.blockZ);
+    }
+
+    public static BlockSpec fromBlock(BlockSpec pooled, World world, int x, int y, int z) {
+        return fromBlock(pooled, world, x, y, z, world.getBlock(x, y, z), world.getBlockMetadata(x, y, z));
+    }
+
+    public static BlockSpec fromBlock(BlockSpec pooled, World world, int x, int y, int z, Block block, int blockMeta) {
+        Item item = MMUtils.getItemFromBlock(block, blockMeta);
+
+        if (item == null) {
+            return new BlockSpec().setObject(Blocks.air, 0);
+        }
+
+        if (block != Blocks.wall_sign && block != Blocks.standing_sign) {
+            block = MMUtils.getBlockFromItem(item, item.getMetadata(blockMeta));
+        }
+
+        int itemMeta = block.getDamageValue(world, x, y, z);
+
+        BlockSpec spec = pooled != null ? pooled.reset() : new BlockSpec();
+
+        spec.isBlock = true;
+        spec.objectId = GameRegistry.findUniqueIdentifierFor(block);
+        spec.metadata = itemMeta;
+        spec.block = block;
+        spec.item = Optional.of(item);
+        spec.itemId = Optional.of(ItemId.create(item, itemMeta, null));
+
+        Map<String, BlockProperty<?>> properties = new HashMap<>();
+        BlockPropertyRegistry.getProperties(world, x, y, z, properties);
+
+        if (!properties.isEmpty()) {
+            EnumMap<CopyableProperty, String> values = new EnumMap<>(CopyableProperty.class);
+
+            for (CopyableProperty name : CopyableProperty.VALUES) {
+                BlockProperty<?> property = properties.get(name.toString());
+    
+                if (property == null) continue;
+
+                values.put(name, property.getValueAsString(world, x, y, z));
+            }
+
+            if (!values.isEmpty()) spec.properties = values;
+        }
+
+        return spec;
+    }
+
+    public static final ImmutableBlockSpec AIR = new BlockSpec();
+
+    public static void init() {
+        ((BlockSpec)AIR).setObject(Blocks.air, 0);
+    }
+
+    public static ImmutableBlockSpec choose(List<BlockSpec> specs, Random rng) {
+        if (specs == null || specs.isEmpty()) return AIR;
+
+        ImmutableBlockSpec spec = MMUtils.choose(specs, rng);
+
+        return spec == null ? AIR : spec;
+    }
+}

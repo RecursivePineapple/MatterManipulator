@@ -58,6 +58,7 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import net.minecraft.util.Vec3;
+import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.IFluidHandler;
 
@@ -71,7 +72,9 @@ import com.gtnewhorizon.gtnhlib.util.map.ItemStackMap;
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.RequiredItemAnalysis;
+import com.recursive_pineapple.matter_manipulator.common.building.BlockSpec;
 import com.recursive_pineapple.matter_manipulator.common.building.IPseudoInventory;
+import com.recursive_pineapple.matter_manipulator.common.building.ImmutableBlockSpec;
 import com.recursive_pineapple.matter_manipulator.common.building.MMInventory;
 import com.recursive_pineapple.matter_manipulator.common.building.PendingBlock;
 import com.recursive_pineapple.matter_manipulator.common.building.PortableItemStack;
@@ -82,12 +85,20 @@ import com.recursive_pineapple.matter_manipulator.common.networking.Messages;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
 import appeng.api.implementations.items.IUpgradeModule;
+import appeng.api.implementations.parts.IPartCable;
+import appeng.api.parts.IPartHost;
+import appeng.api.parts.IPartItem;
+import appeng.api.parts.PartItemStack;
 import appeng.api.storage.ICellWorkbenchItem;
 import appeng.parts.automation.UpgradeInventory;
 import appeng.util.Platform;
 import cpw.mods.fml.relauncher.ReflectionHelper;
+import gregtech.api.GregTechAPI;
+import gregtech.api.interfaces.metatileentity.IConnectable;
+import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.interfaces.tileentity.IHasInventory;
 import gregtech.api.metatileentity.BaseMetaTileEntity;
+import gregtech.common.blocks.BlockMachines;
 import gregtech.common.tileentities.machines.MTEHatchInputBusME;
 import gregtech.common.tileentities.machines.MTEHatchInputME;
 import it.unimi.dsi.fastutil.Pair;
@@ -579,6 +590,13 @@ public class MMUtils {
     public static <T> T getIndexSafe(List<T> list, int index) {
         return list == null || index < 0 || index >= list.size() ? null : list.get(index);
     }
+
+    public static <T> T choose(List<T> list, Random rng) {
+        if (list.isEmpty()) return null;
+        if (list.size() == 1) return list.get(0);
+
+        return list.get(rng.nextInt(list.size()));
+    }
     
     /**
      * Empties all items in an inventory into a pseudo inventory.
@@ -750,6 +768,13 @@ public class MMUtils {
         return tag == null ? null : (NBTTagCompound) tag;
     }
 
+    public static ItemStack copyWithAmount(ItemStack stack, int amount) {
+        if (stack == null) return null;
+        stack = stack.copy();
+        stack.stackSize = amount;
+        return stack;
+    }
+
     /**
      * Converts an nbt tag to json.
      * Does not preserve the specific types of the tags, but the returned data will be sane and generally correct.
@@ -915,10 +940,6 @@ public class MMUtils {
         }
 
         throw new IllegalArgumentException("Unhandled element " + jsonElement);
-    }
-
-    public static boolean areBlocksBasicallyEqual(PendingBlock a, PendingBlock b) {
-        return a.getBlock() == b.getBlock() && a.metadata == b.metadata;
     }
 
     public static boolean areStacksBasicallyEqual(ItemStack a, ItemStack b) {
@@ -1090,10 +1111,64 @@ public class MMUtils {
             block = Blocks.redstone_wire;
         } else if (item instanceof ItemReed specialPlacing) {
             block = specialPlacing.field_150935_a;
+        } else if (AppliedEnergistics2.isModLoaded() && isAECable(item, metadata)) {
+            block = PendingBlock.AE_BLOCK_CABLE.get().getBlock();
         } else {
             block = Block.getBlockFromItem(item);
         }
 
         return block;
+    }
+
+    @Optional(Names.GREG_TECH)
+    public static boolean isGTCable(ImmutableBlockSpec spec) {
+        if (spec.getBlock() instanceof BlockMachines) {
+            if (getIndexSafe(GregTechAPI.METATILEENTITIES, spec.getMeta()) instanceof IConnectable) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Optional(Names.APPLIED_ENERGISTICS2)
+    public static boolean isAECable(ImmutableBlockSpec spec) {
+        if (spec == null) return false;
+
+        return isAECable(spec.getItem(), spec.getMeta());
+    }
+
+    @Optional(Names.APPLIED_ENERGISTICS2)
+    public static boolean isAECable(Item item, int metadata) {
+        if (item instanceof IPartItem partItem) {
+            if (partItem.createPartFromItemStack(new ItemStack(item, 1, metadata)) instanceof IPartCable) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Optional(Names.APPLIED_ENERGISTICS2)
+    public static boolean getAECable(BlockSpec spec, World world, int x, int y, int z) {
+        if (world.getTileEntity(x, y, z) instanceof IPartHost partHost) {
+            if (partHost.getPart(ForgeDirection.UNKNOWN) instanceof IPartCable cable) {
+                spec.setObject(cable.getItemStack(PartItemStack.Break));
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Optional(Names.GREG_TECH)
+    public static boolean getGTCable(BlockSpec spec, World world, int x, int y, int z) {
+        if (world.getTileEntity(x, y, z) instanceof IGregTechTileEntity igte && igte.getMetaTileEntity() instanceof IConnectable) {
+            spec.setObject(Item.getItemFromBlock(world.getBlock(x, y, z)), igte.getMetaTileID());
+
+            return true;
+        }
+
+        return false;
     }
 }

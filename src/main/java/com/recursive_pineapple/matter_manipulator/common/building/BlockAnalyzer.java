@@ -68,9 +68,10 @@ public class BlockAnalyzer {
         BlockAnalysisContext context = new BlockAnalysisContext(world);
 
         for (Vector3i voxel : MMUtils.getBlocksInBB(a, deltas)) {
-            PendingBlock pending = PendingBlock.fromBlock(world, voxel.x, voxel.y, voxel.z);
+            PendingBlock pending = BlockSpec.fromBlock(null, world, voxel.x, voxel.y, voxel.z)
+                .instantiate(world, voxel.x, voxel.y, voxel.z);
 
-            if (pending == null || pending.shouldBeSkipped()) {
+            if (pending.shouldBeSkipped()) {
                 continue;
             }
 
@@ -393,24 +394,22 @@ public class BlockAnalyzer {
         context.player = player;
         context.world = player.getEntityWorld();
 
+        BlockSpec pooled = new BlockSpec();
+
         for (PendingBlock block : blocks) {
             if (block.isInWorld(context.world)) {
                 boolean isNew = true;
 
                 if (!fromScratch && !context.world.isAirBlock(block.x, block.y, block.z)) {
-                    PendingBlock existing = PendingBlock.fromBlock(context.world, block.x, block.y, block.z);
+                    BlockSpec.fromBlock(pooled, context.world, block.x, block.y, block.z);
 
-                    if (PendingBlock.isSameBlock(existing, block)) {
+                    if (pooled.isEquivalent(block.spec)) {
                         isNew = false;
-                    } else {
-                        if (!block.isFree()) {
-                            context.givePlayerItems(existing.toStack());
-                        }
                     }
                 }
 
                 if (isNew && !block.isFree()) {
-                    context.tryConsumeItems(block.toStack());
+                    context.tryConsumeItems(block.getStack());
                 }
 
                 context.x = block.x;

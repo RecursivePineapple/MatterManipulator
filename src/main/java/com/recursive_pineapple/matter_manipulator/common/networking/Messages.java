@@ -78,10 +78,10 @@ public enum Messages {
         server(enumPacket(BlockSelectMode.values(), (state, value) -> state.config.blockSelectMode = value))),
     SetPendingAction(server(enumPacket(PendingAction.values(), (state, value) -> state.config.action = value))),
     ClearBlocks(server(simple((player, stack, manipulator, state) -> {
-        state.config.setCorners(null);
-        state.config.setEdges(null);
-        state.config.setFaces(null);
-        state.config.setVolumes(null);
+        state.config.corners = null;
+        state.config.edges = null;
+        state.config.faces = null;
+        state.config.volumes = null;
         state.config.action = null;
     }))),
     SetShape(server(enumPacket(Shape.values(), (state, value) -> state.config.shape = value))),

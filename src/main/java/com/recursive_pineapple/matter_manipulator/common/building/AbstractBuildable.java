@@ -76,12 +76,11 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
 
     protected static final double EU_PER_BLOCK = 128.0, TE_PENALTY = 16.0, EU_DISTANCE_EXP = 1.25;
 
-    public boolean tryConsumePower(ItemStack stack, PendingBlock pendingBlock) {
-        double euUsage = EU_PER_BLOCK * pendingBlock.getBlock()
-            .getBlockHardness(pendingBlock.getWorld(), pendingBlock.x, pendingBlock.y, pendingBlock.z);
+    public boolean tryConsumePower(ItemStack stack, World world, int x, int y, int z, ImmutableBlockSpec spec) {
+        double euUsage = EU_PER_BLOCK * spec.getBlock().getBlockHardness(world, x, y, z);
 
         try {
-            Block block = pendingBlock.getBlock();
+            Block block = spec.getBlock();
             if (block.isBlockContainer) {
                 euUsage *= TE_PENALTY;
             }
@@ -89,7 +88,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
             MMMod.LOG.error("Could not get Block.isBlockContainer field", e);
         }
 
-        return tryConsumePower(stack, pendingBlock.x, pendingBlock.y, pendingBlock.z, euUsage);
+        return tryConsumePower(stack, x, y, z, euUsage);
     }
 
     public boolean tryConsumePower(ItemStack stack, double x, double y, double z, double euUsage) {
@@ -108,30 +107,23 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
      * Removes a block and stores its items in this object. Items & fluids must delivered by calling
      * {@link #actuallyGivePlayerStuff()} or they will be deleted.
      */
-    protected void removeBlock(World world, int x, int y, int z, Block existing, int existingMeta) {
+    protected void removeBlock(World world, int x, int y, int z, ImmutableBlockSpec existing) {
+        boolean isOre = false;
 
-        PendingBlock block = PendingBlock.fromBlock(world, x, y, z, existing, existingMeta);
-
-        if (block != null) {
-            ItemStack stack = block.toStack();
-
-            boolean isOre = false;
-
-            if (GregTech.isModLoaded() && GTUtility.isOre(block.getBlock(), block.metadata)) {
-                isOre = true;
-            } else {
-                for (int id : OreDictionary.getOreIDs(stack)) {
-                    if (OreDictionary.getOreName(id).startsWith("ore")) {
-                        isOre = true;
-                        break;
-                    }
+        if (GregTech.isModLoaded() && GTUtility.isOre(existing.getBlock(), existing.getBlockMeta())) {
+            isOre = true;
+        } else {
+            for (int id : OreDictionary.getOreIDs(existing.getStack())) {
+                if (OreDictionary.getOreName(id).startsWith("ore")) {
+                    isOre = true;
+                    break;
                 }
             }
+        }
 
-            if (isOre) {
-                world.setBlockToAir(x, y, z);
-                return;
-            }
+        if (isOre) {
+            world.setBlockToAir(x, y, z);
+            return;
         }
 
         TileEntity te = world.getTileEntity(x, y, z);
@@ -148,15 +140,19 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         if (ae) resetAEMachine(te);
         if (gt) resetGTMachine(te);
         if (eio) resetConduitBundle(te);
-        if (WIRELESS_CONNECTOR.matches(existing, existingMeta)) resetTileColour(te);
 
-        if (existing instanceof IFluidBlock fluidBlock && fluidBlock.canDrain(world, x, y, z)) {
+        Block block = existing.getBlock();
+        int meta = existing.getBlockMeta();
+
+        if (WIRELESS_CONNECTOR.matches(block, meta)) resetTileColour(te);
+
+        if (block instanceof IFluidBlock fluidBlock && fluidBlock.canDrain(world, x, y, z)) {
             givePlayerFluids(fluidBlock.drain(world, x, y, z, true));
-        } else if (existing == Blocks.water || existing == Blocks.lava) {
-            givePlayerFluids(new FluidStack(existing == Blocks.water ? FluidRegistry.WATER : FluidRegistry.LAVA, 1000));
+        } else if (block == Blocks.water || block == Blocks.lava) {
+            givePlayerFluids(new FluidStack(block == Blocks.water ? FluidRegistry.WATER : FluidRegistry.LAVA, 1000));
         } else {
-            ArrayList<ItemStack> items = existing.getDrops(world, x, y, z, existingMeta, 0);
-            float chance = ForgeEventFactory.fireBlockHarvesting(items, world, existing, x, y, z, existingMeta, 0, 1, false, player);
+            ArrayList<ItemStack> items = block.getDrops(world, x, y, z, meta, 0);
+            float chance = ForgeEventFactory.fireBlockHarvesting(items, world, block, x, y, z, meta, 0, 1, false, player);
     
             Iterator<ItemStack> iter = items.iterator();
     

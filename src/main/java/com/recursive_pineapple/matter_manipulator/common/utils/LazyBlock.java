@@ -1,8 +1,8 @@
 package com.recursive_pineapple.matter_manipulator.common.utils;
 
-import static com.recursive_pineapple.matter_manipulator.common.utils.MMValues.W;
-
 import java.util.Objects;
+
+import com.recursive_pineapple.matter_manipulator.common.building.ImmutableBlockSpec;
 
 import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.block.Block;
@@ -40,8 +40,10 @@ public class LazyBlock extends Lazy<ImmutableBlockMeta> {
 
         ImmutableBlockMeta bm = get();
 
-        if (bm == null) return false;
+        return bm == null ? false : bm.matches(other, metaOther);
+    }
 
-        return bm.getBlock() == other && (bm.getMeta() == metaOther || bm.getMeta() == W || metaOther == W);
+    public boolean matches(ImmutableBlockSpec spec) {
+        return matches(spec.getBlock(), spec.getBlockMeta());
     }
 }

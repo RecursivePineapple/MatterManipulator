@@ -1,6 +1,5 @@
 package com.recursive_pineapple.matter_manipulator.common.items.manipulator;
 
-import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.getIndexSafe;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.min;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.signum;
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.AppliedEnergistics2;
@@ -8,13 +7,9 @@ import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregT
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Items;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
@@ -23,18 +18,22 @@ import org.joml.Vector3i;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.annotations.SerializedName;
+import com.gtnewhorizon.structurelib.util.XSTR;
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.building.AEAnalysisResult;
 import com.recursive_pineapple.matter_manipulator.common.building.AEPartData;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer;
+import com.recursive_pineapple.matter_manipulator.common.building.BlockSpec;
 import com.recursive_pineapple.matter_manipulator.common.building.GTAnalysisResult;
+import com.recursive_pineapple.matter_manipulator.common.building.ImmutableBlockSpec;
 import com.recursive_pineapple.matter_manipulator.common.building.PendingBlock;
 import com.recursive_pineapple.matter_manipulator.common.building.TileAnalysisResult;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.BlockAnalysisContext;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.RegionAnalysis;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
 import com.recursive_pineapple.matter_manipulator.common.uplink.IUplinkMulti;
-import com.recursive_pineapple.matter_manipulator.common.utils.ItemId;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
@@ -50,13 +49,11 @@ import appeng.api.networking.security.ISecurityGrid;
 import appeng.api.networking.storage.IStorageGrid;
 import appeng.api.parts.IPartHost;
 import appeng.api.parts.IPartItem;
-import appeng.api.parts.PartItemStack;
 import appeng.api.storage.IMEMonitor;
 import appeng.api.storage.data.IAEItemStack;
 import appeng.api.util.DimensionalCoord;
 import appeng.tile.misc.TileSecurity;
 import appeng.tile.networking.TileWireless;
-import gregtech.api.GregTechAPI;
 import gregtech.api.interfaces.metatileentity.IConnectable;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.common.blocks.BlockMachines;
@@ -67,6 +64,11 @@ import gregtech.common.blocks.BlockMachines;
 public class MMState {
 
     static final Gson GSON = new GsonBuilder().create();
+
+    @SerializedName("jv")
+    private int jsonVersion = 0;
+    @SerializedName("dv")
+    private int dataVersion = 0;
 
     public MMConfig config = new MMConfig();
 
@@ -85,16 +87,43 @@ public class MMState {
     public transient IMEMonitor<IAEItemStack> itemStorage;
 
     public static MMState load(NBTTagCompound tag) {
-        MMState state = GSON.fromJson(MMUtils.toJsonObject(tag), MMState.class);
+        JsonObject obj = (JsonObject) MMUtils.toJsonObject(tag);
+
+        migrateJson(obj);
+
+        MMState state = GSON.fromJson(obj, MMState.class);
 
         if (state == null) state = new MMState();
         if (state.config == null) state.config = new MMConfig();
+
+        state.migrate();
 
         return state;
     }
 
     public NBTTagCompound save() {
         return (NBTTagCompound) MMUtils.toNbt(GSON.toJsonTree(this));
+    }
+
+    private static void migrateJson(JsonObject obj) {
+        int version = obj.has("jv") ? obj.get("jv").getAsInt() : 0;
+
+        if (version == 0) {
+            if (obj.get("config") instanceof JsonObject config) {
+                config.remove("corners");
+                config.remove("edges");
+                config.remove("faces");
+                config.remove("volumes");
+                config.remove("cables");
+            }
+            version = 1;
+        }
+
+        obj.addProperty("jv", version);
+    }
+
+    private void migrate() {
+
     }
 
     /**
@@ -300,7 +329,7 @@ public class MMState {
                             t.apply(d);
 
                             for (PendingBlock original : base) {
-                                PendingBlock dup = original.clone();
+                                PendingBlock dup = original.clone(false);
                                 dup.x += d.x;
                                 dup.y += d.y;
                                 dup.z += d.z;
@@ -341,21 +370,12 @@ public class MMState {
 
         ArrayList<PendingBlock> pending = new ArrayList<>();
 
-        Set<ItemId> whitelist = config.replaceWhitelist.stream()
-            .map(MMConfig::loadStack)
-            .map(stack -> ItemId.create(stack))
-            .collect(Collectors.toSet());
-
-        ItemStack replacement = MMConfig.loadStack(config.replaceWith);
-
-        boolean replacingWithGTCable = tier.hasCap(ItemMatterManipulator.ALLOW_CABLES)
-            && GregTech.isModLoaded()
-            && isGTCable(replacement);
-        boolean replacingWithAECable = tier.hasCap(ItemMatterManipulator.ALLOW_CABLES)
-            && AppliedEnergistics2.isModLoaded()
-            && isAECable(replacement);
-
         BlockAnalysisContext context = new BlockAnalysisContext(world);
+
+        XSTR rng = new XSTR(config.hashCode());
+
+        BlockSpec existing = new BlockSpec();
+        BlockSpec aeCable = new BlockSpec();
 
         for (Vector3i voxel : MMUtils.getBlocksInBB(coordA, deltas)) {
             int x = voxel.x;
@@ -364,32 +384,35 @@ public class MMState {
 
             if (world.isAirBlock(x, y, z)) continue;
 
-            PendingBlock existing = PendingBlock.fromBlock(world, x, y, z);
+            BlockSpec.fromBlock(existing, world, x, y, z);
 
-            if (existing == null) continue;
-
-            ItemStack existingStack = existing.toStack();
-
-            if (existingStack == null) continue;
+            if (existing.isAir()) continue;
 
             boolean wasAECable = false;
 
-            ItemStack aeCable = getAECable(world, x, y, z);
-
-            if (aeCable != null) {
-                if (!whitelist.contains(ItemId.create(aeCable))) continue;
+            if (MMUtils.getAECable(aeCable, world, x, y, z)) {
+                if (!BlockSpec.contains(config.replaceWhitelist, aeCable)) continue;
 
                 wasAECable = true;
             }
 
             if (!wasAECable) {
-                if (!whitelist.contains(ItemId.create(existingStack))) continue;
+                if (!BlockSpec.contains(config.replaceWhitelist, existing)) continue;
             }
 
-            if (replacingWithGTCable) {
-                PendingBlock rep = new PendingBlock(world.provider.dimensionId, x, y, z, replacement);
+            ImmutableBlockSpec replacement = BlockSpec.choose(config.replaceWith, rng);
 
-                if (isGTCable(existingStack)) {
+            boolean replacingWithGTCable = tier.hasCap(ItemMatterManipulator.ALLOW_CABLES)
+                && GregTech.isModLoaded()
+                && MMUtils.isGTCable(replacement);
+            boolean replacingWithAECable = tier.hasCap(ItemMatterManipulator.ALLOW_CABLES)
+                && AppliedEnergistics2.isModLoaded()
+                && MMUtils.isAECable(replacement);
+
+            if (replacingWithGTCable) {
+                PendingBlock rep = replacement.instantiate(world, x, y, z);
+
+                if (MMUtils.isGTCable(existing)) {
                     context.voxel = voxel;
                     rep.tileData = BlockAnalyzer.analyze(context);
                 } else {
@@ -398,7 +421,7 @@ public class MMState {
 
                 pending.add(rep);
             } else if (replacingWithAECable) {
-                PendingBlock rep = new PendingBlock(world.provider.dimensionId, x, y, z, PendingBlock.AE_BLOCK_CABLE.get().getBlock(), 0);
+                PendingBlock rep = PendingBlock.AE_BLOCK_CABLE.get().asSpec().instantiate(world, x, y, z);
 
                 if (world.getTileEntity(x, y, z) instanceof IPartHost) {
                     context.voxel = voxel;
@@ -419,18 +442,7 @@ public class MMState {
     }
 
     @Optional(Names.APPLIED_ENERGISTICS2)
-    public static ItemStack getAECable(World world, int x, int y, int z) {
-        if (world.getTileEntity(x, y, z) instanceof IPartHost partHost) {
-            if (partHost.getPart(ForgeDirection.UNKNOWN) instanceof IPartCable cable) {
-                return cable.getItemStack(PartItemStack.Break);
-            }
-        }
-
-        return null;
-    }
-
-    @Optional(Names.APPLIED_ENERGISTICS2)
-    private void placingAECable(TileAnalysisResult result, ItemStack cable) {
+    private void placingAECable(TileAnalysisResult result, ImmutableBlockSpec cable) {
         AEAnalysisResult ae;
 
         if (result.ae == null) {
@@ -442,7 +454,7 @@ public class MMState {
 
         if (ae.mAEParts == null) ae.mAEParts = new AEPartData[7];
 
-        ae.mAEParts[ForgeDirection.UNKNOWN.ordinal()] = new AEPartData(((IPartItem) cable.getItem()).createPartFromItemStack(cable));
+        ae.mAEParts[ForgeDirection.UNKNOWN.ordinal()] = new AEPartData(((IPartItem) cable.getItem()).createPartFromItemStack(cable.getStack()));
     }
 
     private List<PendingBlock> getCableBlocks(World world) {
@@ -458,30 +470,26 @@ public class MMState {
 
         ArrayList<PendingBlock> out = new ArrayList<>();
 
-        ItemStack stack = config.getCables();
-
-        if (stack == null) {
+        if (config.cables == null) {
             for (Vector3i voxel : getLineVoxels(a.x, a.y, a.z, b.x, b.y, b.z)) {
                 PendingBlock pendingBlock = new PendingBlock(
                     world.provider.dimensionId,
                     voxel.x,
                     voxel.y,
                     voxel.z,
-                    null);
-
-                pendingBlock.tileData = new TileAnalysisResult();
+                    BlockSpec.AIR);
 
                 out.add(pendingBlock);
             }
         } else {
-            Block block = Block.getBlockFromItem(stack.getItem());
+            Block block = Block.getBlockFromItem(config.cables.getItem());
 
             if (GregTech.isModLoaded()) {
-                getGTCables(a, b, out, block, world, stack);
+                getGTCables(a, b, out, block, world, config.cables);
             }
 
             if (AppliedEnergistics2.isModLoaded()) {
-                getAECables(a, b, out, block, world, stack);
+                getAECables(a, b, out, block, world, config.cables);
             }
         }
 
@@ -489,37 +497,7 @@ public class MMState {
     }
 
     @Optional(Names.GREG_TECH)
-    public static boolean isGTCable(ItemStack stack) {
-        if (stack == null) return false;
-
-        Block block = Block.getBlockFromItem(stack.getItem());
-
-        if (block instanceof BlockMachines) {
-            int metaId = Items.feather.getDamage(stack);
-
-            if (getIndexSafe(GregTechAPI.METATILEENTITIES, metaId) instanceof IConnectable) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    @Optional(Names.APPLIED_ENERGISTICS2)
-    public static boolean isAECable(ItemStack stack) {
-        if (stack == null) return false;
-
-        if (stack.getItem() instanceof IPartItem partItem) {
-            if (partItem.createPartFromItemStack(stack) instanceof IPartCable) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    @Optional(Names.GREG_TECH)
-    private void getGTCables(Vector3i a, Vector3i b, List<PendingBlock> out, Block block, World world, ItemStack cableStack) {
+    private void getGTCables(Vector3i a, Vector3i b, List<PendingBlock> out, Block block, World world, ImmutableBlockSpec cable) {
         if (block instanceof BlockMachines) {
             int end = 0, start = 0;
 
@@ -527,8 +505,8 @@ public class MMState {
             switch (new Vector3i(b).sub(a)
                 .maxComponent()) {
                 case 0: {
-                    start = b.x < 0 ? ForgeDirection.WEST.flag : ForgeDirection.EAST.flag;
-                    end = b.x > 0 ? ForgeDirection.WEST.flag : ForgeDirection.EAST.flag;
+                    start = b.x < 0 ? ForgeDirection.EAST.flag : ForgeDirection.WEST.flag;
+                    end = b.x > 0 ? ForgeDirection.EAST.flag : ForgeDirection.WEST.flag;
                     break;
                 }
                 case 1: {
@@ -560,12 +538,7 @@ public class MMState {
                     }
                 }
 
-                PendingBlock pendingBlock = new PendingBlock(
-                    world.provider.dimensionId,
-                    voxel.x,
-                    voxel.y,
-                    voxel.z,
-                    cableStack);
+                PendingBlock pendingBlock = cable.instantiate(world, voxel.x, voxel.y, voxel.z);
 
                 GTAnalysisResult gt = new GTAnalysisResult();
 
@@ -585,25 +558,13 @@ public class MMState {
     }
 
     @Optional(Names.APPLIED_ENERGISTICS2)
-    private void getAECables(Vector3i a, Vector3i b, List<PendingBlock> out, Block block, World world, ItemStack cableStack) {
-        if (cableStack.getItem() instanceof IPartItem partItem) {
-            if (partItem.createPartFromItemStack(cableStack) instanceof IPartCable cable) {
-                Block cableBus = PendingBlock.AE_BLOCK_CABLE.get().getBlock();
-
+    private void getAECables(Vector3i a, Vector3i b, List<PendingBlock> out, Block block, World world, ImmutableBlockSpec cableSpec) {
+        if (cableSpec.getItem() instanceof IPartItem partItem) {
+            if (partItem.createPartFromItemStack(cableSpec.getStack()) instanceof IPartCable cable) {
                 BlockAnalysisContext context = new BlockAnalysisContext(world);
 
                 for (Vector3i voxel : getLineVoxels(a.x, a.y, a.z, b.x, b.y, b.z)) {
-
                     int x = voxel.x, y = voxel.y, z = voxel.z;
-
-                    PendingBlock pendingBlock = new PendingBlock(
-                        world.provider.dimensionId,
-                        x,
-                        y,
-                        z,
-                        cableStack);
-
-                    pendingBlock.setBlock(cableBus, 0);
 
                     AEAnalysisResult ae;
 
@@ -615,6 +576,8 @@ public class MMState {
                         ae.mAEParts = new AEPartData[7];
                         ae.mAEParts[ForgeDirection.UNKNOWN.ordinal()] = new AEPartData(cable);
                     }
+
+                    PendingBlock pendingBlock = cableSpec.instantiate(world, x, y, z);
 
                     pendingBlock.tileData = new TileAnalysisResult();
                     pendingBlock.tileData.ae = ae;
@@ -755,19 +718,16 @@ public class MMState {
     }
 
     private void iterateLine(ArrayList<PendingBlock> pending, int x1, int y1, int z1, int x2, int y2, int z2) {
-        ItemStack edges = config.getEdges();
+        XSTR rng = new XSTR(config.hashCode());
 
         for (Vector3i voxel : getLineVoxels(x1, y1, z1, x2, y2, z2)) {
-            pending.add(new PendingBlock(config.coordA.worldId, voxel.x, voxel.y, voxel.z, edges));
+            pending.add(BlockSpec.choose(config.edges, rng).instantiate(config.coordA.worldId, voxel.x, voxel.y, voxel.z));
         }
     }
 
     private void iterateCube(ArrayList<PendingBlock> pending, int minX, int minY, int minZ, int maxX, int maxY,
         int maxZ) {
-        ItemStack corners = config.getCorners();
-        ItemStack edges = config.getEdges();
-        ItemStack faces = config.getFaces();
-        ItemStack volumes = config.getVolumes();
+        XSTR rng = new XSTR(config.hashCode());
 
         for (int x = minX; x <= maxX; x++) {
             for (int y = minY; y <= maxY; y++) {
@@ -778,15 +738,15 @@ public class MMState {
                     if (y > minY && y < maxY) insideCount++;
                     if (z > minZ && z < maxZ) insideCount++;
 
-                    ItemStack selection = switch (insideCount) {
-                        case 0 -> corners;
-                        case 1 -> edges;
-                        case 2 -> faces;
-                        case 3 -> volumes;
+                    ImmutableBlockSpec spec = switch (insideCount) {
+                        case 0 -> BlockSpec.choose(config.corners, rng);
+                        case 1 -> BlockSpec.choose(config.edges, rng);
+                        case 2 -> BlockSpec.choose(config.faces, rng);
+                        case 3 -> BlockSpec.choose(config.volumes, rng);
                         default -> null;
                     };
 
-                    pending.add(new PendingBlock(config.coordA.worldId, x, y, z, selection, insideCount, insideCount));
+                    pending.add(new PendingBlock(config.coordA.worldId, x, y, z, spec, insideCount, insideCount));
                 }
             }
         }
@@ -794,8 +754,7 @@ public class MMState {
 
     private void iterateSphere(ArrayList<PendingBlock> pending, int minX, int minY, int minZ, int maxX, int maxY,
         int maxZ) {
-        ItemStack faces = config.getFaces();
-        ItemStack volumes = config.getVolumes();
+        XSTR rng = new XSTR(config.hashCode());
 
         int sx = maxX - minX + 1;
         int sy = maxY - minY + 1;
@@ -826,7 +785,7 @@ public class MMState {
                             x + minX,
                             y + minY,
                             z + minZ,
-                            volumes,
+                            BlockSpec.choose(config.volumes, rng),
                             1,
                             1);
 
@@ -859,7 +818,7 @@ public class MMState {
                 if (!present[block.x - minX + 1 + dir.offsetX][block.y - minY + 1 + dir.offsetY][block.z - minZ
                     + 1
                     + dir.offsetZ]) {
-                    block.setBlock(faces);
+                    block.setBlock(BlockSpec.choose(config.faces, rng));
                     block.buildOrder = 0;
                     block.renderOrder = 0;
                     break;
@@ -869,9 +828,7 @@ public class MMState {
     }
 
     private void iterateCylinder(ArrayList<PendingBlock> pending, Vector3i coordA, Vector3i coordB, Vector3i coordC) {
-        ItemStack faces = config.getFaces();
-        ItemStack volumes = config.getVolumes();
-        ItemStack edges = config.getEdges();
+        XSTR rng = new XSTR(config.hashCode());
 
         Vector3i b2 = pinToPlanes(coordA, coordB);
         Vector3i height = pinToLine(coordA, b2, coordC).sub(coordA);
@@ -939,7 +896,7 @@ public class MMState {
 
                 if (distance <= 1) {
                     for (int h = 0; h < absH; h++) {
-                        PendingBlock block = new PendingBlock(config.coordA.worldId, a, h, b, volumes, 2, 0);
+                        PendingBlock block = new PendingBlock(config.coordA.worldId, a, h, b, BlockSpec.choose(config.volumes, rng), 2, 0);
 
                         present[a + 1][h + 1][b + 1] = true;
                         pending.add(block);
@@ -965,12 +922,12 @@ public class MMState {
             if (adj != 0b111111) {
                 // if this block is missing one of the N/S/E/W blocks, it's an edge (the surface)
                 if ((adj & 0b111100) == 0b111100) {
-                    block.setBlock(edges);
+                    block.setBlock(BlockSpec.choose(config.edges, rng));
                     block.buildOrder = 1;
                     block.renderOrder = 1;
                 } else {
                     // otherwise, it's a face (top & bottom)
-                    block.setBlock(faces);
+                    block.setBlock(BlockSpec.choose(config.faces, rng));
                     block.buildOrder = 2;
                     block.renderOrder = 0;
                 }
