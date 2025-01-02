@@ -8,17 +8,13 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 
-import com.google.gson.JsonElement;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockSpec;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.BlockRemoveMode;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.BlockSelectMode;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.PendingAction;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.PlaceMode;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.Shape;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 
@@ -47,14 +43,6 @@ public class MMConfig {
     public Transform transform;
     /** The array size in repetitions */
     public Vector3i arraySpan;
-
-    public static JsonElement saveStack(ItemStack stack) {
-        if (stack == null || stack.getItem() == null) {
-            return null;
-        }
-
-        return MMUtils.toJsonObject(stack.writeToNBT(new NBTTagCompound()));
-    }
 
     public Location getCoordA(World world, Vector3i lookingAt) {
         if (coordAOffset == null) {
