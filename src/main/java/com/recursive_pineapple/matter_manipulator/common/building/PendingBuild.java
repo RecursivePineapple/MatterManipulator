@@ -63,6 +63,7 @@ public class PendingBuild extends AbstractBuildable {
         int shuffleCount = 0;
 
         World world = player.worldObj;
+        ProxiedWorld proxiedWorld = new ProxiedWorld(world);
 
         PendingBuildApplyContext applyContext = new PendingBuildApplyContext(stack);
 
@@ -160,26 +161,29 @@ public class PendingBuild extends AbstractBuildable {
                     continue;
                 }
 
-                if (!tryConsumePower(stack, world, x, y, z, existing)) {
+                if (!tryConsumePower(stack, world, x, y, z, existing.spec)) {
                     MMUtils.sendErrorToPlayer(player, "Matter Manipulator ran out of EU.");
                     break;
                 }
             }
 
+            proxiedWorld.airX = x;
+            proxiedWorld.airY = y;
+            proxiedWorld.airZ = z;
+
             // check block dependencies for things like levers
             // if we can't place this block, shuffle it to the back of the list
-            // if (!next.getBlock()
-            //     .canPlaceBlockAt(world, next.x, next.y, next.z)) {
-            //     pendingBlocks.addLast(pendingBlocks.removeFirst());
-            //     shuffleCount++;
+            if (!next.getBlock().canPlaceBlockAt(proxiedWorld, next.x, next.y, next.z)) {
+                pendingBlocks.addLast(pendingBlocks.removeFirst());
+                shuffleCount++;
 
-            //     // if we've shuffled every block, then we'll never be able to place any of them
-            //     if (shuffleCount > pendingBlocks.size()) {
-            //         break;
-            //     } else {
-            //         continue;
-            //     }
-            // }
+                // if we've shuffled every block, then we'll never be able to place any of them
+                if (shuffleCount > pendingBlocks.size()) {
+                    break;
+                } else {
+                    continue;
+                }
+            }
 
             if (!tryConsumePower(stack, world, x, y, z, next.spec)) {
                 MMUtils.sendErrorToPlayer(player, "Matter Manipulator ran out of EU.");
