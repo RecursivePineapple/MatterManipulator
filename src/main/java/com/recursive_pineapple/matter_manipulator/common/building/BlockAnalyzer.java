@@ -3,7 +3,6 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 import static gregtech.api.util.GTUtility.sendChatToPlayer;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -48,23 +47,17 @@ public class BlockAnalyzer {
 
         analysis.blocks = new ArrayList<>();
 
-        BlockSpec pooled = new BlockSpec();
-
-        HashMap<BlockSpec, ImmutableBlockSpec> specPool = new HashMap<>();
-
         for (Vector3i voxel : MMUtils.getBlocksInBB(a, deltas)) {
-            BlockSpec.fromBlock(pooled, world, voxel.x, voxel.y, voxel.z);
+            BlockSpec spec = BlockSpec.fromBlock(null, world, voxel.x, voxel.y, voxel.z);
 
-            if (pooled.shouldBeSkipped()) {
+            if (spec.shouldBeSkipped()) {
                 continue;
             }
 
-            PendingBlock pending = specPool.computeIfAbsent(pooled, BlockSpec::clone).instantiate(world, voxel.x, voxel.y, voxel.z);
+            PendingBlock pending = spec.instantiate(world, voxel.x, voxel.y, voxel.z);
 
             if (checkTiles) {
-                TileAnalysisResult tile = TileAnalysisResult.analyze(world.getTileEntity(voxel.x, voxel.y, voxel.z));
-
-                if (tile != null) pending.tileData = tile;
+                pending.analyze(world.getTileEntity(voxel.x, voxel.y, voxel.z), PendingBlock.ANALYZE_ALL & ~PendingBlock.ANALYZE_ARCH);
             }
 
             pending.x -= a.x;
@@ -343,12 +336,10 @@ public class BlockAnalyzer {
                 context.y = block.y;
                 context.z = block.z;
 
-                if (block.tileData != null) {
-                    if (isNew) {
-                        block.tileData.getRequiredItemsForNewBlock(context);
-                    } else {
-                        block.tileData.getRequiredItemsForExistingBlock(context);
-                    }
+                if (isNew) {
+                    block.getRequiredItemsForNewBlock(context);
+                } else {
+                    block.getRequiredItemsForExistingBlock(context);
                 }
             }
         }

@@ -159,7 +159,7 @@ public class MMUtils {
     public static final String UNDERLINE = EnumChatFormatting.UNDERLINE.toString();
     public static final String ITALIC = EnumChatFormatting.ITALIC.toString();
     public static final String RESET = EnumChatFormatting.RESET.toString();
-
+    
     private MMUtils() {}
 
     public static int clamp(int val, int lo, int hi) {

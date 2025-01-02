@@ -1,8 +1,10 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -21,6 +23,7 @@ import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -37,7 +40,12 @@ public class PendingBlock extends Location {
 
     public ImmutableBlockSpec spec;
 
-    public TileAnalysisResult tileData;
+    public ITileAnalysisIntegration gt;
+    public ITileAnalysisIntegration ae;
+    public ITileAnalysisIntegration arch;
+
+    public InventoryAnalysis inventory = null;
+
     public int renderOrder, buildOrder;
 
     public PendingBlock(int worldId, int x, int y, int z, @NotNull ImmutableBlockSpec spec) {
@@ -52,7 +60,10 @@ public class PendingBlock extends Location {
      */
     public PendingBlock reset() {
         this.spec = null;
-        this.tileData = null;
+        this.gt = null;
+        this.ae = null;
+        this.arch = null;
+        this.inventory = null;
         this.renderOrder = 0;
         this.buildOrder = 0;
 
@@ -98,22 +109,84 @@ public class PendingBlock extends Location {
         return spec.getItem();
     }
     
+    private List<ITileAnalysisIntegration> getIntegrations() {
+        List<ITileAnalysisIntegration> list = new ArrayList<>();
+
+        if (gt != null) list.add(gt);
+        if (ae != null) list.add(ae);
+        if (arch != null) list.add(arch);
+
+        return list;
+    }
+
+    private String getItemDetails() {
+        List<String> details = new ArrayList<>(0);
+
+        for (var analysis : getIntegrations()) {
+            analysis.getItemDetails(details);
+        }
+
+        return details.isEmpty() ? "" : String.format(" (%s)", String.join(", ", details));
+    }
+
     public ItemStack getStack() {
         ItemStack stack = spec.getStack();
 
-        if (tileData != null) {
-            NBTTagCompound tag = stack.getTagCompound() != null ? stack.getTagCompound() : new NBTTagCompound();
+        if (stack == null) return null;
+        
+        NBTTagCompound tag = stack.getTagCompound() != null ? stack.getTagCompound() : new NBTTagCompound();
 
-            tileData.getItemTag(tag);
-
-            stack.setTagCompound(tag.hasNoTags() ? null : tag);
+        for (var analysis : getIntegrations()) {
+            analysis.getItemTag(tag);
         }
+
+        stack.setTagCompound(tag.hasNoTags() ? null : tag);
 
         return stack;
     }
 
+    /**
+     * Get the required items for a block that exists in the world
+     * 
+     * @return True when this result can be applied to the tile, false otherwise
+     */
+    public boolean getRequiredItemsForExistingBlock(IBlockApplyContext context) {
+        TileEntity te = context.getTileEntity();
+
+        for (var analysis : getIntegrations()) {
+            if (!analysis.getRequiredItemsForExistingBlock(context)) return false;
+        }
+
+        if (this.inventory != null && te instanceof IInventory inventory) {
+            this.inventory.apply(context, inventory, true, true);
+        }
+
+        return true;
+    }
+
+    /**
+     * Get the required items for a block that doesn't exist
+     * 
+     * @return True if this tile result is valid, false otherwise
+     */
+    public boolean getRequiredItemsForNewBlock(IBlockApplyContext context) {
+        for (var analysis : getIntegrations()) {
+            if (!analysis.getRequiredItemsForNewBlock(context)) return false;
+        }
+
+        if (this.inventory != null) {
+            for (IItemProvider item : this.inventory.mItems) {
+                if (item != null) {
+                    item.getStack(context, true);
+                }
+            }
+        }
+
+        return true;
+    }
+
     public String getDisplayName() {
-        return getStack().getDisplayName() + (tileData == null ? "" : tileData.getItemDetails());
+        return getStack().getDisplayName() + getItemDetails();
     }
 
     public boolean shouldBeSkipped() {
@@ -140,7 +213,10 @@ public class PendingBlock extends Location {
         dup.y = y;
         dup.z = z;
         dup.spec = spec;
-        dup.tileData = shallow ? tileData : tileData == null ? null : tileData.clone();
+        if (gt != null) dup.gt = gt.clone();
+        if (ae != null) dup.ae = ae.clone();
+        if (arch != null) dup.arch = arch.clone();
+        if (inventory != null) dup.inventory = inventory.clone();
         dup.renderOrder = renderOrder;
         dup.buildOrder = buildOrder;
 
@@ -198,8 +274,8 @@ public class PendingBlock extends Location {
 
         spec = spec.withProperties(p.isEmpty() ? null : p);
 
-        if (tileData != null) {
-            tileData.transform(transform);
+        for (var analysis : getIntegrations()) {
+            analysis.transform(transform);
         }
     }
 
@@ -252,9 +328,14 @@ public class PendingBlock extends Location {
             }
         }
 
-        if (tileData != null) {
-            tileData.apply(context);
-            ref.didSomething = true;
+        for (var analysis : getIntegrations()) {
+            if (!analysis.apply(context)) return false;
+        }
+
+        if (context.getTileEntity() instanceof IInventory inventory && this.inventory != null) {
+            if (!this.inventory.apply(context, inventory, true, false)) {
+                return false;
+            }
         }
 
         world.notifyBlockOfNeighborChange(x, y, z, Blocks.air);
@@ -263,17 +344,14 @@ public class PendingBlock extends Location {
     }
 
     @Override
-    public String toString() {
-        return "PendingBlock [spec=" + spec + ", tileData=" + tileData + ", renderOrder=" + renderOrder
-                + ", buildOrder=" + buildOrder + "]";
-    }
-
-    @Override
     public int hashCode() {
         final int prime = 31;
         int result = super.hashCode();
         result = prime * result + ((spec == null) ? 0 : spec.hashCode());
-        result = prime * result + ((tileData == null) ? 0 : tileData.hashCode());
+        result = prime * result + ((gt == null) ? 0 : gt.hashCode());
+        result = prime * result + ((ae == null) ? 0 : ae.hashCode());
+        result = prime * result + ((arch == null) ? 0 : arch.hashCode());
+        result = prime * result + ((inventory == null) ? 0 : inventory.hashCode());
         result = prime * result + renderOrder;
         result = prime * result + buildOrder;
         return result;
@@ -288,9 +366,18 @@ public class PendingBlock extends Location {
         if (spec == null) {
             if (other.spec != null) return false;
         } else if (!spec.equals(other.spec)) return false;
-        if (tileData == null) {
-            if (other.tileData != null) return false;
-        } else if (!tileData.equals(other.tileData)) return false;
+        if (gt == null) {
+            if (other.gt != null) return false;
+        } else if (!gt.equals(other.gt)) return false;
+        if (ae == null) {
+            if (other.ae != null) return false;
+        } else if (!ae.equals(other.ae)) return false;
+        if (arch == null) {
+            if (other.arch != null) return false;
+        } else if (!arch.equals(other.arch)) return false;
+        if (inventory == null) {
+            if (other.inventory != null) return false;
+        } else if (!inventory.equals(other.inventory)) return false;
         if (renderOrder != other.renderOrder) return false;
         if (buildOrder != other.buildOrder) return false;
         return true;
@@ -308,17 +395,39 @@ public class PendingBlock extends Location {
 
                 return (long) chunkX | (long) (chunkZ << 32);
             })
-            .thenComparing(b -> Objects.hashCode(b.tileData));
+            .thenComparingInt(b -> Objects.hash(b.gt, b.ae, b.arch, b.inventory));
     }
 
     public static PendingBlock fromBlock(World world, int x, int y, int z) {
-        PendingBlock pendingBlock = BlockSpec.fromBlock(null, world, x, y, z).instantiate(world, x, y, z);
+        return BlockSpec.fromBlock(null, world, x, y, z).instantiate(world, x, y, z);
+    }
 
-        TileEntity te = world.getTileEntity(x, y, z);
+    private static int counter = 0;
+    public static final int ANALYZE_GT = 0b1 << counter++;
+    public static final int ANALYZE_AE = 0b1 << counter++;
+    public static final int ANALYZE_ARCH = 0b1 << counter++;
+    public static final int ANALYZE_INV = 0b1 << counter++;
+    public static final int ANALYZE_ALL = -1;
+
+    public PendingBlock analyze(TileEntity te, int flags) {
         if (te != null) {
-            pendingBlock.tileData = TileAnalysisResult.analyze(te);
+            if ((flags & ANALYZE_GT) != 0 && Mods.GregTech.isModLoaded()) {
+                this.gt = GTAnalysisResult.analyze(te);
+            }
+    
+            if ((flags & ANALYZE_AE) != 0 && Mods.AppliedEnergistics2.isModLoaded()) {
+                this.ae = AEAnalysisResult.analyze(te);
+            }
+    
+            if ((flags & ANALYZE_ARCH) != 0 && Mods.ArchitectureCraft.isModLoaded()) {
+                this.arch = ArchitectureCraftAnalysisResult.analyze(te);
+            }
+    
+            if ((flags & ANALYZE_INV) != 0 && te instanceof IInventory inventory) {
+                this.inventory = InventoryAnalysis.fromInventory(inventory, false);
+            }
         }
 
-        return pendingBlock;
+        return this;
     }
 }

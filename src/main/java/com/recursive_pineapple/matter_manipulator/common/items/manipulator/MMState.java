@@ -29,7 +29,6 @@ import com.recursive_pineapple.matter_manipulator.common.building.BlockSpec;
 import com.recursive_pineapple.matter_manipulator.common.building.GTAnalysisResult;
 import com.recursive_pineapple.matter_manipulator.common.building.ImmutableBlockSpec;
 import com.recursive_pineapple.matter_manipulator.common.building.PendingBlock;
-import com.recursive_pineapple.matter_manipulator.common.building.TileAnalysisResult;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.RegionAnalysis;
 import com.recursive_pineapple.matter_manipulator.common.data.WeightedSpecList;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
@@ -421,9 +420,7 @@ public class MMState {
                 PendingBlock rep = replacement.instantiate(world, x, y, z);
 
                 if (MMUtils.isGTCable(existing)) {
-                    rep.tileData = TileAnalysisResult.analyze(world.getTileEntity(x, y, z));
-                } else {
-                    rep.tileData = new TileAnalysisResult();
+                   rep.analyze(world.getTileEntity(x, y, z), PendingBlock.ANALYZE_ALL);
                 }
 
                 pending.add(rep);
@@ -431,12 +428,10 @@ public class MMState {
                 PendingBlock rep = PendingBlock.AE_BLOCK_CABLE.get().asSpec().instantiate(world, x, y, z);
 
                 if (world.getTileEntity(x, y, z) instanceof IPartHost) {
-                    rep.tileData = TileAnalysisResult.analyze(world.getTileEntity(x, y, z));
-                } else {
-                    rep.tileData = new TileAnalysisResult();
+                    rep.analyze(world.getTileEntity(x, y, z), PendingBlock.ANALYZE_ALL);
                 }
 
-                placingAECable(rep.tileData, replacement);
+                placingAECable(rep, replacement);
 
                 pending.add(rep);
             } else {
@@ -448,15 +443,10 @@ public class MMState {
     }
 
     @Optional(Names.APPLIED_ENERGISTICS2)
-    private void placingAECable(TileAnalysisResult result, ImmutableBlockSpec cable) {
-        AEAnalysisResult ae;
+    private void placingAECable(PendingBlock pendingBlock, ImmutableBlockSpec cable) {
+        if (pendingBlock.ae == null) pendingBlock.ae = new AEAnalysisResult();
 
-        if (result.ae == null) {
-            ae = new AEAnalysisResult();
-            result.ae = ae;
-        } else {
-            ae = (AEAnalysisResult) result.ae;
-        }
+        AEAnalysisResult ae = (AEAnalysisResult) pendingBlock.ae;
 
         if (ae.mAEParts == null) ae.mAEParts = new AEPartData[7];
 
@@ -539,8 +529,6 @@ public class MMState {
                     }
                 }
 
-                PendingBlock pendingBlock = cable.instantiate(world, voxel.x, voxel.y, voxel.z);
-
                 GTAnalysisResult gt = new GTAnalysisResult();
 
                 byte conn = existingConnections;
@@ -550,8 +538,9 @@ public class MMState {
 
                 gt.mConnections = conn;
 
-                pendingBlock.tileData = new TileAnalysisResult();
-                pendingBlock.tileData.gt = gt;
+                PendingBlock pendingBlock = cable.instantiate(world, voxel.x, voxel.y, voxel.z);
+
+                pendingBlock.gt = gt;
 
                 out.add(pendingBlock);
             }
@@ -578,8 +567,7 @@ public class MMState {
 
                     PendingBlock pendingBlock = cableSpec.instantiate(world, x, y, z);
 
-                    pendingBlock.tileData = new TileAnalysisResult();
-                    pendingBlock.tileData.ae = ae;
+                    pendingBlock.ae = ae;
 
                     out.add(pendingBlock);
                 }

@@ -2,6 +2,7 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -216,8 +217,7 @@ public class BlockSpec implements ImmutableBlockSpec {
         PendingBlock pendingBlock = new PendingBlock(worldId, x, y, z, this);
 
         if (arch != null) {
-            pendingBlock.tileData = new TileAnalysisResult();
-            pendingBlock.tileData.arch = arch.clone();
+            pendingBlock.arch = arch.clone();
         }
 
         return pendingBlock;
@@ -257,8 +257,16 @@ public class BlockSpec implements ImmutableBlockSpec {
         return spec;
     }
 
+    private String getItemDetails() {
+        List<String> details = new ArrayList<>(0);
+
+        if (arch != null) arch.getItemDetails(details);
+
+        return details.isEmpty() ? "" : String.format(" (%s)", String.join(", ", details));
+    }
+
     public String getDisplayName() {
-        return getStack() == null ? Blocks.air.getLocalizedName() : getStack().getDisplayName();
+        return (getStack() == null ? Blocks.air.getLocalizedName() : getStack().getDisplayName()) + getItemDetails();
     }
 
     @Override

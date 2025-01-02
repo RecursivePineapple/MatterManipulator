@@ -43,6 +43,8 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
     public AEPartData[] mAEParts = null;
     public InventoryAnalysis mAECells = null;
     public InventoryAnalysis mAEPatterns = null;
+    
+    public static final ForgeDirection[] ALL_DIRECTIONS = ForgeDirection.values();
 
     private static final AEAnalysisResult NO_OP = new AEAnalysisResult();
 
@@ -95,9 +97,9 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
 
         // check all sides for parts (+UNKNOWN for cables)
         if (te instanceof IPartHost partHost) {
-            mAEParts = new AEPartData[TileAnalysisResult.ALL_DIRECTIONS.length];
+            mAEParts = new AEPartData[AEAnalysisResult.ALL_DIRECTIONS.length];
 
-            for (ForgeDirection dir : TileAnalysisResult.ALL_DIRECTIONS) {
+            for (ForgeDirection dir : AEAnalysisResult.ALL_DIRECTIONS) {
                 IPart part = partHost.getPart(dir);
 
                 if (part != null) mAEParts[dir.ordinal()] = new AEPartData(part);
@@ -148,7 +150,7 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
 
         // add/remove/update ae parts and cables
         if (te instanceof IPartHost partHost && mAEParts != null) {
-            for (ForgeDirection dir : TileAnalysisResult.ALL_DIRECTIONS) {
+            for (ForgeDirection dir : AEAnalysisResult.ALL_DIRECTIONS) {
                 IPart part = partHost.getPart(dir);
                 AEPartData expected = mAEParts[dir.ordinal()];
 
@@ -260,7 +262,7 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
         }
 
         if (mAEParts != null && te instanceof IPartHost partHost) {
-            for (ForgeDirection dir : TileAnalysisResult.ALL_DIRECTIONS) {
+            for (ForgeDirection dir : AEAnalysisResult.ALL_DIRECTIONS) {
                 IPart part = partHost.getPart(dir);
                 AEPartData expected = mAEParts[dir.ordinal()];
 
@@ -314,7 +316,7 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
         }
 
         if (mAEParts != null) {
-            for (ForgeDirection dir : TileAnalysisResult.ALL_DIRECTIONS) {
+            for (ForgeDirection dir : AEAnalysisResult.ALL_DIRECTIONS) {
                 AEPartData expected = mAEParts[dir.ordinal()];
 
                 if (expected == null) continue;
@@ -346,7 +348,7 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
         mAEForward = transform.apply(mAEForward);
         
         if (mAEParts != null) {
-            AEPartData[] partsOut = new AEPartData[TileAnalysisResult.ALL_DIRECTIONS.length];
+            AEPartData[] partsOut = new AEPartData[AEAnalysisResult.ALL_DIRECTIONS.length];
 
             int unknown = ForgeDirection.UNKNOWN.ordinal();
 
@@ -354,7 +356,7 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
                 if (i == unknown) {
                     partsOut[unknown] = mAEParts[unknown];
                 } else {
-                    partsOut[transform.apply(TileAnalysisResult.ALL_DIRECTIONS[i])
+                    partsOut[transform.apply(AEAnalysisResult.ALL_DIRECTIONS[i])
                         .ordinal()] = mAEParts[i];
                 }
             }

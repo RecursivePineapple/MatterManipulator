@@ -117,6 +117,8 @@ public class PendingBuild extends AbstractBuildable {
                 continue;
             }
 
+            existing.analyze(world.getTileEntity(x, y, z), PendingBlock.ANALYZE_ARCH);
+
             // if the existing block is the same as the one we're trying to place, just apply its tile data
             if (ItemStack.areItemStacksEqual(existing.getStack(), next.getStack())) {
                 PendingBlock block = pendingBlocks.removeFirst();
