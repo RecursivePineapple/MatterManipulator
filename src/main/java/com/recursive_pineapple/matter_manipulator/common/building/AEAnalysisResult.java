@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Objects;
 
 import com.google.gson.JsonElement;
-import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockAnalysisContext;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
 import com.recursive_pineapple.matter_manipulator.common.utils.ItemId;
@@ -47,7 +46,7 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
 
     private static final AEAnalysisResult NO_OP = new AEAnalysisResult();
 
-    public static AEAnalysisResult analyze(IBlockAnalysisContext context, TileEntity te) {
+    public static AEAnalysisResult analyze(TileEntity te) {
         if (te instanceof IGridHost) {
             AEAnalysisResult result = new AEAnalysisResult(te);
 

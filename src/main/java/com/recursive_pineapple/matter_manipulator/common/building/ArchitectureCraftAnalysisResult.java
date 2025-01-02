@@ -2,7 +2,6 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 
 import java.util.List;
 
-import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockAnalysisContext;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
 
@@ -22,7 +21,7 @@ public class ArchitectureCraftAnalysisResult implements ITileAnalysisIntegration
     public int shape;
     public PortableItemStack material, cladding;
 
-    public static ArchitectureCraftAnalysisResult analyze(IBlockAnalysisContext context, TileEntity te) {
+    public static ArchitectureCraftAnalysisResult analyze(TileEntity te) {
         if (!(te instanceof TileShape tileShape)) return null;
 
         ArchitectureCraftAnalysisResult result = new ArchitectureCraftAnalysisResult();

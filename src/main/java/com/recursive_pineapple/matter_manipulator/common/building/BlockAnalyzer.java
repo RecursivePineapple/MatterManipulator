@@ -3,23 +3,18 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 import static gregtech.api.util.GTUtility.sendChatToPlayer;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-
-import javax.annotation.Nullable;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
-import net.minecraftforge.common.util.FakePlayer;
 
 import org.joml.Vector3i;
 
-import com.mojang.authlib.GameProfile;
 import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.DebugConfig;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
@@ -35,18 +30,6 @@ import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 public class BlockAnalyzer {
 
     private BlockAnalyzer() {}
-
-    public static @Nullable TileAnalysisResult analyze(IBlockAnalysisContext context) {
-        TileEntity te = context.getTileEntity();
-
-        if (te == null) {
-            return null;
-        }
-
-        TileAnalysisResult result = new TileAnalysisResult(context, te);
-
-        return result.doesAnything() ? result : null;
-    }
 
     /**
      * Analyzes a region.
@@ -65,23 +48,23 @@ public class BlockAnalyzer {
 
         analysis.blocks = new ArrayList<>();
 
-        BlockAnalysisContext context = new BlockAnalysisContext(world);
+        BlockSpec pooled = new BlockSpec();
+
+        HashMap<BlockSpec, ImmutableBlockSpec> specPool = new HashMap<>();
 
         for (Vector3i voxel : MMUtils.getBlocksInBB(a, deltas)) {
-            PendingBlock pending = BlockSpec.fromBlock(null, world, voxel.x, voxel.y, voxel.z)
-                .instantiate(world, voxel.x, voxel.y, voxel.z);
+            BlockSpec.fromBlock(pooled, world, voxel.x, voxel.y, voxel.z);
 
-            if (pending.shouldBeSkipped()) {
+            if (pooled.shouldBeSkipped()) {
                 continue;
             }
 
-            if (checkTiles) {
-                context.voxel = voxel;
-                TileAnalysisResult tile = analyze(context);
+            PendingBlock pending = specPool.computeIfAbsent(pooled, BlockSpec::clone).instantiate(world, voxel.x, voxel.y, voxel.z);
 
-                if (tile != null && tile.doesAnything()) {
-                    pending.tileData = tile;
-                }
+            if (checkTiles) {
+                TileAnalysisResult tile = TileAnalysisResult.analyze(world.getTileEntity(voxel.x, voxel.y, voxel.z));
+
+                if (tile != null) pending.tileData = tile;
             }
 
             pending.x -= a.x;
@@ -107,49 +90,13 @@ public class BlockAnalyzer {
     }
 
     /**
-     * The context within which tiles are analyzed.
-     * Contains everything needed to analyze a tile.
-     */
-    public static interface IBlockAnalysisContext {
-
-        public EntityPlayer getFakePlayer();
-
-        public TileEntity getTileEntity();
-    }
-
-    public static class BlockAnalysisContext implements IBlockAnalysisContext {
-
-        public World world;
-        public EntityPlayer fakePlayer;
-        public Vector3i voxel;
-
-        public BlockAnalysisContext(World world) {
-            this.world = world;
-        }
-
-        @Override
-        public EntityPlayer getFakePlayer() {
-            if (fakePlayer == null) {
-                fakePlayer = new FakePlayer(
-                    (WorldServer) world,
-                    new GameProfile(UUID.randomUUID(), "BlockAnalyzer Fake Player"));
-            }
-
-            return fakePlayer;
-        }
-
-        @Override
-        public TileEntity getTileEntity() {
-            return world.getTileEntity(voxel.x, voxel.y, voxel.z);
-        }
-    }
-
-    /**
      * The context within which analysis results are applied.
      * Contains everything needed to apply a TileAnalysisResult.
      */
 
-    public static interface IBlockApplyContext extends IBlockAnalysisContext, IPseudoInventory {
+    public static interface IBlockApplyContext extends IPseudoInventory {
+
+        public TileEntity getTileEntity();
 
         public EntityPlayer getRealPlayer();
 
@@ -167,18 +114,8 @@ public class BlockAnalyzer {
         public EntityPlayer player;
         public PendingBuild build;
         public ItemStack manipulator;
-        public FakePlayer fakePlayer;
 
         public static final double EU_PER_ACTION = 8192;
-
-        @Override
-        public EntityPlayer getFakePlayer() {
-            if (fakePlayer == null) {
-                fakePlayer = new FakePlayer((WorldServer) player.getEntityWorld(), player.getGameProfile());
-            }
-
-            return fakePlayer;
-        }
 
         @Override
         public TileEntity getTileEntity() {
@@ -229,21 +166,11 @@ public class BlockAnalyzer {
         public World world;
         public int x, y, z;
         public EntityPlayer player;
-        public FakePlayer fakePlayer;
 
         public Object2LongOpenHashMap<ItemId> requiredItems = new Object2LongOpenHashMap<>();
 
         public Object2LongOpenHashMap<ItemId> storedItems = new Object2LongOpenHashMap<>();
         public Object2LongOpenHashMap<FluidId> storedFluids = new Object2LongOpenHashMap<>();
-
-        @Override
-        public EntityPlayer getFakePlayer() {
-            if (fakePlayer == null) {
-                fakePlayer = new FakePlayer((WorldServer) player.getEntityWorld(), player.getGameProfile());
-            }
-
-            return fakePlayer;
-        }
 
         @Override
         public TileEntity getTileEntity() {

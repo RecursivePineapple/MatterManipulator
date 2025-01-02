@@ -33,8 +33,6 @@ import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
-import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
@@ -107,7 +105,7 @@ public class PendingBuild extends AbstractBuildable {
                 break;
             }
 
-            BlockSpec existing = BlockSpec.fromBlock(pooled, world, x, y, z);
+            PendingBlock existing = PendingBlock.fromBlock(world, x, y, z);
 
             if (existing.shouldBeSkipped()) {
                 pendingBlocks.removeFirst();
@@ -120,7 +118,7 @@ public class PendingBuild extends AbstractBuildable {
             }
 
             // if the existing block is the same as the one we're trying to place, just apply its tile data
-            if (next.spec.isEquivalent(existing)) {
+            if (ItemStack.areItemStacksEqual(existing.getStack(), next.getStack())) {
                 PendingBlock block = pendingBlocks.removeFirst();
 
                 if (supportsConfiguring()) {
@@ -394,24 +392,11 @@ public class PendingBuild extends AbstractBuildable {
 
         public static final double EU_PER_ACTION = 8192;
 
-        private EntityPlayer fakePlayer;
-
         public ItemStack manipulatorItemStack;
         public PendingBlock pendingBlock;
 
         public PendingBuildApplyContext(ItemStack manipulatorItemStack) {
             this.manipulatorItemStack = manipulatorItemStack;
-        }
-
-        @Override
-        public EntityPlayer getFakePlayer() {
-            if (fakePlayer == null) {
-                fakePlayer = new FakePlayer(
-                    (WorldServer) PendingBuild.this.player.worldObj,
-                    PendingBuild.this.player.getGameProfile());
-            }
-
-            return fakePlayer;
         }
 
         @Override

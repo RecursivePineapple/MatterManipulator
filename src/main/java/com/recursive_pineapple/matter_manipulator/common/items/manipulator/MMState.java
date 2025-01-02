@@ -30,7 +30,6 @@ import com.recursive_pineapple.matter_manipulator.common.building.GTAnalysisResu
 import com.recursive_pineapple.matter_manipulator.common.building.ImmutableBlockSpec;
 import com.recursive_pineapple.matter_manipulator.common.building.PendingBlock;
 import com.recursive_pineapple.matter_manipulator.common.building.TileAnalysisResult;
-import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.BlockAnalysisContext;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.RegionAnalysis;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
 import com.recursive_pineapple.matter_manipulator.common.uplink.IUplinkMulti;
@@ -370,8 +369,6 @@ public class MMState {
 
         ArrayList<PendingBlock> pending = new ArrayList<>();
 
-        BlockAnalysisContext context = new BlockAnalysisContext(world);
-
         XSTR rng = new XSTR(config.hashCode());
 
         BlockSpec existing = new BlockSpec();
@@ -413,8 +410,7 @@ public class MMState {
                 PendingBlock rep = replacement.instantiate(world, x, y, z);
 
                 if (MMUtils.isGTCable(existing)) {
-                    context.voxel = voxel;
-                    rep.tileData = BlockAnalyzer.analyze(context);
+                    rep.tileData = TileAnalysisResult.analyze(world.getTileEntity(x, y, z));
                 } else {
                     rep.tileData = new TileAnalysisResult();
                 }
@@ -424,8 +420,7 @@ public class MMState {
                 PendingBlock rep = PendingBlock.AE_BLOCK_CABLE.get().asSpec().instantiate(world, x, y, z);
 
                 if (world.getTileEntity(x, y, z) instanceof IPartHost) {
-                    context.voxel = voxel;
-                    rep.tileData = BlockAnalyzer.analyze(context);
+                    rep.tileData = TileAnalysisResult.analyze(world.getTileEntity(x, y, z));
                 } else {
                     rep.tileData = new TileAnalysisResult();
                 }
@@ -434,7 +429,7 @@ public class MMState {
 
                 pending.add(rep);
             } else {
-                pending.add(new PendingBlock(world.provider.dimensionId, x, y, z, replacement));
+                pending.add(replacement.instantiate(world, x, y, z));
             }
         }
 
@@ -472,12 +467,7 @@ public class MMState {
 
         if (config.cables == null) {
             for (Vector3i voxel : getLineVoxels(a.x, a.y, a.z, b.x, b.y, b.z)) {
-                PendingBlock pendingBlock = new PendingBlock(
-                    world.provider.dimensionId,
-                    voxel.x,
-                    voxel.y,
-                    voxel.z,
-                    BlockSpec.AIR);
+                PendingBlock pendingBlock = BlockSpec.AIR.instantiate(world, voxel.x, voxel.y, voxel.z);
 
                 out.add(pendingBlock);
             }
@@ -561,15 +551,13 @@ public class MMState {
     private void getAECables(Vector3i a, Vector3i b, List<PendingBlock> out, Block block, World world, ImmutableBlockSpec cableSpec) {
         if (cableSpec.getItem() instanceof IPartItem partItem) {
             if (partItem.createPartFromItemStack(cableSpec.getStack()) instanceof IPartCable cable) {
-                BlockAnalysisContext context = new BlockAnalysisContext(world);
-
                 for (Vector3i voxel : getLineVoxels(a.x, a.y, a.z, b.x, b.y, b.z)) {
                     int x = voxel.x, y = voxel.y, z = voxel.z;
 
                     AEAnalysisResult ae;
 
                     if (PendingBlock.AE_BLOCK_CABLE.matches(world.getBlock(x, y, z), 0)) {
-                        ae = AEAnalysisResult.analyze(context, world.getTileEntity(voxel.x, voxel.y, voxel.z));
+                        ae = AEAnalysisResult.analyze(world.getTileEntity(voxel.x, voxel.y, voxel.z));
                         ae.mAEParts[ForgeDirection.UNKNOWN.ordinal()] = new AEPartData(cable);
                     } else {
                         ae = new AEAnalysisResult();
@@ -743,10 +731,10 @@ public class MMState {
                         case 1 -> BlockSpec.choose(config.edges, rng);
                         case 2 -> BlockSpec.choose(config.faces, rng);
                         case 3 -> BlockSpec.choose(config.volumes, rng);
-                        default -> null;
+                        default -> BlockSpec.AIR;
                     };
 
-                    pending.add(new PendingBlock(config.coordA.worldId, x, y, z, spec, insideCount, insideCount));
+                    pending.add(spec.instantiate(config.coordA.worldId, x, y, z).setOrders(insideCount, insideCount));
                 }
             }
         }
@@ -780,14 +768,9 @@ public class MMState {
                     // spotless:on
 
                     if (distance <= 1) {
-                        PendingBlock block = new PendingBlock(
-                            config.coordA.worldId,
-                            x + minX,
-                            y + minY,
-                            z + minZ,
-                            BlockSpec.choose(config.volumes, rng),
-                            1,
-                            1);
+                        PendingBlock block = BlockSpec.choose(config.volumes, rng)
+                            .instantiate(config.coordA.worldId, x + minX, y + minY, z + minZ)
+                            .setOrders(1, 1);
 
                         present[x + 1][y + 1][z + 1] = true;
                         pending.add(block);
@@ -896,7 +879,9 @@ public class MMState {
 
                 if (distance <= 1) {
                     for (int h = 0; h < absH; h++) {
-                        PendingBlock block = new PendingBlock(config.coordA.worldId, a, h, b, BlockSpec.choose(config.volumes, rng), 2, 0);
+                        PendingBlock block = BlockSpec.choose(config.volumes, rng)
+                            .instantiate(config.coordA.worldId, a, h, b)
+                            .setOrders(2, 0);
 
                         present[a + 1][h + 1][b + 1] = true;
                         pending.add(block);

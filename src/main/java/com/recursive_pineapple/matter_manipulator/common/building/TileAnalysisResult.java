@@ -3,7 +3,6 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockAnalysisContext;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
@@ -28,23 +27,26 @@ public class TileAnalysisResult {
 
     }
 
-    public TileAnalysisResult(IBlockAnalysisContext context, TileEntity te) {
+    public static TileAnalysisResult analyze(TileEntity te) {
+        TileAnalysisResult result = new TileAnalysisResult();
 
         if (Mods.GregTech.isModLoaded()) {
-            gt = GTAnalysisResult.analyze(context, te);
+            result.gt = GTAnalysisResult.analyze(te);
         }
 
         if (Mods.AppliedEnergistics2.isModLoaded()) {
-            ae = AEAnalysisResult.analyze(context, te);
+            result.ae = AEAnalysisResult.analyze(te);
         }
 
         if (Mods.ArchitectureCraft.isModLoaded()) {
-            arch = ArchitectureCraftAnalysisResult.analyze(context, te);
+            result.arch = ArchitectureCraftAnalysisResult.analyze(te);
         }
 
         if (te instanceof IInventory inventory) {
-            mInventory = InventoryAnalysis.fromInventory(inventory, false);
+            result.mInventory = InventoryAnalysis.fromInventory(inventory, false);
         }
+
+        return result.doesAnything() ? result : null;
     }
 
     private static final TileAnalysisResult NO_OP = new TileAnalysisResult();

@@ -23,6 +23,7 @@ import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
@@ -41,12 +42,6 @@ public class PendingBlock extends Location {
     public PendingBlock(int worldId, int x, int y, int z, @NotNull ImmutableBlockSpec spec) {
         super(worldId, x, y, z);
         this.spec = spec;
-    }
-
-    public PendingBlock(int worldId, int x, int y, int z, @NotNull ImmutableBlockSpec spec, int renderOrder, int buildOrder) {
-        this(worldId, x, y, z, spec);
-        this.renderOrder = renderOrder;
-        this.buildOrder = buildOrder;
     }
 
     private PendingBlock() {}
@@ -87,6 +82,13 @@ public class PendingBlock extends Location {
         return this;
     }
 
+    public PendingBlock setOrders(int renderOrder, int buildOrder) {
+        this.renderOrder = renderOrder;
+        this.buildOrder = buildOrder;
+
+        return this;
+    }
+
     public Block getBlock() {
         return spec.getBlock();
     }
@@ -96,7 +98,11 @@ public class PendingBlock extends Location {
     }
     
     public ItemStack getStack() {
-        return spec.getStack();
+        ItemStack stack = spec.getStack();
+
+        if (tileData != null) stack.setTagCompound(tileData.getItemTag());
+
+        return stack;
     }
 
     public String getDisplayName() {
@@ -296,5 +302,16 @@ public class PendingBlock extends Location {
                 return (long) chunkX | (long) (chunkZ << 32);
             })
             .thenComparing(b -> Objects.hashCode(b.tileData));
+    }
+
+    public static PendingBlock fromBlock(World world, int x, int y, int z) {
+        PendingBlock pendingBlock = BlockSpec.fromBlock(null, world, x, y, z).instantiate(world, x, y, z);
+
+        TileEntity te = world.getTileEntity(x, y, z);
+        if (te != null) {
+            pendingBlock.tileData = TileAnalysisResult.analyze(te);
+        }
+
+        return pendingBlock;
     }
 }

@@ -11,7 +11,6 @@ import com.gtnewhorizon.structurelib.alignment.IAlignment;
 import com.gtnewhorizon.structurelib.alignment.IAlignmentProvider;
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
 import com.recursive_pineapple.matter_manipulator.MMMod;
-import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockAnalysisContext;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
@@ -78,7 +77,7 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
 
     private static final GTAnalysisResult NO_OP = new GTAnalysisResult();
 
-    public static GTAnalysisResult analyze(IBlockAnalysisContext context, TileEntity te) {
+    public static GTAnalysisResult analyze(TileEntity te) {
         if (te instanceof IGregTechTileEntity igte) {
             GTAnalysisResult result = new GTAnalysisResult(igte);
 

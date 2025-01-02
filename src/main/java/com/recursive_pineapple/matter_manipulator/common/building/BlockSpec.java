@@ -15,6 +15,8 @@ import com.recursive_pineapple.matter_manipulator.common.compat.BlockProperty;
 import com.recursive_pineapple.matter_manipulator.common.compat.BlockPropertyRegistry;
 import com.recursive_pineapple.matter_manipulator.common.utils.ItemId;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
@@ -44,6 +46,9 @@ public class BlockSpec implements ImmutableBlockSpec {
 
     public Map<CopyableProperty, String> properties;
 
+    @com.recursive_pineapple.matter_manipulator.asm.Optional(Names.ARCHITECTURE_CRAFT)
+    public ArchitectureCraftAnalysisResult arch;
+
     private transient Block block;
     private transient Optional<Item> item;
     private transient Optional<ItemId> itemId;
@@ -62,6 +67,7 @@ public class BlockSpec implements ImmutableBlockSpec {
         item = null;
         itemId = null;
         stack = null;
+        arch = null;
 
         return this;
     }
@@ -192,7 +198,14 @@ public class BlockSpec implements ImmutableBlockSpec {
 
     @Override
     public PendingBlock instantiate(int worldId, int x, int y, int z) {
-        return new PendingBlock(worldId, x, y, z, this);
+        PendingBlock pendingBlock = new PendingBlock(worldId, x, y, z, this);
+
+        if (arch != null) {
+            pendingBlock.tileData = new TileAnalysisResult();
+            pendingBlock.tileData.arch = arch.clone();
+        }
+
+        return pendingBlock;
     }
 
     public BlockSpec clone() {
@@ -206,6 +219,7 @@ public class BlockSpec implements ImmutableBlockSpec {
         dup.item = item;
         dup.itemId = itemId;
         dup.stack = stack;
+        dup.arch = arch == null ? null : arch.clone();
 
         return dup;
     }
@@ -313,6 +327,9 @@ public class BlockSpec implements ImmutableBlockSpec {
         spec.block = block;
         spec.item = Optional.of(item);
         spec.itemId = Optional.of(ItemId.create(item, itemMeta, null));
+        if (Mods.ArchitectureCraft.isModLoaded()) {
+            spec.arch = ArchitectureCraftAnalysisResult.analyze(world.getTileEntity(x, y, z));
+        }
 
         Map<String, BlockProperty<?>> properties = new HashMap<>();
         BlockPropertyRegistry.getProperties(world, x, y, z, properties);
