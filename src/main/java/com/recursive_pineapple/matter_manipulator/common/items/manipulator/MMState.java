@@ -58,8 +58,6 @@ import appeng.api.util.DimensionalCoord;
 import appeng.tile.misc.TileSecurity;
 import appeng.tile.networking.TileWireless;
 import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
-import gregtech.api.interfaces.metatileentity.IConnectable;
-import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.common.blocks.BlockMachines;
 
 /**
@@ -467,10 +465,24 @@ public class MMState {
         ArrayList<PendingBlock> out = new ArrayList<>();
 
         if (config.cables == null) {
-            for (Vector3i voxel : getLineVoxels(a.x, a.y, a.z, b.x, b.y, b.z)) {
-                PendingBlock pendingBlock = BlockSpec.AIR.instantiate(world, voxel.x, voxel.y, voxel.z);
+            BlockSpec pooled = new BlockSpec();
 
-                out.add(pendingBlock);
+            for (Vector3i voxel : getLineVoxels(a.x, a.y, a.z, b.x, b.y, b.z)) {
+                if (AppliedEnergistics2.isModLoaded()) {
+                    if (MMUtils.getAECable(pooled, world, voxel.x, voxel.y, voxel.z)) {
+                        PendingBlock pendingBlock = PendingBlock.AE_BLOCK_CABLE.get().asSpec().instantiate(world, voxel.x, voxel.y, voxel.z);
+
+                        pendingBlock.analyze(world.getTileEntity(voxel.x, voxel.y, voxel.z), PendingBlock.ANALYZE_ALL);
+
+                        clearAECable(pendingBlock);
+
+                        out.add(pendingBlock);
+                        
+                        continue;
+                    }
+                }
+
+                out.add(BlockSpec.AIR.instantiate(world, voxel.x, voxel.y, voxel.z));
             }
         } else {
             Block block = Block.getBlockFromItem(config.cables.getItem());
@@ -496,18 +508,18 @@ public class MMState {
             switch (new Vector3i(b).sub(a)
                 .maxComponent()) {
                 case 0: {
-                    start = b.x < 0 ? ForgeDirection.EAST.flag : ForgeDirection.WEST.flag;
-                    end = b.x > 0 ? ForgeDirection.EAST.flag : ForgeDirection.WEST.flag;
+                    start = b.x < a.x ? ForgeDirection.EAST.flag : ForgeDirection.WEST.flag;
+                    end = b.x > a.x ? ForgeDirection.EAST.flag : ForgeDirection.WEST.flag;
                     break;
                 }
                 case 1: {
-                    start = b.y < 0 ? ForgeDirection.UP.flag : ForgeDirection.DOWN.flag;
-                    end = b.y > 0 ? ForgeDirection.UP.flag : ForgeDirection.DOWN.flag;
+                    start = b.y < a.y ? ForgeDirection.UP.flag : ForgeDirection.DOWN.flag;
+                    end = b.y > a.y ? ForgeDirection.UP.flag : ForgeDirection.DOWN.flag;
                     break;
                 }
                 case 2: {
-                    start = b.z < 0 ? ForgeDirection.SOUTH.flag : ForgeDirection.NORTH.flag;
-                    end = b.z > 0 ? ForgeDirection.SOUTH.flag : ForgeDirection.NORTH.flag;
+                    start = b.z < a.z ? ForgeDirection.SOUTH.flag : ForgeDirection.NORTH.flag;
+                    end = b.z > a.z ? ForgeDirection.SOUTH.flag : ForgeDirection.NORTH.flag;
                     break;
                 }
             }
@@ -517,26 +529,12 @@ public class MMState {
             for (int i = 0; i < voxels.size(); i++) {
                 Vector3i voxel = voxels.get(i);
 
-                byte existingConnections = 0;
+                GTAnalysisResult gt = GTAnalysisResult.analyze(world.getTileEntity(voxel.x, voxel.y, voxel.z));
 
-                // respect existing connections if possible
-                if (world.getTileEntity(voxel.x, voxel.y, voxel.z) instanceof IGregTechTileEntity igte
-                    && igte.getMetaTileEntity() instanceof IConnectable connectable) {
-                    for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
-                        if (connectable.isConnectedAtSide(dir)) {
-                            existingConnections |= dir.flag;
-                        }
-                    }
-                }
+                if (gt == null) gt = new GTAnalysisResult();
 
-                GTAnalysisResult gt = new GTAnalysisResult();
-
-                byte conn = existingConnections;
-
-                if (i > 0) conn |= start;
-                if (i < voxels.size() - 1) conn |= end;
-
-                gt.mConnections = conn;
+                if (i > 0) gt.mConnections |= start;
+                if (i < voxels.size() - 1) gt.mConnections |= end;
 
                 PendingBlock pendingBlock = cable.instantiate(world, voxel.x, voxel.y, voxel.z);
 
@@ -573,6 +571,17 @@ public class MMState {
                 }
             }
         }
+    }
+
+    @Optional(Names.APPLIED_ENERGISTICS2)
+    private void clearAECable(PendingBlock pendingBlock) {
+        if (pendingBlock.ae == null) return;
+
+        AEAnalysisResult ae = (AEAnalysisResult) pendingBlock.ae;
+
+        if (ae.mAEParts == null) return;
+
+        ae.mAEParts[ForgeDirection.UNKNOWN.ordinal()] = null;
     }
 
     private List<PendingBlock> getGeomPendingBlocks(World world) {
