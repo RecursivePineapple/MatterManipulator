@@ -369,7 +369,7 @@ public class PendingBuild extends AbstractBuildable {
     }
 
     private boolean supportsConfiguring() {
-        // self-explanitory
+        // self-explanatory
         if (tier.hasCap(ItemMatterManipulator.ALLOW_CONFIGURING)) return true;
 
         // lower tiers support cables, but not copying

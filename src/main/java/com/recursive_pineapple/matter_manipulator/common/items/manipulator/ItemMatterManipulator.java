@@ -12,7 +12,6 @@ import static net.minecraftforge.common.util.ForgeDirection.SOUTH;
 import static net.minecraftforge.common.util.ForgeDirection.UP;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
@@ -21,7 +20,6 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
-import java.util.stream.Collectors;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -98,6 +96,7 @@ import com.recursive_pineapple.matter_manipulator.common.building.IBuildable;
 import com.recursive_pineapple.matter_manipulator.common.building.PendingBlock;
 import com.recursive_pineapple.matter_manipulator.common.building.PendingBuild;
 import com.recursive_pineapple.matter_manipulator.common.building.PendingMove;
+import com.recursive_pineapple.matter_manipulator.common.data.WeightedSpecList;
 
 import appeng.api.features.INetworkEncodable;
 import cpw.mods.fml.client.registry.ClientRegistry;
@@ -500,10 +499,10 @@ public class ItemMatterManipulator extends Item
                 addInfoLine(desc, "Coordinate A: %s", state.config.coordA);
                 addInfoLine(desc, "Coordinate B: %s", state.config.coordB);
         
-                addInfoLine(desc, "Corner block: %s", state.config.corners, ItemMatterManipulator::specsToString);
-                addInfoLine(desc, "Edge block: %s", state.config.edges, ItemMatterManipulator::specsToString);
-                addInfoLine(desc, "Face block: %s", state.config.faces, ItemMatterManipulator::specsToString);
-                addInfoLine(desc, "Volume block: %s", state.config.volumes, ItemMatterManipulator::specsToString);
+                addInfoLine(desc, "Corner block: %s", state.config.corners);
+                addInfoLine(desc, "Edge block: %s", state.config.edges);
+                addInfoLine(desc, "Face block: %s", state.config.faces);
+                addInfoLine(desc, "Volume block: %s", state.config.volumes);
             }
 
             if (state.config.placeMode == PlaceMode.COPYING) {
@@ -530,8 +529,8 @@ public class ItemMatterManipulator extends Item
             }
 
             if (state.config.placeMode == PlaceMode.EXCHANGING) {
-                addInfoLine(desc, "Removable blocks: %s", state.config.replaceWhitelist, ItemMatterManipulator::specsToString);
-                addInfoLine(desc, "Replacing blocks with: %s", state.config.replaceWith, ItemMatterManipulator::specsToString);
+                addInfoLine(desc, "Removable blocks: %s", state.config.replaceWhitelist);
+                addInfoLine(desc, "Replacing blocks with: %s", state.config.replaceWith);
             }
 
             if (state.config.placeMode == PlaceMode.CABLES) {
@@ -552,12 +551,6 @@ public class ItemMatterManipulator extends Item
                 + EnumChatFormatting.GRAY);
 
         // spotless:on
-    }
-
-    private static String specsToString(List<BlockSpec> specs) {
-        return specs.stream()
-            .map(BlockSpec::getDisplayName)
-            .collect(Collectors.joining(", "));
     }
 
     private <T> void addInfoLine(List<String> desc, String format, T value) {
@@ -776,34 +769,34 @@ public class ItemMatterManipulator extends Item
 
         switch (state.config.blockSelectMode) {
             case CORNERS: {
-                if (state.config.corners == null || !add) state.config.corners = new ArrayList<>();
+                if (state.config.corners == null || !add) state.config.corners = new WeightedSpecList();
                 state.config.corners.add(block);
                 what = "corners";
                 break;
             }
             case EDGES: {
-                if (state.config.edges == null || !add) state.config.edges = new ArrayList<>();
+                if (state.config.edges == null || !add) state.config.edges = new WeightedSpecList();
                 state.config.edges.add(block);
                 what = "edges";
                 break;
             }
             case FACES: {
-                if (state.config.faces == null || !add) state.config.faces = new ArrayList<>();
+                if (state.config.faces == null || !add) state.config.faces = new WeightedSpecList();
                 state.config.faces.add(block);
                 what = "faces";
                 break;
             }
             case VOLUMES: {
-                if (state.config.volumes == null || !add) state.config.volumes = new ArrayList<>();
+                if (state.config.volumes == null || !add) state.config.volumes = new WeightedSpecList();
                 state.config.volumes.add(block);
                 what = "volumes";
                 break;
             }
             case ALL: {
-                if (state.config.corners == null || !add) state.config.corners = new ArrayList<>();
-                if (state.config.edges == null || !add) state.config.edges = new ArrayList<>();
-                if (state.config.faces == null || !add) state.config.faces = new ArrayList<>();
-                if (state.config.volumes == null || !add) state.config.volumes = new ArrayList<>();
+                if (state.config.corners == null || !add) state.config.corners = new WeightedSpecList();
+                if (state.config.edges == null || !add) state.config.edges = new WeightedSpecList();
+                if (state.config.faces == null || !add) state.config.faces = new WeightedSpecList();
+                if (state.config.volumes == null || !add) state.config.volumes = new WeightedSpecList();
                 state.config.corners.add(block);
                 state.config.edges.add(block);
                 state.config.faces.add(block);
@@ -831,7 +824,8 @@ public class ItemMatterManipulator extends Item
 
         if (hit != null) checkForAECables(block, world, hit.blockX, hit.blockY, hit.blockZ);
 
-        state.config.replaceWith = new ArrayList<>(Arrays.asList(block));
+        state.config.replaceWith = new WeightedSpecList();
+        state.config.replaceWith.add(block);
 
         MMUtils.sendInfoToPlayer(
             player,
@@ -848,7 +842,7 @@ public class ItemMatterManipulator extends Item
         if (hit != null) checkForAECables(block, world, hit.blockX, hit.blockY, hit.blockZ);
 
         if (state.config.replaceWhitelist == null) {
-            state.config.replaceWhitelist = new ArrayList<>();
+            state.config.replaceWhitelist = new WeightedSpecList();
         }
 
         state.config.replaceWhitelist.add(block);
@@ -865,11 +859,8 @@ public class ItemMatterManipulator extends Item
 
         if (hit != null) checkForAECables(block, world, hit.blockX, hit.blockY, hit.blockZ);
 
-        if (!block.isAir()) {
-            state.config.replaceWhitelist = new ArrayList<>(Arrays.asList(block));
-        } else {
-            state.config.replaceWhitelist = null;
-        }
+        state.config.replaceWhitelist = new WeightedSpecList();
+        state.config.replaceWhitelist.add(block);
 
         MMUtils.sendInfoToPlayer(
             player,

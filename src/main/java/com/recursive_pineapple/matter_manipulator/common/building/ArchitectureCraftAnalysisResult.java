@@ -2,6 +2,7 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 
 import java.util.List;
 
+import com.google.gson.annotations.SerializedName;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
 
@@ -18,8 +19,12 @@ import net.minecraft.tileentity.TileEntity;
 
 public class ArchitectureCraftAnalysisResult implements ITileAnalysisIntegration {
 
+    @SerializedName("s")
     public int shape;
-    public PortableItemStack material, cladding;
+    @SerializedName("m")
+    public PortableItemStack material;
+    @SerializedName("c")
+    public PortableItemStack cladding;
 
     public static ArchitectureCraftAnalysisResult analyze(TileEntity te) {
         if (!(te instanceof TileShape tileShape)) return null;

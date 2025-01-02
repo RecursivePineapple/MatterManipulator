@@ -1,7 +1,5 @@
 package com.recursive_pineapple.matter_manipulator.common.items.manipulator;
 
-import java.util.List;
-
 import javax.annotation.Nullable;
 
 import org.joml.Matrix4f;
@@ -9,6 +7,7 @@ import org.joml.Vector3f;
 import org.joml.Vector3i;
 
 import com.recursive_pineapple.matter_manipulator.common.building.BlockSpec;
+import com.recursive_pineapple.matter_manipulator.common.data.WeightedSpecList;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.BlockRemoveMode;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.BlockSelectMode;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.PendingAction;
@@ -31,13 +30,13 @@ public class MMConfig {
     // if any are non-null, then the corresponding block is being moved
     public Vector3i coordAOffset, coordBOffset, coordCOffset;
 
-    public List<BlockSpec> corners, edges, faces, volumes;
+    public WeightedSpecList corners, edges, faces, volumes;
     public BlockSpec cables;
 
     /** These blocks are what gets removed when exchanging */
-    public List<BlockSpec> replaceWhitelist;
+    public WeightedSpecList replaceWhitelist;
     /** These blocks are what gets placed when exchanging */
-    public List<BlockSpec> replaceWith;
+    public WeightedSpecList replaceWith;
 
     @Nullable
     public Transform transform;

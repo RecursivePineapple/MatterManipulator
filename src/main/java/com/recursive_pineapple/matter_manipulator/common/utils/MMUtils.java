@@ -3,6 +3,11 @@ package com.recursive_pineapple.matter_manipulator.common.utils;
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.AppliedEnergistics2;
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -15,6 +20,7 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -59,6 +65,7 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.IFluidHandler;
 
@@ -66,7 +73,9 @@ import org.joml.Vector3i;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.gtnewhorizon.gtnhlib.util.map.ItemStackMap;
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
@@ -860,7 +869,7 @@ public class MMUtils {
      * The opposite of {@link #toJsonObject(NBTBase)}
      */
     public static NBTBase toNbt(JsonElement jsonElement) {
-        if (jsonElement == null) {
+        if (jsonElement == null || jsonElement == JsonNull.INSTANCE) {
             return null;
         }
 
@@ -899,19 +908,28 @@ public class MMUtils {
             } else {
                 return new NBTTagString(jsonPrimitive.getAsString());
             }
-        } else if (jsonElement instanceof JsonArray) {
-            // NBTTagIntArray or NBTTagList
-            final JsonArray jsonArray = (JsonArray) jsonElement;
+        } else if (jsonElement instanceof JsonArray jsonArray) {
             final List<NBTBase> nbtList = new ArrayList<>();
 
+            int type = -1;
+
             for (JsonElement element : jsonArray) {
-                nbtList.add(toNbt(element));
+                if (element == null || element == JsonNull.INSTANCE) continue;
+
+                NBTBase tag = toNbt(element);
+
+                if (tag == null) continue;
+
+                if (type == -1) type = tag.getId();
+                if (type != tag.getId()) throw new IllegalArgumentException("NBT lists cannot contain tags of varying types");
+
+                nbtList.add(tag);
             }
 
             // spotless:off
-            if (nbtList.stream().allMatch(n -> n instanceof NBTTagInt)) {
+            if (type == Constants.NBT.TAG_INT) {
                 return new NBTTagIntArray(nbtList.stream().mapToInt(i -> ((NBTTagInt) i).func_150287_d()).toArray());
-            } else if (nbtList.stream().allMatch(n -> n instanceof NBTTagByte)) {
+            } else if (type == Constants.NBT.TAG_BYTE) {
                 final byte[] abyte = new byte[nbtList.size()];
     
                 for (int i = 0; i < nbtList.size(); i++) {
@@ -926,17 +944,166 @@ public class MMUtils {
                 return nbtTagList;
             }
             // spotless:on
-        } else if (jsonElement instanceof JsonObject) {
-            // NBTTagCompound
-            final JsonObject jsonObject = (JsonObject) jsonElement;
-
+        } else if (jsonElement instanceof JsonObject jsonObject) {
             NBTTagCompound nbtTagCompound = new NBTTagCompound();
 
             for (Map.Entry<String, JsonElement> jsonEntry : jsonObject.entrySet()) {
+                if (jsonEntry.getValue() == JsonNull.INSTANCE) continue;
+
                 nbtTagCompound.setTag(jsonEntry.getKey(), toNbt(jsonEntry.getValue()));
             }
 
             return nbtTagCompound;
+        }
+
+        throw new IllegalArgumentException("Unhandled element " + jsonElement);
+    }
+
+    /**
+     * Converts an nbt tag to json.
+     * Preserves types exactly. Not compatible with gson loading.
+     */
+    @SuppressWarnings("unchecked")
+    public static JsonElement toJsonObjectExact(NBTBase nbt) {
+        if (nbt == null) {
+            return null;
+        }
+
+        if (nbt instanceof NBTTagCompound) {
+            final NBTTagCompound nbtTagCompound = (NBTTagCompound) nbt;
+            final Map<String, NBTBase> tagMap = (Map<String, NBTBase>) nbtTagCompound.tagMap;
+
+            JsonObject root = new JsonObject();
+
+            for (Map.Entry<String, NBTBase> nbtEntry : tagMap.entrySet()) {
+                root.add(nbtEntry.getKey(), toJsonObjectExact(nbtEntry.getValue()));
+            }
+
+            return root;
+        } else if (nbt instanceof NBTTagByte b) {
+            return new JsonPrimitive("b" + b.func_150290_f());
+        } else if (nbt instanceof NBTTagShort half) {
+            return new JsonPrimitive("h" + half.func_150289_e());
+        } else if (nbt instanceof NBTTagInt i) {
+            return new JsonPrimitive("i" + Integer.toUnsignedString(i.func_150287_d(), 16));
+        } else if (nbt instanceof NBTTagLong l) {
+            return new JsonPrimitive("l" + Long.toUnsignedString(l.func_150291_c(), 16));
+        } else if (nbt instanceof NBTTagFloat f) {
+            return new JsonPrimitive("f" + Long.toUnsignedString(Float.floatToIntBits(f.func_150288_h()), 16));
+        } else if (nbt instanceof NBTTagDouble d) {
+            return new JsonPrimitive("d" + Long.toUnsignedString(Double.doubleToLongBits(d.func_150286_g()), 16));
+        } else if (nbt instanceof NBTBase.NBTPrimitive other) {
+            return new JsonPrimitive("d" + Long.toUnsignedString(Double.doubleToLongBits(other.func_150286_g()), 16));
+        } else if (nbt instanceof NBTTagString s) {
+            return new JsonPrimitive("s" + s.func_150285_a_());
+        } else if (nbt instanceof NBTTagList l) {
+            JsonArray arr = new JsonArray();
+
+            l.tagList.forEach(c -> arr.add(toJsonObjectExact((NBTBase) c)));
+
+            return arr;
+        } else if (nbt instanceof NBTTagIntArray a) {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            DataOutputStream dos = new DataOutputStream(baos);
+
+            for (int i : a.func_150302_c()) {
+                try {
+                    dos.writeInt(i);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            return new JsonPrimitive("1" + Base64.getEncoder().encodeToString(baos.toByteArray()));
+        } else if (nbt instanceof NBTTagByteArray a) {
+            return new JsonPrimitive("2" + Base64.getEncoder().encodeToString(a.func_150292_c()));
+        } else {
+            throw new IllegalArgumentException("Unsupported NBT Tag: " + NBTBase.NBTTypes[nbt.getId()] + " - " + nbt);
+        }
+    }
+
+    /**
+     * The opposite of {@link #toJsonObjectExact(NBTBase)}
+     */
+    public static NBTBase toNbtExact(JsonElement jsonElement) throws JsonParseException {
+        if (jsonElement == null) {
+            return null;
+        }
+
+        if (jsonElement instanceof JsonPrimitive primitive) {
+            if (!primitive.isString()) throw new JsonParseException("expected json primitive to be string: '" + primitive + "'");
+
+            String data = primitive.getAsString();
+
+            if (data.length() < 2) throw new JsonParseException("illegal json primitive string: '" + data + "'");
+
+            char prefix = data.charAt(0);
+            data = data.substring(1);
+
+            try {
+                switch (prefix) {
+                    case 'b' -> {
+                        return new NBTTagByte(Byte.parseByte(data));
+                    }
+                    case 'h' -> {
+                        return new NBTTagShort(Short.parseShort(data));
+                    }
+                    case 'i' -> {
+                        return new NBTTagInt(Integer.parseUnsignedInt(data, 16));
+                    }
+                    case 'l' -> {
+                        return new NBTTagLong(Long.parseUnsignedLong(data, 16));
+                    }
+                    case 'f' -> {
+                        return new NBTTagFloat(Float.intBitsToFloat((int) Long.parseUnsignedLong(data, 16)));
+                    }
+                    case 'd' -> {
+                        return new NBTTagDouble(Double.longBitsToDouble(Long.parseUnsignedLong(data, 16)));
+                    }
+                    case 's' -> {
+                        return new NBTTagString(data);
+                    }
+                    case '1' -> {
+                        ByteArrayInputStream bais = new ByteArrayInputStream(Base64.getDecoder().decode(data));
+                        DataInputStream dis = new DataInputStream(bais);
+
+                        int count = bais.available() / 4;
+
+                        int[] array = new int[count];
+
+                        for (int i = 0; i < count; i++) {
+                            try {
+                                array[i] = dis.readInt();
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+
+                        return new NBTTagIntArray(array);
+                    }
+                    case '2' -> {
+                        return new NBTTagByteArray(Base64.getDecoder().decode(data));
+                    }
+                }
+            } catch (NumberFormatException e) {
+                throw new JsonParseException("illegal number: " + primitive, e);
+            }
+        } else if (jsonElement instanceof JsonArray array) {
+            NBTTagList list = new NBTTagList();
+
+            for (JsonElement e : array) {
+                list.appendTag(toNbtExact(e));
+            }
+
+            return list;
+        } else if (jsonElement instanceof JsonObject obj) {
+            NBTTagCompound tag = new NBTTagCompound();
+
+            for (Map.Entry<String, JsonElement> jsonEntry : obj.entrySet()) {
+                tag.setTag(jsonEntry.getKey(), toNbtExact(jsonEntry.getValue()));
+            }
+
+            return tag;
         }
 
         throw new IllegalArgumentException("Unhandled element " + jsonElement);

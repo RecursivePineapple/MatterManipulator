@@ -1,4 +1,6 @@
 
+tile.air.name=Air
+
 item.itemMatterManipulator0.name=Prototype Matter Manipulator
 item.itemMatterManipulator1.name=Matter Manipulator MKI
 item.itemMatterManipulator2.name=Matter Manipulator MKII

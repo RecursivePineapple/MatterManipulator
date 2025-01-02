@@ -23,6 +23,7 @@ import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
@@ -100,7 +101,13 @@ public class PendingBlock extends Location {
     public ItemStack getStack() {
         ItemStack stack = spec.getStack();
 
-        if (tileData != null) stack.setTagCompound(tileData.getItemTag());
+        if (tileData != null) {
+            NBTTagCompound tag = stack.getTagCompound() != null ? stack.getTagCompound() : new NBTTagCompound();
+
+            tileData.getItemTag(tag);
+
+            stack.setTagCompound(tag.hasNoTags() ? null : tag);
+        }
 
         return stack;
     }

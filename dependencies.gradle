@@ -72,4 +72,7 @@ dependencies {
 
     implementation("org.ow2.asm:asm:${asmVersion}")
     implementation("org.ow2.asm:asm-tree:${asmVersion}")
+
+    testImplementation(platform('org.junit:junit-bom:5.9.2'))
+    testImplementation('org.junit.jupiter:junit-jupiter')
 }

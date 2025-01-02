@@ -31,7 +31,12 @@ import com.recursive_pineapple.matter_manipulator.common.building.ImmutableBlock
 import com.recursive_pineapple.matter_manipulator.common.building.PendingBlock;
 import com.recursive_pineapple.matter_manipulator.common.building.TileAnalysisResult;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.RegionAnalysis;
+import com.recursive_pineapple.matter_manipulator.common.data.WeightedSpecList;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
+import com.recursive_pineapple.matter_manipulator.common.persist.NBTJsonAdapter;
+import com.recursive_pineapple.matter_manipulator.common.persist.StaticEnumJsonAdapter;
+import com.recursive_pineapple.matter_manipulator.common.persist.UIDJsonAdapter;
+import com.recursive_pineapple.matter_manipulator.common.persist.WeightedListJsonAdapter;
 import com.recursive_pineapple.matter_manipulator.common.uplink.IUplinkMulti;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
@@ -53,6 +58,7 @@ import appeng.api.storage.data.IAEItemStack;
 import appeng.api.util.DimensionalCoord;
 import appeng.tile.misc.TileSecurity;
 import appeng.tile.networking.TileWireless;
+import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
 import gregtech.api.interfaces.metatileentity.IConnectable;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.common.blocks.BlockMachines;
@@ -62,7 +68,12 @@ import gregtech.common.blocks.BlockMachines;
  */
 public class MMState {
 
-    static final Gson GSON = new GsonBuilder().create();
+    static final Gson GSON = new GsonBuilder()
+        .registerTypeAdapter(UniqueIdentifier.class, new UIDJsonAdapter())
+        .registerTypeAdapter(NBTTagCompound.class, new NBTJsonAdapter())
+        .registerTypeAdapter(ForgeDirection.class, new StaticEnumJsonAdapter<>(ForgeDirection.class))
+        .registerTypeAdapter(WeightedSpecList.class, new WeightedListJsonAdapter())
+        .create();
 
     @SerializedName("jv")
     private int jsonVersion = 0;
@@ -361,7 +372,7 @@ public class MMState {
             return new ArrayList<>();
         }
 
-        if (config.replaceWhitelist == null || config.replaceWhitelist.isEmpty()) {
+        if (config.replaceWhitelist == null || config.replaceWhitelist.specs.isEmpty()) {
             return new ArrayList<>();
         }
 
@@ -388,16 +399,16 @@ public class MMState {
             boolean wasAECable = false;
 
             if (MMUtils.getAECable(aeCable, world, x, y, z)) {
-                if (!BlockSpec.contains(config.replaceWhitelist, aeCable)) continue;
+                if (!config.replaceWhitelist.contains(aeCable)) continue;
 
                 wasAECable = true;
             }
 
             if (!wasAECable) {
-                if (!BlockSpec.contains(config.replaceWhitelist, existing)) continue;
+                if (!config.replaceWhitelist.contains(existing)) continue;
             }
 
-            ImmutableBlockSpec replacement = BlockSpec.choose(config.replaceWith, rng);
+            ImmutableBlockSpec replacement = config.replaceWith.get(rng);
 
             boolean replacingWithGTCable = tier.hasCap(ItemMatterManipulator.ALLOW_CABLES)
                 && GregTech.isModLoaded()
@@ -709,7 +720,7 @@ public class MMState {
         XSTR rng = new XSTR(config.hashCode());
 
         for (Vector3i voxel : getLineVoxels(x1, y1, z1, x2, y2, z2)) {
-            pending.add(BlockSpec.choose(config.edges, rng).instantiate(config.coordA.worldId, voxel.x, voxel.y, voxel.z));
+            pending.add(config.edges.get(rng).instantiate(config.coordA.worldId, voxel.x, voxel.y, voxel.z));
         }
     }
 
@@ -727,10 +738,10 @@ public class MMState {
                     if (z > minZ && z < maxZ) insideCount++;
 
                     ImmutableBlockSpec spec = switch (insideCount) {
-                        case 0 -> BlockSpec.choose(config.corners, rng);
-                        case 1 -> BlockSpec.choose(config.edges, rng);
-                        case 2 -> BlockSpec.choose(config.faces, rng);
-                        case 3 -> BlockSpec.choose(config.volumes, rng);
+                        case 0 -> config.corners.get(rng);
+                        case 1 -> config.edges.get(rng);
+                        case 2 -> config.faces.get(rng);
+                        case 3 -> config.volumes.get(rng);
                         default -> BlockSpec.AIR;
                     };
 
@@ -768,7 +779,7 @@ public class MMState {
                     // spotless:on
 
                     if (distance <= 1) {
-                        PendingBlock block = BlockSpec.choose(config.volumes, rng)
+                        PendingBlock block = config.volumes.get(rng)
                             .instantiate(config.coordA.worldId, x + minX, y + minY, z + minZ)
                             .setOrders(1, 1);
 
@@ -801,7 +812,7 @@ public class MMState {
                 if (!present[block.x - minX + 1 + dir.offsetX][block.y - minY + 1 + dir.offsetY][block.z - minZ
                     + 1
                     + dir.offsetZ]) {
-                    block.setBlock(BlockSpec.choose(config.faces, rng));
+                    block.setBlock(config.faces.get(rng));
                     block.buildOrder = 0;
                     block.renderOrder = 0;
                     break;
@@ -879,7 +890,7 @@ public class MMState {
 
                 if (distance <= 1) {
                     for (int h = 0; h < absH; h++) {
-                        PendingBlock block = BlockSpec.choose(config.volumes, rng)
+                        PendingBlock block = config.volumes.get(rng)
                             .instantiate(config.coordA.worldId, a, h, b)
                             .setOrders(2, 0);
 
@@ -907,12 +918,12 @@ public class MMState {
             if (adj != 0b111111) {
                 // if this block is missing one of the N/S/E/W blocks, it's an edge (the surface)
                 if ((adj & 0b111100) == 0b111100) {
-                    block.setBlock(BlockSpec.choose(config.edges, rng));
+                    block.setBlock(config.edges.get(rng));
                     block.buildOrder = 1;
                     block.renderOrder = 1;
                 } else {
                     // otherwise, it's a face (top & bottom)
-                    block.setBlock(BlockSpec.choose(config.faces, rng));
+                    block.setBlock(config.faces.get(rng));
                     block.buildOrder = 2;
                     block.renderOrder = 0;
                 }

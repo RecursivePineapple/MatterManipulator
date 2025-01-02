@@ -37,7 +37,7 @@ public interface ImmutableBlockSpec extends ImmutableItemMeta {
     public ImmutableBlockSpec withProperties(Map<CopyableProperty, String> properties);
 
     public default boolean isEquivalent(ImmutableBlockSpec other) {
-        return getBlock() == other.getBlock() && getItem() == other.getItem() && getMeta() == other.getMeta();
+        return ItemStack.areItemStacksEqual(getStack(), other.getStack());
     }
 
     public default boolean isAir() {

@@ -122,14 +122,10 @@ public class TileAnalysisResult {
         return true;
     }
 
-    public NBTTagCompound getItemTag() {
-        NBTTagCompound tag = new NBTTagCompound();
-        
+    public void getItemTag(NBTTagCompound tag) {
         for (var analysis : getIntegrations()) {
             analysis.getItemTag(tag);
         }
-
-        return tag.hasNoTags() ? null : tag;
     }
 
     public String getItemDetails() {

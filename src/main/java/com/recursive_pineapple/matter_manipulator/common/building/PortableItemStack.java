@@ -6,6 +6,8 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
+import com.google.gson.annotations.SerializedName;
+
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
 
@@ -14,8 +16,13 @@ import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
  */
 public class PortableItemStack implements IItemProvider {
 
+    @SerializedName("id")
     public UniqueIdentifier item;
-    public Integer metadata, amount;
+    @SerializedName("m")
+    public Integer metadata;
+    @SerializedName("a")
+    public Integer amount;
+    @SerializedName("nbt")
     public NBTTagCompound nbt;
 
     public transient Item itemRef;

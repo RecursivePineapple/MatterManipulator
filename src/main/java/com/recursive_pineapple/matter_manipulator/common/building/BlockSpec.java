@@ -11,6 +11,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 
+import com.google.gson.annotations.SerializedName;
 import com.recursive_pineapple.matter_manipulator.common.compat.BlockProperty;
 import com.recursive_pineapple.matter_manipulator.common.compat.BlockPropertyRegistry;
 import com.recursive_pineapple.matter_manipulator.common.utils.ItemId;
@@ -26,6 +27,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import net.minecraft.world.World;
@@ -34,7 +36,9 @@ public class BlockSpec implements ImmutableBlockSpec {
     
     public static final UniqueIdentifier AIR_ID = new UniqueIdentifier("minecraft:air");
 
+    @SerializedName("b")
     private boolean isBlock;
+    @SerializedName("id")
     private UniqueIdentifier objectId;
 
     /**
@@ -42,11 +46,14 @@ public class BlockSpec implements ImmutableBlockSpec {
      * Block => item: {@link Block#damageDropped(int)}
      * Item => block: {@link Item#getMetadata(int)}
      */
+    @SerializedName("m")
     private int metadata;
 
+    @SerializedName("p")
     public Map<CopyableProperty, String> properties;
 
     @com.recursive_pineapple.matter_manipulator.asm.Optional(Names.ARCHITECTURE_CRAFT)
+    @SerializedName("a")
     public ArchitectureCraftAnalysisResult arch;
 
     private transient Block block;
@@ -191,6 +198,14 @@ public class BlockSpec implements ImmutableBlockSpec {
             } else {
                 this.stack = Optional.empty();
             }
+
+            if (this.stack.isPresent()) {
+                NBTTagCompound tag = new NBTTagCompound();
+                
+                if (arch != null) arch.getItemTag(tag);
+
+                this.stack.get().setTagCompound(tag.hasNoTags() ? null : tag);
+            }
         }
 
         return ItemStack.copyItemStack(this.stack.orElse(null));
@@ -243,7 +258,7 @@ public class BlockSpec implements ImmutableBlockSpec {
     }
 
     public String getDisplayName() {
-        return getStack() == null ? "air" : getStack().getDisplayName();
+        return getStack() == null ? Blocks.air.getLocalizedName() : getStack().getDisplayName();
     }
 
     @Override
@@ -254,6 +269,7 @@ public class BlockSpec implements ImmutableBlockSpec {
         result = prime * result + ((objectId == null) ? 0 : objectId.hashCode());
         result = prime * result + metadata;
         result = prime * result + ((properties == null) ? 0 : properties.hashCode());
+        result = prime * result + ((arch == null) ? 0 : arch.hashCode());
         return result;
     }
 
@@ -271,13 +287,17 @@ public class BlockSpec implements ImmutableBlockSpec {
         if (properties == null) {
             if (other.properties != null) return false;
         } else if (!properties.equals(other.properties)) return false;
+        if (arch == null) {
+            if (other.arch != null) return false;
+        } else if (!arch.equals(other.arch)) return false;
         return true;
     }
 
     @Override
     public String toString() {
         return "BlockSpec [isBlock=" + isBlock + ", objectId=" + objectId + ", metadata=" + metadata + ", properties="
-                + properties + ", block=" + block + ", item=" + item + ", itemId=" + itemId + ", stack=" + stack + "]";
+                + properties + ", arch=" + arch + ", block=" + block + ", item=" + item + ", itemId=" + itemId
+                + ", stack=" + stack + "]";
     }
 
     public static boolean contains(Collection<BlockSpec> specs, BlockSpec spec) {
