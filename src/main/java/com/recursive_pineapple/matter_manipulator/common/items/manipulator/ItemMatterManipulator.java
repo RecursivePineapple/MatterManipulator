@@ -829,7 +829,7 @@ public class ItemMatterManipulator extends Item
 
         BlockSpec block = BlockSpec.fromPickBlock(player.worldObj, player, hit);
 
-        checkForAECables(block, world, hit.blockX, hit.blockY, hit.blockZ);
+        if (hit != null) checkForAECables(block, world, hit.blockX, hit.blockY, hit.blockZ);
 
         state.config.replaceWith = new ArrayList<>(Arrays.asList(block));
 
@@ -845,7 +845,7 @@ public class ItemMatterManipulator extends Item
         
         BlockSpec block = BlockSpec.fromPickBlock(player.worldObj, player, hit);
 
-        checkForAECables(block, world, hit.blockX, hit.blockY, hit.blockZ);
+        if (hit != null) checkForAECables(block, world, hit.blockX, hit.blockY, hit.blockZ);
 
         if (state.config.replaceWhitelist == null) {
             state.config.replaceWhitelist = new ArrayList<>();
@@ -863,7 +863,7 @@ public class ItemMatterManipulator extends Item
     private void onExchangeSetWhitelist(World world, EntityPlayer player, ItemStack stack, MMState state, MovingObjectPosition hit) {
         BlockSpec block = BlockSpec.fromPickBlock(player.worldObj, player, hit);
 
-        checkForAECables(block, world, hit.blockX, hit.blockY, hit.blockZ);
+        if (hit != null) checkForAECables(block, world, hit.blockX, hit.blockY, hit.blockZ);
 
         if (!block.isAir()) {
             state.config.replaceWhitelist = new ArrayList<>(Arrays.asList(block));
