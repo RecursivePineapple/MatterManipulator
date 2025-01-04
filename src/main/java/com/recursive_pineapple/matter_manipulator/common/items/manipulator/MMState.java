@@ -122,6 +122,8 @@ public class MMState {
                 config.remove("faces");
                 config.remove("volumes");
                 config.remove("cables");
+                config.remove("replaceWhitelist");
+                config.remove("replaceWith");
             }
             version = 1;
         }

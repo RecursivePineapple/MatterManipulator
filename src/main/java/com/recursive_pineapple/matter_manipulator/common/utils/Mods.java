@@ -23,7 +23,12 @@ public enum Mods {
     IndustrialCraft2(Names.INDUSTRIAL_CRAFT2),
     LogisticsPipes(Names.LOGISTICS_PIPES),
     MatterManipulator(Names.MATTER_MANIPULATOR),
-    Minecraft(Names.MINECRAFT),
+    Minecraft(Names.MINECRAFT) {
+        @Override
+        public boolean isModLoaded() {
+            return true;
+        }
+    },
     NewHorizonsCoreMod(Names.NEW_HORIZONS_CORE_MOD),
     NotEnoughItems(Names.NOT_ENOUGH_ITEMS),
     StorageDrawers(Names.STORAGE_DRAWERS),

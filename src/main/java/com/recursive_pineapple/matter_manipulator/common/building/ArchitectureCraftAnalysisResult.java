@@ -174,25 +174,17 @@ public class ArchitectureCraftAnalysisResult implements ITileAnalysisIntegration
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         ArchitectureCraftAnalysisResult other = (ArchitectureCraftAnalysisResult) obj;
-        if (shape != other.shape)
-            return false;
+        if (shape != other.shape) return false;
         if (material == null) {
-            if (other.material != null)
-                return false;
-        } else if (!material.equals(other.material))
-            return false;
+            if (other.material != null) return false;
+        } else if (!material.equals(other.material)) return false;
         if (cladding == null) {
-            if (other.cladding != null)
-                return false;
-        } else if (!cladding.equals(other.cladding))
-            return false;
+            if (other.cladding != null) return false;
+        } else if (!cladding.equals(other.cladding)) return false;
         return true;
     }
 

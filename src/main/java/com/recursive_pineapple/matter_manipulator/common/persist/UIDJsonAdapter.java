@@ -68,6 +68,7 @@ public class UIDJsonAdapter implements JsonSerializer<UniqueIdentifier>, JsonDes
     }
 
     public static enum CommonName {
+        AIR(Mods.Minecraft, "air"),
         GT_BLOCKMACHINES(Mods.GregTech, "gt.blockmachines"),
         AE_ITEMPART(Mods.AppliedEnergistics2, "item.ItemMultiPart"),
         ARCH_SHAPE(Mods.ArchitectureCraft, "shape"),
