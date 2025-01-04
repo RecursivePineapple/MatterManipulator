@@ -316,6 +316,9 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
 
                 // set the redstone strength
                 gte.setRedstoneOutputStrength(dir, (mStrongRedstone & dir.flag) != 0);
+                if (expected != null) {
+                    gte.getCoverInfoAtSide(dir).setTickRateAddition(expected.tickRateAddition == null ? 0 : expected.tickRateAddition);
+                }
             }
 
             // set the custom name
@@ -448,9 +451,10 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
 
     private void updateCover(IBlockApplyContext context, IGregTechTileEntity gte, ForgeDirection side,
         CoverData target) {
-        if (gte.getCoverIDAtSide(side) == target.getCoverID() && gte.getCoverBehaviorAtSideNew(side)
-            .allowsCopyPasteTool()) {
-            gte.setCoverDataAtSide(side, target.getCoverData());
+        if (gte.getCoverIDAtSide(side) == target.getCoverID()) {
+            if (gte.getCoverBehaviorAtSideNew(side).allowsCopyPasteTool()) {
+                gte.setCoverDataAtSide(side, target.getCoverData());
+            }
         }
     }
 
