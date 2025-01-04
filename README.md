@@ -24,6 +24,10 @@ This tool can be used as a standalone mod with a few dependencies, but it doesn'
 - ModularUI 1
 - GTNHLib
 
+## Contributing
+
+This project is at the point that it can take contributions without constant merge conflicts. I'll gladly take any help, but please DM me first (discord: recursive_pineapple). Some things can't be added for balance reasons, and I don't want people to waste their time.
+
 ## Behaviour Overview
 
 The tool has several modes which change its behaviour in various ways. They mainly affect which blocks the manipulator changes and how it changes them.
