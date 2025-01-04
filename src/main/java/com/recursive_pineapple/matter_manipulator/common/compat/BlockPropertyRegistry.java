@@ -360,7 +360,7 @@ public class BlockPropertyRegistry {
                 })
                 .setName("up"));
 
-        registerBlockInterfaceProperty(BlockChest.class, DirectionBlockProperty.facing(0b111, 3, 4, 1, 2, 0, 5));
+        registerBlockInterfaceProperty(BlockChest.class, DirectionBlockProperty.facing(0b111, 2, 3, 4, 5, -1, -1));
 
         registerBlockInterfaceProperty(
             BlockAnvil.class,
