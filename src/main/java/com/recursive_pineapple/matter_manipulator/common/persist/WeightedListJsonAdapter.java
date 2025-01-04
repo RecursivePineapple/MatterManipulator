@@ -7,6 +7,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
@@ -40,6 +41,12 @@ public class WeightedListJsonAdapter implements JsonSerializer<WeightedSpecList>
 
     @Override
     public JsonElement serialize(WeightedSpecList src, Type typeOfSrc, JsonSerializationContext context) {
+        if (src.specs.size() == 1) {
+            BlockSpec spec = src.specs.get(0).left();
+
+            if (spec == null || spec.isAir()) return JsonNull.INSTANCE;
+        }
+
         JsonArray array = new JsonArray();
 
         for (var p : src.specs) {

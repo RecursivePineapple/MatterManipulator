@@ -13,6 +13,12 @@ public class WeightedSpecList {
     
     public ArrayList<ObjectIntMutablePair<BlockSpec>> specs = new ArrayList<>();
 
+    public WeightedSpecList(BlockSpec... values) {
+        for (BlockSpec spec : values) {
+            add(spec);
+        }
+    }
+
     public void add(BlockSpec spec) {
         for (var p : specs) {
             if (Objects.equals(p.first(), spec)) {

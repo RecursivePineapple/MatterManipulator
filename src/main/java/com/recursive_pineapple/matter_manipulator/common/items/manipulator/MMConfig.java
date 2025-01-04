@@ -30,13 +30,16 @@ public class MMConfig {
     // if any are non-null, then the corresponding block is being moved
     public Vector3i coordAOffset, coordBOffset, coordCOffset;
 
-    public WeightedSpecList corners, edges, faces, volumes;
-    public BlockSpec cables;
+    public WeightedSpecList corners = new WeightedSpecList(BlockSpec.air());
+    public WeightedSpecList edges = new WeightedSpecList(BlockSpec.air());
+    public WeightedSpecList faces = new WeightedSpecList(BlockSpec.air());
+    public WeightedSpecList volumes = new WeightedSpecList(BlockSpec.air());
+    public BlockSpec cables = BlockSpec.air();
 
     /** These blocks are what gets removed when exchanging */
-    public WeightedSpecList replaceWhitelist;
+    public WeightedSpecList replaceWhitelist = new WeightedSpecList(BlockSpec.air());
     /** These blocks are what gets placed when exchanging */
-    public WeightedSpecList replaceWith;
+    public WeightedSpecList replaceWith = new WeightedSpecList(BlockSpec.air());
 
     @Nullable
     public Transform transform;

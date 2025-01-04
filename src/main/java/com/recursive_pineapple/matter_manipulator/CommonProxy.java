@@ -36,7 +36,6 @@ public class CommonProxy {
     public void postInit(FMLPostInitializationEvent event) {
         ManipulatorRecipes.addRecipes();
         BlockPropertyRegistry.init();
-        BlockSpec.init();
     }
 
     public void serverStarting(FMLServerStartingEvent event) {

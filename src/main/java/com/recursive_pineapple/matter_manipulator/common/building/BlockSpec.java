@@ -379,10 +379,17 @@ public class BlockSpec implements ImmutableBlockSpec {
         return spec;
     }
 
-    public static final ImmutableBlockSpec AIR = new BlockSpec();
+    public static final ImmutableBlockSpec AIR = air();
 
-    public static void init() {
-        ((BlockSpec)AIR).setObject(Blocks.air, 0);
+    public static BlockSpec air() {
+        BlockSpec spec = new BlockSpec();
+
+        spec.block = Blocks.air;
+        spec.item = Optional.empty();
+        spec.itemId = Optional.empty();
+        spec.stack = Optional.empty();
+
+        return spec;
     }
 
     public static ImmutableBlockSpec choose(List<BlockSpec> specs, Random rng) {
