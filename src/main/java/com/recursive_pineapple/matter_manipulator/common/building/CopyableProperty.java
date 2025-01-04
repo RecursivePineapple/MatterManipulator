@@ -12,6 +12,7 @@ public enum CopyableProperty {
     MODE,
     TEXT,
     ORIENTATION,
+    DELAY,
     ;
 
     public static final ImmutableList<CopyableProperty> VALUES = ImmutableList.copyOf(values());
