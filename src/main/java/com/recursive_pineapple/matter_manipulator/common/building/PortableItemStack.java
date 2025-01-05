@@ -83,10 +83,7 @@ public class PortableItemStack implements IItemProvider {
 
             if (item == null) return null;
 
-            itemStack = new ItemStack(
-                item,
-                amount == null ? 1 : amount,
-                metadata == null ? 0 : metadata);
+            itemStack = new ItemStack(item, amount == null ? 1 : amount, metadata == null ? 0 : metadata);
 
             if (nbt != null) {
                 itemStack.setTagCompound((NBTTagCompound) nbt.copy());

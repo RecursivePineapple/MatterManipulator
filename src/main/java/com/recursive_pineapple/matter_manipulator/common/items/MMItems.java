@@ -10,7 +10,7 @@ import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 import gregtech.api.enums.MetaTileEntityIDs;
 
 public class MMItems {
-    
+
     private MMItems() {}
 
     public static MetaItem META_ITEM;
@@ -50,13 +50,15 @@ public class MMItems {
 
     @Optional({ Names.GREG_TECH, Names.APPLIED_ENERGISTICS2 })
     public static void registerMultis() {
-        MMItemList.UplinkController.set(new MTEMMUplink(
-            MetaTileEntityIDs.MATTER_MANIPULATOR_UPLINK.ID,
-            "multimachine.mmuplink",
-            "Matter Manipulator Quantum Uplink").getStackForm(1));
-        MMItemList.UplinkHatch.set(new MTEMMUplinkMEHatch(
-            MetaTileEntityIDs.HATCH_MATTER_MANIPULATOR_UPLINK_ME.ID,
-            "hatch.mmuplink.me",
-            "Quantum Uplink ME Connector Hatch").getStackForm(1));
+        MMItemList.UplinkController.set(
+            new MTEMMUplink(
+                MetaTileEntityIDs.MATTER_MANIPULATOR_UPLINK.ID,
+                "multimachine.mmuplink",
+                "Matter Manipulator Quantum Uplink").getStackForm(1));
+        MMItemList.UplinkHatch.set(
+            new MTEMMUplinkMEHatch(
+                MetaTileEntityIDs.HATCH_MATTER_MANIPULATOR_UPLINK_ME.ID,
+                "hatch.mmuplink.me",
+                "Quantum Uplink ME Connector Hatch").getStackForm(1));
     }
 }

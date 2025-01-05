@@ -22,8 +22,8 @@ import com.gtnewhorizon.gtnhlib.util.map.ItemStackMap;
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.entities.EntityItemLarge;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
 import com.recursive_pineapple.matter_manipulator.common.uplink.IUplinkMulti;
 import com.recursive_pineapple.matter_manipulator.common.uplink.UplinkStatus;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigFluidStack;
@@ -162,7 +162,7 @@ public class MMInventory implements IPseudoInventory {
             pendingFluids.clear();
             return;
         }
-        
+
         boolean hasME = false;
 
         if (tier.hasCap(ItemMatterManipulator.CONNECTS_TO_AE) && AppliedEnergistics2.isModLoaded()) {
@@ -230,7 +230,13 @@ public class MMInventory implements IPseudoInventory {
 
             if (stack.amount > 0 && !player.capabilities.isCreativeMode) {
                 sendWarningToPlayer(player, "Could not find a container for fluid (it was voided): ");
-                sendWarningToPlayer(player, String.format("  %sL of %s", MMUtils.formatNumbers(stack.amount), stack.getFluidStack().getLocalizedName()));
+                sendWarningToPlayer(
+                    player,
+                    String.format(
+                        "  %sL of %s",
+                        MMUtils.formatNumbers(stack.amount),
+                        stack.getFluidStack()
+                            .getLocalizedName()));
             }
         }
 
@@ -256,7 +262,9 @@ public class MMInventory implements IPseudoInventory {
 
     private void injectItemsIntoInventory(BigItemStack stack) {
         while (stack.stackSize > 0) {
-            ItemStack smallStack = stack.remove(stack.getItemStack().getMaxStackSize());
+            ItemStack smallStack = stack.remove(
+                stack.getItemStack()
+                    .getMaxStackSize());
 
             int toInsert = smallStack.stackSize;
 
@@ -269,9 +277,15 @@ public class MMInventory implements IPseudoInventory {
     }
 
     private void injectItemsIntoWorld(BigItemStack stack) {
-        AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(player.posX - 2.5d, player.posY - 1d, player.posX - 2.5d, player.posY + 2.5d, player.getEyeHeight() + 1d, player.posZ + 2.5d);
+        AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(
+            player.posX - 2.5d,
+            player.posY - 1d,
+            player.posX - 2.5d,
+            player.posY + 2.5d,
+            player.getEyeHeight() + 1d,
+            player.posZ + 2.5d);
 
-        for(ItemStack smallStack : stack.toStacks()) {
+        for (ItemStack smallStack : stack.toStacks()) {
             var onGround = player.worldObj.getEntitiesWithinAABB(EntityItemLarge.class, aabb);
 
             for (EntityItemLarge e : onGround) {
@@ -279,7 +293,9 @@ public class MMInventory implements IPseudoInventory {
 
                 ItemStack droppedStack = e.getEntityItem();
                 if (MMUtils.areStacksBasicallyEqual(droppedStack, smallStack)) {
-                    int toAdd = (int) (Math.min((long) Integer.MAX_VALUE, (long) droppedStack.stackSize + (long) smallStack.stackSize) - droppedStack.stackSize);
+                    int toAdd = (int) (Math
+                        .min((long) Integer.MAX_VALUE, (long) droppedStack.stackSize + (long) smallStack.stackSize)
+                        - droppedStack.stackSize);
 
                     droppedStack = droppedStack.copy();
 
@@ -292,12 +308,7 @@ public class MMInventory implements IPseudoInventory {
 
             if (smallStack.stackSize > 0) {
                 player.worldObj.spawnEntityInWorld(
-                    new EntityItemLarge(
-                        player.worldObj,
-                        player.posX,
-                        player.posY,
-                        player.posZ,
-                        smallStack));
+                    new EntityItemLarge(player.worldObj, player.posX, player.posY, player.posZ, smallStack));
             }
         }
     }
@@ -305,7 +316,10 @@ public class MMInventory implements IPseudoInventory {
     @Optional(Names.APPLIED_ENERGISTICS2)
     private void injectFluidsIntoAE(BigFluidStack stack) {
         IAEFluidStack result = state.storageGrid.getFluidInventory()
-            .injectItems(stack.getAEFluidStack(), Actionable.MODULATE, new PlayerSource(player, state.securityTerminal));
+            .injectItems(
+                stack.getAEFluidStack(),
+                Actionable.MODULATE,
+                new PlayerSource(player, state.securityTerminal));
 
         stack.setStackSize(result != null ? result.getStackSize() : 0);
     }
@@ -540,7 +554,7 @@ public class MMInventory implements IPseudoInventory {
                 match = match.copy()
                     .setStackSize(req.getStackSize());
 
-                    IAEItemStack result = state.itemStorage.extractItems(
+                IAEItemStack result = state.itemStorage.extractItems(
                     match,
                     simulate ? Actionable.SIMULATE : Actionable.MODULATE,
                     new PlayerSource(player, state.securityTerminal));

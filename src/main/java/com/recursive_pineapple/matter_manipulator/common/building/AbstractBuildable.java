@@ -1,6 +1,5 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
-
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
 
 import java.util.ArrayList;
@@ -31,9 +30,9 @@ import org.joml.Vector3d;
 import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
 import com.recursive_pineapple.matter_manipulator.common.networking.SoundResource;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigFluidStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
@@ -77,7 +76,8 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
     protected static final double EU_PER_BLOCK = 128.0, TE_PENALTY = 16.0, EU_DISTANCE_EXP = 1.25;
 
     public boolean tryConsumePower(ItemStack stack, World world, int x, int y, int z, ImmutableBlockSpec spec) {
-        double euUsage = EU_PER_BLOCK * spec.getBlock().getBlockHardness(world, x, y, z);
+        double euUsage = EU_PER_BLOCK * spec.getBlock()
+            .getBlockHardness(world, x, y, z);
 
         try {
             Block block = spec.getBlock();
@@ -114,7 +114,8 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
             isOre = true;
         } else {
             for (int id : OreDictionary.getOreIDs(existing.getStack())) {
-                if (OreDictionary.getOreName(id).startsWith("ore")) {
+                if (OreDictionary.getOreName(id)
+                    .startsWith("ore")) {
                     isOre = true;
                     break;
                 }
@@ -152,17 +153,18 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
             givePlayerFluids(new FluidStack(block == Blocks.water ? FluidRegistry.WATER : FluidRegistry.LAVA, 1000));
         } else {
             ArrayList<ItemStack> items = block.getDrops(world, x, y, z, meta, 0);
-            float chance = ForgeEventFactory.fireBlockHarvesting(items, world, block, x, y, z, meta, 0, 1, false, player);
-    
+            float chance = ForgeEventFactory
+                .fireBlockHarvesting(items, world, block, x, y, z, meta, 0, 1, false, player);
+
             Iterator<ItemStack> iter = items.iterator();
-    
+
             while (iter.hasNext()) {
                 iter.next();
                 if (world.rand.nextFloat() > chance) {
                     iter.remove();
                 }
             }
-    
+
             givePlayerItems(items.toArray(new ItemStack[0]));
         }
 
@@ -185,8 +187,11 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
     }
 
     private static class MEOutputCaches {
-        private static final Function<MTEHatchOutputBusME, IItemList<IAEItemStack>> GET_ITEM_STACK_LIST = MMUtils.exposeFieldGetterLambda(MTEHatchOutputBusME.class, "itemCache");
-        private static final Function<MTEHatchOutputME, IItemList<IAEFluidStack>> GET_FLUID_STACK_LIST = MMUtils.exposeFieldGetterLambda(MTEHatchOutputME.class, "fluidCache");
+
+        private static final Function<MTEHatchOutputBusME, IItemList<IAEItemStack>> GET_ITEM_STACK_LIST = MMUtils
+            .exposeFieldGetterLambda(MTEHatchOutputBusME.class, "itemCache");
+        private static final Function<MTEHatchOutputME, IItemList<IAEFluidStack>> GET_FLUID_STACK_LIST = MMUtils
+            .exposeFieldGetterLambda(MTEHatchOutputME.class, "fluidCache");
     }
 
     @Optional({ Names.GREG_TECH, Names.APPLIED_ENERGISTICS2 })
@@ -329,7 +334,9 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
     protected void resetConduitBundle(TileEntity te) {
         if (te instanceof IConduitBundle bundle) {
             for (IConduit conduit : bundle.getConduits()) {
-                givePlayerItems(conduit.getDrops().toArray(new ItemStack[0]));
+                givePlayerItems(
+                    conduit.getDrops()
+                        .toArray(new ItemStack[0]));
                 bundle.removeConduit(conduit);
             }
         }
@@ -377,7 +384,8 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
 
             float distance = (float) new Vector3d(player.posX - avgX, player.posY - avgY, player.posZ - avgZ).length();
 
-            pair.left().sendPlayToAll(new Location(pair.right(), avgX, avgY, avgZ), (distance / 16f) + 1, -1);
+            pair.left()
+                .sendPlayToAll(new Location(pair.right(), avgX, avgY, avgZ), (distance / 16f) + 1, -1);
         });
         pendingSounds.clear();
     }
@@ -391,9 +399,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         if (!world.canMineBlock(player, x, y, z) || MinecraftServer.getServer().isBlockProtected(world, x, y, z, player)) {
             // spotless:on
             if (!printedProtectedBlockWarning) {
-                MMUtils.sendWarningToPlayer(
-                    player,
-                    "Tried to break/place a block in a protected area!");
+                MMUtils.sendWarningToPlayer(player, "Tried to break/place a block in a protected area!");
                 printedProtectedBlockWarning = true;
             }
 

@@ -1,5 +1,7 @@
 package com.recursive_pineapple.matter_manipulator.common.entities;
 
+import java.util.Iterator;
+
 import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -8,8 +10,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
-
-import java.util.Iterator;
 
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
@@ -160,19 +160,20 @@ public class EntityItemLarge extends EntityItem {
     /**
      * Looks for other itemstacks nearby and tries to stack them together
      */
-    public void searchForOtherItemsNearbyCustom()
-    {
-        Iterator<EntityItemLarge> iterator = this.worldObj.getEntitiesWithinAABB(EntityItemLarge.class, this.boundingBox.expand(2D, 0.0D, 2D)).iterator();
+    public void searchForOtherItemsNearbyCustom() {
+        Iterator<EntityItemLarge> iterator = this.worldObj
+            .getEntitiesWithinAABB(EntityItemLarge.class, this.boundingBox.expand(2D, 0.0D, 2D))
+            .iterator();
 
-        while (iterator.hasNext())
-        {
+        while (iterator.hasNext()) {
             this.combineItems(iterator.next());
         }
 
-        Iterator<EntityPlayer> iterator2 = this.worldObj.getEntitiesWithinAABB(EntityPlayer.class, this.boundingBox.expand(2D, 0.0D, 2D)).iterator();
+        Iterator<EntityPlayer> iterator2 = this.worldObj
+            .getEntitiesWithinAABB(EntityPlayer.class, this.boundingBox.expand(2D, 0.0D, 2D))
+            .iterator();
 
-        while (iterator2.hasNext())
-        {
+        while (iterator2.hasNext()) {
             this.onCollideWithPlayer(iterator2.next());
         }
     }

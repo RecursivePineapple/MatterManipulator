@@ -3,7 +3,7 @@ package com.recursive_pineapple.matter_manipulator.common.compat;
 import net.minecraft.world.World;
 
 public interface MetaBlockProperty<T> extends BlockProperty<T> {
-    
+
     default boolean needsExisting() {
         return true;
     }

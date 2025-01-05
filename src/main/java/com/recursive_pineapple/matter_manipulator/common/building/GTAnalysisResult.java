@@ -6,6 +6,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import net.minecraft.init.Items;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraftforge.common.util.ForgeDirection;
+
 import com.google.gson.JsonElement;
 import com.gtnewhorizon.structurelib.alignment.IAlignment;
 import com.gtnewhorizon.structurelib.alignment.IAlignmentProvider;
@@ -35,11 +41,6 @@ import gregtech.common.covers.CoverInfo;
 import gregtech.common.tileentities.machines.MTEHatchOutputBusME;
 import gregtech.common.tileentities.machines.MTEHatchOutputME;
 import gtPlusPlus.xmod.gregtech.api.enums.GregtechItemList;
-import net.minecraft.init.Items;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraftforge.common.util.ForgeDirection;
 import tectech.thing.metaTileEntity.multi.base.TTMultiblockBase;
 
 public class GTAnalysisResult implements ITileAnalysisIntegration {
@@ -87,7 +88,7 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
         }
     }
 
-    public GTAnalysisResult() { }
+    public GTAnalysisResult() {}
 
     public GTAnalysisResult(IGregTechTileEntity igte) {
         IMetaTileEntity mte = igte.getMetaTileEntity();
@@ -181,8 +182,7 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
         }
 
         // check if the machine has a locked item
-        if (mte instanceof IItemLockable lockable && lockable.acceptsItemLock()
-            && lockable.getLockedItem() != null) {
+        if (mte instanceof IItemLockable lockable && lockable.acceptsItemLock() && lockable.getLockedItem() != null) {
             mGTItemLock = new PortableItemStack(lockable.getLockedItem());
         }
 
@@ -295,11 +295,8 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
             // install/remove/update the covers
             for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
                 CoverData expected = mCovers == null ? null : mCovers[dir.ordinal()];
-                CoverInfo actual = gte.getCoverIDAtSide(dir) == 0 ? null : new CoverInfo(
-                    dir,
-                    gte.getCoverIDAtSide(dir),
-                    gte,
-                    gte.getComplexCoverDataAtSide(dir));
+                CoverInfo actual = gte.getCoverIDAtSide(dir) == 0 ? null
+                    : new CoverInfo(dir, gte.getCoverIDAtSide(dir), gte, gte.getComplexCoverDataAtSide(dir));
 
                 if (actual == null && expected != null) {
                     installCover(ctx, gte, dir, expected);
@@ -317,7 +314,8 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
                 // set the redstone strength
                 gte.setRedstoneOutputStrength(dir, (mStrongRedstone & dir.flag) != 0);
                 if (expected != null) {
-                    gte.getCoverInfoAtSide(dir).setTickRateAddition(expected.tickRateAddition == null ? 0 : expected.tickRateAddition);
+                    gte.getCoverInfoAtSide(dir)
+                        .setTickRateAddition(expected.tickRateAddition == null ? 0 : expected.tickRateAddition);
                 }
             }
 
@@ -419,7 +417,7 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
                 tt.parametrization.setInputs(mTTParams);
             }
         }
-        
+
         return true;
     }
 
@@ -429,11 +427,14 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
         }
     }
 
-    private void installCover(IBlockApplyContext context, IGregTechTileEntity gte, ForgeDirection side, CoverData cover) {
+    private void installCover(IBlockApplyContext context, IGregTechTileEntity gte, ForgeDirection side,
+        CoverData cover) {
         ItemStack stack = cover.getCover();
 
         if (!gte.canPlaceCoverItemAtSide(side, stack)) {
-            context.error("was not allowed to put cover on " + side.name().toLowerCase() + "side: " + stack.getDisplayName());
+            context.error(
+                "was not allowed to put cover on " + side.name()
+                    .toLowerCase() + "side: " + stack.getDisplayName());
             return;
         }
 
@@ -452,7 +453,8 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
     private void updateCover(IBlockApplyContext context, IGregTechTileEntity gte, ForgeDirection side,
         CoverData target) {
         if (gte.getCoverIDAtSide(side) == target.getCoverID()) {
-            if (gte.getCoverBehaviorAtSideNew(side).allowsCopyPasteTool()) {
+            if (gte.getCoverBehaviorAtSideNew(side)
+                .allowsCopyPasteTool()) {
                 gte.setCoverDataAtSide(side, target.getCoverData());
             }
         }
@@ -465,11 +467,8 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
         if (te instanceof IGregTechTileEntity gte) {
             for (ForgeDirection side : ForgeDirection.VALID_DIRECTIONS) {
                 CoverData target = mCovers == null ? null : mCovers[side.ordinal()];
-                CoverInfo actual = gte.getCoverIDAtSide(side) == 0 ? null : new CoverInfo(
-                    side,
-                    gte.getCoverIDAtSide(side),
-                    gte,
-                    gte.getComplexCoverDataAtSide(side));
+                CoverInfo actual = gte.getCoverIDAtSide(side) == 0 ? null
+                    : new CoverInfo(side, gte.getCoverIDAtSide(side), gte, gte.getComplexCoverDataAtSide(side));
 
                 if (actual != null && (target == null || actual.getCoverID() != target.getCoverID())) {
                     context.givePlayerItems(
@@ -555,7 +554,8 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
         dup.mGTMainFacing = mGTMainFacing;
         dup.mGTFlags = mGTFlags;
         dup.mGTFacing = mGTFacing;
-        dup.mCovers = mCovers == null ? null : MMUtils.mapToArray(mCovers, CoverData[]::new, x -> x == null ? null : x.clone());
+        dup.mCovers = mCovers == null ? null
+            : MMUtils.mapToArray(mCovers, CoverData[]::new, x -> x == null ? null : x.clone());
         dup.mStrongRedstone = mStrongRedstone;
         dup.mGTCustomName = mGTCustomName;
         dup.mGTGhostCircuit = mGTGhostCircuit;
@@ -594,59 +594,35 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         GTAnalysisResult other = (GTAnalysisResult) obj;
-        if (mConnections != other.mConnections)
-            return false;
-        if (mGTColour != other.mGTColour)
-            return false;
-        if (mGTFront != other.mGTFront)
-            return false;
-        if (mGTMainFacing != other.mGTMainFacing)
-            return false;
-        if (mGTFlags != other.mGTFlags)
-            return false;
-        if (mGTFacing != other.mGTFacing)
-            return false;
-        if (!Arrays.equals(mCovers, other.mCovers))
-            return false;
-        if (mStrongRedstone != other.mStrongRedstone)
-            return false;
+        if (mConnections != other.mConnections) return false;
+        if (mGTColour != other.mGTColour) return false;
+        if (mGTFront != other.mGTFront) return false;
+        if (mGTMainFacing != other.mGTMainFacing) return false;
+        if (mGTFlags != other.mGTFlags) return false;
+        if (mGTFacing != other.mGTFacing) return false;
+        if (!Arrays.equals(mCovers, other.mCovers)) return false;
+        if (mStrongRedstone != other.mStrongRedstone) return false;
         if (mGTCustomName == null) {
-            if (other.mGTCustomName != null)
-                return false;
-        } else if (!mGTCustomName.equals(other.mGTCustomName))
-            return false;
-        if (mGTGhostCircuit != other.mGTGhostCircuit)
-            return false;
+            if (other.mGTCustomName != null) return false;
+        } else if (!mGTCustomName.equals(other.mGTCustomName)) return false;
+        if (mGTGhostCircuit != other.mGTGhostCircuit) return false;
         if (mGTItemLock == null) {
-            if (other.mGTItemLock != null)
-                return false;
-        } else if (!mGTItemLock.equals(other.mGTItemLock))
-            return false;
+            if (other.mGTItemLock != null) return false;
+        } else if (!mGTItemLock.equals(other.mGTItemLock)) return false;
         if (mGTFluidLock == null) {
-            if (other.mGTFluidLock != null)
-                return false;
-        } else if (!mGTFluidLock.equals(other.mGTFluidLock))
-            return false;
-        if (mGTMode != other.mGTMode)
-            return false;
+            if (other.mGTFluidLock != null) return false;
+        } else if (!mGTFluidLock.equals(other.mGTFluidLock)) return false;
+        if (mGTMode != other.mGTMode) return false;
         if (mGTData == null) {
-            if (other.mGTData != null)
-                return false;
-        } else if (!mGTData.equals(other.mGTData))
-            return false;
-        if (mGTMEBusCapacity != other.mGTMEBusCapacity)
-            return false;
-        if (!Arrays.equals(mTTParams, other.mTTParams))
-            return false;
+            if (other.mGTData != null) return false;
+        } else if (!mGTData.equals(other.mGTData)) return false;
+        if (mGTMEBusCapacity != other.mGTMEBusCapacity) return false;
+        if (!Arrays.equals(mTTParams, other.mTTParams)) return false;
         return true;
     }
 
-    
 }

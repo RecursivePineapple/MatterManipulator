@@ -3,7 +3,7 @@ package com.recursive_pineapple.matter_manipulator.common.utils;
 import net.minecraft.block.Block;
 
 public class BlockMeta implements ImmutableBlockMeta {
-    
+
     public Block block;
     public int meta;
 

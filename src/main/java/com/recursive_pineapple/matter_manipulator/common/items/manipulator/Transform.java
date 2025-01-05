@@ -8,6 +8,8 @@ import static net.minecraftforge.common.util.ForgeDirection.UNKNOWN;
 import static net.minecraftforge.common.util.ForgeDirection.UP;
 import static net.minecraftforge.common.util.ForgeDirection.WEST;
 
+import net.minecraftforge.common.util.ForgeDirection;
+
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
@@ -15,8 +17,6 @@ import org.joml.Vector3i;
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMConfig.VoxelAABB;
 import com.recursive_pineapple.matter_manipulator.common.networking.Messages;
-
-import net.minecraftforge.common.util.ForgeDirection;
 
 /**
  * Represents the rotation and flipping.

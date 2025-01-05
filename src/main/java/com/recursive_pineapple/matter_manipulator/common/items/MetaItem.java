@@ -4,6 +4,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
+import net.minecraft.client.renderer.texture.IIconRegister;
+import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.IIcon;
+
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
@@ -13,15 +20,9 @@ import cpw.mods.fml.relauncher.ReflectionHelper;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import gregtech.client.GTTooltipHandler;
-import net.minecraft.client.renderer.texture.IIconRegister;
-import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.IIcon;
 
 public class MetaItem extends Item {
-    
+
     public final String name;
 
     public final IIcon[] icons;
@@ -32,10 +33,13 @@ public class MetaItem extends Item {
 
         setHasSubtypes(true);
         setMaxDamage(0);
-        
+
         GameRegistry.registerItem(this, name);
 
-        int max = Arrays.stream(IDMetaItem.values()).mapToInt(x -> x.ID).max().getAsInt();
+        int max = Arrays.stream(IDMetaItem.values())
+            .mapToInt(x -> x.ID)
+            .max()
+            .getAsInt();
 
         icons = new IIcon[max + 1];
         metaItems = new IDMetaItem[max + 1];
@@ -74,7 +78,7 @@ public class MetaItem extends Item {
     }
 
     private static String getItemTier(IDMetaItem metaItem) {
-        return switch(metaItem) {
+        return switch (metaItem) {
             case PowerCore0 -> Tier.HV.tooltip.get();
             case ComputerCore0 -> Tier.HV.tooltip.get();
             case TeleporterCore0 -> Tier.HV.tooltip.get();
@@ -105,7 +109,8 @@ public class MetaItem extends Item {
     @SideOnly(Side.CLIENT)
     public void registerIcons(IIconRegister iconRegister) {
         for (IDMetaItem id : IDMetaItem.values()) {
-            icons[id.ID] = iconRegister.registerIcon(Mods.MatterManipulator.getResourcePath("metaitem", Integer.toString(id.ID)));
+            icons[id.ID] = iconRegister
+                .registerIcon(Mods.MatterManipulator.getResourcePath("metaitem", Integer.toString(id.ID)));
         }
     }
 
@@ -115,6 +120,7 @@ public class MetaItem extends Item {
     }
 
     private enum Tier {
+
         ULV,
         LV,
         MV,
