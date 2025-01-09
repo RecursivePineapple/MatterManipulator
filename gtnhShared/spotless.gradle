@@ -1,0 +1,12 @@
+
+spotless {
+    encoding 'UTF-8'
+
+    java {
+        removeUnusedImports()
+        importOrderFile('misc/spotless.importorder')
+        trimTrailingWhitespace()
+        endWithNewline()
+        eclipse().configFile('misc/eclipse-formatter-settings.xml')
+    }
+}
