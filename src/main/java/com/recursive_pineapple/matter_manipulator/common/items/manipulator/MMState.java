@@ -25,11 +25,11 @@ import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.building.AEAnalysisResult;
 import com.recursive_pineapple.matter_manipulator.common.building.AEPartData;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer;
+import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.RegionAnalysis;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockSpec;
 import com.recursive_pineapple.matter_manipulator.common.building.GTAnalysisResult;
 import com.recursive_pineapple.matter_manipulator.common.building.ImmutableBlockSpec;
 import com.recursive_pineapple.matter_manipulator.common.building.PendingBlock;
-import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.RegionAnalysis;
 import com.recursive_pineapple.matter_manipulator.common.data.WeightedSpecList;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
 import com.recursive_pineapple.matter_manipulator.common.persist.NBTJsonAdapter;
@@ -65,8 +65,7 @@ import gregtech.common.blocks.BlockMachines;
  */
 public class MMState {
 
-    static final Gson GSON = new GsonBuilder()
-        .registerTypeAdapter(UniqueIdentifier.class, new UIDJsonAdapter())
+    static final Gson GSON = new GsonBuilder().registerTypeAdapter(UniqueIdentifier.class, new UIDJsonAdapter())
         .registerTypeAdapter(NBTTagCompound.class, new NBTJsonAdapter())
         .registerTypeAdapter(ForgeDirection.class, new StaticEnumJsonAdapter<>(ForgeDirection.class))
         .registerTypeAdapter(WeightedSpecList.class, new WeightedListJsonAdapter())
@@ -113,7 +112,8 @@ public class MMState {
     }
 
     private static void migrateJson(JsonObject obj) {
-        int version = obj.has("jv") ? obj.get("jv").getAsInt() : 0;
+        int version = obj.has("jv") ? obj.get("jv")
+            .getAsInt() : 0;
 
         if (version == 0) {
             if (obj.get("config") instanceof JsonObject config) {
@@ -409,8 +409,7 @@ public class MMState {
 
             ImmutableBlockSpec replacement = config.replaceWith.get(rng);
 
-            boolean replacingWithGTCable = tier.hasCap(ItemMatterManipulator.ALLOW_CABLES)
-                && GregTech.isModLoaded()
+            boolean replacingWithGTCable = tier.hasCap(ItemMatterManipulator.ALLOW_CABLES) && GregTech.isModLoaded()
                 && MMUtils.isGTCable(replacement);
             boolean replacingWithAECable = tier.hasCap(ItemMatterManipulator.ALLOW_CABLES)
                 && AppliedEnergistics2.isModLoaded()
@@ -420,12 +419,14 @@ public class MMState {
                 PendingBlock rep = replacement.instantiate(world, x, y, z);
 
                 if (MMUtils.isGTCable(existing)) {
-                   rep.analyze(world.getTileEntity(x, y, z), PendingBlock.ANALYZE_ALL);
+                    rep.analyze(world.getTileEntity(x, y, z), PendingBlock.ANALYZE_ALL);
                 }
 
                 pending.add(rep);
             } else if (replacingWithAECable) {
-                PendingBlock rep = PendingBlock.AE_BLOCK_CABLE.get().asSpec().instantiate(world, x, y, z);
+                PendingBlock rep = PendingBlock.AE_BLOCK_CABLE.get()
+                    .asSpec()
+                    .instantiate(world, x, y, z);
 
                 if (world.getTileEntity(x, y, z) instanceof IPartHost) {
                     rep.analyze(world.getTileEntity(x, y, z), PendingBlock.ANALYZE_ALL);
@@ -450,7 +451,8 @@ public class MMState {
 
         if (ae.mAEParts == null) ae.mAEParts = new AEPartData[7];
 
-        ae.mAEParts[ForgeDirection.UNKNOWN.ordinal()] = new AEPartData(((IPartItem) cable.getItem()).createPartFromItemStack(cable.getStack()));
+        ae.mAEParts[ForgeDirection.UNKNOWN.ordinal()] = new AEPartData(
+            ((IPartItem) cable.getItem()).createPartFromItemStack(cable.getStack()));
     }
 
     private List<PendingBlock> getCableBlocks(World world) {
@@ -472,14 +474,16 @@ public class MMState {
             for (Vector3i voxel : getLineVoxels(a.x, a.y, a.z, b.x, b.y, b.z)) {
                 if (AppliedEnergistics2.isModLoaded()) {
                     if (MMUtils.getAECable(pooled, world, voxel.x, voxel.y, voxel.z)) {
-                        PendingBlock pendingBlock = PendingBlock.AE_BLOCK_CABLE.get().asSpec().instantiate(world, voxel.x, voxel.y, voxel.z);
+                        PendingBlock pendingBlock = PendingBlock.AE_BLOCK_CABLE.get()
+                            .asSpec()
+                            .instantiate(world, voxel.x, voxel.y, voxel.z);
 
                         pendingBlock.analyze(world.getTileEntity(voxel.x, voxel.y, voxel.z), PendingBlock.ANALYZE_ALL);
 
                         clearAECable(pendingBlock);
 
                         out.add(pendingBlock);
-                        
+
                         continue;
                     }
                 }
@@ -502,7 +506,8 @@ public class MMState {
     }
 
     @Optional(Names.GREG_TECH)
-    private void getGTCables(Vector3i a, Vector3i b, List<PendingBlock> out, Block block, World world, ImmutableBlockSpec cable) {
+    private void getGTCables(Vector3i a, Vector3i b, List<PendingBlock> out, Block block, World world,
+        ImmutableBlockSpec cable) {
         if (block instanceof BlockMachines) {
             int end = 0, start = 0;
 
@@ -548,7 +553,8 @@ public class MMState {
     }
 
     @Optional(Names.APPLIED_ENERGISTICS2)
-    private void getAECables(Vector3i a, Vector3i b, List<PendingBlock> out, Block block, World world, ImmutableBlockSpec cableSpec) {
+    private void getAECables(Vector3i a, Vector3i b, List<PendingBlock> out, Block block, World world,
+        ImmutableBlockSpec cableSpec) {
         if (cableSpec.getItem() instanceof IPartItem partItem) {
             if (partItem.createPartFromItemStack(cableSpec.getStack()) instanceof IPartCable cable) {
                 for (Vector3i voxel : getLineVoxels(a.x, a.y, a.z, b.x, b.y, b.z)) {
@@ -719,7 +725,9 @@ public class MMState {
         XSTR rng = new XSTR(config.hashCode());
 
         for (Vector3i voxel : getLineVoxels(x1, y1, z1, x2, y2, z2)) {
-            pending.add(config.edges.get(rng).instantiate(config.coordA.worldId, voxel.x, voxel.y, voxel.z));
+            pending.add(
+                config.edges.get(rng)
+                    .instantiate(config.coordA.worldId, voxel.x, voxel.y, voxel.z));
         }
     }
 
@@ -744,7 +752,9 @@ public class MMState {
                         default -> BlockSpec.AIR;
                     };
 
-                    pending.add(spec.instantiate(config.coordA.worldId, x, y, z).setOrders(insideCount, insideCount));
+                    pending.add(
+                        spec.instantiate(config.coordA.worldId, x, y, z)
+                            .setOrders(insideCount, insideCount));
                 }
             }
         }

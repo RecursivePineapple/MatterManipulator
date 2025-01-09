@@ -2,6 +2,9 @@ package com.recursive_pineapple.matter_manipulator.common.items.manipulator;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.world.World;
+
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
@@ -13,9 +16,6 @@ import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMSta
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.PendingAction;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.PlaceMode;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.Shape;
-
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.world.World;
 
 public class MMConfig {
 
@@ -117,8 +117,10 @@ public class MMConfig {
         }
 
         public VoxelAABB moveOrigin(Vector3i newOrigin) {
-            b.sub(origin).add(newOrigin);
-            a.sub(origin).add(newOrigin);
+            b.sub(origin)
+                .add(newOrigin);
+            a.sub(origin)
+                .add(newOrigin);
             origin.set(newOrigin);
 
             return this;
@@ -182,8 +184,7 @@ public class MMConfig {
         }
     }
 
-    public Vector3i getArrayMult(World world, Location sourceA, Location sourceB, Location dest,
-        Vector3i lookingAt) {
+    public Vector3i getArrayMult(World world, Location sourceA, Location sourceB, Location dest, Vector3i lookingAt) {
         if (!Location.areCompatible(sourceA, sourceB, dest)) return new Vector3i(1);
 
         Vector3i array = new Vector3i(lookingAt).sub(dest.toVec());

@@ -7,6 +7,7 @@ import java.util.EnumMap;
 import net.minecraftforge.common.util.ForgeDirection;
 
 public enum Orientation {
+
     NONE(UNKNOWN, UNKNOWN),
     DOWN_DOWN(DOWN, DOWN),
     UP_DOWN(UP, DOWN),
@@ -52,11 +53,13 @@ public enum Orientation {
         this.b = b;
     }
 
-    private static final EnumMap<ForgeDirection, EnumMap<ForgeDirection, Orientation>> ORIENTATIONS = new EnumMap<>(ForgeDirection.class);
+    private static final EnumMap<ForgeDirection, EnumMap<ForgeDirection, Orientation>> ORIENTATIONS = new EnumMap<>(
+        ForgeDirection.class);
 
     static {
         for (Orientation o : values()) {
-            ORIENTATIONS.computeIfAbsent(o.a, x -> new EnumMap<>(ForgeDirection.class)).put(o.b, o);
+            ORIENTATIONS.computeIfAbsent(o.a, x -> new EnumMap<>(ForgeDirection.class))
+                .put(o.b, o);
         }
     }
 
@@ -64,6 +67,7 @@ public enum Orientation {
         if (a == null) a = ForgeDirection.UNKNOWN;
         if (b == null) b = ForgeDirection.UNKNOWN;
 
-        return ORIENTATIONS.get(a).get(b);
+        return ORIENTATIONS.get(a)
+            .get(b);
     }
 }

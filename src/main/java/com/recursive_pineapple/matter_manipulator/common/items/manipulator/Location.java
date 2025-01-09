@@ -2,15 +2,16 @@ package com.recursive_pineapple.matter_manipulator.common.items.manipulator;
 
 import javax.annotation.Nonnull;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.World;
+import net.minecraftforge.common.DimensionManager;
+import net.minecraftforge.common.util.ForgeDirection;
+
 import org.joml.Vector3i;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import net.minecraft.client.Minecraft;
-import net.minecraft.world.World;
-import net.minecraftforge.common.DimensionManager;
-import net.minecraftforge.common.util.ForgeDirection;
 
 /**
  * Represents a location in a world.
@@ -66,7 +67,9 @@ public class Location {
     }
 
     public World getWorld() {
-        if (FMLCommonHandler.instance().getEffectiveSide().isClient()) {
+        if (FMLCommonHandler.instance()
+            .getEffectiveSide()
+            .isClient()) {
             return getWorldClient();
         } else {
             return DimensionManager.getWorld(this.worldId);

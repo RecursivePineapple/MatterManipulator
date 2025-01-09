@@ -8,19 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import org.jetbrains.annotations.NotNull;
-import org.joml.Vector3f;
-
-import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
-import com.recursive_pineapple.matter_manipulator.MMMod;
-import com.recursive_pineapple.matter_manipulator.common.compat.BlockProperty;
-import com.recursive_pineapple.matter_manipulator.common.compat.BlockPropertyRegistry;
-import com.recursive_pineapple.matter_manipulator.common.compat.Orientation;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
-import com.recursive_pineapple.matter_manipulator.common.utils.LazyBlock;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
-
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.IInventory;
@@ -31,6 +18,19 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+
+import org.jetbrains.annotations.NotNull;
+import org.joml.Vector3f;
+
+import com.recursive_pineapple.matter_manipulator.MMMod;
+import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
+import com.recursive_pineapple.matter_manipulator.common.compat.BlockProperty;
+import com.recursive_pineapple.matter_manipulator.common.compat.BlockPropertyRegistry;
+import com.recursive_pineapple.matter_manipulator.common.compat.Orientation;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
+import com.recursive_pineapple.matter_manipulator.common.utils.LazyBlock;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 
 /**
  * This represents a block in the world.
@@ -108,7 +108,7 @@ public class PendingBlock extends Location {
     public Item getItem() {
         return spec.getItem();
     }
-    
+
     private List<ITileAnalysisIntegration> getIntegrations() {
         List<ITileAnalysisIntegration> list = new ArrayList<>();
 
@@ -133,7 +133,7 @@ public class PendingBlock extends Location {
         ItemStack stack = spec.getStack();
 
         if (stack == null) return null;
-        
+
         NBTTagCompound tag = stack.getTagCompound() != null ? stack.getTagCompound() : new NBTTagCompound();
 
         for (var analysis : getIntegrations()) {
@@ -201,7 +201,7 @@ public class PendingBlock extends Location {
         if (block == Blocks.air) return true;
 
         if (AE_BLOCK_CABLE.matches(spec)) return true;
-        
+
         return false;
     }
 
@@ -245,8 +245,7 @@ public class PendingBlock extends Location {
             try {
                 int rotation = Integer.parseInt(p.get(CopyableProperty.ROTATION));
 
-                Vector3f v = new Vector3f(0, 0, 1)
-                    .rotateAxis(rotation * (float)Math.PI * 2f / 360f, 0, 1, 0)
+                Vector3f v = new Vector3f(0, 0, 1).rotateAxis(rotation * (float) Math.PI * 2f / 360f, 0, 1, 0)
                     .mulTransposeDirection(transform.getRotation());
 
                 rotation = MathHelper.floor_double(Math.atan2(v.x, v.z) * 360d / Math.PI / 2d + 0.5);
@@ -260,13 +259,16 @@ public class PendingBlock extends Location {
 
         if (p.containsKey(CopyableProperty.ORIENTATION)) {
             try {
-                Orientation o = Orientation.valueOf(p.get(CopyableProperty.ORIENTATION).toUpperCase());
+                Orientation o = Orientation.valueOf(
+                    p.get(CopyableProperty.ORIENTATION)
+                        .toUpperCase());
 
-                o = Orientation.getOrientation(
-                    transform.apply(o.a),
-                    transform.apply(o.b));
+                o = Orientation.getOrientation(transform.apply(o.a), transform.apply(o.b));
 
-                p.put(CopyableProperty.ORIENTATION, o.name().toLowerCase());
+                p.put(
+                    CopyableProperty.ORIENTATION,
+                    o.name()
+                        .toLowerCase());
             } catch (Exception e) {
                 MMMod.LOG.error("could not transform orientation", e);
             }
@@ -295,11 +297,17 @@ public class PendingBlock extends Location {
 
         dir = transform.apply(dir);
 
-        p.put(prop, dir.name().toLowerCase());
+        p.put(
+            prop,
+            dir.name()
+                .toLowerCase());
     }
 
     public boolean apply(IBlockApplyContext context, World world) {
-        class RefCell { public boolean didSomething = false; }
+        class RefCell {
+
+            public boolean didSomething = false;
+        }
 
         RefCell ref = new RefCell();
 
@@ -399,7 +407,8 @@ public class PendingBlock extends Location {
     }
 
     public static PendingBlock fromBlock(World world, int x, int y, int z) {
-        return BlockSpec.fromBlock(null, world, x, y, z).instantiate(world, x, y, z);
+        return BlockSpec.fromBlock(null, world, x, y, z)
+            .instantiate(world, x, y, z);
     }
 
     private static int counter = 0;
@@ -414,15 +423,15 @@ public class PendingBlock extends Location {
             if ((flags & ANALYZE_GT) != 0 && Mods.GregTech.isModLoaded()) {
                 this.gt = GTAnalysisResult.analyze(te);
             }
-    
+
             if ((flags & ANALYZE_AE) != 0 && Mods.AppliedEnergistics2.isModLoaded()) {
                 this.ae = AEAnalysisResult.analyze(te);
             }
-    
+
             if ((flags & ANALYZE_ARCH) != 0 && Mods.ArchitectureCraft.isModLoaded()) {
                 this.arch = ArchitectureCraftAnalysisResult.analyze(te);
             }
-    
+
             if ((flags & ANALYZE_INV) != 0 && te instanceof IInventory inventory) {
                 this.inventory = InventoryAnalysis.fromInventory(inventory, false);
             }

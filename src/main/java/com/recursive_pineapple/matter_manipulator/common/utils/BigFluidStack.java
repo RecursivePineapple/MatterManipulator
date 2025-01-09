@@ -4,17 +4,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidStack;
+
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
 import appeng.api.storage.data.IAEFluidStack;
 import appeng.util.item.AEFluidStack;
 import cpw.mods.fml.common.Optional.Method;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidStack;
 
 public class BigFluidStack {
-    
+
     public Fluid fluid;
     public long amount;
     public int meta;
@@ -22,7 +23,7 @@ public class BigFluidStack {
 
     public transient FluidId id;
 
-    public BigFluidStack() { }
+    public BigFluidStack() {}
 
     public BigFluidStack(FluidStack stack) {
         this.fluid = stack.getFluid();
@@ -51,7 +52,8 @@ public class BigFluidStack {
 
     @Method(modid = Names.APPLIED_ENERGISTICS2)
     public IAEFluidStack getAEFluidStack() {
-        return Objects.requireNonNull(AEFluidStack.create(getFluidStack())).setStackSize(amount);
+        return Objects.requireNonNull(AEFluidStack.create(getFluidStack()))
+            .setStackSize(amount);
     }
 
     @Method(modid = Names.APPLIED_ENERGISTICS2)

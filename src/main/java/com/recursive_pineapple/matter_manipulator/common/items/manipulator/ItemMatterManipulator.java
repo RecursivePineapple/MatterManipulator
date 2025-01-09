@@ -61,6 +61,10 @@ import com.gtnewhorizon.gtnhlib.util.AboveHotbarHUD;
 import com.gtnewhorizon.structurelib.StructureLibAPI;
 import com.gtnewhorizon.structurelib.entity.fx.WeightlessParticleFX;
 import com.gtnewhorizons.modularui.api.UIInfos;
+import com.gtnewhorizons.modularui.api.drawable.AdaptableUITexture;
+import com.gtnewhorizons.modularui.api.drawable.IDrawable;
+import com.gtnewhorizons.modularui.api.drawable.OffsetDrawable;
+import com.gtnewhorizons.modularui.api.drawable.shapes.Rectangle;
 import com.gtnewhorizons.modularui.api.math.Alignment;
 import com.gtnewhorizons.modularui.api.math.Color;
 import com.gtnewhorizons.modularui.api.math.CrossAxisAlignment;
@@ -81,13 +85,9 @@ import com.gtnewhorizons.modularui.common.widget.Row;
 import com.gtnewhorizons.modularui.common.widget.TextWidget;
 import com.gtnewhorizons.modularui.common.widget.VanillaButtonWidget;
 import com.gtnewhorizons.modularui.common.widget.textfield.NumericWidget;
-import com.gtnewhorizons.modularui.api.drawable.AdaptableUITexture;
-import com.gtnewhorizons.modularui.api.drawable.IDrawable;
-import com.gtnewhorizons.modularui.api.drawable.OffsetDrawable;
-import com.gtnewhorizons.modularui.api.drawable.shapes.Rectangle;
-import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.InteractionConfig;
 import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.RenderingConfig;
+import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.client.gui.DirectionDrawable;
 import com.recursive_pineapple.matter_manipulator.client.gui.RadialMenuBuilder;
 import com.recursive_pineapple.matter_manipulator.client.rendering.BoxRenderer;
@@ -97,6 +97,16 @@ import com.recursive_pineapple.matter_manipulator.common.building.PendingBlock;
 import com.recursive_pineapple.matter_manipulator.common.building.PendingBuild;
 import com.recursive_pineapple.matter_manipulator.common.building.PendingMove;
 import com.recursive_pineapple.matter_manipulator.common.data.WeightedSpecList;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMConfig.VoxelAABB;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.BlockRemoveMode;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.BlockSelectMode;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.PendingAction;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.PlaceMode;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.Shape;
+import com.recursive_pineapple.matter_manipulator.common.networking.Messages;
+import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
 import appeng.api.features.INetworkEncodable;
 import cpw.mods.fml.client.registry.ClientRegistry;
@@ -111,26 +121,13 @@ import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMConfig.VoxelAABB;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.BlockRemoveMode;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.BlockSelectMode;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.PendingAction;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.PlaceMode;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.Shape;
-import com.recursive_pineapple.matter_manipulator.common.networking.Messages;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
-
 import ic2.api.item.IElectricItemManager;
 import ic2.api.item.ISpecialElectricItem;
 
 @InterfaceList({
     @Interface(modid = Names.APPLIED_ENERGISTICS2, iface = "appeng.api.features.INetworkEncodable", striprefs = true),
     @Interface(modid = Names.INDUSTRIAL_CRAFT2, iface = "ic2.api.item.ISpecialElectricItem"),
-    @Interface(modid = Names.INDUSTRIAL_CRAFT2, iface = "ic2.api.item.IElectricItemManager"),
-})
+    @Interface(modid = Names.INDUSTRIAL_CRAFT2, iface = "ic2.api.item.IElectricItemManager"), })
 public class ItemMatterManipulator extends Item
     implements ISpecialElectricItem, IElectricItemManager, INetworkEncodable {
 
@@ -578,7 +575,7 @@ public class ItemMatterManipulator extends Item
 
         if (state.config.action != null) {
             MovingObjectPosition hit = MMUtils.getHitResult(player, true);
-    
+
             if (handleAction(stack, world, player, state, hit)) {
                 setState(stack, state);
 
@@ -605,7 +602,7 @@ public class ItemMatterManipulator extends Item
             }
 
             setState(stack, state);
-            
+
             return stack;
         } else {
             if (player.isSneaking()) {
@@ -807,13 +804,9 @@ public class ItemMatterManipulator extends Item
         }
 
         if (add) {
-            MMUtils.sendInfoToPlayer(
-                player,
-                String.format("Added %s to %s", block.getDisplayName(), what));
+            MMUtils.sendInfoToPlayer(player, String.format("Added %s to %s", block.getDisplayName(), what));
         } else {
-            MMUtils.sendInfoToPlayer(
-                player,
-                String.format("Set %s to: %s", what, block.getDisplayName()));
+            MMUtils.sendInfoToPlayer(player, String.format("Set %s to: %s", what, block.getDisplayName()));
         }
     }
 
@@ -827,16 +820,12 @@ public class ItemMatterManipulator extends Item
         state.config.replaceWith = new WeightedSpecList();
         state.config.replaceWith.add(block);
 
-        MMUtils.sendInfoToPlayer(
-            player,
-            String.format(
-                "Set block to replace with to: %s",
-                block.getDisplayName()));
+        MMUtils.sendInfoToPlayer(player, String.format("Set block to replace with to: %s", block.getDisplayName()));
     }
 
     private void onExchangeAddWhitelist(World world, EntityPlayer player, ItemStack stack, MMState state,
         MovingObjectPosition hit) {
-        
+
         BlockSpec block = BlockSpec.fromPickBlock(player.worldObj, player, hit);
 
         if (hit != null) checkForAECables(block, world, hit.blockX, hit.blockY, hit.blockZ);
@@ -847,14 +836,12 @@ public class ItemMatterManipulator extends Item
 
         state.config.replaceWhitelist.add(block);
 
-        MMUtils.sendInfoToPlayer(
-            player,
-            String.format(
-                "Added block to exchange whitelist: %s",
-                block.getDisplayName()));
+        MMUtils
+            .sendInfoToPlayer(player, String.format("Added block to exchange whitelist: %s", block.getDisplayName()));
     }
 
-    private void onExchangeSetWhitelist(World world, EntityPlayer player, ItemStack stack, MMState state, MovingObjectPosition hit) {
+    private void onExchangeSetWhitelist(World world, EntityPlayer player, ItemStack stack, MMState state,
+        MovingObjectPosition hit) {
         BlockSpec block = BlockSpec.fromPickBlock(player.worldObj, player, hit);
 
         if (hit != null) checkForAECables(block, world, hit.blockX, hit.blockY, hit.blockZ);
@@ -864,19 +851,18 @@ public class ItemMatterManipulator extends Item
 
         MMUtils.sendInfoToPlayer(
             player,
-            String.format(
-                "Set exchange whitelist to only contain: %s",
-                block.getDisplayName()));
+            String.format("Set exchange whitelist to only contain: %s", block.getDisplayName()));
     }
 
-    private void onPickCable(World world, EntityPlayer player, ItemStack stack, MMState state, MovingObjectPosition hit) {
+    private void onPickCable(World world, EntityPlayer player, ItemStack stack, MMState state,
+        MovingObjectPosition hit) {
         BlockSpec cable = new BlockSpec();
 
         if (hit != null) {
             if (Mods.GregTech.isModLoaded()) {
                 MMUtils.getGTCable(cable, world, hit.blockX, hit.blockY, hit.blockZ);
             }
-    
+
             if (cable.isAir() && Mods.AppliedEnergistics2.isModLoaded()) {
                 MMUtils.getAECable(cable, world, hit.blockX, hit.blockY, hit.blockZ);
             }
@@ -884,14 +870,13 @@ public class ItemMatterManipulator extends Item
 
         state.config.cables = cable.isAir() ? null : cable;
 
-        MMUtils.sendInfoToPlayer(
-            player,
-            String.format("Set cables to: %s", cable.getDisplayName()));
+        MMUtils.sendInfoToPlayer(player, String.format("Set cables to: %s", cable.getDisplayName()));
     }
 
     private void checkForAECables(BlockSpec spec, World world, int x, int y, int z) {
         if (tier.hasCap(ALLOW_CABLES) && AppliedEnergistics2.isModLoaded()) {
-            if (spec.getItem() == PendingBlock.AE_BLOCK_CABLE.get().getItem()) {
+            if (spec.getItem() == PendingBlock.AE_BLOCK_CABLE.get()
+                .getItem()) {
                 MMUtils.getAECable(spec, world, x, y, z);
             }
         }
@@ -937,7 +922,7 @@ public class ItemMatterManipulator extends Item
     private void stopBuildable(EntityPlayer player) {
         if (!player.worldObj.isRemote) {
             IBuildable buildable = PENDING_BUILDS.remove(player);
-    
+
             if (buildable != null) buildable.onStopped();
         }
     }
@@ -2162,7 +2147,8 @@ public class ItemMatterManipulator extends Item
                 boolean needsAnalysis = (System.currentTimeMillis() - lastAnalysisMS) >= ANALYSIS_INTERVAL_MS
                     || !Objects.equals(lastAnalyzedConfig, state.config);
 
-                boolean needsHintDraw = needsAnalysis || (!Objects.equals(lastPlayerPosition, playerLocation) && tier.maxRange != -1);
+                boolean needsHintDraw = needsAnalysis
+                    || (!Objects.equals(lastPlayerPosition, playerLocation) && tier.maxRange != -1);
 
                 if (needsAnalysis) {
                     lastAnalysisMS = System.currentTimeMillis();
@@ -2245,53 +2231,52 @@ public class ItemMatterManipulator extends Item
                 if (isSourceAValid && isSourceBValid) {
                     Objects.requireNonNull(sourceA);
                     Objects.requireNonNull(sourceB);
-    
+
                     copyDeltas = new VoxelAABB(sourceA.toVec(), sourceB.toVec());
-    
-                    BoxRenderer.INSTANCE
-                        .drawAround(copyDeltas.toBoundingBox(), new Vector3f(0.15f, 0.6f, 0.75f));
+
+                    BoxRenderer.INSTANCE.drawAround(copyDeltas.toBoundingBox(), new Vector3f(0.15f, 0.6f, 0.75f));
                 }
-    
+
                 VoxelAABB pasteDeltas = null;
-    
+
                 if (isPasteValid) {
                     Objects.requireNonNull(paste);
-    
+
                     pasteDeltas = state.config.getPasteVisualDeltas(player.worldObj, true);
-    
+
                     if (pasteDeltas == null) {
                         pasteDeltas = new VoxelAABB(paste.toVec(), paste.toVec());
                     }
-    
+
                     BoxRenderer.INSTANCE.drawAround(pasteDeltas.toBoundingBox(), new Vector3f(0.75f, 0.5f, 0.15f));
-    
+
                     Location playerLocation = new Location(
                         player.getEntityWorld(),
                         MathHelper.floor_double(player.posX),
                         MathHelper.floor_double(player.posY),
                         MathHelper.floor_double(player.posZ));
-    
+
                     boolean needsAnalysis = (System.currentTimeMillis() - lastAnalysisMS) >= ANALYSIS_INTERVAL_MS
                         || !Objects.equals(lastAnalyzedConfig, state.config);
-    
+
                     boolean needsHintDraw = needsAnalysis || !Objects.equals(lastPlayerPosition, playerLocation);
-    
+
                     if (needsAnalysis) {
                         lastAnalysisMS = System.currentTimeMillis();
                         lastAnalyzedConfig = state.config;
                         analysisCache = state.getPendingBlocks(tier, player.getEntityWorld());
                     }
-    
+
                     if (needsHintDraw) {
                         lastPlayerPosition = playerLocation;
                         lastDrawer = ItemMatterManipulator.this;
                         drawHints(event, state, player, playerLocation);
                     }
                 }
-    
+
                 if (pasteDeltas != null) {
                     String array = "";
-            
+
                     Vector3i span = state.config.arraySpan;
                     if (span != null) {
                         array = String.format(
@@ -2300,7 +2285,7 @@ public class ItemMatterManipulator extends Item
                             span.y >= 0 ? span.y + 1 : span.y,
                             span.z >= 0 ? span.z + 1 : span.z);
                     }
-        
+
                     AboveHotbarHUD.renderTextAboveHotbar(
                         pasteDeltas.describe() + array,
                         (int) (ANALYSIS_INTERVAL_MS * 20 / 1000),
@@ -2335,7 +2320,8 @@ public class ItemMatterManipulator extends Item
                     if (dist2 > buildable) continue;
                 }
 
-                if (pendingBlock.spec.isAir() && player.worldObj.isAirBlock(pendingBlock.x, pendingBlock.y, pendingBlock.z)) {
+                if (pendingBlock.spec.isAir()
+                    && player.worldObj.isAirBlock(pendingBlock.x, pendingBlock.y, pendingBlock.z)) {
                     continue;
                 }
 
@@ -2407,10 +2393,10 @@ public class ItemMatterManipulator extends Item
 
             try {
                 tessellator.startDrawing(GL11.GL_LINES);
-    
+
                 for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
                     Vector3d delta = getVecForDir(dir);
-    
+
                     if (fromSurface) {
                         tessellator.addVertex(delta.x * 0.5, delta.y * 0.5, delta.z * 0.5);
                     } else {
@@ -2424,9 +2410,9 @@ public class ItemMatterManipulator extends Item
                 } catch (Throwable t) {
                     t.printStackTrace();
                 }
-    
+
                 GL11.glPopMatrix();
-    
+
                 GL11.glDepthMask(true);
                 GL11.glEnable(GL11.GL_TEXTURE_2D);
                 GL11.glDisable(GL11.GL_BLEND);

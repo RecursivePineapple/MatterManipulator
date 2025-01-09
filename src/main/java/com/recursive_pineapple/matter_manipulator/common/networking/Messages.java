@@ -23,24 +23,18 @@ import org.joml.Vector3i;
 import com.google.common.io.ByteArrayDataInput;
 import com.gtnewhorizon.gtnhlib.util.CoordinatePacker;
 import com.gtnewhorizons.modularui.common.internal.network.NetworkUtils;
-
-import cpw.mods.fml.common.network.NetworkRegistry.TargetPoint;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
-
-import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.DebugConfig;
+import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.BlockRemoveMode;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.BlockSelectMode;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.PendingAction;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.PlaceMode;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.Shape;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
 import com.recursive_pineapple.matter_manipulator.common.uplink.IUplinkMulti;
 import com.recursive_pineapple.matter_manipulator.common.uplink.MTEMMUplink;
 import com.recursive_pineapple.matter_manipulator.common.uplink.UplinkState;
@@ -48,6 +42,10 @@ import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
+import cpw.mods.fml.common.network.NetworkRegistry.TargetPoint;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.Pair;
 
@@ -85,27 +83,33 @@ public enum Messages {
         state.config.action = null;
     }))),
     SetShape(server(enumPacket(Shape.values(), (state, value) -> state.config.shape = value))),
-    SetA(server(locationPacket((player, stack, manipulator, state, location) -> {
-        state.config.coordA = new Location(player.worldObj, location);
-    }))),
+    SetA(server(
+        locationPacket(
+            (player, stack, manipulator, state, location) -> {
+                state.config.coordA = new Location(player.worldObj, location);
+            }))),
     MoveA(server(simple((player, stack, manipulator, state) -> {
         state.config.action = PendingAction.MOVING_COORDS;
         state.config.coordAOffset = new Vector3i();
         state.config.coordBOffset = null;
         state.config.coordCOffset = null;
     }))),
-    SetB(server(locationPacket((player, stack, manipulator, state, location) -> {
-        state.config.coordB = new Location(player.worldObj, location);
-    }))),
+    SetB(server(
+        locationPacket(
+            (player, stack, manipulator, state, location) -> {
+                state.config.coordB = new Location(player.worldObj, location);
+            }))),
     MoveB(server(simple((player, stack, manipulator, state) -> {
         state.config.action = PendingAction.MOVING_COORDS;
         state.config.coordAOffset = null;
         state.config.coordBOffset = new Vector3i();
         state.config.coordCOffset = null;
     }))),
-    SetC(server(locationPacket((player, stack, manipulator, state, location) -> {
-        state.config.coordC = new Location(player.worldObj, location);
-    }))),
+    SetC(server(
+        locationPacket(
+            (player, stack, manipulator, state, location) -> {
+                state.config.coordC = new Location(player.worldObj, location);
+            }))),
     MoveC(server(simple((player, stack, manipulator, state) -> {
         state.config.action = PendingAction.MOVING_COORDS;
         state.config.coordAOffset = null;
@@ -227,7 +231,7 @@ public enum Messages {
             if (theWorld.provider.dimensionId == packet.worldId) {
                 if (Mods.GregTech.isModLoaded() && Mods.AppliedEnergistics2.isModLoaded()) {
                     Location l = packet.getLocation();
-    
+
                     setState(l.getWorld(), l.x, l.y, l.z, packet.getState());
                 }
             }
@@ -275,14 +279,16 @@ public enum Messages {
         public void handle(EntityPlayer player, IntPacket packet) {
             if (packet.value < 0 || packet.value >= player.openContainer.inventorySlots.size()) return;
 
-            ItemStack stack = player.openContainer.getSlot(packet.value).getStack();
+            ItemStack stack = player.openContainer.getSlot(packet.value)
+                .getStack();
 
             if (stack != null && stack.getItem() instanceof ItemMatterManipulator manipulator) {
                 MMState state = ItemMatterManipulator.getState(stack);
 
                 int result = 0;
 
-                if (manipulator.tier.hasCap(ItemMatterManipulator.CONNECTS_TO_AE) && AppliedEnergistics2.isModLoaded()) {
+                if (manipulator.tier.hasCap(ItemMatterManipulator.CONNECTS_TO_AE)
+                    && AppliedEnergistics2.isModLoaded()) {
                     if (state.connectToMESystem()) {
                         if (state.canInteractWithAE(player)) {
                             result |= MMUtils.TOOLTIP_AE_WORKS;
@@ -309,18 +315,13 @@ public enum Messages {
             return packet;
         }
     })),
-    SetArray(server(locationPacket((player, stack, manipulator, state, span) -> {
-        state.config.arraySpan = span;
-    }))),
-    ResetArray(server(simple((player, stack, manipulator, state) -> {
-        state.config.arraySpan = null;
-    }))),
-    ResetTransform(server(simple((player, stack, manipulator, state) -> {
-        state.config.transform = new Transform();
-    }))),
+    SetArray(server(locationPacket((player, stack, manipulator, state, span) -> { state.config.arraySpan = span; }))),
+    ResetArray(server(simple((player, stack, manipulator, state) -> { state.config.arraySpan = null; }))),
+    ResetTransform(
+        server(simple((player, stack, manipulator, state) -> { state.config.transform = new Transform(); }))),
     ToggleTransformFlip(server(intPacket((player, stack, manipulator, state, value) -> {
         Transform transform = state.config.transform;
-        if (transform == null) state.config.transform  = (transform = new Transform());
+        if (transform == null) state.config.transform = (transform = new Transform());
 
         if ((value & Transform.FLIP_X) != 0) transform.flipX ^= true;
         if ((value & Transform.FLIP_Y) != 0) transform.flipY ^= true;
@@ -336,7 +337,7 @@ public enum Messages {
         int amount = ((value >> 8) & 0xFF) != 0 ? 1 : -1;
 
         Transform transform = state.config.transform;
-        if (transform == null) state.config.transform  = (transform = new Transform());
+        if (transform == null) state.config.transform = (transform = new Transform());
 
         transform.rotate(ForgeDirection.VALID_DIRECTIONS[dir], amount);
     }))),
@@ -354,7 +355,8 @@ public enum Messages {
 
                 if (packet.sound < 0 || packet.sound >= sounds.length) return;
 
-                Minecraft.getMinecraft().theWorld.playSound(x, y, z, sounds[packet.sound].toString(), packet.strength, packet.pitch, false);
+                Minecraft.getMinecraft().theWorld
+                    .playSound(x, y, z, sounds[packet.sound].toString(), packet.strength, packet.pitch, false);
             }
         }
 
@@ -368,7 +370,8 @@ public enum Messages {
             if (sound != null) {
                 packet.worldId = sound.left().worldId;
                 packet.location = CoordinatePacker.pack(sound.left().x, sound.left().y, sound.left().z);
-                packet.sound = sound.right().ordinal();
+                packet.sound = sound.right()
+                    .ordinal();
             }
 
             return packet;
@@ -419,8 +422,7 @@ public enum Messages {
 
     public void sendToPlayersAround(Location location, Object data) {
         if (DebugConfig.debug) {
-            MMMod.LOG
-                .info("Sending packet to players around " + location.toString() + ": " + this + "; " + data);
+            MMMod.LOG.info("Sending packet to players around " + location.toString() + ": " + this + "; " + data);
         }
         CHANNEL.sendToAllAround(
             getNewPacket(data),
@@ -452,8 +454,7 @@ public enum Messages {
     @SuppressWarnings("unchecked")
     public void handle(EntityPlayer player, SimplePacket packet) {
         if (DebugConfig.debug) {
-            MMMod.LOG
-                .info("Handling packet: " + this + "; " + packet + "; " + player + "; " + NetworkUtils.isClient());
+            MMMod.LOG.info("Handling packet: " + this + "; " + packet + "; " + player + "; " + NetworkUtils.isClient());
         }
         ((ISimplePacketHandler<SimplePacket>) handler).handle(player, packet);
     }
@@ -625,8 +626,7 @@ public enum Messages {
             @Override
             public void handle(EntityPlayer player, T packet) {
                 if (player == null) {
-                    MMMod.LOG
-                        .error("Client received server packet, it will be ignored: " + packet.message.name());
+                    MMMod.LOG.error("Client received server packet, it will be ignored: " + packet.message.name());
                     return;
                 }
 
@@ -649,8 +649,7 @@ public enum Messages {
             @Override
             public void handle(EntityPlayer player, T packet) {
                 if (player != null) {
-                    MMMod.LOG
-                        .error("Server received client packet, it will be ignored: " + packet.message.name());
+                    MMMod.LOG.error("Server received client packet, it will be ignored: " + packet.message.name());
                     return;
                 }
 
@@ -801,7 +800,8 @@ public enum Messages {
         };
     }
 
-    public static void sendSoundToPlayer(EntityPlayerMP player, World world, int x, int y, int z, SoundResource sound, float strength, float pitch) {
+    public static void sendSoundToPlayer(EntityPlayerMP player, World world, int x, int y, int z, SoundResource sound,
+        float strength, float pitch) {
         SoundPacket packet = new SoundPacket(Messages.PlaySound);
 
         packet.worldId = world.provider.dimensionId;
@@ -813,7 +813,8 @@ public enum Messages {
         CHANNEL.sendToPlayer(packet, player);
     }
 
-    public static void sendSoundToAllWithinRange(World world, int x, int y, int z, SoundResource sound, float strength, float pitch) {
+    public static void sendSoundToAllWithinRange(World world, int x, int y, int z, SoundResource sound, float strength,
+        float pitch) {
         SoundPacket packet = new SoundPacket(Messages.PlaySound);
 
         packet.worldId = world.provider.dimensionId;

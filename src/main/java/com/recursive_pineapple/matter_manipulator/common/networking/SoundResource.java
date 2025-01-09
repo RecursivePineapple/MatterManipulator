@@ -1,13 +1,14 @@
 package com.recursive_pineapple.matter_manipulator.common.networking;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.ResourceLocation;
+
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.ResourceLocation;
 
 public enum SoundResource {
 
@@ -243,7 +244,7 @@ public enum SoundResource {
     STEP_WOOD("step.wood"),
     TILE_PISTON_IN("tile.piston.in"),
     TILE_PISTON_OUT("tile.piston.out"),
-    
+
     ;
 
     public final ResourceLocation resourceLocation;
@@ -282,7 +283,9 @@ public enum SoundResource {
     }
 
     public void playSound(Location l, float volume, float pitch) {
-        if (FMLCommonHandler.instance().getSide().isServer()) {
+        if (FMLCommonHandler.instance()
+            .getSide()
+            .isServer()) {
             sendPlayToAll(l, volume, pitch);
         } else {
             playClient(volume, pitch);

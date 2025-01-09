@@ -24,6 +24,7 @@ public enum Mods {
     LogisticsPipes(Names.LOGISTICS_PIPES),
     MatterManipulator(Names.MATTER_MANIPULATOR),
     Minecraft(Names.MINECRAFT) {
+
         @Override
         public boolean isModLoaded() {
             return true;
@@ -37,6 +38,7 @@ public enum Mods {
     ;
 
     public static class Names {
+
         public static final String AE2STUFF = "ae2stuff";
         public static final String ANGELICA = "angelica";
         public static final String APPLIED_ENERGISTICS2 = "appliedenergistics2";

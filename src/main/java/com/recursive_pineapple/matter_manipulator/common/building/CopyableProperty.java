@@ -3,6 +3,7 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 import com.google.common.collect.ImmutableList;
 
 public enum CopyableProperty {
+
     FACING,
     FORWARD,
     UP,
@@ -12,8 +13,7 @@ public enum CopyableProperty {
     MODE,
     TEXT,
     ORIENTATION,
-    DELAY,
-    ;
+    DELAY,;
 
     public static final ImmutableList<CopyableProperty> VALUES = ImmutableList.copyOf(values());
 

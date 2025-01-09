@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import com.recursive_pineapple.matter_manipulator.common.compat.BlockProperty;
-import com.recursive_pineapple.matter_manipulator.common.compat.BlockPropertyRegistry;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
+
+import com.recursive_pineapple.matter_manipulator.common.compat.BlockProperty;
+import com.recursive_pineapple.matter_manipulator.common.compat.BlockPropertyRegistry;
+import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 
 public class BlockStateCommand extends CommandBase {
 
@@ -62,7 +62,9 @@ public class BlockStateCommand extends CommandBase {
                     return;
                 }
 
-                MMUtils.sendChatToPlayer(player, prop.getName() + ": " + prop.getValueAsString(player.worldObj, hit.blockX, hit.blockY, hit.blockZ));
+                MMUtils.sendChatToPlayer(
+                    player,
+                    prop.getName() + ": " + prop.getValueAsString(player.worldObj, hit.blockX, hit.blockY, hit.blockZ));
                 return;
             } else {
                 MMUtils.sendChatToPlayer(player, "Properties:");
@@ -71,7 +73,12 @@ public class BlockStateCommand extends CommandBase {
                     MMUtils.sendChatToPlayer(player, "None");
                 } else {
                     for (var e : properties.entrySet()) {
-                        MMUtils.sendChatToPlayer(player, e.getValue().getName() + ": " + e.getValue().getValueAsString(player.worldObj, hit.blockX, hit.blockY, hit.blockZ));
+                        MMUtils.sendChatToPlayer(
+                            player,
+                            e.getValue()
+                                .getName() + ": "
+                                + e.getValue()
+                                    .getValueAsString(player.worldObj, hit.blockX, hit.blockY, hit.blockZ));
                     }
                 }
 

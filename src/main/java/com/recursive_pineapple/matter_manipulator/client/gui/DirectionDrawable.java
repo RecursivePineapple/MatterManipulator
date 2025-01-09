@@ -24,8 +24,16 @@ public class DirectionDrawable implements IDrawable {
             GL11.glTranslatef(x + width / 2, y + height / 2, -90);
 
             Entity entity = mc.renderViewEntity;
-            GL11.glRotatef(entity.prevRotationPitch + (entity.rotationPitch - entity.prevRotationPitch) * partialTicks, 1.0F, 0.0F, 0.0F);
-            GL11.glRotatef(entity.prevRotationYaw + (entity.rotationYaw - entity.prevRotationYaw) * partialTicks, 0.0F, -1.0F, 0.0F);
+            GL11.glRotatef(
+                entity.prevRotationPitch + (entity.rotationPitch - entity.prevRotationPitch) * partialTicks,
+                1.0F,
+                0.0F,
+                0.0F);
+            GL11.glRotatef(
+                entity.prevRotationYaw + (entity.rotationYaw - entity.prevRotationYaw) * partialTicks,
+                0.0F,
+                -1.0F,
+                0.0F);
 
             GL11.glScalef(-1.0F, -1.0F, 1.0F);
 
@@ -44,17 +52,17 @@ public class DirectionDrawable implements IDrawable {
         GL11.glLineWidth(2.0F);
         tessellator.startDrawing(GL11.GL_LINES);
 
-        //X
+        // X
         tessellator.setColorRGBA(255, 0, 0, 255);
         tessellator.addVertex(0.0D, 0.0D, 0.0D);
         tessellator.addVertex(length, 0.0D, 0.0D);
 
-        //Z
+        // Z
         tessellator.setColorRGBA(75, 75, 255, 255);
         tessellator.addVertex(0.0D, 0.0D, 0.0D);
         tessellator.addVertex(0.0D, 0.0D, length);
 
-        //Y
+        // Y
         tessellator.setColorRGBA(0, 255, 0, 255);
         tessellator.addVertex(0.0D, 0.0D, 0.0D);
         tessellator.addVertex(0.0D, length, 0.0D);

@@ -2,12 +2,12 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 
 import java.util.List;
 
+import net.minecraft.item.ItemStack;
+import net.minecraftforge.fluids.FluidStack;
+
 import com.recursive_pineapple.matter_manipulator.common.utils.BigFluidStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.fluids.FluidStack;
 
 import it.unimi.dsi.fastutil.Pair;
 
@@ -53,13 +53,13 @@ public interface IPseudoInventory {
 
     public void givePlayerItems(List<BigItemStack> items);
 
-    public default void givePlayerItems(ItemStack... items)  {
+    public default void givePlayerItems(ItemStack... items) {
         givePlayerItems(MMUtils.mapToList(items, BigItemStack::new));
     }
 
     public void givePlayerFluids(List<BigFluidStack> fluids);
 
-    public default void givePlayerFluids(FluidStack... fluids)  {
+    public default void givePlayerFluids(FluidStack... fluids) {
         givePlayerFluids(MMUtils.mapToList(fluids, BigFluidStack::new));
     }
 }

@@ -4,18 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
-
-import appeng.api.storage.data.IAEItemStack;
-import appeng.util.item.AEItemStack;
-import cpw.mods.fml.common.Optional.Method;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
+
+import appeng.api.storage.data.IAEItemStack;
+import appeng.util.item.AEItemStack;
+import cpw.mods.fml.common.Optional.Method;
+
 public class BigItemStack {
-    
+
     public Item item;
     public long stackSize;
     public int meta;
@@ -23,7 +24,7 @@ public class BigItemStack {
 
     public transient ItemId id;
 
-    public BigItemStack() { }
+    public BigItemStack() {}
 
     public BigItemStack(ItemStack stack) {
         this.item = stack.getItem();
@@ -46,14 +47,18 @@ public class BigItemStack {
     }
 
     public ItemStack getItemStack() {
-        ItemStack stack = new ItemStack(item, stackSize > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) stackSize, this.meta);
+        ItemStack stack = new ItemStack(
+            item,
+            stackSize > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) stackSize,
+            this.meta);
         stack.setTagCompound(tag == null ? null : (NBTTagCompound) tag.copy());
         return stack;
     }
 
     @Method(modid = Names.APPLIED_ENERGISTICS2)
     public IAEItemStack getAEItemStack() {
-        return Objects.requireNonNull(AEItemStack.create(getItemStack())).setStackSize(stackSize);
+        return Objects.requireNonNull(AEItemStack.create(getItemStack()))
+            .setStackSize(stackSize);
     }
 
     @Method(modid = Names.APPLIED_ENERGISTICS2)
@@ -151,7 +156,8 @@ public class BigItemStack {
     public boolean isSameType(ItemStack other) {
         if (other == null) return false;
 
-        return item == other.getItem() && meta == Items.feather.getDamage(other) && Objects.equals(tag, other.getTagCompound());
+        return item == other.getItem() && meta == Items.feather.getDamage(other)
+            && Objects.equals(tag, other.getTagCompound());
     }
 
     public boolean isSameType(BigItemStack other) {

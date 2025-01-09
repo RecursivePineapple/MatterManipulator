@@ -40,7 +40,8 @@ public class UIDJsonAdapter implements JsonSerializer<UniqueIdentifier>, JsonDes
     }
 
     @Override
-    public UniqueIdentifier deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+    public UniqueIdentifier deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+        throws JsonParseException {
         if (!(json instanceof JsonPrimitive primitive)) {
             MMMod.LOG.error("cannot parse UniqueIdentifier: expected number or string, but got " + json);
             return new UniqueIdentifier("minecraft:air");
@@ -68,12 +69,12 @@ public class UIDJsonAdapter implements JsonSerializer<UniqueIdentifier>, JsonDes
     }
 
     public static enum CommonName {
+
         AIR(Mods.Minecraft, "air"),
         GT_BLOCKMACHINES(Mods.GregTech, "gt.blockmachines"),
         AE_ITEMPART(Mods.AppliedEnergistics2, "item.ItemMultiPart"),
         ARCH_SHAPE(Mods.ArchitectureCraft, "shape"),
-        ARCH_SHAPE_GLOW(Mods.ArchitectureCraft, "shapeSE"),
-        ;
+        ARCH_SHAPE_GLOW(Mods.ArchitectureCraft, "shapeSE"),;
 
         public final Mods mod;
         public final String name;

@@ -8,8 +8,9 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
 public interface ImmutableItemMeta {
-    
+
     public Item getItem();
+
     public int getMeta();
 
     public default Block getBlock() {
