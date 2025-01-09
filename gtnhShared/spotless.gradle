@@ -3,6 +3,7 @@ spotless {
     encoding 'UTF-8'
 
     java {
+        target 'src/main/java/**/*.java'
         removeUnusedImports()
         importOrderFile('misc/spotless.importorder')
         trimTrailingWhitespace()
@@ -10,3 +11,8 @@ spotless {
         eclipse().configFile('misc/eclipse-formatter-settings.xml')
     }
 }
+
+tasks.getByName('spotlessJava')
+    .dependsOn('createMcLauncherFiles')
+    .dependsOn('decompressDecompiledSources')
+    .dependsOn('injectTags')
