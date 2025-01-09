@@ -3,7 +3,7 @@ package com.recursive_pineapple.matter_manipulator.common.utils;
 import net.minecraftforge.oredict.OreDictionary;
 
 public class MMValues {
-    
+
     private MMValues() {}
 
     /**
@@ -33,9 +33,24 @@ public class MMValues {
     /**
      * The Voltage Tiers. Use this Array instead of the old named Voltage Variables
      */
-    public static final long[] V = new long[] { 8L, 32L, 128L, 512L, 2048L, 8192L, 32_768L, 131_072L, 524_288L,
-        2_097_152L, 8_388_608L, 33_554_432L, 134_217_728L, 536_870_912L, Integer.MAX_VALUE - 7,
+    public static final long[] V = new long[] {
+        8L,
+        32L,
+        128L,
+        512L,
+        2048L,
+        8192L,
+        32_768L,
+        131_072L,
+        524_288L,
+        2_097_152L,
+        8_388_608L,
+        33_554_432L,
+        134_217_728L,
+        536_870_912L,
+        Integer.MAX_VALUE - 7,
         // Error tier to prevent out of bounds errors. Not really a real tier (for now).
-        8_589_934_592L };
+        8_589_934_592L
+    };
 
 }

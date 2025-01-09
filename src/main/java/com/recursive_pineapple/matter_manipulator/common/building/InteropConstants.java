@@ -1,11 +1,13 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
+import net.minecraft.block.Block;
+
+import gregtech.api.GregTechAPI;
+
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
-import gregtech.api.GregTechAPI;
-import net.minecraft.block.Block;
 import tectech.thing.casing.TTCasingsContainer;
 
 /**
@@ -15,9 +17,7 @@ public enum InteropConstants {
     ;
 
     public static boolean shouldBeSkipped(Block block, int meta) {
-        if (Mods.GregTech.isModLoaded()) {
-            return shouldBeSkippedGT(block, meta);
-        }
+        if (Mods.GregTech.isModLoaded()) { return shouldBeSkippedGT(block, meta); }
 
         return false;
     }

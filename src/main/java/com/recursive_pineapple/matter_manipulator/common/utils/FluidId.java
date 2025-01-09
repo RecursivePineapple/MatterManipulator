@@ -6,12 +6,13 @@ import static net.minecraftforge.common.util.Constants.NBT.TAG_INT;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import com.google.auto.value.AutoValue;
-
 import net.minecraft.nbt.NBTTagCompound;
+
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
+
+import com.google.auto.value.AutoValue;
 
 @AutoValue
 public abstract class FluidId {
@@ -20,7 +21,8 @@ public abstract class FluidId {
         return new AutoValue_FluidId(
             FluidRegistry.getFluid(tag.getString("FluidName")),
             tag.hasKey("Tag", TAG_COMPOUND) ? tag.getCompoundTag("Tag") : null,
-            tag.hasKey("Amount", TAG_INT) ? tag.getInteger("Amount") : null);
+            tag.hasKey("Amount", TAG_INT) ? tag.getInteger("Amount") : null
+        );
     }
 
     public NBTTagCompound writeToNBT() {

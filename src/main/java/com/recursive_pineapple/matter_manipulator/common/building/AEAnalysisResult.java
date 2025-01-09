@@ -7,11 +7,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import com.google.gson.JsonElement;
-import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
-import com.recursive_pineapple.matter_manipulator.common.utils.ItemId;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
+
+import net.minecraftforge.common.util.ForgeDirection;
 
 import appeng.api.implementations.tiles.IColorableTile;
 import appeng.api.implementations.tiles.ISegmentedInventory;
@@ -27,11 +28,12 @@ import appeng.tile.AEBaseTile;
 import appeng.tile.networking.TileCableBus;
 import appeng.util.Platform;
 import appeng.util.SettingsFrom;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraftforge.common.util.ForgeDirection;
+
+import com.google.gson.JsonElement;
+import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
+import com.recursive_pineapple.matter_manipulator.common.utils.ItemId;
+import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 
 public class AEAnalysisResult implements ITileAnalysisIntegration {
 
@@ -43,7 +45,7 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
     public AEPartData[] mAEParts = null;
     public InventoryAnalysis mAECells = null;
     public InventoryAnalysis mAEPatterns = null;
-    
+
     public static final ForgeDirection[] ALL_DIRECTIONS = ForgeDirection.values();
 
     private static final AEAnalysisResult NO_OP = new AEAnalysisResult();
@@ -58,7 +60,7 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
         }
     }
 
-    public AEAnalysisResult() { }
+    public AEAnalysisResult() {}
 
     public AEAnalysisResult(TileEntity te) {
 
@@ -154,10 +156,8 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
                 IPart part = partHost.getPart(dir);
                 AEPartData expected = mAEParts[dir.ordinal()];
 
-                ItemId actualItem = part == null ? null
-                    : ItemId.createWithoutNBT(part.getItemStack(PartItemStack.Break));
-                ItemId expectedItem = expected == null ? null
-                    : ItemId.createWithoutNBT(expected.getEffectivePartStack());
+                ItemId actualItem = part == null ? null : ItemId.createWithoutNBT(part.getItemStack(PartItemStack.Break));
+                ItemId expectedItem = expected == null ? null : ItemId.createWithoutNBT(expected.getEffectivePartStack());
 
                 boolean isAttunable = part instanceof PartP2PTunnelNormal && expected != null && expected.isAttunable();
 
@@ -170,16 +170,12 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
                     }
 
                     if (actualItem == null && expectedItem != null) {
-                        if (!installPart(ctx, partHost, dir, expected, false)) {
-                            return false;
-                        }
+                        if (!installPart(ctx, partHost, dir, expected, false)) { return false; }
                     }
                 }
 
                 if (expected != null) {
-                    if (!expected.updatePart(ctx, partHost, dir)) {
-                        return false;
-                    }
+                    if (!expected.updatePart(ctx, partHost, dir)) { return false; }
                 }
 
                 Platform.notifyBlocksOfNeighbors(te.getWorldObj(), te.xCoord, te.yCoord, te.zCoord);
@@ -201,7 +197,8 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
         context.givePlayerItems(
             drops.stream()
                 .map(ItemStack::copy)
-                .toArray(ItemStack[]::new));
+                .toArray(ItemStack[]::new)
+        );
 
         ItemStack partStack = part.getItemStack(PartItemStack.Break)
             .copy();
@@ -222,13 +219,16 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
         if (!simulate) partHost.removePart(side, false);
     }
 
-    private boolean installPart(IBlockApplyContext context, IPartHost partHost, ForgeDirection side,
-        AEPartData partData, boolean simulate) {
+    private boolean installPart(
+        IBlockApplyContext context,
+        IPartHost partHost,
+        ForgeDirection side,
+        AEPartData partData,
+        boolean simulate
+    ) {
         ItemStack partStack = partData.getEffectivePartStack();
 
-        if (!partHost.canAddPart(partStack, side)) {
-            return false;
-        }
+        if (!partHost.canAddPart(partStack, side)) { return false; }
 
         if (!context.tryConsumeItems(partStack)) {
             context.warn("Could not find " + partStack.getDisplayName());
@@ -250,8 +250,7 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
         TileEntity te = context.getTileEntity();
 
         if (te instanceof ISegmentedInventory segmentedInventory) {
-            if (mAEUpgrades != null
-                && segmentedInventory.getInventoryByName("upgrades") instanceof UpgradeInventory upgrades) {
+            if (mAEUpgrades != null && segmentedInventory.getInventoryByName("upgrades") instanceof UpgradeInventory upgrades) {
                 MMUtils.installUpgrades(context, upgrades, mAEUpgrades, true, true);
             }
 
@@ -266,10 +265,8 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
                 IPart part = partHost.getPart(dir);
                 AEPartData expected = mAEParts[dir.ordinal()];
 
-                ItemId actualItem = part == null ? null
-                    : ItemId.createWithoutNBT(part.getItemStack(PartItemStack.Break));
-                ItemId expectedItem = expected == null ? null
-                    : ItemId.createWithoutNBT(expected.getEffectivePartStack());
+                ItemId actualItem = part == null ? null : ItemId.createWithoutNBT(part.getItemStack(PartItemStack.Break));
+                ItemId expectedItem = expected == null ? null : ItemId.createWithoutNBT(expected.getEffectivePartStack());
 
                 boolean isAttunable = part instanceof PartP2PTunnelNormal && expected != null && expected.isAttunable();
 
@@ -280,16 +277,12 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
                     }
 
                     if (actualItem == null && expectedItem != null) {
-                        if (!installPart(context, partHost, dir, expected, true)) {
-                            return false;
-                        }
+                        if (!installPart(context, partHost, dir, expected, true)) { return false; }
                     }
                 }
 
                 if (expected != null) {
-                    if (!expected.getRequiredItemsForExistingPart(context, partHost, dir)) {
-                        return false;
-                    }
+                    if (!expected.getRequiredItemsForExistingPart(context, partHost, dir)) { return false; }
                 }
 
                 Platform.notifyBlocksOfNeighbors(te.getWorldObj(), te.xCoord, te.yCoord, te.zCoord);
@@ -323,9 +316,7 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
 
                 context.tryConsumeItems(expected.getEffectivePartStack());
 
-                if (!expected.getRequiredItemsForNewPart(context)) {
-                    return false;
-                }
+                if (!expected.getRequiredItemsForNewPart(context)) { return false; }
             }
         }
 
@@ -346,7 +337,7 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
     public void transform(Transform transform) {
         mAEUp = transform.apply(mAEUp);
         mAEForward = transform.apply(mAEForward);
-        
+
         if (mAEParts != null) {
             AEPartData[] partsOut = new AEPartData[AEAnalysisResult.ALL_DIRECTIONS.length];
 
@@ -400,43 +391,27 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         AEAnalysisResult other = (AEAnalysisResult) obj;
-        if (mAEColour != other.mAEColour)
-            return false;
-        if (mAEUp != other.mAEUp)
-            return false;
-        if (mAEForward != other.mAEForward)
-            return false;
+        if (mAEColour != other.mAEColour) return false;
+        if (mAEUp != other.mAEUp) return false;
+        if (mAEForward != other.mAEForward) return false;
         if (mAEConfig == null) {
-            if (other.mAEConfig != null)
-                return false;
-        } else if (!mAEConfig.equals(other.mAEConfig))
-            return false;
-        if (!Arrays.equals(mAEUpgrades, other.mAEUpgrades))
-            return false;
+            if (other.mAEConfig != null) return false;
+        } else if (!mAEConfig.equals(other.mAEConfig)) return false;
+        if (!Arrays.equals(mAEUpgrades, other.mAEUpgrades)) return false;
         if (mAECustomName == null) {
-            if (other.mAECustomName != null)
-                return false;
-        } else if (!mAECustomName.equals(other.mAECustomName))
-            return false;
-        if (!Arrays.equals(mAEParts, other.mAEParts))
-            return false;
+            if (other.mAECustomName != null) return false;
+        } else if (!mAECustomName.equals(other.mAECustomName)) return false;
+        if (!Arrays.equals(mAEParts, other.mAEParts)) return false;
         if (mAECells == null) {
-            if (other.mAECells != null)
-                return false;
-        } else if (!mAECells.equals(other.mAECells))
-            return false;
+            if (other.mAECells != null) return false;
+        } else if (!mAECells.equals(other.mAECells)) return false;
         if (mAEPatterns == null) {
-            if (other.mAEPatterns != null)
-                return false;
-        } else if (!mAEPatterns.equals(other.mAEPatterns))
-            return false;
+            if (other.mAEPatterns != null) return false;
+        } else if (!mAEPatterns.equals(other.mAEPatterns)) return false;
         return true;
     }
 }

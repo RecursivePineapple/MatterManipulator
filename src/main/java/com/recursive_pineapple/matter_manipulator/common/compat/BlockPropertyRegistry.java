@@ -11,17 +11,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
-import com.recursive_pineapple.matter_manipulator.asm.Optional;
-import com.recursive_pineapple.matter_manipulator.common.compat.BooleanProperty.FlagBooleanProperty;
-import com.recursive_pineapple.matter_manipulator.common.compat.DirectionBlockProperty.AbstractDirectionBlockProperty;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
-
-import gcewing.architecture.common.tile.TileArchitecture;
-import ic2.api.tile.IWrenchable;
-import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockAnvil;
 import net.minecraft.block.BlockBasePressurePlate;
@@ -47,13 +36,26 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntitySign;
 import net.minecraft.tileentity.TileEntitySkull;
 import net.minecraft.world.World;
+
 import net.minecraftforge.common.util.ForgeDirection;
+
+import com.recursive_pineapple.matter_manipulator.asm.Optional;
+import com.recursive_pineapple.matter_manipulator.common.compat.BooleanProperty.FlagBooleanProperty;
+import com.recursive_pineapple.matter_manipulator.common.compat.DirectionBlockProperty.AbstractDirectionBlockProperty;
+import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
+
+import gcewing.architecture.common.tile.TileArchitecture;
+import ic2.api.tile.IWrenchable;
+import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import scala.tools.nsc.typechecker.MethodSynthesis.MethodSynth.Getter;
 import scala.tools.nsc.typechecker.MethodSynthesis.MethodSynth.Setter;
 
 public class BlockPropertyRegistry {
-    
-    private BlockPropertyRegistry() { }
+
+    private BlockPropertyRegistry() {}
 
     public static final Object2ObjectOpenHashMap<Block, Object2ObjectArrayMap<String, BlockProperty<?>>> SPECIFIC_BLOCK_PROPERTIES = new Object2ObjectOpenHashMap<>();
     public static final Object2ObjectOpenHashMap<Class<?>, Object2ObjectArrayMap<String, BlockProperty<?>>> BLOCK_IFACE_PROPERTIES = new Object2ObjectOpenHashMap<>();
@@ -88,7 +90,7 @@ public class BlockPropertyRegistry {
         var props = SPECIFIC_BLOCK_PROPERTIES.get(block);
         if (props != null) cache.putAll(props);
 
-        for(var e : BLOCK_IFACE_PROPERTIES.object2ObjectEntrySet()) {
+        for (var e : BLOCK_IFACE_PROPERTIES.object2ObjectEntrySet()) {
             if (e.getKey().isAssignableFrom(clazz)) {
                 e.getValue().forEach((name, prop) -> {
                     if (prop.appliesTo(block)) {
@@ -107,7 +109,7 @@ public class BlockPropertyRegistry {
         Object2ObjectArrayMap<String, BlockProperty<?>> cache = new Object2ObjectArrayMap<>();
         CACHED_PROPERTIES.put(clazz, cache);
 
-        for(var e : TILE_IFACE_PROPERTIES.object2ObjectEntrySet()) {
+        for (var e : TILE_IFACE_PROPERTIES.object2ObjectEntrySet()) {
             if (e.getKey().isAssignableFrom(clazz)) {
                 e.getValue().forEach((name, prop) -> {
                     if (prop.appliesTo(tile)) {
@@ -122,7 +124,7 @@ public class BlockPropertyRegistry {
 
     public static void getProperties(World world, int x, int y, int z, Map<String, BlockProperty<?>> properties) {
         Block block = world.getBlock(x, y, z);
-        
+
         Map<String, BlockProperty<?>> props = CACHED_PROPERTIES.get(block.getClass());
 
         if (props == null) props = cacheBlockProperties(block);
@@ -144,7 +146,7 @@ public class BlockPropertyRegistry {
 
     public static BlockProperty<?> getProperty(World world, int x, int y, int z, String name) {
         Block block = world.getBlock(x, y, z);
-        
+
         Map<String, BlockProperty<?>> props = CACHED_PROPERTIES.get(block.getClass());
 
         if (props == null) props = cacheBlockProperties(block);
@@ -161,7 +163,7 @@ public class BlockPropertyRegistry {
                 if (props == null) props = cacheTileProperties(tile);
 
                 prop = props.get(name);
-                if (prop != null) return prop;        
+                if (prop != null) return prop;
             }
         }
 
@@ -176,28 +178,35 @@ public class BlockPropertyRegistry {
         if (Mods.ArchitectureCraft.isModLoaded()) initArch();
     }
 
-    //#region Vanilla
+    // #region Vanilla
 
     private static void initVanilla() {
-        registerBlockInterfaceProperty(BlockLog.class, DirectionBlockProperty.facing(
-            0b1100,
-            dir -> switch (dir) {
-                case UP, DOWN -> 0;
-                case NORTH, SOUTH -> 0b1000;
-                case EAST, WEST -> 0b100;
-                default -> 0;
-            },
-            meta -> switch (meta) {
-                case 0b100 -> EAST;
-                case 0b1000 -> NORTH;
-                default -> UP;
-            }));
+        registerBlockInterfaceProperty(
+            BlockLog.class,
+            DirectionBlockProperty.facing(
+                0b1100,
+                dir -> switch (dir) {
+                    case UP, DOWN -> 0;
+                    case NORTH, SOUTH -> 0b1000;
+                    case EAST, WEST -> 0b100;
+                    default -> 0;
+                },
+                meta -> switch (meta) {
+                    case 0b100 -> EAST;
+                    case 0b1000 -> NORTH;
+                    default -> UP;
+                }
+            )
+        );
 
         registerProperty(
             Blocks.rail,
             new MetaBlockProperty<RailMode>() {
+
                 @Override
-                public String getName() { return "mode"; }
+                public String getName() {
+                    return "mode";
+                }
 
                 @Override
                 public RailMode getValue(int meta) {
@@ -212,19 +221,25 @@ public class BlockPropertyRegistry {
                 public RailMode parse(String text) throws Exception {
                     return RailMode.parse(text);
                 }
-            });
+            }
+        );
 
         registerProperty(
             Blocks.rail,
             DirectionBlockProperty.facing(
-                (dir, existing) ->  getRailMeta(getRailMode(existing, true), dir, true, false),
-                meta -> getRailDirection(meta, true)));
-        
+                (dir, existing) -> getRailMeta(getRailMode(existing, true), dir, true, false),
+                meta -> getRailDirection(meta, true)
+            )
+        );
+
         registerProperty(
             Arrays.asList(Blocks.golden_rail, Blocks.detector_rail, Blocks.activator_rail),
             new MetaBlockProperty<RailMode>() {
+
                 @Override
-                public String getName() { return "mode"; }
+                public String getName() {
+                    return "mode";
+                }
 
                 @Override
                 public RailMode getValue(int meta) {
@@ -239,19 +254,23 @@ public class BlockPropertyRegistry {
                 public RailMode parse(String text) throws Exception {
                     return RailMode.parse(text);
                 }
-            });
+            }
+        );
 
         registerProperty(
             Arrays.asList(Blocks.golden_rail, Blocks.detector_rail, Blocks.activator_rail),
             DirectionBlockProperty.facing(
                 (dir, existing) -> getRailMeta(getRailMode(existing, false), dir, false, isRailPowered(existing)),
-                meta -> getRailDirection(meta, false)));
-        
+                meta -> getRailDirection(meta, false)
+            )
+        );
+
         BooleanProperty powered = BooleanProperty.flag("powered", 0b1000);
 
         registerProperty(
             Arrays.asList(Blocks.golden_rail, Blocks.detector_rail, Blocks.activator_rail),
-            powered);
+            powered
+        );
 
         registerBlockInterfaceProperty(BlockButton.class, powered);
         registerBlockInterfaceProperty(BlockButton.class, DirectionBlockProperty.facing(0b111, 3, 4, 1, 2, 0, 5));
@@ -262,8 +281,11 @@ public class BlockPropertyRegistry {
 
         registerProperty(Blocks.lever, powered);
         registerProperty(Blocks.lever, new DirectionBlockProperty() {
+
             @Override
-            public String getName() { return "forward"; }
+            public String getName() {
+                return "forward";
+            }
 
             @Override
             public ForgeDirection getValue(World world, int x, int y, int z) {
@@ -282,7 +304,7 @@ public class BlockPropertyRegistry {
                 int meta = world.getBlockMetadata(x, y, z);
                 int power = meta & 0b1000;
                 meta &= 0b111;
-                
+
                 if (meta == 0 || meta == 7) meta = value == EAST || value == WEST ? 0 : 7;
                 if (meta == 5 || meta == 6) meta = value == EAST || value == WEST ? 6 : 5;
 
@@ -310,7 +332,9 @@ public class BlockPropertyRegistry {
                     case 0, 7 -> UP;
                     case 5, 6 -> DOWN;
                     default -> UNKNOWN;
-                }));
+                }
+            )
+        );
 
         registerBlockInterfaceProperty(BlockPistonBase.class, powered);
         registerBlockInterfaceProperty(BlockPistonBase.class, DirectionBlockProperty.facing(0b111, 3, 4, 1, 2, 0, 5));
@@ -319,11 +343,13 @@ public class BlockPropertyRegistry {
         registerBlockInterfaceProperty(
             BlockSlab.class,
             new FlagBooleanProperty("top", 0b1000) {
+
                 @Override
                 public boolean appliesTo(Object obj) {
                     return (obj instanceof BlockSlab slab) && !slab.field_150004_a;
                 }
-            });
+            }
+        );
 
         registerBlockInterfaceProperty(
             BlockStairs.class,
@@ -342,7 +368,9 @@ public class BlockPropertyRegistry {
                     case 2 -> SOUTH;
                     case 3 -> NORTH;
                     default -> NORTH;
-                }));
+                }
+            )
+        );
 
         registerBlockInterfaceProperty(
             BlockStairs.class,
@@ -357,8 +385,10 @@ public class BlockPropertyRegistry {
                     case 0 -> UP;
                     case 0b100 -> DOWN;
                     default -> UP;
-                })
-                .setName("up"));
+                }
+            )
+                .setName("up")
+        );
 
         registerBlockInterfaceProperty(BlockChest.class, DirectionBlockProperty.facing(0b111, 2, 3, 4, 5, -1, -1));
 
@@ -379,13 +409,16 @@ public class BlockPropertyRegistry {
                     case 2 -> EAST;
                     case 3 -> SOUTH;
                     default -> NORTH;
-                }));
+                }
+            )
+        );
 
         registerBlockInterfaceProperty(
             BlockAnvil.class,
             IntegerProperty.meta("damage", 0b1100, 2)
-                .map(Arrays.asList("undamaged", "slightly_damaged", "very_damaged", "broken")));
-        
+                .map(Arrays.asList("undamaged", "slightly_damaged", "very_damaged", "broken"))
+        );
+
         registerProperty(Blocks.redstone_wire, IntegerProperty.meta("power", 0b1111, 0));
 
         registerBlockInterfaceProperty(BlockFurnace.class, DirectionBlockProperty.facing());
@@ -395,6 +428,7 @@ public class BlockPropertyRegistry {
         registerProperty(
             Blocks.standing_sign,
             new IntegerProperty() {
+
                 @Override
                 public String getName() {
                     return "rotation";
@@ -411,10 +445,12 @@ public class BlockPropertyRegistry {
 
                     world.setBlockMetadataWithNotify(x, y, z, meta, 2);
                 }
-            });
+            }
+        );
         registerTileEntityInterfaceProperty(
             TileEntitySign.class,
             new BlockProperty<String>() {
+
                 @Override
                 public String getName() {
                     return "text";
@@ -451,14 +487,17 @@ public class BlockPropertyRegistry {
                 public String parse(String text) throws Exception {
                     return text;
                 }
-            });
-            
+            }
+        );
 
         registerBlockInterfaceProperty(
             BlockDoor.class,
             new DirectionBlockProperty() {
+
                 @Override
-                public String getName() { return "facing"; }
+                public String getName() {
+                    return "facing";
+                }
 
                 @Override
                 public ForgeDirection getValue(World world, int x, int y, int z) {
@@ -497,12 +536,16 @@ public class BlockPropertyRegistry {
 
                     world.setBlockMetadataWithNotify(x, y, z, meta, 2);
                 }
-            });
+            }
+        );
         registerBlockInterfaceProperty(
             BlockDoor.class,
             new BooleanProperty() {
+
                 @Override
-                public String getName() { return "open"; }
+                public String getName() {
+                    return "open";
+                }
 
                 @Override
                 public boolean getBoolean(World world, int x, int y, int z) {
@@ -529,7 +572,8 @@ public class BlockPropertyRegistry {
 
                     world.setBlockMetadataWithNotify(x, y, z, meta, 2);
                 }
-            });
+            }
+        );
 
         registerBlockInterfaceProperty(BlockLadder.class, DirectionBlockProperty.facing());
 
@@ -539,13 +583,16 @@ public class BlockPropertyRegistry {
 
         registerProperty(
             Arrays.asList(Blocks.unpowered_repeater, Blocks.powered_repeater),
-            BooleanProperty.blocks("powered", Blocks.unpowered_repeater, Blocks.powered_repeater));
+            BooleanProperty.blocks("powered", Blocks.unpowered_repeater, Blocks.powered_repeater)
+        );
         registerProperty(
             Arrays.asList(Blocks.unpowered_repeater, Blocks.powered_repeater),
-            DirectionBlockProperty.facing(0b11, 0, 2, 3, 1, -1, -1));
+            DirectionBlockProperty.facing(0b11, 0, 2, 3, 1, -1, -1)
+        );
         registerProperty(
             Arrays.asList(Blocks.unpowered_repeater, Blocks.powered_repeater),
-            IntegerProperty.meta("delay", 0b1100, 2));
+            IntegerProperty.meta("delay", 0b1100, 2)
+        );
 
         registerBlockInterfaceProperty(BlockTrapDoor.class, DirectionBlockProperty.facing(0b11, 0, 1, 2, 3, -1, -1));
         registerBlockInterfaceProperty(BlockTrapDoor.class, BooleanProperty.flag("open", 0b100));
@@ -560,6 +607,7 @@ public class BlockPropertyRegistry {
         registerTileEntityInterfaceProperty(
             TileEntitySkull.class,
             new IntegerProperty() {
+
                 @Override
                 public String getName() {
                     return "rotation";
@@ -581,30 +629,36 @@ public class BlockPropertyRegistry {
                     skull.markDirty();
                     world.markBlockForUpdate(x, y, z);
                 }
-            });
-        
+            }
+        );
+
         registerBlockInterfaceProperty(BlockDispenser.class, DirectionBlockProperty.facing());
 
         registerProperty(
             Arrays.asList(Blocks.unpowered_comparator, Blocks.powered_comparator),
-            BooleanProperty.flag("powered", 0b1000));
+            BooleanProperty.flag("powered", 0b1000)
+        );
         registerProperty(
             Arrays.asList(Blocks.unpowered_comparator, Blocks.powered_comparator),
-            DirectionBlockProperty.facing(0b11, 0, 2, 3, 1, -1, -1));
+            DirectionBlockProperty.facing(0b11, 0, 2, 3, 1, -1, -1)
+        );
         registerProperty(
             Arrays.asList(Blocks.unpowered_comparator, Blocks.powered_comparator),
             IntegerProperty.meta("mode", 0b100, 2)
-                .map(Arrays.asList("comparator", "subtractor")));
+                .map(Arrays.asList("comparator", "subtractor"))
+        );
 
         registerBlockInterfaceProperty(BlockHopper.class, DirectionBlockProperty.facing());
 
         registerBlockInterfaceProperty(
             BlockFenceGate.class,
-            DirectionBlockProperty.facing(0b11, 2, 0, 1, 3, -1, -1));
+            DirectionBlockProperty.facing(0b11, 2, 0, 1, 3, -1, -1)
+        );
         registerBlockInterfaceProperty(BlockFenceGate.class, BooleanProperty.flag("open", 0b100));
     }
 
     public static enum RailMode {
+
         NONE,
         ASCENDING,
         TURNED;
@@ -663,7 +717,7 @@ public class BlockPropertyRegistry {
                 default -> 0;
             };
         }
-        
+
         if (mode == RailMode.ASCENDING) {
             return switch (dir) {
                 case NORTH -> 4;
@@ -681,10 +735,10 @@ public class BlockPropertyRegistry {
         };
     }
 
-    //#endregion
+    // #endregion
 
-    //#region Storage Drawers
-    
+    // #region Storage Drawers
+
     @Optional(Names.STORAGE_DRAWERS)
     private static void initStorageDrawers() {
 
@@ -699,19 +753,20 @@ public class BlockPropertyRegistry {
         registerTileEntityInterfaceProperty(clazz, methodIntDirectionTile(clazz, "getDirection", "setDirection"));
     }
 
-    //#endregion
+    // #endregion
 
-    //#region IC2
+    // #region IC2
 
     @Optional(Names.INDUSTRIAL_CRAFT2)
     private static void initIC2() {
         registerTileEntityInterfaceProperty(
             ic2.api.tile.IWrenchable.class,
             new AbstractDirectionBlockProperty("facing") {
+
                 @Override
                 public ForgeDirection getValue(World world, int x, int y, int z) {
                     if (!(world.getTileEntity(x, y, z) instanceof IWrenchable wrenchable)) return ForgeDirection.UNKNOWN;
-                    
+
                     return ForgeDirection.getOrientation(wrenchable.getFacing());
                 }
 
@@ -721,15 +776,17 @@ public class BlockPropertyRegistry {
 
                     wrenchable.setFacing((short) value.ordinal());
                 }
-            });
+            }
+        );
     }
 
-    //#endregion
+    // #endregion
 
-    //#region Architecturecraft
+    // #region Architecturecraft
 
     private static void initArch() {
 
+        // spotless:off
         final ForgeDirection[][] FORWARDS = {
             {SOUTH, EAST, NORTH, WEST}, // down = DOWN
             {NORTH, EAST, SOUTH, WEST}, // down = UP
@@ -738,20 +795,25 @@ public class BlockPropertyRegistry {
             {DOWN, NORTH, UP, SOUTH}, // down = WEST
             {DOWN, SOUTH, UP, NORTH}, // down = EAST
         };
+        // spotless:on
 
         registerTileEntityInterfaceProperty(
             TileArchitecture.class,
             new OrientationBlockProperty() {
+
                 @Override
-                public String getName() { return "orientation"; }
+                public String getName() {
+                    return "orientation";
+                }
 
                 @Override
                 public Orientation getValue(World world, int x, int y, int z) {
                     if (!(world.getTileEntity(x, y, z) instanceof TileArchitecture tile)) return Orientation.NONE;
-                    
+
                     return Orientation.getOrientation(
                         ForgeDirection.getOrientation(tile.side),
-                        MMUtils.getIndexSafe(MMUtils.getIndexSafe(FORWARDS, tile.side), tile.turn));
+                        MMUtils.getIndexSafe(MMUtils.getIndexSafe(FORWARDS, tile.side), tile.turn)
+                    );
                 }
 
                 @Override
@@ -768,7 +830,7 @@ public class BlockPropertyRegistry {
                     } else {
                         for (int side = 0; side < FORWARDS.length; side++) {
                             index = MMUtils.indexOf(FORWARDS[side], value);
-    
+
                             if (index != -1) {
                                 tile.side = (byte) side;
                                 tile.turn = (byte) index;
@@ -784,7 +846,7 @@ public class BlockPropertyRegistry {
         );
     }
 
-    //#endregion
+    // #endregion
 
     public static DirectionBlockProperty methodIntDirectionTile(Class<?> clazz, String getterName, String setterName) {
         try {
@@ -812,7 +874,8 @@ public class BlockPropertyRegistry {
                     MethodType.methodType(Getter.class),
                     MethodType.methodType(int.class, Object.class),
                     getterHandle,
-                    getterHandle.type())
+                    getterHandle.type()
+                )
                 .getTarget()
                 .invokeExact();
             Setter setterFn = (Setter) LambdaMetafactory
@@ -822,15 +885,17 @@ public class BlockPropertyRegistry {
                     MethodType.methodType(Setter.class),
                     MethodType.methodType(void.class, Object.class, int.class),
                     setterHandle,
-                    setterHandle.type())
+                    setterHandle.type()
+                )
                 .getTarget()
                 .invokeExact();
 
             return new AbstractDirectionBlockProperty("facing") {
+
                 @Override
                 public ForgeDirection getValue(World world, int x, int y, int z) {
                     TileEntity tile = world.getTileEntity(x, y, z);
-                    
+
                     return ForgeDirection.getOrientation(getterFn.get(tile));
                 }
 

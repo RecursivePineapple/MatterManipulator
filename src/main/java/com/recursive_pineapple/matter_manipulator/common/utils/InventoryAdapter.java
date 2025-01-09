@@ -4,19 +4,23 @@ import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregT
 
 import javax.annotation.Nullable;
 
+import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.ISidedInventory;
+import net.minecraft.item.ItemStack;
+
+import net.minecraftforge.common.util.ForgeDirection;
+
+import gregtech.api.interfaces.tileentity.IHasInventory;
+
 import com.google.common.collect.ImmutableList;
 import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
-import gregtech.api.interfaces.tileentity.IHasInventory;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.ISidedInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.common.util.ForgeDirection;
-
 public enum InventoryAdapter {
+
     GT {
+
         @Override
         public boolean canHandle(IInventory inv) {
             return GregTech.isModLoaded() && canHandleImpl(inv);
@@ -30,28 +34,29 @@ public enum InventoryAdapter {
         @Override
         @Optional(Names.GREG_TECH)
         public boolean isValidSlot(IInventory inv, int slot) {
-            return ((IHasInventory)inv).isValidSlot(slot);
+            return ((IHasInventory) inv).isValidSlot(slot);
         }
 
         @Override
         @Optional(Names.GREG_TECH)
         public boolean canExtract(IInventory inv, int slot) {
-            return ((IHasInventory)inv).canExtractItem(slot, inv.getStackInSlot(slot), ForgeDirection.UNKNOWN.ordinal());
+            return ((IHasInventory) inv).canExtractItem(slot, inv.getStackInSlot(slot), ForgeDirection.UNKNOWN.ordinal());
         }
 
         @Override
         @Optional(Names.GREG_TECH)
         public boolean canInsert(IInventory inv, int slot, ItemStack stack) {
-            return ((IHasInventory)inv).canInsertItem(slot, stack, ForgeDirection.UNKNOWN.ordinal());
+            return ((IHasInventory) inv).canInsertItem(slot, stack, ForgeDirection.UNKNOWN.ordinal());
         }
 
         @Override
         @Optional(Names.GREG_TECH)
         public boolean insert(IInventory inv, int slot, ItemStack stack) {
-            return ((IHasInventory)inv).addStackToSlot(slot, stack);
+            return ((IHasInventory) inv).addStackToSlot(slot, stack);
         }
     },
     SIDED {
+
         @Override
         public boolean canHandle(IInventory inv) {
             return inv instanceof ISidedInventory;
@@ -59,12 +64,12 @@ public enum InventoryAdapter {
 
         @Override
         public boolean canExtract(IInventory inv, int slot) {
-            return ((ISidedInventory)inv).canExtractItem(slot, inv.getStackInSlot(slot), ForgeDirection.UNKNOWN.ordinal());
+            return ((ISidedInventory) inv).canExtractItem(slot, inv.getStackInSlot(slot), ForgeDirection.UNKNOWN.ordinal());
         }
 
         @Override
         public boolean canInsert(IInventory inv, int slot, ItemStack stack) {
-            return ((ISidedInventory)inv).canInsertItem(slot, stack, ForgeDirection.UNKNOWN.ordinal());
+            return ((ISidedInventory) inv).canInsertItem(slot, stack, ForgeDirection.UNKNOWN.ordinal());
         }
     },
     SIMPLE,

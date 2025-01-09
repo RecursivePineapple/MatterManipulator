@@ -2,6 +2,8 @@ package com.recursive_pineapple.matter_manipulator.common.persist;
 
 import java.lang.reflect.Type;
 
+import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
+
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -12,8 +14,6 @@ import com.google.gson.JsonSerializer;
 import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
-
-import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
 
 public class UIDJsonAdapter implements JsonSerializer<UniqueIdentifier>, JsonDeserializer<UniqueIdentifier> {
 
@@ -68,6 +68,7 @@ public class UIDJsonAdapter implements JsonSerializer<UniqueIdentifier>, JsonDes
     }
 
     public static enum CommonName {
+
         AIR(Mods.Minecraft, "air"),
         GT_BLOCKMACHINES(Mods.GregTech, "gt.blockmachines"),
         AE_ITEMPART(Mods.AppliedEnergistics2, "item.ItemMultiPart"),

@@ -3,27 +3,30 @@ package com.recursive_pineapple.matter_manipulator.common.uplink;
 import java.util.List;
 import java.util.Map;
 
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
+
+import net.minecraftforge.fluids.FluidStack;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
 import com.google.common.collect.MapMaker;
 import com.recursive_pineapple.matter_manipulator.common.building.IPseudoInventory;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigFluidStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import it.unimi.dsi.fastutil.Pair;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.fluids.FluidStack;
 
 public interface IUplinkMulti {
-    
+
     public boolean isActive();
 
     public Location getLocation();
 
     public UplinkState getState();
-    
+
     @SideOnly(Side.CLIENT)
     public void setState(UplinkState state);
 
@@ -44,8 +47,8 @@ public interface IUplinkMulti {
 
     /**
      * Submits a new plan to the ME hatch.
-     * 
-     * @param details   Some extra details for the plan
+     *
+     * @param details Some extra details for the plan
      * @param autocraft When true, the plan will be automatically crafted
      */
     public void submitPlan(EntityPlayer submitter, String details, List<BigItemStack> requiredItems, boolean autocraft);

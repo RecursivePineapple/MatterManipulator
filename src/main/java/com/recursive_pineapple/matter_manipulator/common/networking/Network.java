@@ -8,15 +8,16 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 
-import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteStreams;
-import com.recursive_pineapple.matter_manipulator.MMMod;
-
 import cpw.mods.fml.common.network.FMLEmbeddedChannel;
 import cpw.mods.fml.common.network.FMLOutboundHandler;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import cpw.mods.fml.relauncher.Side;
+
+import com.google.common.io.ByteArrayDataInput;
+import com.google.common.io.ByteStreams;
+import com.recursive_pineapple.matter_manipulator.MMMod;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandler;
@@ -36,8 +37,10 @@ public class Network extends MessageToMessageCodec<FMLProxyPacket, MMPacket> {
         this.mSubChannels = new MMPacket[lastPId + 1];
         for (MMPacket packetType : packetTypes) {
             final int pId = packetType.getPacketID();
-            if (this.mSubChannels[pId] == null) this.mSubChannels[pId] = packetType;
-            else throw new IllegalArgumentException("Duplicate Packet ID! " + pId);
+            if (this.mSubChannels[pId] == null)
+                this.mSubChannels[pId] = packetType;
+            else
+                throw new IllegalArgumentException("Duplicate Packet ID! " + pId);
         }
     }
 
@@ -51,14 +54,17 @@ public class Network extends MessageToMessageCodec<FMLProxyPacket, MMPacket> {
                 tBuf,
                 aContext.channel()
                     .attr(NetworkRegistry.FML_CHANNEL)
-                    .get()));
+                    .get()
+            )
+        );
     }
 
     @Override
     protected void decode(ChannelHandlerContext aContext, FMLProxyPacket aPacket, List<Object> aOutput) {
         final ByteArrayDataInput aData = ByteStreams.newDataInput(
             aPacket.payload()
-                .array());
+                .array()
+        );
         final MMPacket tPacket = this.mSubChannels[aData.readByte()].decode(aData);
         tPacket.setINetHandler(aPacket.handler());
         aOutput.add(tPacket);
@@ -117,9 +123,7 @@ public class Network extends MessageToMessageCodec<FMLProxyPacket, MMPacket> {
                     break;
                 }
                 Chunk tChunk = aWorld.getChunkFromBlockCoords(aX, aZ);
-                if (tPlayer.getServerForPlayer()
-                    .getPlayerManager()
-                    .isPlayerWatchingChunk(tPlayer, tChunk.xPosition, tChunk.zPosition)) {
+                if (tPlayer.getServerForPlayer().getPlayerManager().isPlayerWatchingChunk(tPlayer, tChunk.xPosition, tChunk.zPosition)) {
                     sendToPlayer(aPacket, tPlayer);
                 }
             }

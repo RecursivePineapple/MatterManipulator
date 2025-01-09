@@ -12,33 +12,12 @@ import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
+
 import net.minecraftforge.common.util.ForgeDirection;
 
-import org.joml.Vector3i;
+import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.google.gson.annotations.SerializedName;
-import com.gtnewhorizon.structurelib.util.XSTR;
-import com.recursive_pineapple.matter_manipulator.asm.Optional;
-import com.recursive_pineapple.matter_manipulator.common.building.AEAnalysisResult;
-import com.recursive_pineapple.matter_manipulator.common.building.AEPartData;
-import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer;
-import com.recursive_pineapple.matter_manipulator.common.building.BlockSpec;
-import com.recursive_pineapple.matter_manipulator.common.building.GTAnalysisResult;
-import com.recursive_pineapple.matter_manipulator.common.building.ImmutableBlockSpec;
-import com.recursive_pineapple.matter_manipulator.common.building.PendingBlock;
-import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.RegionAnalysis;
-import com.recursive_pineapple.matter_manipulator.common.data.WeightedSpecList;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
-import com.recursive_pineapple.matter_manipulator.common.persist.NBTJsonAdapter;
-import com.recursive_pineapple.matter_manipulator.common.persist.StaticEnumJsonAdapter;
-import com.recursive_pineapple.matter_manipulator.common.persist.UIDJsonAdapter;
-import com.recursive_pineapple.matter_manipulator.common.persist.WeightedListJsonAdapter;
-import com.recursive_pineapple.matter_manipulator.common.uplink.IUplinkMulti;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
+import gregtech.common.blocks.BlockMachines;
 
 import appeng.api.AEApi;
 import appeng.api.config.SecurityPermissions;
@@ -57,8 +36,32 @@ import appeng.api.storage.data.IAEItemStack;
 import appeng.api.util.DimensionalCoord;
 import appeng.tile.misc.TileSecurity;
 import appeng.tile.networking.TileWireless;
-import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
-import gregtech.common.blocks.BlockMachines;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.annotations.SerializedName;
+import com.gtnewhorizon.structurelib.util.XSTR;
+import com.recursive_pineapple.matter_manipulator.asm.Optional;
+import com.recursive_pineapple.matter_manipulator.common.building.AEAnalysisResult;
+import com.recursive_pineapple.matter_manipulator.common.building.AEPartData;
+import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer;
+import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.RegionAnalysis;
+import com.recursive_pineapple.matter_manipulator.common.building.BlockSpec;
+import com.recursive_pineapple.matter_manipulator.common.building.GTAnalysisResult;
+import com.recursive_pineapple.matter_manipulator.common.building.ImmutableBlockSpec;
+import com.recursive_pineapple.matter_manipulator.common.building.PendingBlock;
+import com.recursive_pineapple.matter_manipulator.common.data.WeightedSpecList;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
+import com.recursive_pineapple.matter_manipulator.common.persist.NBTJsonAdapter;
+import com.recursive_pineapple.matter_manipulator.common.persist.StaticEnumJsonAdapter;
+import com.recursive_pineapple.matter_manipulator.common.persist.UIDJsonAdapter;
+import com.recursive_pineapple.matter_manipulator.common.persist.WeightedListJsonAdapter;
+import com.recursive_pineapple.matter_manipulator.common.uplink.IUplinkMulti;
+import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
+
+import org.joml.Vector3i;
 
 /**
  * The NBT state of a manipulator.
@@ -141,11 +144,7 @@ public class MMState {
     public boolean hasMEConnection() {
         if (!AppliedEnergistics2.isModLoaded()) return false;
 
-        return encKey != null && securityTerminal != null
-            && gridNode != null
-            && grid != null
-            && storageGrid != null
-            && itemStorage != null;
+        return encKey != null && securityTerminal != null && gridNode != null && grid != null && storageGrid != null && itemStorage != null;
     }
 
     /**
@@ -188,24 +187,15 @@ public class MMState {
     public boolean canInteractWithAE(EntityPlayer player) {
         if (!AppliedEnergistics2.isModLoaded()) return false;
 
-        if (grid == null) {
-            return false;
-        }
+        if (grid == null) { return false; }
 
         IEnergyGrid eg = grid.getCache(IEnergyGrid.class);
-        if (!eg.isNetworkPowered()) {
-            return false;
-        }
+        if (!eg.isNetworkPowered()) { return false; }
 
         ISecurityGrid sec = grid.getCache(ISecurityGrid.class);
-        if (!sec.hasPermission(player, SecurityPermissions.EXTRACT)
-            || !sec.hasPermission(player, SecurityPermissions.INJECT)) {
-            return false;
-        }
+        if (!sec.hasPermission(player, SecurityPermissions.EXTRACT) || !sec.hasPermission(player, SecurityPermissions.INJECT)) { return false; }
 
-        if (checkAEDistance(player, prevAccessPoint)) {
-            return true;
-        }
+        if (checkAEDistance(player, prevAccessPoint)) { return true; }
 
         for (IGridNode node : grid.getMachines(TileWireless.class)) {
             if (checkAEDistance(player, (IWirelessAccessPoint) node.getMachine())) {
@@ -224,9 +214,7 @@ public class MMState {
         if (accessPoint != null && accessPoint.getGrid() == grid && accessPoint.isActive()) {
             DimensionalCoord coord = accessPoint.getLocation();
 
-            if (coord.getWorld().provider.dimensionId != player.worldObj.provider.dimensionId) {
-                return false;
-            }
+            if (coord.getWorld().provider.dimensionId != player.worldObj.provider.dimensionId) { return false; }
 
             double distance = player.getDistanceSq(coord.x, coord.y, coord.z);
 
@@ -286,9 +274,7 @@ public class MMState {
         Location coordB = config.coordB;
         Location coordC = config.coordC;
 
-        if (!Location.areCompatible(coordA, coordB, coordC) || !coordA.isInWorld(world)) {
-            return new ArrayList<>();
-        }
+        if (!Location.areCompatible(coordA, coordB, coordC) || !coordA.isInWorld(world)) { return new ArrayList<>(); }
 
         // MOVING's result is only used visually since it has a special build algorithm
         RegionAnalysis analysis = BlockAnalyzer
@@ -367,13 +353,9 @@ public class MMState {
         Location coordA = config.coordA;
         Location coordB = config.coordB;
 
-        if (!Location.areCompatible(coordA, coordB) || !coordA.isInWorld(world)) {
-            return new ArrayList<>();
-        }
+        if (!Location.areCompatible(coordA, coordB) || !coordA.isInWorld(world)) { return new ArrayList<>(); }
 
-        if (config.replaceWhitelist == null || config.replaceWhitelist.specs.isEmpty()) {
-            return new ArrayList<>();
-        }
+        if (config.replaceWhitelist == null || config.replaceWhitelist.specs.isEmpty()) { return new ArrayList<>(); }
 
         Vector3i deltas = MMUtils.getRegionDeltas(coordA, coordB);
 
@@ -409,18 +391,15 @@ public class MMState {
 
             ImmutableBlockSpec replacement = config.replaceWith.get(rng);
 
-            boolean replacingWithGTCable = tier.hasCap(ItemMatterManipulator.ALLOW_CABLES)
-                && GregTech.isModLoaded()
-                && MMUtils.isGTCable(replacement);
-            boolean replacingWithAECable = tier.hasCap(ItemMatterManipulator.ALLOW_CABLES)
-                && AppliedEnergistics2.isModLoaded()
-                && MMUtils.isAECable(replacement);
+            boolean replacingWithGTCable = tier.hasCap(ItemMatterManipulator.ALLOW_CABLES) && GregTech.isModLoaded() && MMUtils.isGTCable(replacement);
+            boolean replacingWithAECable = tier.hasCap(ItemMatterManipulator.ALLOW_CABLES) && AppliedEnergistics2.isModLoaded() &&
+                MMUtils.isAECable(replacement);
 
             if (replacingWithGTCable) {
                 PendingBlock rep = replacement.instantiate(world, x, y, z);
 
                 if (MMUtils.isGTCable(existing)) {
-                   rep.analyze(world.getTileEntity(x, y, z), PendingBlock.ANALYZE_ALL);
+                    rep.analyze(world.getTileEntity(x, y, z), PendingBlock.ANALYZE_ALL);
                 }
 
                 pending.add(rep);
@@ -457,9 +436,7 @@ public class MMState {
         Location coordA = config.coordA;
         Location coordB = config.coordB;
 
-        if (!Location.areCompatible(coordA, coordB) || !coordA.isInWorld(world)) {
-            return new ArrayList<>();
-        }
+        if (!Location.areCompatible(coordA, coordB) || !coordA.isInWorld(world)) { return new ArrayList<>(); }
 
         Vector3i a = coordA.toVec();
         Vector3i b = pinToAxes(a, coordB.toVec());
@@ -479,7 +456,7 @@ public class MMState {
                         clearAECable(pendingBlock);
 
                         out.add(pendingBlock);
-                        
+
                         continue;
                     }
                 }
@@ -507,8 +484,7 @@ public class MMState {
             int end = 0, start = 0;
 
             // calculate the start & end mConnections flags
-            switch (new Vector3i(b).sub(a)
-                .maxComponent()) {
+            switch (new Vector3i(b).sub(a).maxComponent()) {
                 case 0: {
                     start = b.x < a.x ? ForgeDirection.EAST.flag : ForgeDirection.WEST.flag;
                     end = b.x > a.x ? ForgeDirection.EAST.flag : ForgeDirection.WEST.flag;
@@ -591,14 +567,10 @@ public class MMState {
         Location coordB = config.coordB;
         Location coordC = config.coordC;
 
-        if (!Location.areCompatible(coordA, coordB) || !coordA.isInWorld(world)) {
-            return new ArrayList<>();
-        }
+        if (!Location.areCompatible(coordA, coordB) || !coordA.isInWorld(world)) { return new ArrayList<>(); }
 
         if (config.shape.requiresC()) {
-            if (!Location.areCompatible(coordA, coordC) || !coordA.isInWorld(world)) {
-                return new ArrayList<>();
-            }
+            if (!Location.areCompatible(coordA, coordC) || !coordA.isInWorld(world)) { return new ArrayList<>(); }
         }
 
         int x1 = config.coordA.x;
@@ -723,8 +695,15 @@ public class MMState {
         }
     }
 
-    private void iterateCube(ArrayList<PendingBlock> pending, int minX, int minY, int minZ, int maxX, int maxY,
-        int maxZ) {
+    private void iterateCube(
+        ArrayList<PendingBlock> pending,
+        int minX,
+        int minY,
+        int minZ,
+        int maxX,
+        int maxY,
+        int maxZ
+    ) {
         XSTR rng = new XSTR(config.hashCode());
 
         for (int x = minX; x <= maxX; x++) {
@@ -750,8 +729,15 @@ public class MMState {
         }
     }
 
-    private void iterateSphere(ArrayList<PendingBlock> pending, int minX, int minY, int minZ, int maxX, int maxY,
-        int maxZ) {
+    private void iterateSphere(
+        ArrayList<PendingBlock> pending,
+        int minX,
+        int minY,
+        int minZ,
+        int maxX,
+        int maxY,
+        int maxZ
+    ) {
         XSTR rng = new XSTR(config.hashCode());
 
         int sx = maxX - minX + 1;
@@ -772,8 +758,8 @@ public class MMState {
                     // spotless:off
                     double distance = Math.sqrt(
                         (rx > 1 ? Math.pow((x - rx + 0.5) / rx, 2.0) : 0) +
-                        (ry > 1 ? Math.pow((y - ry + 0.5) / ry, 2.0) : 0) +
-                        (rz > 1 ? Math.pow((z - rz + 0.5) / rz, 2.0) : 0)
+                            (ry > 1 ? Math.pow((y - ry + 0.5) / ry, 2.0) : 0) +
+                            (rz > 1 ? Math.pow((z - rz + 0.5) / rz, 2.0) : 0)
                     );
                     // spotless:on
 
@@ -808,9 +794,7 @@ public class MMState {
 
         for (PendingBlock block : pending) {
             for (ForgeDirection dir : directions) {
-                if (!present[block.x - minX + 1 + dir.offsetX][block.y - minY + 1 + dir.offsetY][block.z - minZ
-                    + 1
-                    + dir.offsetZ]) {
+                if (!present[block.x - minX + 1 + dir.offsetX][block.y - minY + 1 + dir.offsetY][block.z - minZ + 1 + dir.offsetZ]) {
                     block.setBlock(config.faces.get(rng));
                     block.buildOrder = 0;
                     block.renderOrder = 0;
@@ -944,7 +928,7 @@ public class MMState {
 
     /**
      * Pins a point to the axis planes around an origin.
-     * 
+     *
      * @return The pinned point
      */
     public static Vector3i pinToPlanes(Vector3i origin, Vector3i point) {
@@ -965,15 +949,14 @@ public class MMState {
 
     /**
      * Pins a point to the normal of the axis plane described by origin,b.
-     * 
+     *
      * @param origin The origin
-     * @param b      A point on an axis plane of origin
-     * @param point  The point to pin
+     * @param b A point on an axis plane of origin
+     * @param point The point to pin
      * @return The pinned point on the normal
      */
     public static Vector3i pinToLine(Vector3i origin, Vector3i b, Vector3i point) {
-        return switch (new Vector3i(b).sub(origin)
-            .minComponent()) {
+        return switch (new Vector3i(b).sub(origin).minComponent()) {
             case 0 -> new Vector3i(point.x, origin.y, origin.z);
             case 1 -> new Vector3i(origin.x, point.y, origin.z);
             case 2 -> new Vector3i(origin.x, origin.y, point.z);
@@ -985,8 +968,7 @@ public class MMState {
      * Pins a point to the cardinal axes.
      */
     public static Vector3i pinToAxes(Vector3i origin, Vector3i point) {
-        return switch (new Vector3i(point).sub(origin)
-            .maxComponent()) {
+        return switch (new Vector3i(point).sub(origin).maxComponent()) {
             case 0 -> new Vector3i(point.x, origin.y, origin.z);
             case 1 -> new Vector3i(origin.x, point.y, origin.z);
             case 2 -> new Vector3i(origin.x, origin.y, point.z);

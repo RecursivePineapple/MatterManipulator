@@ -15,38 +15,39 @@ import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
+
 import net.minecraftforge.common.util.ForgeDirection;
-
-import org.jetbrains.annotations.Nullable;
-import org.joml.Vector3i;
-
-import com.google.common.io.ByteArrayDataInput;
-import com.gtnewhorizon.gtnhlib.util.CoordinatePacker;
-import com.gtnewhorizons.modularui.common.internal.network.NetworkUtils;
 
 import cpw.mods.fml.common.network.NetworkRegistry.TargetPoint;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 
-import com.recursive_pineapple.matter_manipulator.MMMod;
+import com.google.common.io.ByteArrayDataInput;
+import com.gtnewhorizon.gtnhlib.util.CoordinatePacker;
+import com.gtnewhorizons.modularui.common.internal.network.NetworkUtils;
 import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.DebugConfig;
+import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.BlockRemoveMode;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.BlockSelectMode;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.PendingAction;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.PlaceMode;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.Shape;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
 import com.recursive_pineapple.matter_manipulator.common.uplink.IUplinkMulti;
 import com.recursive_pineapple.matter_manipulator.common.uplink.MTEMMUplink;
 import com.recursive_pineapple.matter_manipulator.common.uplink.UplinkState;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
+
+import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3i;
 
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.Pair;
@@ -57,8 +58,7 @@ import it.unimi.dsi.fastutil.Pair;
  */
 public enum Messages {
 
-    MMBPressed(
-        server(simple((player, stack, manipulator, state) -> { manipulator.onMMBPressed(player, stack, state); }))),
+    MMBPressed(server(simple((player, stack, manipulator, state) -> { manipulator.onMMBPressed(player, stack, state); }))),
     SetRemoveMode(server(enumPacket(BlockRemoveMode.values(), (state, value) -> state.config.removeMode = value))),
     SetPlaceMode(server(enumPacket(PlaceMode.values(), (player, stack, manipulator, state, value) -> {
 
@@ -74,8 +74,7 @@ public enum Messages {
             state.config.placeMode = value;
         }
     }))),
-    SetBlockSelectMode(
-        server(enumPacket(BlockSelectMode.values(), (state, value) -> state.config.blockSelectMode = value))),
+    SetBlockSelectMode(server(enumPacket(BlockSelectMode.values(), (state, value) -> state.config.blockSelectMode = value))),
     SetPendingAction(server(enumPacket(PendingAction.values(), (state, value) -> state.config.action = value))),
     ClearBlocks(server(simple((player, stack, manipulator, state) -> {
         state.config.corners = null;
@@ -196,13 +195,9 @@ public enum Messages {
         state.config.coordC = null;
     }))),
     GetRequiredItems(server(intPacket((player, stack, manipulator, state, value) -> {
-        if (state.config.placeMode != PlaceMode.COPYING) {
-            return;
-        }
+        if (state.config.placeMode != PlaceMode.COPYING) { return; }
 
-        if (state.config.coordA == null || state.config.coordB == null || state.config.coordC == null) {
-            return;
-        }
+        if (state.config.coordA == null || state.config.coordB == null || state.config.coordC == null) { return; }
 
         MMUtils.createPlanImpl(player, state, manipulator, value);
     }))),
@@ -227,13 +222,15 @@ public enum Messages {
             if (theWorld.provider.dimensionId == packet.worldId) {
                 if (Mods.GregTech.isModLoaded() && Mods.AppliedEnergistics2.isModLoaded()) {
                     Location l = packet.getLocation();
-    
+
                     setState(l.getWorld(), l.x, l.y, l.z, packet.getState());
                 }
             }
         }
 
-        @Optional({ Names.GREG_TECH, Names.APPLIED_ENERGISTICS2 })
+        @Optional({
+            Names.GREG_TECH, Names.APPLIED_ENERGISTICS2
+        })
         private void setState(World world, int x, int y, int z, UplinkState state) {
             if (world.getTileEntity(x, y, z) instanceof IGregTechTileEntity igte) {
                 if (igte.getMetaTileEntity() instanceof MTEMMUplink uplink) {
@@ -320,7 +317,7 @@ public enum Messages {
     }))),
     ToggleTransformFlip(server(intPacket((player, stack, manipulator, state, value) -> {
         Transform transform = state.config.transform;
-        if (transform == null) state.config.transform  = (transform = new Transform());
+        if (transform == null) state.config.transform = (transform = new Transform());
 
         if ((value & Transform.FLIP_X) != 0) transform.flipX ^= true;
         if ((value & Transform.FLIP_Y) != 0) transform.flipY ^= true;
@@ -336,7 +333,7 @@ public enum Messages {
         int amount = ((value >> 8) & 0xFF) != 0 ? 1 : -1;
 
         Transform transform = state.config.transform;
-        if (transform == null) state.config.transform  = (transform = new Transform());
+        if (transform == null) state.config.transform = (transform = new Transform());
 
         transform.rotate(ForgeDirection.VALID_DIRECTIONS[dir], amount);
     }))),
@@ -424,7 +421,8 @@ public enum Messages {
         }
         CHANNEL.sendToAllAround(
             getNewPacket(data),
-            new TargetPoint(location.worldId, location.x, location.y, location.z, 256d));
+            new TargetPoint(location.worldId, location.x, location.y, location.z, 256d)
+        );
     }
 
     public void sendToPlayersWithinRange(Location location, Object data) {
@@ -441,9 +439,7 @@ public enum Messages {
             EntityPlayerMP player = (EntityPlayerMP) p;
 
             Chunk chunk = world.getChunkFromBlockCoords(location.x, location.z);
-            if (player.getServerForPlayer()
-                .getPlayerManager()
-                .isPlayerWatchingChunk(player, chunk.xPosition, chunk.zPosition)) {
+            if (player.getServerForPlayer().getPlayerManager().isPlayerWatchingChunk(player, chunk.xPosition, chunk.zPosition)) {
                 CHANNEL.sendToPlayer(packet, player);
             }
         }
@@ -592,7 +588,8 @@ public enum Messages {
                 worldId,
                 CoordinatePacker.unpackX(location),
                 CoordinatePacker.unpackY(location),
-                CoordinatePacker.unpackZ(location));
+                CoordinatePacker.unpackZ(location)
+            );
         }
 
         public UplinkState getState() {
@@ -704,8 +701,10 @@ public enum Messages {
     /**
      * Wraps a handler that updates an enum within a manipulator's state.
      */
-    private static <E extends Enum<E>> ISimplePacketHandler<IntPacket> enumPacket(E[] values,
-        BiConsumer<MMState, E> setter) {
+    private static <E extends Enum<E>> ISimplePacketHandler<IntPacket> enumPacket(
+        E[] values,
+        BiConsumer<MMState, E> setter
+    ) {
         return new ISimplePacketHandler<IntPacket>() {
 
             @Override
@@ -735,8 +734,13 @@ public enum Messages {
 
     private static interface IEnumSetter<E extends Enum<E>> {
 
-        public void set(EntityPlayer player, ItemStack stack, ItemMatterManipulator manipulator, MMState state,
-            E value);
+        public void set(
+            EntityPlayer player,
+            ItemStack stack,
+            ItemMatterManipulator manipulator,
+            MMState state,
+            E value
+        );
     }
 
     /**
@@ -772,8 +776,13 @@ public enum Messages {
 
     private static interface IIntSetter {
 
-        public void set(EntityPlayer player, ItemStack stack, ItemMatterManipulator manipulator, MMState state,
-            int value);
+        public void set(
+            EntityPlayer player,
+            ItemStack stack,
+            ItemMatterManipulator manipulator,
+            MMState state,
+            int value
+        );
     }
 
     private static ISimplePacketHandler<IntPacket> intPacket(IIntSetter setter) {
@@ -826,9 +835,7 @@ public enum Messages {
             EntityPlayerMP player = (EntityPlayerMP) p;
 
             Chunk chunk = world.getChunkFromBlockCoords(x, z);
-            if (player.getServerForPlayer()
-                .getPlayerManager()
-                .isPlayerWatchingChunk(player, chunk.xPosition, chunk.zPosition)) {
+            if (player.getServerForPlayer().getPlayerManager().isPlayerWatchingChunk(player, chunk.xPosition, chunk.zPosition)) {
                 CHANNEL.sendToPlayer(packet, player);
             }
         }
@@ -893,8 +900,13 @@ public enum Messages {
 
     private static interface ILocationSetter {
 
-        public void set(EntityPlayer player, ItemStack stack, ItemMatterManipulator manipulator, MMState state,
-            Vector3i location);
+        public void set(
+            EntityPlayer player,
+            ItemStack stack,
+            ItemMatterManipulator manipulator,
+            MMState state,
+            Vector3i location
+        );
     }
 
     private static ISimplePacketHandler<LocationPacket> locationPacket(ILocationSetter setter) {
@@ -910,7 +922,8 @@ public enum Messages {
                     Vector3i v = new Vector3i(
                         CoordinatePacker.unpackX(packet.location),
                         CoordinatePacker.unpackY(packet.location),
-                        CoordinatePacker.unpackZ(packet.location));
+                        CoordinatePacker.unpackZ(packet.location)
+                    );
 
                     setter.set(player, held, manipulator, state, v);
 

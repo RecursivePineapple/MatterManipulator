@@ -5,14 +5,15 @@ import static gregtech.api.util.GTStructureUtility.ofFrame;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.gtnewhorizon.structurelib.structure.IStructureElement;
+import net.minecraft.block.Block;
 
 import gregtech.api.GregTechAPI;
 import gregtech.api.enums.Materials;
-import net.minecraft.block.Block;
+
+import com.gtnewhorizon.structurelib.structure.IStructureElement;
 
 public class CasingGTFrames implements ICasing {
-    
+
     public final Materials material;
 
     private static final Map<Materials, CasingGTFrames> FRAMES = new ConcurrentHashMap<>();

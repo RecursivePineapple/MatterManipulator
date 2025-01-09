@@ -20,11 +20,15 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
+
 import net.minecraftforge.common.util.ForgeDirection;
 
-import com.google.common.collect.ImmutableSet;
-import com.recursive_pineapple.matter_manipulator.common.items.MMItemList;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import gregtech.GTMod;
+import gregtech.api.interfaces.ITexture;
+import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
+import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
+import gregtech.api.metatileentity.implementations.MTEHatch;
+import gregtech.api.render.TextureFactory;
 
 import appeng.api.AEApi;
 import appeng.api.config.Actionable;
@@ -53,15 +57,12 @@ import appeng.me.helpers.AENetworkProxy;
 import appeng.me.helpers.IGridProxyable;
 import appeng.util.Platform;
 import appeng.util.item.AEItemStack;
-import gregtech.GTMod;
-import gregtech.api.interfaces.ITexture;
-import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
-import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
-import gregtech.api.metatileentity.implementations.MTEHatch;
-import gregtech.api.render.TextureFactory;
 
-public class MTEMMUplinkMEHatch extends MTEHatch
-    implements IGridProxyable, IPowerChannelState, ICraftingProvider, ICraftingRequester {
+import com.google.common.collect.ImmutableSet;
+import com.recursive_pineapple.matter_manipulator.common.items.MMItemList;
+import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+
+public class MTEMMUplinkMEHatch extends MTEHatch implements IGridProxyable, IPowerChannelState, ICraftingProvider, ICraftingRequester {
 
     public static final long REQUEST_TIMEOUT = 20 * 60;
 
@@ -84,9 +85,12 @@ public class MTEMMUplinkMEHatch extends MTEHatch
             aNameRegional,
             8,
             0,
-            new String[] { "Quantum Uplink ME connector hatch.",
+            new String[] {
+                "Quantum Uplink ME connector hatch.",
                 "Change ME connection behavior by right-clicking with wire cutter.",
-                "Clear all stored plans and cancel all jobs by right-clicking with a screw driver." });
+                "Clear all stored plans and cancel all jobs by right-clicking with a screw driver."
+            }
+        );
     }
 
     public MTEMMUplinkMEHatch(MTEMMUplinkMEHatch prototype) {
@@ -100,12 +104,16 @@ public class MTEMMUplinkMEHatch extends MTEHatch
 
     @Override
     public ITexture[] getTexturesActive(ITexture aBaseTexture) {
-        return new ITexture[] { aBaseTexture, TextureFactory.of(OVERLAY_ME_INPUT_FLUID_HATCH_ACTIVE) };
+        return new ITexture[] {
+            aBaseTexture, TextureFactory.of(OVERLAY_ME_INPUT_FLUID_HATCH_ACTIVE)
+        };
     }
 
     @Override
     public ITexture[] getTexturesInactive(ITexture aBaseTexture) {
-        return new ITexture[] { aBaseTexture, TextureFactory.of(OVERLAY_ME_INPUT_FLUID_HATCH) };
+        return new ITexture[] {
+            aBaseTexture, TextureFactory.of(OVERLAY_ME_INPUT_FLUID_HATCH)
+        };
     }
 
     @Override
@@ -164,12 +172,19 @@ public class MTEMMUplinkMEHatch extends MTEHatch
     }
 
     @Override
-    public boolean onWireCutterRightClick(ForgeDirection side, ForgeDirection wrenchingSide, EntityPlayer aPlayer,
-        float aX, float aY, float aZ) {
+    public boolean onWireCutterRightClick(
+        ForgeDirection side,
+        ForgeDirection wrenchingSide,
+        EntityPlayer aPlayer,
+        float aX,
+        float aY,
+        float aZ
+    ) {
         additionalConnection = !additionalConnection;
         updateValidGridProxySides();
         aPlayer.addChatComponentMessage(
-            new ChatComponentTranslation("GT5U.hatch.additionalConnection." + additionalConnection));
+            new ChatComponentTranslation("GT5U.hatch.additionalConnection." + additionalConnection)
+        );
         return true;
     }
 
@@ -204,7 +219,8 @@ public class MTEMMUplinkMEHatch extends MTEHatch
                 if (getBaseMetaTileEntity().getWorld() != null) {
                     gridProxy.setOwner(
                         getBaseMetaTileEntity().getWorld()
-                            .getPlayerEntityByName(getBaseMetaTileEntity().getOwnerName()));
+                            .getPlayerEntityByName(getBaseMetaTileEntity().getOwnerName())
+                    );
                 }
             }
         }
@@ -230,7 +246,8 @@ public class MTEMMUplinkMEHatch extends MTEHatch
             getBaseMetaTileEntity().getWorld(),
             getBaseMetaTileEntity().getXCoord(),
             getBaseMetaTileEntity().getYCoord(),
-            getBaseMetaTileEntity().getZCoord());
+            getBaseMetaTileEntity().getZCoord()
+        );
     }
 
     @Override
@@ -404,14 +421,13 @@ public class MTEMMUplinkMEHatch extends MTEHatch
     public boolean pushPattern(ICraftingPatternDetails patternDetails, InventoryCrafting table) {
         pushPendingCraft();
 
-        if (isBusy()) {
-            return false;
-        }
+        if (isBusy()) { return false; }
 
         pendingCraft = new LinkedList<>(
             MMUtils.streamInventory(table)
                 .filter(i -> i != null)
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList())
+        );
 
         PatternHelper pattern = (PatternHelper) patternDetails;
 
@@ -455,7 +471,8 @@ public class MTEMMUplinkMEHatch extends MTEHatch
                 PatternHelper pattern = new PatternHelper(
                     request.getPattern(),
                     this.getBaseMetaTileEntity()
-                        .getWorld());
+                        .getWorld()
+                );
                 craftingTracker.addCraftingOption(this, pattern);
             } catch (IllegalStateException e) {
                 GTMod.GT_FML_LOGGER.error("Could not load matter manipulator plan", e);
@@ -468,7 +485,8 @@ public class MTEMMUplinkMEHatch extends MTEHatch
                 PatternHelper pattern = new PatternHelper(
                     request.getPattern(),
                     this.getBaseMetaTileEntity()
-                        .getWorld());
+                        .getWorld()
+                );
                 craftingTracker.addCraftingOption(this, pattern);
             } catch (IllegalStateException e) {
                 GTMod.GT_FML_LOGGER.error("Could not load matter manipulator plan", e);
@@ -477,13 +495,18 @@ public class MTEMMUplinkMEHatch extends MTEHatch
         }
     }
 
-    public void addRequest(EntityPlayer requester, String requestName, List<IAEItemStack> requiredItems,
-        boolean autocraft) {
+    public void addRequest(
+        EntityPlayer requester,
+        String requestName,
+        List<IAEItemStack> requiredItems,
+        boolean autocraft
+    ) {
         ManipulatorRequest request = new ManipulatorRequest(
             requester.getGameProfile()
                 .getId(),
             requestName,
-            requiredItems);
+            requiredItems
+        );
 
         if (autocraft) {
             autoRequests.add(request);
@@ -495,8 +518,14 @@ public class MTEMMUplinkMEHatch extends MTEHatch
     }
 
     @Override
-    public void onScrewdriverRightClick(ForgeDirection side, EntityPlayer aPlayer, float aX, float aY, float aZ,
-        ItemStack aTool) {
+    public void onScrewdriverRightClick(
+        ForgeDirection side,
+        EntityPlayer aPlayer,
+        float aX,
+        float aY,
+        float aZ,
+        ItemStack aTool
+    ) {
 
         for (var req : autoRequests) {
             if (req.link != null) {
@@ -520,7 +549,9 @@ public class MTEMMUplinkMEHatch extends MTEHatch
         manualRequests.removeIf(
             request -> request.requester.equals(
                 player.getGameProfile()
-                    .getId()));
+                    .getId()
+            )
+        );
 
         onRequestsChanged();
 
@@ -533,9 +564,7 @@ public class MTEMMUplinkMEHatch extends MTEHatch
         while (iter.hasNext()) {
             ManipulatorRequest req = iter.next();
 
-            if (!req.requester.equals(
-                player.getGameProfile()
-                    .getId())) {
+            if (!req.requester.equals(player.getGameProfile().getId())) {
                 continue;
             }
 
@@ -593,8 +622,12 @@ public class MTEMMUplinkMEHatch extends MTEHatch
                 .setInteger("discriminator", counter++);
         }
 
-        private ManipulatorRequest(UUID requester, String requestName, List<IAEItemStack> requiredItems,
-            ICraftingLink link) {
+        private ManipulatorRequest(
+            UUID requester,
+            String requestName,
+            List<IAEItemStack> requiredItems,
+            ICraftingLink link
+        ) {
             this.requester = requester;
             this.requestName = requestName;
             this.requiredItems = requiredItems;
@@ -662,9 +695,7 @@ public class MTEMMUplinkMEHatch extends MTEHatch
          * It gets cancelled and this request is removed when the fake pattern is pushed.
          */
         boolean poll() {
-            if (!isActive()) {
-                return true;
-            }
+            if (!isActive()) { return true; }
 
             ICraftingGrid cg;
             try {
@@ -687,12 +718,11 @@ public class MTEMMUplinkMEHatch extends MTEHatch
                     getGrid(),
                     getRequestSource(),
                     AEItemStack.create(hologram),
-                    null);
+                    null
+                );
             }
 
-            if (job == null) {
-                return false;
-            }
+            if (job == null) { return false; }
 
             try {
                 ICraftingJob job = null;
@@ -703,9 +733,7 @@ public class MTEMMUplinkMEHatch extends MTEHatch
                 if (job != null) {
                     link = cg.submitJob(job, MTEMMUplinkMEHatch.this, null, false, getRequestSource());
 
-                    if (link == null) {
-                        return false;
-                    }
+                    if (link == null) { return false; }
 
                     EntityPlayer player = MMUtils.getPlayerById(requester);
 
@@ -733,8 +761,8 @@ public class MTEMMUplinkMEHatch extends MTEHatch
             EntityPlayer player = MMUtils.getPlayerById(requester);
             tag.setString(
                 "author",
-                player != null ? player.getGameProfile()
-                    .getName() : requester.toString());
+                player != null ? player.getGameProfile().getName() : requester.toString()
+            );
 
             NBTTagList out = new NBTTagList();
 

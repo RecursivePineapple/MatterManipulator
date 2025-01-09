@@ -1,6 +1,5 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
-
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
 
 import java.util.ArrayList;
@@ -18,6 +17,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
+
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.fluids.FluidRegistry;
@@ -26,21 +26,13 @@ import net.minecraftforge.fluids.IFluidBlock;
 import net.minecraftforge.fluids.IFluidHandler;
 import net.minecraftforge.oredict.OreDictionary;
 
-import org.joml.Vector3d;
-
-import com.recursive_pineapple.matter_manipulator.MMMod;
-import com.recursive_pineapple.matter_manipulator.asm.Optional;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
-import com.recursive_pineapple.matter_manipulator.common.networking.SoundResource;
-import com.recursive_pineapple.matter_manipulator.common.utils.BigFluidStack;
-import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
-import com.recursive_pineapple.matter_manipulator.common.utils.LazyBlock;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
+import gregtech.api.interfaces.tileentity.ICoverable;
+import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
+import gregtech.api.interfaces.tileentity.IRedstoneEmitter;
+import gregtech.api.util.GTUtility;
+import gregtech.common.tileentities.machines.MTEHatchOutputBusME;
+import gregtech.common.tileentities.machines.MTEHatchOutputME;
+import gregtech.common.tileentities.storage.MTEDigitalChestBase;
 
 import appeng.api.config.Actionable;
 import appeng.api.implementations.tiles.IColorableTile;
@@ -54,15 +46,25 @@ import appeng.api.storage.data.IItemList;
 import appeng.api.util.AEColor;
 import appeng.helpers.ICustomNameObject;
 import appeng.parts.AEBasePart;
+
+import com.recursive_pineapple.matter_manipulator.MMMod;
+import com.recursive_pineapple.matter_manipulator.asm.Optional;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
+import com.recursive_pineapple.matter_manipulator.common.networking.SoundResource;
+import com.recursive_pineapple.matter_manipulator.common.utils.BigFluidStack;
+import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
+import com.recursive_pineapple.matter_manipulator.common.utils.LazyBlock;
+import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
+
+import org.joml.Vector3d;
+
 import crazypants.enderio.conduit.IConduit;
 import crazypants.enderio.conduit.IConduitBundle;
-import gregtech.api.interfaces.tileentity.ICoverable;
-import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
-import gregtech.api.interfaces.tileentity.IRedstoneEmitter;
-import gregtech.api.util.GTUtility;
-import gregtech.common.tileentities.machines.MTEHatchOutputBusME;
-import gregtech.common.tileentities.machines.MTEHatchOutputME;
-import gregtech.common.tileentities.storage.MTEDigitalChestBase;
 import it.unimi.dsi.fastutil.Pair;
 
 /**
@@ -92,9 +94,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
     }
 
     public boolean tryConsumePower(ItemStack stack, double x, double y, double z, double euUsage) {
-        if (player.capabilities.isCreativeMode) {
-            return true;
-        }
+        if (player.capabilities.isCreativeMode) { return true; }
 
         euUsage *= Math.pow(player.getDistance(x, y, z), EU_DISTANCE_EXP);
 
@@ -153,23 +153,25 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         } else {
             ArrayList<ItemStack> items = block.getDrops(world, x, y, z, meta, 0);
             float chance = ForgeEventFactory.fireBlockHarvesting(items, world, block, x, y, z, meta, 0, 1, false, player);
-    
+
             Iterator<ItemStack> iter = items.iterator();
-    
+
             while (iter.hasNext()) {
                 iter.next();
                 if (world.rand.nextFloat() > chance) {
                     iter.remove();
                 }
             }
-    
+
             givePlayerItems(items.toArray(new ItemStack[0]));
         }
 
         world.setBlockToAir(x, y, z);
     }
 
-    @Optional({ Names.GREG_TECH, Names.APPLIED_ENERGISTICS2 })
+    @Optional({
+        Names.GREG_TECH, Names.APPLIED_ENERGISTICS2
+    })
     protected void emptySuperchest(TileEntity te) {
         if (te instanceof IGregTechTileEntity igte && igte.getMetaTileEntity() instanceof MTEDigitalChestBase dchest) {
             for (IAEItemStack stack : dchest.getStorageList()) {
@@ -185,11 +187,16 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
     }
 
     private static class MEOutputCaches {
-        private static final Function<MTEHatchOutputBusME, IItemList<IAEItemStack>> GET_ITEM_STACK_LIST = MMUtils.exposeFieldGetterLambda(MTEHatchOutputBusME.class, "itemCache");
-        private static final Function<MTEHatchOutputME, IItemList<IAEFluidStack>> GET_FLUID_STACK_LIST = MMUtils.exposeFieldGetterLambda(MTEHatchOutputME.class, "fluidCache");
+
+        private static final Function<MTEHatchOutputBusME, IItemList<IAEItemStack>> GET_ITEM_STACK_LIST = MMUtils
+            .exposeFieldGetterLambda(MTEHatchOutputBusME.class, "itemCache");
+        private static final Function<MTEHatchOutputME, IItemList<IAEFluidStack>> GET_FLUID_STACK_LIST = MMUtils
+            .exposeFieldGetterLambda(MTEHatchOutputME.class, "fluidCache");
     }
 
-    @Optional({ Names.GREG_TECH, Names.APPLIED_ENERGISTICS2 })
+    @Optional({
+        Names.GREG_TECH, Names.APPLIED_ENERGISTICS2
+    })
     protected void emptyMEOutput(TileEntity te) {
         if (te instanceof IGregTechTileEntity igte) {
             if (igte.getMetaTileEntity() instanceof MTEHatchOutputBusME bus) {
@@ -225,9 +232,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
             if (GregTech.isModLoaded() && MMUtils.isStockingHatch(handler)) return;
 
             FluidStack fluid = null;
-            while ((fluid = handler.drain(ForgeDirection.UNKNOWN, Integer.MAX_VALUE, true)) != null
-                && fluid.getFluid() != null
-                && fluid.amount > 0) {
+            while ((fluid = handler.drain(ForgeDirection.UNKNOWN, Integer.MAX_VALUE, true)) != null && fluid.getFluid() != null && fluid.amount > 0) {
                 givePlayerFluids(fluid);
             }
         }
@@ -393,7 +398,8 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
             if (!printedProtectedBlockWarning) {
                 MMUtils.sendWarningToPlayer(
                     player,
-                    "Tried to break/place a block in a protected area!");
+                    "Tried to break/place a block in a protected area!"
+                );
                 printedProtectedBlockWarning = true;
             }
 

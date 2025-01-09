@@ -8,10 +8,6 @@ import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.AxisAlignedBB;
 
-import org.joml.Vector3f;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL20;
-
 import com.gtnewhorizon.gtnhlib.client.renderer.CapturingTessellator;
 import com.gtnewhorizon.gtnhlib.client.renderer.TessellatorManager;
 import com.gtnewhorizon.gtnhlib.client.renderer.quad.QuadView;
@@ -19,6 +15,10 @@ import com.gtnewhorizon.gtnhlib.client.renderer.shader.ShaderProgram;
 import com.gtnewhorizon.gtnhlib.client.renderer.vbo.VertexBuffer;
 import com.gtnewhorizon.gtnhlib.client.renderer.vertex.DefaultVertexFormat;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
+
+import org.joml.Vector3f;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL20;
 
 public class BoxRenderer {
 
@@ -31,7 +31,8 @@ public class BoxRenderer {
         program = new ShaderProgram(
             Mods.MatterManipulator.resourceDomain,
             "shaders/fancybox.vert.glsl",
-            "shaders/fancybox.frag.glsl");
+            "shaders/fancybox.frag.glsl"
+        );
 
         time_location = program.getUniformLocation("time");
     }
@@ -40,7 +41,7 @@ public class BoxRenderer {
 
     /**
      * Starts rendering fancy boxes. Should only be called once per frame, to allow quad sorting.
-     * 
+     *
      * @param partialTickTime
      */
     public void start(double partialTickTime) {
@@ -129,7 +130,7 @@ public class BoxRenderer {
         tes.addVertexWithUV(0, dY, 0, 0, dY);
         tes.addVertexWithUV(dX, dY, 0, dX, dY);
         tes.addVertexWithUV(dX, 0, 0, dX, 0);
-        
+
         // south face
         tes.addVertexWithUV(0, 0, dZ, dZ + 0, 0);
         tes.addVertexWithUV(0, dY, dZ, dZ + 0, dY);

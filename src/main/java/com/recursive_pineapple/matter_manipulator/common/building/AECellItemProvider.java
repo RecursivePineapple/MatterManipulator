@@ -4,9 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 
@@ -15,6 +12,9 @@ import appeng.api.config.FuzzyMode;
 import appeng.api.definitions.IItemDefinition;
 import appeng.api.storage.ICellWorkbenchItem;
 import appeng.parts.automation.UpgradeInventory;
+
+import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
+import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 
 /**
  * An item provider that creates AE cells.
@@ -33,9 +33,7 @@ public class AECellItemProvider implements IItemProvider {
      * @return The item provider if the stack is the cell, or null if it wasn't.
      */
     public static AECellItemProvider fromWorkbenchItem(ItemStack stack) {
-        if (stack == null || !(stack.getItem() instanceof ICellWorkbenchItem item) || !item.isEditable(stack)) {
-            return null;
-        }
+        if (stack == null || !(stack.getItem() instanceof ICellWorkbenchItem item) || !item.isEditable(stack)) { return null; }
 
         AECellItemProvider cell = new AECellItemProvider();
 
@@ -56,8 +54,9 @@ public class AECellItemProvider implements IItemProvider {
             .definitions()
             .materials()
             .cardOreFilter();
-        boolean hasOredictCard = upgrades == null ? false
-            : MMUtils.streamInventory(upgrades)
+        boolean hasOredictCard = upgrades == null ?
+            false :
+            MMUtils.streamInventory(upgrades)
                 .anyMatch(oredictCard::isSameAs);
         if (hasOredictCard) {
             cell.mOreDict = item.getOreFilter(stack);
@@ -70,22 +69,19 @@ public class AECellItemProvider implements IItemProvider {
     public ItemStack getStack(IPseudoInventory inv, boolean consume) {
         ItemStack cell = mCell.toStack();
 
-        if (!(cell.getItem() instanceof ICellWorkbenchItem cellWorkbenchItem) || !cellWorkbenchItem.isEditable(cell)) {
-            return null;
-        }
+        if (!(cell.getItem() instanceof ICellWorkbenchItem cellWorkbenchItem) || !cellWorkbenchItem.isEditable(cell)) { return null; }
 
         List<ItemStack> items = new ArrayList<>();
         items.add(cell);
         items.addAll(
-            MMUtils.mapToList(mUpgrades == null ? new PortableItemStack[0] : mUpgrades, PortableItemStack::toStack));
+            MMUtils.mapToList(mUpgrades == null ? new PortableItemStack[0] : mUpgrades, PortableItemStack::toStack)
+        );
 
         if (consume) {
             var result = inv
                 .tryConsumeItems(MMUtils.mapToList(items, BigItemStack::new), IPseudoInventory.CONSUME_FUZZY);
 
-            if (!result.left()) {
-                return null;
-            }
+            if (!result.left()) { return null; }
 
             for (BigItemStack extracted : result.right()) {
                 ItemStack extractedStack = extracted.getItemStack();
@@ -132,8 +128,7 @@ public class AECellItemProvider implements IItemProvider {
             .cardOreFilter();
 
         if (upgrades != null) {
-            if (MMUtils.streamInventory(upgrades)
-                .anyMatch(oredictCard::isSameAs)) {
+            if (MMUtils.streamInventory(upgrades).anyMatch(oredictCard::isSameAs)) {
                 cellWorkbenchItem.setOreFilter(cell, mOreDict);
             }
         }

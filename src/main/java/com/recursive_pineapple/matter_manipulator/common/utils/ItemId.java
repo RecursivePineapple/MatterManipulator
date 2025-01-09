@@ -7,12 +7,12 @@ import static net.minecraftforge.common.util.Constants.NBT.TAG_INT;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import com.google.auto.value.AutoValue;
-
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+
+import com.google.auto.value.AutoValue;
 
 @AutoValue
 public abstract class ItemId {
@@ -22,7 +22,8 @@ public abstract class ItemId {
             Item.getItemById(tag.getShort("item")),
             tag.getShort("meta"),
             tag.hasKey("tag", TAG_COMPOUND) ? tag.getCompoundTag("tag") : null,
-            tag.hasKey("stackSize", TAG_INT) ? tag.getInteger("stackSize") : null);
+            tag.hasKey("stackSize", TAG_INT) ? tag.getInteger("stackSize") : null
+        );
     }
 
     /**
@@ -50,7 +51,8 @@ public abstract class ItemId {
             itemStack.getItem(),
             Items.feather.getDamage(itemStack),
             nbt,
-            itemStack.stackSize);
+            itemStack.stackSize
+        );
     }
 
     /**
@@ -66,8 +68,12 @@ public abstract class ItemId {
     /**
      * This method copies NBT, as it is mutable.
      */
-    public static ItemId create(Item item, int metaData, @Nullable NBTTagCompound nbt,
-        @Nullable Integer stackSize) {
+    public static ItemId create(
+        Item item,
+        int metaData,
+        @Nullable NBTTagCompound nbt,
+        @Nullable Integer stackSize
+    ) {
         if (nbt != null) {
             nbt = (NBTTagCompound) nbt.copy();
         }
@@ -104,7 +110,8 @@ public abstract class ItemId {
             itemStack.getItem(),
             Items.feather.getDamage(itemStack),
             itemStack.getTagCompound(),
-            null);
+            null
+        );
     }
 
     /**
@@ -115,7 +122,8 @@ public abstract class ItemId {
             itemStack.getItem(),
             Items.feather.getDamage(itemStack),
             itemStack.getTagCompound(),
-            itemStack.stackSize);
+            itemStack.stackSize
+        );
     }
 
     /**

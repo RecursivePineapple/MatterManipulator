@@ -8,19 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import org.jetbrains.annotations.NotNull;
-import org.joml.Vector3f;
-
-import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
-import com.recursive_pineapple.matter_manipulator.MMMod;
-import com.recursive_pineapple.matter_manipulator.common.compat.BlockProperty;
-import com.recursive_pineapple.matter_manipulator.common.compat.BlockPropertyRegistry;
-import com.recursive_pineapple.matter_manipulator.common.compat.Orientation;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
-import com.recursive_pineapple.matter_manipulator.common.utils.LazyBlock;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
-
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.IInventory;
@@ -30,7 +17,21 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
+
 import net.minecraftforge.common.util.ForgeDirection;
+
+import com.recursive_pineapple.matter_manipulator.MMMod;
+import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
+import com.recursive_pineapple.matter_manipulator.common.compat.BlockProperty;
+import com.recursive_pineapple.matter_manipulator.common.compat.BlockPropertyRegistry;
+import com.recursive_pineapple.matter_manipulator.common.compat.Orientation;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
+import com.recursive_pineapple.matter_manipulator.common.utils.LazyBlock;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
+
+import org.jetbrains.annotations.NotNull;
+import org.joml.Vector3f;
 
 /**
  * This represents a block in the world.
@@ -108,7 +109,7 @@ public class PendingBlock extends Location {
     public Item getItem() {
         return spec.getItem();
     }
-    
+
     private List<ITileAnalysisIntegration> getIntegrations() {
         List<ITileAnalysisIntegration> list = new ArrayList<>();
 
@@ -133,7 +134,7 @@ public class PendingBlock extends Location {
         ItemStack stack = spec.getStack();
 
         if (stack == null) return null;
-        
+
         NBTTagCompound tag = stack.getTagCompound() != null ? stack.getTagCompound() : new NBTTagCompound();
 
         for (var analysis : getIntegrations()) {
@@ -147,7 +148,7 @@ public class PendingBlock extends Location {
 
     /**
      * Get the required items for a block that exists in the world
-     * 
+     *
      * @return True when this result can be applied to the tile, false otherwise
      */
     public boolean getRequiredItemsForExistingBlock(IBlockApplyContext context) {
@@ -166,7 +167,7 @@ public class PendingBlock extends Location {
 
     /**
      * Get the required items for a block that doesn't exist
-     * 
+     *
      * @return True if this tile result is valid, false otherwise
      */
     public boolean getRequiredItemsForNewBlock(IBlockApplyContext context) {
@@ -201,7 +202,7 @@ public class PendingBlock extends Location {
         if (block == Blocks.air) return true;
 
         if (AE_BLOCK_CABLE.matches(spec)) return true;
-        
+
         return false;
     }
 
@@ -246,7 +247,7 @@ public class PendingBlock extends Location {
                 int rotation = Integer.parseInt(p.get(CopyableProperty.ROTATION));
 
                 Vector3f v = new Vector3f(0, 0, 1)
-                    .rotateAxis(rotation * (float)Math.PI * 2f / 360f, 0, 1, 0)
+                    .rotateAxis(rotation * (float) Math.PI * 2f / 360f, 0, 1, 0)
                     .mulTransposeDirection(transform.getRotation());
 
                 rotation = MathHelper.floor_double(Math.atan2(v.x, v.z) * 360d / Math.PI / 2d + 0.5);
@@ -264,7 +265,8 @@ public class PendingBlock extends Location {
 
                 o = Orientation.getOrientation(
                     transform.apply(o.a),
-                    transform.apply(o.b));
+                    transform.apply(o.b)
+                );
 
                 p.put(CopyableProperty.ORIENTATION, o.name().toLowerCase());
             } catch (Exception e) {
@@ -299,7 +301,10 @@ public class PendingBlock extends Location {
     }
 
     public boolean apply(IBlockApplyContext context, World world) {
-        class RefCell { public boolean didSomething = false; }
+        class RefCell {
+
+            public boolean didSomething = false;
+        }
 
         RefCell ref = new RefCell();
 
@@ -333,9 +338,7 @@ public class PendingBlock extends Location {
         }
 
         if (context.getTileEntity() instanceof IInventory inventory && this.inventory != null) {
-            if (!this.inventory.apply(context, inventory, true, false)) {
-                return false;
-            }
+            if (!this.inventory.apply(context, inventory, true, false)) { return false; }
         }
 
         world.notifyBlockOfNeighborChange(x, y, z, Blocks.air);
@@ -414,15 +417,15 @@ public class PendingBlock extends Location {
             if ((flags & ANALYZE_GT) != 0 && Mods.GregTech.isModLoaded()) {
                 this.gt = GTAnalysisResult.analyze(te);
             }
-    
+
             if ((flags & ANALYZE_AE) != 0 && Mods.AppliedEnergistics2.isModLoaded()) {
                 this.ae = AEAnalysisResult.analyze(te);
             }
-    
+
             if ((flags & ANALYZE_ARCH) != 0 && Mods.ArchitectureCraft.isModLoaded()) {
                 this.arch = ArchitectureCraftAnalysisResult.analyze(te);
             }
-    
+
             if ((flags & ANALYZE_INV) != 0 && te instanceof IInventory inventory) {
                 this.inventory = InventoryAnalysis.fromInventory(inventory, false);
             }

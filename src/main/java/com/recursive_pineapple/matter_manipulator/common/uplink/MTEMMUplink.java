@@ -21,9 +21,39 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
+
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTankInfo;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
+import gregtech.api.enums.Materials;
+import gregtech.api.enums.Textures.BlockIcons.CustomIcon;
+import gregtech.api.enums.TierEU;
+import gregtech.api.interfaces.IHatchElement;
+import gregtech.api.interfaces.ITexture;
+import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
+import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
+import gregtech.api.metatileentity.implementations.MTEEnhancedMultiBlockBase;
+import gregtech.api.metatileentity.implementations.MTEHatchInput;
+import gregtech.api.recipe.RecipeMaps;
+import gregtech.api.recipe.check.CheckRecipeResult;
+import gregtech.api.recipe.check.CheckRecipeResultRegistry;
+import gregtech.api.recipe.maps.FuelBackend;
+import gregtech.api.render.TextureFactory;
+import gregtech.api.util.GTRecipe;
+import gregtech.api.util.IGTHatchAdder;
+import gregtech.api.util.MultiblockTooltipBuilder;
+import gregtech.api.util.shutdown.ShutDownReason;
+
+import appeng.api.config.Actionable;
+import appeng.api.config.FuzzyMode;
+import appeng.api.networking.storage.IStorageGrid;
+import appeng.api.storage.IMEMonitor;
+import appeng.api.storage.data.IAEFluidStack;
+import appeng.api.storage.data.IAEItemStack;
 
 import com.google.common.collect.ImmutableList;
 import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable;
@@ -49,32 +79,6 @@ import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 
-import appeng.api.config.Actionable;
-import appeng.api.config.FuzzyMode;
-import appeng.api.networking.storage.IStorageGrid;
-import appeng.api.storage.IMEMonitor;
-import appeng.api.storage.data.IAEFluidStack;
-import appeng.api.storage.data.IAEItemStack;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-import gregtech.api.enums.Materials;
-import gregtech.api.enums.TierEU;
-import gregtech.api.enums.Textures.BlockIcons.CustomIcon;
-import gregtech.api.interfaces.IHatchElement;
-import gregtech.api.interfaces.ITexture;
-import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
-import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
-import gregtech.api.metatileentity.implementations.MTEEnhancedMultiBlockBase;
-import gregtech.api.metatileentity.implementations.MTEHatchInput;
-import gregtech.api.recipe.RecipeMaps;
-import gregtech.api.recipe.check.CheckRecipeResult;
-import gregtech.api.recipe.check.CheckRecipeResultRegistry;
-import gregtech.api.recipe.maps.FuelBackend;
-import gregtech.api.render.TextureFactory;
-import gregtech.api.util.GTRecipe;
-import gregtech.api.util.IGTHatchAdder;
-import gregtech.api.util.MultiblockTooltipBuilder;
-import gregtech.api.util.shutdown.ShutDownReason;
 import it.unimi.dsi.fastutil.Pair;
 import mcp.mobius.waila.api.IWailaConfigHandler;
 import mcp.mobius.waila.api.IWailaDataAccessor;
@@ -137,8 +141,12 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
             1,
             8,
             Arrays.asList(
-                InputHatch, Energy, Maintenance, UplinkHatchAdder.Instance
-            ));
+                InputHatch,
+                Energy,
+                Maintenance,
+                UplinkHatchAdder.Instance
+            )
+        );
         structure.addCasing('B', NAQ_ALLOY_FRAMES);
         structure.addCasing('C', TRINIUM_FRAMES);
         structure.addCasing('D', MatterGenerationCoil);
@@ -174,13 +182,16 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
         screenElements.widgets(
             new FakeSyncWidget.BooleanSyncer(
                 () -> structureInstanceInfo.hasErrors,
-                value -> structureInstanceInfo.hasErrors = value),
+                value -> structureInstanceInfo.hasErrors = value
+            ),
             TextWidget.dynamicString(() -> structureInstanceInfo.getErrors())
                 .setTextAlignment(Alignment.CenterLeft)
-                .setEnabled(structureInstanceInfo.hasErrors));
+                .setEnabled(structureInstanceInfo.hasErrors)
+        );
     }
 
     private static enum UplinkHatchAdder implements IHatchElement<MTEMMUplink> {
+
         Instance;
 
         @Override
@@ -236,13 +247,15 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
         tt.beginStructureBlock();
         tt.addController("Front Center");
         tt.addHatchNameOverride(UplinkHatchAdder.Instance, hatch);
-        tt.addAllCasingInfo(Arrays.asList(
-            AdvancedIridiumPlatedMachineCasing,
-            MatterGenerationCoil,
-            TRINIUM_FRAMES,
-            NAQ_ALLOY_FRAMES,
-            RadiantNaquadahAlloyCasing
-        ));
+        tt.addAllCasingInfo(
+            Arrays.asList(
+                AdvancedIridiumPlatedMachineCasing,
+                MatterGenerationCoil,
+                TRINIUM_FRAMES,
+                NAQ_ALLOY_FRAMES,
+                RadiantNaquadahAlloyCasing
+            )
+        );
 
         tt.toolTipFinisher(AuthorPineapple);
 
@@ -250,15 +263,24 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
     }
 
     private static final CustomIcon ACTIVE_GLOW = new CustomIcon(
-        Mods.MatterManipulator.getResourcePath("machines", "uplink", "OVERLAY_FRONT_ACTIVE_GLOW"));
+        Mods.MatterManipulator.getResourcePath("machines", "uplink", "OVERLAY_FRONT_ACTIVE_GLOW")
+    );
     private static final CustomIcon IDLE_GLOW = new CustomIcon(
-        Mods.MatterManipulator.getResourcePath("machines", "uplink", "OVERLAY_FRONT_IDLE_GLOW"));
+        Mods.MatterManipulator.getResourcePath("machines", "uplink", "OVERLAY_FRONT_IDLE_GLOW")
+    );
     private static final CustomIcon OFF = new CustomIcon(
-        Mods.MatterManipulator.getResourcePath("machines", "uplink", "OVERLAY_FRONT_OFF"));
+        Mods.MatterManipulator.getResourcePath("machines", "uplink", "OVERLAY_FRONT_OFF")
+    );
 
     @Override
-    public ITexture[] getTexture(IGregTechTileEntity baseMetaTileEntity, ForgeDirection side, ForgeDirection facing,
-        int colorIndex, boolean active, boolean redstoneLevel) {
+    public ITexture[] getTexture(
+        IGregTechTileEntity baseMetaTileEntity,
+        ForgeDirection side,
+        ForgeDirection facing,
+        int colorIndex,
+        boolean active,
+        boolean redstoneLevel
+    ) {
         List<ITexture> textures = new ArrayList<>(3);
 
         textures.add(AdvancedIridiumPlatedMachineCasing.getCasingTexture());
@@ -268,7 +290,8 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
                 TextureFactory.builder()
                     .addIcon(OFF)
                     .extFacing()
-                    .build());
+                    .build()
+            );
 
             switch (getState()) {
                 case OFF: {
@@ -280,7 +303,8 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
                             .addIcon(IDLE_GLOW)
                             .extFacing()
                             .glow()
-                            .build());
+                            .build()
+                    );
                     break;
                 }
                 case ACTIVE: {
@@ -289,7 +313,8 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
                             .addIcon(ACTIVE_GLOW)
                             .extFacing()
                             .glow()
-                            .build());
+                            .build()
+                    );
                     break;
                 }
             }
@@ -304,8 +329,10 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
     public UplinkState getState() {
         if (getBaseMetaTileEntity().isServerSide()) {
             if (getBaseMetaTileEntity().isActive()) {
-                if (uplinkHatches.stream()
-                    .anyMatch(hatch -> hatch.hasAnyRequests())) {
+                if (
+                    uplinkHatches.stream()
+                        .anyMatch(hatch -> hatch.hasAnyRequests())
+                ) {
                     return UplinkState.ACTIVE;
                 } else {
                     return UplinkState.IDLE;
@@ -336,7 +363,8 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
                 igte.getWorld(),
                 igte.getXCoord(),
                 igte.getYCoord(),
-                igte.getZCoord());
+                igte.getZCoord()
+            );
         } else {
             return null;
         }
@@ -380,19 +408,32 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
     }
 
     @Override
-    public void getWailaBody(ItemStack itemStack, List<String> currentTip, IWailaDataAccessor accessor,
-        IWailaConfigHandler config) {
+    public void getWailaBody(
+        ItemStack itemStack,
+        List<String> currentTip,
+        IWailaDataAccessor accessor,
+        IWailaConfigHandler config
+    ) {
         super.getWailaBody(itemStack, currentTip, accessor, config);
         currentTip.add(
             String.format(
                 "Address: %x",
                 accessor.getNBTData()
-                    .getLong("address")));
+                    .getLong("address")
+            )
+        );
     }
 
     @Override
-    public void getWailaNBTData(EntityPlayerMP player, TileEntity tile, NBTTagCompound tag, World world, int x, int y,
-        int z) {
+    public void getWailaNBTData(
+        EntityPlayerMP player,
+        TileEntity tile,
+        NBTTagCompound tag,
+        World world,
+        int x,
+        int y,
+        int z
+    ) {
         super.getWailaNBTData(player, tile, tag, world, x, y, z);
         tag.setLong("address", address);
     }
@@ -406,7 +447,9 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
                 String.format(
                     "Address: %x",
                     stack.getTagCompound()
-                        .getLong("address")));
+                        .getLong("address")
+                )
+            );
         }
     }
 
@@ -419,7 +462,9 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
                 "Stored Plasma: %s%,d%s EU",
                 EnumChatFormatting.YELLOW,
                 pendingPlasmaEU,
-                EnumChatFormatting.WHITE));
+                EnumChatFormatting.WHITE
+            )
+        );
 
         return info.toArray(new String[0]);
     }
@@ -448,9 +493,7 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
 
     private MTEMMUplinkMEHatch getMEHatch() {
         for (MTEMMUplinkMEHatch hatch : uplinkHatches) {
-            if (hatch != null && hatch.isActive() && hatch.isPowered()) {
-                return hatch;
-            }
+            if (hatch != null && hatch.isActive() && hatch.isPowered()) { return hatch; }
         }
 
         return null;
@@ -460,8 +503,11 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
      * See {@link IPseudoInventory#tryConsumeItems(List, int)}
      */
     @Override
-    public Pair<UplinkStatus, List<BigItemStack>> tryConsumeItems(List<BigItemStack> requestedItems, boolean simulate,
-        boolean fuzzy) {
+    public Pair<UplinkStatus, List<BigItemStack>> tryConsumeItems(
+        List<BigItemStack> requestedItems,
+        boolean simulate,
+        boolean fuzzy
+    ) {
         MTEMMUplinkMEHatch hatch = getMEHatch();
 
         if (hatch == null) return Pair.of(UplinkStatus.NO_HATCH, null);
@@ -496,15 +542,14 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
                     .setStackSize(req.getStackSize());
 
                 if (!simulate) {
-                    if (!consumePlasmaEU(req.getStackSize() * BASE_PLASMA_EU_COST)) {
-                        return Pair.of(UplinkStatus.NO_PLASMA, null);
-                    }
+                    if (!consumePlasmaEU(req.getStackSize() * BASE_PLASMA_EU_COST)) { return Pair.of(UplinkStatus.NO_PLASMA, null); }
                 }
-            
+
                 IAEItemStack result = itemInventory.extractItems(
                     match,
                     simulate ? Actionable.SIMULATE : Actionable.MODULATE,
-                    hatch.getRequestSource());
+                    hatch.getRequestSource()
+                );
 
                 if (result != null) {
                     out.add(BigItemStack.create(result));
@@ -536,9 +581,7 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
         for (BigItemStack item : items) {
             if (item == null) continue;
 
-            if (!consumePlasmaEU(item.getStackSize() * BASE_PLASMA_EU_COST)) {
-                return UplinkStatus.NO_PLASMA;
-            }
+            if (!consumePlasmaEU(item.getStackSize() * BASE_PLASMA_EU_COST)) { return UplinkStatus.NO_PLASMA; }
 
             IAEItemStack result = itemInventory.injectItems(item.getAEItemStack(), Actionable.MODULATE, hatch.getRequestSource());
 
@@ -568,9 +611,7 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
         for (BigFluidStack fluid : fluids) {
             if (fluid == null) continue;
 
-            if (!consumePlasmaEU(MMUtils.ceilDiv(fluid.getStackSize(), 1000) * BASE_PLASMA_EU_COST)) {
-                return UplinkStatus.NO_PLASMA;
-            }
+            if (!consumePlasmaEU(MMUtils.ceilDiv(fluid.getStackSize(), 1000) * BASE_PLASMA_EU_COST)) { return UplinkStatus.NO_PLASMA; }
 
             IAEFluidStack result = fluidInventory.injectItems(fluid.getAEFluidStack(), Actionable.MODULATE, hatch.getRequestSource());
 
@@ -626,29 +667,32 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
                     pendingPlasmaEU += generated;
                 }
 
-                if (euToGenerate <= 0) {
-                    return;
-                }
+                if (euToGenerate <= 0) { return; }
             }
         }
     }
 
     /**
      * Submits a new plan to the ME hatch.
-     * 
-     * @param details   Some extra details for the plan
+     *
+     * @param details Some extra details for the plan
      * @param autocraft When true, the plan will be automatically crafted
      */
     @Override
-    public void submitPlan(EntityPlayer submitter, String details, List<BigItemStack> requiredItems,
-        boolean autocraft) {
+    public void submitPlan(
+        EntityPlayer submitter,
+        String details,
+        List<BigItemStack> requiredItems,
+        boolean autocraft
+    ) {
         MTEMMUplinkMEHatch hatch = getMEHatch();
 
         if (hatch != null) {
             String patternName = String.format(
                 "%s's Manipulator Plan",
                 submitter.getGameProfile()
-                    .getName());
+                    .getName()
+            );
 
             if (details != null && !details.isEmpty()) {
                 patternName += " (" + details + ")";
@@ -658,7 +702,8 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
 
             MMUtils.sendInfoToPlayer(
                 submitter,
-                "Pushed a new virtual ME pattern to the uplink called '" + patternName + "'.");
+                "Pushed a new virtual ME pattern to the uplink called '" + patternName + "'."
+            );
         }
     }
 
@@ -752,8 +797,9 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
                 igte.getWorld(),
                 igte.getXCoord(),
                 igte.getYCoord(),
-                igte.getZCoord());
-    
+                igte.getZCoord()
+            );
+
             Messages.UpdateUplinkState.sendToPlayersAround(l, this);
         }
     }

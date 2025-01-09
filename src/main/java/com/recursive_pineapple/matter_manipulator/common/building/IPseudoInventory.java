@@ -2,12 +2,13 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 
 import java.util.List;
 
+import net.minecraft.item.ItemStack;
+
+import net.minecraftforge.fluids.FluidStack;
+
 import com.recursive_pineapple.matter_manipulator.common.utils.BigFluidStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.fluids.FluidStack;
 
 import it.unimi.dsi.fastutil.Pair;
 
@@ -27,16 +28,15 @@ public interface IPseudoInventory {
 
     /**
      * Atomically extracts items from this pseudo inventory.
-     * 
      * The returned list is guaranteed to at minimum be equal to the items param.
      * If the extraction succeeded and partial mode wasn't enabled, extraneous items will not be extracted and the
      * returned list will contain the same items as the request.
      * If fuzzy mode is enabled there may be several stacks with different tags (and damages where relevant), but every
      * stackable item will be merged into the same BigItemStack.
-     * 
+     *
      * @param items The list of items to extract.
      * @param flags The flags (see {@link IPseudoInventory#CONSUME_SIMULATED}, {@link IPseudoInventory#CONSUME_FUZZY},
-     *              etc).
+     *        etc).
      * @return Key = whether the extract was successful. Value = the list of items extracted (only relevant for fuzzy
      *         mode).
      */
@@ -44,7 +44,7 @@ public interface IPseudoInventory {
 
     /**
      * Consumes a set of items.
-     * 
+     *
      * @return True when the items were successfully consumed.
      */
     public default boolean tryConsumeItems(ItemStack... items) {
@@ -53,13 +53,13 @@ public interface IPseudoInventory {
 
     public void givePlayerItems(List<BigItemStack> items);
 
-    public default void givePlayerItems(ItemStack... items)  {
+    public default void givePlayerItems(ItemStack... items) {
         givePlayerItems(MMUtils.mapToList(items, BigItemStack::new));
     }
 
     public void givePlayerFluids(List<BigFluidStack> fluids);
 
-    public default void givePlayerFluids(FluidStack... fluids)  {
+    public default void givePlayerFluids(FluidStack... fluids) {
         givePlayerFluids(MMUtils.mapToList(fluids, BigFluidStack::new));
     }
 }

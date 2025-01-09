@@ -4,9 +4,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
 
-import org.lwjgl.opengl.GL11;
-
 import com.gtnewhorizons.modularui.api.drawable.IDrawable;
+
+import org.lwjgl.opengl.GL11;
 
 /**
  * "borrowed" from angelica and adapted to MUI
@@ -44,17 +44,17 @@ public class DirectionDrawable implements IDrawable {
         GL11.glLineWidth(2.0F);
         tessellator.startDrawing(GL11.GL_LINES);
 
-        //X
+        // X
         tessellator.setColorRGBA(255, 0, 0, 255);
         tessellator.addVertex(0.0D, 0.0D, 0.0D);
         tessellator.addVertex(length, 0.0D, 0.0D);
 
-        //Z
+        // Z
         tessellator.setColorRGBA(75, 75, 255, 255);
         tessellator.addVertex(0.0D, 0.0D, 0.0D);
         tessellator.addVertex(0.0D, 0.0D, length);
 
-        //Y
+        // Y
         tessellator.setColorRGBA(0, 255, 0, 255);
         tessellator.addVertex(0.0D, 0.0D, 0.0D);
         tessellator.addVertex(0.0D, length, 0.0D);

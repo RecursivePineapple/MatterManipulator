@@ -1,24 +1,25 @@
 package com.recursive_pineapple.matter_manipulator.common.entities;
 
+import java.util.Iterator;
+
 import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
+
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
-
-import java.util.Iterator;
-
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 
 import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.registry.EntityRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+
+import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 
 public class EntityItemLarge extends EntityItem {
 
@@ -42,7 +43,8 @@ public class EntityItemLarge extends EntityItem {
             Mods.MatterManipulator.ID,
             64,
             3,
-            true);
+            true
+        );
     }
 
     @SideOnly(Side.CLIENT)
@@ -83,15 +85,11 @@ public class EntityItemLarge extends EntityItem {
     @Override
     public void onCollideWithPlayer(EntityPlayer player) {
         if (!this.worldObj.isRemote) {
-            if (this.delayBeforeCanPickup > 0) {
-                return;
-            }
+            if (this.delayBeforeCanPickup > 0) { return; }
 
             EntityItemPickupEvent event = new EntityItemPickupEvent(player, this);
 
-            if (MinecraftForge.EVENT_BUS.post(event)) {
-                return;
-            }
+            if (MinecraftForge.EVENT_BUS.post(event)) { return; }
 
             player.openContainer.detectAndSendChanges();
             player.inventoryContainer.detectAndSendChanges();
@@ -99,8 +97,10 @@ public class EntityItemLarge extends EntityItem {
             ItemStack itemstack = this.getEntityItem();
             int i = itemstack.stackSize;
 
-            if (this.delayBeforeCanPickup <= 0 && (func_145798_i() == null || lifespan - this.age <= 200
-                || func_145798_i().equals(player.getCommandSenderName()))) {
+            if (
+                this.delayBeforeCanPickup <= 0 &&
+                    (func_145798_i() == null || lifespan - this.age <= 200 || func_145798_i().equals(player.getCommandSenderName()))
+            ) {
                 player.inventory.addItemStackToInventory(itemstack);
 
                 if (i == itemstack.stackSize) {
@@ -117,7 +117,8 @@ public class EntityItemLarge extends EntityItem {
                     player,
                     "random.pop",
                     0.2F,
-                    ((this.rand.nextFloat() - this.rand.nextFloat()) * 0.7F + 1.0F) * 2.0F);
+                    ((this.rand.nextFloat() - this.rand.nextFloat()) * 0.7F + 1.0F) * 2.0F
+                );
 
                 // this just barely doesn't work, but it fixes the desync mostly so it's good enough
                 player.openContainer.detectAndSendChanges();
@@ -140,13 +141,9 @@ public class EntityItemLarge extends EntityItem {
         ItemStack ours = this.getEntityItem();
         ItemStack theirs = other.getEntityItem();
 
-        if (!MMUtils.areStacksBasicallyEqual(ours, theirs)) {
-            return false;
-        }
+        if (!MMUtils.areStacksBasicallyEqual(ours, theirs)) { return false; }
 
-        if (theirs.stackSize < ours.stackSize) {
-            return other.combineItems(this);
-        }
+        if (theirs.stackSize < ours.stackSize) { return other.combineItems(this); }
 
         theirs.stackSize += ours.stackSize;
         other.delayBeforeCanPickup = Math.max(other.delayBeforeCanPickup, this.delayBeforeCanPickup);
@@ -160,19 +157,16 @@ public class EntityItemLarge extends EntityItem {
     /**
      * Looks for other itemstacks nearby and tries to stack them together
      */
-    public void searchForOtherItemsNearbyCustom()
-    {
+    public void searchForOtherItemsNearbyCustom() {
         Iterator<EntityItemLarge> iterator = this.worldObj.getEntitiesWithinAABB(EntityItemLarge.class, this.boundingBox.expand(2D, 0.0D, 2D)).iterator();
 
-        while (iterator.hasNext())
-        {
+        while (iterator.hasNext()) {
             this.combineItems(iterator.next());
         }
 
         Iterator<EntityPlayer> iterator2 = this.worldObj.getEntitiesWithinAABB(EntityPlayer.class, this.boundingBox.expand(2D, 0.0D, 2D)).iterator();
 
-        while (iterator2.hasNext())
-        {
+        while (iterator2.hasNext()) {
             this.onCollideWithPlayer(iterator2.next());
         }
     }

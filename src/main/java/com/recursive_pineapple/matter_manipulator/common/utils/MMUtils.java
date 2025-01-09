@@ -65,11 +65,30 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.IFluidHandler;
 
-import org.joml.Vector3i;
+import cpw.mods.fml.relauncher.ReflectionHelper;
+
+import gregtech.api.GregTechAPI;
+import gregtech.api.interfaces.metatileentity.IConnectable;
+import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
+import gregtech.api.interfaces.tileentity.IHasInventory;
+import gregtech.api.metatileentity.BaseMetaTileEntity;
+import gregtech.common.blocks.BlockMachines;
+import gregtech.common.tileentities.machines.MTEHatchInputBusME;
+import gregtech.common.tileentities.machines.MTEHatchInputME;
+
+import appeng.api.implementations.items.IUpgradeModule;
+import appeng.api.implementations.parts.IPartCable;
+import appeng.api.parts.IPartHost;
+import appeng.api.parts.IPartItem;
+import appeng.api.parts.PartItemStack;
+import appeng.api.storage.ICellWorkbenchItem;
+import appeng.parts.automation.UpgradeInventory;
+import appeng.util.Platform;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -93,23 +112,8 @@ import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMSta
 import com.recursive_pineapple.matter_manipulator.common.networking.Messages;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
-import appeng.api.implementations.items.IUpgradeModule;
-import appeng.api.implementations.parts.IPartCable;
-import appeng.api.parts.IPartHost;
-import appeng.api.parts.IPartItem;
-import appeng.api.parts.PartItemStack;
-import appeng.api.storage.ICellWorkbenchItem;
-import appeng.parts.automation.UpgradeInventory;
-import appeng.util.Platform;
-import cpw.mods.fml.relauncher.ReflectionHelper;
-import gregtech.api.GregTechAPI;
-import gregtech.api.interfaces.metatileentity.IConnectable;
-import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
-import gregtech.api.interfaces.tileentity.IHasInventory;
-import gregtech.api.metatileentity.BaseMetaTileEntity;
-import gregtech.common.blocks.BlockMachines;
-import gregtech.common.tileentities.machines.MTEHatchInputBusME;
-import gregtech.common.tileentities.machines.MTEHatchInputME;
+import org.joml.Vector3i;
+
 import it.unimi.dsi.fastutil.Pair;
 
 public class MMUtils {
@@ -159,7 +163,7 @@ public class MMUtils {
     public static final String UNDERLINE = EnumChatFormatting.UNDERLINE.toString();
     public static final String ITALIC = EnumChatFormatting.ITALIC.toString();
     public static final String RESET = EnumChatFormatting.RESET.toString();
-    
+
     private MMUtils() {}
 
     public static int clamp(int val, int lo, int hi) {
@@ -240,8 +244,9 @@ public class MMUtils {
      * Gets the standard vanilla hit result for a player.
      */
     public static MovingObjectPosition getHitResult(EntityPlayer player, boolean includeLiquids) {
-        double reachDistance = player instanceof EntityPlayerMP mp ? mp.theItemInWorldManager.getBlockReachDistance()
-            : Minecraft.getMinecraft().playerController.getBlockReachDistance();
+        double reachDistance = player instanceof EntityPlayerMP mp ?
+            mp.theItemInWorldManager.getBlockReachDistance() :
+            Minecraft.getMinecraft().playerController.getBlockReachDistance();
 
         Vec3 posVec = Vec3.createVectorHelper(player.posX, player.posY + player.getEyeHeight(), player.posZ);
 
@@ -259,8 +264,9 @@ public class MMUtils {
      * Gets the 'location' that the player is looking at.
      */
     public static Vector3i getLookingAtLocation(EntityPlayer player) {
-        double reachDistance = player instanceof EntityPlayerMP mp ? mp.theItemInWorldManager.getBlockReachDistance()
-            : Minecraft.getMinecraft().playerController.getBlockReachDistance();
+        double reachDistance = player instanceof EntityPlayerMP mp ?
+            mp.theItemInWorldManager.getBlockReachDistance() :
+            Minecraft.getMinecraft().playerController.getBlockReachDistance();
 
         Vec3 posVec = Vec3.createVectorHelper(player.posX, player.posY + player.getEyeHeight(), player.posZ);
 
@@ -284,7 +290,8 @@ public class MMUtils {
             target = new Vector3i(
                 MathHelper.floor_double(modifiedPosVec.xCoord),
                 MathHelper.floor_double(modifiedPosVec.yCoord),
-                MathHelper.floor_double(modifiedPosVec.zCoord));
+                MathHelper.floor_double(modifiedPosVec.zCoord)
+            );
         }
 
         return target;
@@ -386,19 +393,19 @@ public class MMUtils {
 
     public static void sendErrorToPlayer(EntityPlayer aPlayer, String aChatMessage) {
         if (aPlayer instanceof EntityPlayerMP && aChatMessage != null) {
-            aPlayer.addChatComponentMessage(new ChatComponentText(EnumChatFormatting.RED + aChatMessage));
+            aPlayer.addChatComponentMessage(new ChatComponentText(RED + aChatMessage));
         }
     }
 
     public static void sendWarningToPlayer(EntityPlayer aPlayer, String aChatMessage) {
         if (aPlayer instanceof EntityPlayerMP && aChatMessage != null) {
-            aPlayer.addChatComponentMessage(new ChatComponentText(EnumChatFormatting.GOLD.toString() + aChatMessage));
+            aPlayer.addChatComponentMessage(new ChatComponentText(GOLD + aChatMessage));
         }
     }
 
     public static void sendInfoToPlayer(EntityPlayer aPlayer, String aChatMessage) {
         if (aPlayer instanceof EntityPlayerMP && aChatMessage != null) {
-            aPlayer.addChatComponentMessage(new ChatComponentText(EnumChatFormatting.GRAY.toString() + aChatMessage));
+            aPlayer.addChatComponentMessage(new ChatComponentText(GRAY + aChatMessage));
         }
     }
 
@@ -434,13 +441,8 @@ public class MMUtils {
     }
 
     public static EntityPlayer getPlayerById(UUID playerId) {
-        for (EntityPlayer player : MinecraftServer.getServer()
-            .getConfigurationManager().playerEntityList) {
-            if (player.getGameProfile()
-                .getId()
-                .equals(playerId)) {
-                return player;
-            }
+        for (EntityPlayer player : MinecraftServer.getServer().getConfigurationManager().playerEntityList) {
+            if (player.getGameProfile().getId().equals(playerId)) { return player; }
         }
 
         return null;
@@ -530,13 +532,15 @@ public class MMUtils {
 
     public static <S, T> List<T> mapToList(Collection<S> in, Function<S, T> mapper) {
         List<T> out = new ArrayList<>(in.size());
-        for (S s : in) out.add(mapper.apply(s));
+        for (S s : in)
+            out.add(mapper.apply(s));
         return out;
     }
 
     public static <S, T> List<T> mapToList(S[] in, Function<S, T> mapper) {
         List<T> out = new ArrayList<>(in.length);
-        for (S s : in) out.add(mapper.apply(s));
+        for (S s : in)
+            out.add(mapper.apply(s));
         return out;
     }
 
@@ -553,7 +557,8 @@ public class MMUtils {
 
     public static <S, T> T[] mapToArray(S[] in, IntFunction<T[]> ctor, Function<S, T> mapper) {
         T[] out = ctor.apply(in.length);
-        for (int i = 0; i < out.length; i++) out[i] = mapper.apply(in[i]);
+        for (int i = 0; i < out.length; i++)
+            out[i] = mapper.apply(in[i]);
         return out;
     }
 
@@ -584,18 +589,16 @@ public class MMUtils {
         int l = array.length;
 
         for (int i = 0; i < l; i++) {
-            if (array[i] == value) {
-                return i;
-            }
+            if (array[i] == value) { return i; }
         }
 
         return -1;
     }
-    
+
     public static <T> T getIndexSafe(T[] array, int index) {
         return array == null || index < 0 || index >= array.length ? null : array[index];
     }
-    
+
     public static <T> T getIndexSafe(List<T> list, int index) {
         return list == null || index < 0 || index >= list.size() ? null : list.get(index);
     }
@@ -606,7 +609,7 @@ public class MMUtils {
 
         return list.get(rng.nextInt(list.size()));
     }
-    
+
     /**
      * Empties all items in an inventory into a pseudo inventory.
      * Will reset/disassemble any items as necessary.
@@ -734,14 +737,19 @@ public class MMUtils {
 
     /**
      * Installs upgrades into an AE UpgradeInventory.
-     * 
+     *
      * @param pupgrades The list of upgrades to install.
-     * @param consume   When true, items will be pulled from the pseudo inventory.
-     * @param simulate  When true, the upgrade inventory won't be touched at all.
+     * @param consume When true, items will be pulled from the pseudo inventory.
+     * @param simulate When true, the upgrade inventory won't be touched at all.
      * @return True when successful.
      */
-    public static boolean installUpgrades(IPseudoInventory src, UpgradeInventory dest, PortableItemStack[] pupgrades,
-        boolean consume, boolean simulate) {
+    public static boolean installUpgrades(
+        IPseudoInventory src,
+        UpgradeInventory dest,
+        PortableItemStack[] pupgrades,
+        boolean consume,
+        boolean simulate
+    ) {
         List<ItemStack> stacks = mapToList(pupgrades, PortableItemStack::toStack);
 
         stacks.removeIf(i -> i == null || !(i.getItem() instanceof IUpgradeModule));
@@ -791,9 +799,7 @@ public class MMUtils {
      */
     @SuppressWarnings("unchecked")
     public static JsonElement toJsonObject(NBTBase nbt) {
-        if (nbt == null) {
-            return null;
-        }
+        if (nbt == null) { return null; }
 
         if (nbt instanceof NBTTagCompound) {
             // NBTTagCompound
@@ -869,39 +875,27 @@ public class MMUtils {
      * The opposite of {@link #toJsonObject(NBTBase)}
      */
     public static NBTBase toNbt(JsonElement jsonElement) {
-        if (jsonElement == null || jsonElement == JsonNull.INSTANCE) {
-            return null;
-        }
+        if (jsonElement == null || jsonElement == JsonNull.INSTANCE) { return null; }
 
         if (jsonElement instanceof JsonPrimitive) {
             final JsonPrimitive jsonPrimitive = (JsonPrimitive) jsonElement;
 
             if (jsonPrimitive.isNumber()) {
-                if (jsonPrimitive.getAsBigDecimal()
-                    .remainder(BigDecimal.ONE)
-                    .equals(BigDecimal.ZERO)) {
+                if (jsonPrimitive.getAsBigDecimal().remainder(BigDecimal.ONE).equals(BigDecimal.ZERO)) {
                     long lval = jsonPrimitive.getAsLong();
 
-                    if (lval >= Byte.MIN_VALUE && lval <= Byte.MAX_VALUE) {
-                        return new NBTTagByte((byte) lval);
-                    }
+                    if (lval >= Byte.MIN_VALUE && lval <= Byte.MAX_VALUE) { return new NBTTagByte((byte) lval); }
 
-                    if (lval >= Short.MIN_VALUE && lval <= Short.MAX_VALUE) {
-                        return new NBTTagShort((short) lval);
-                    }
+                    if (lval >= Short.MIN_VALUE && lval <= Short.MAX_VALUE) { return new NBTTagShort((short) lval); }
 
-                    if (lval >= Integer.MIN_VALUE && lval <= Integer.MAX_VALUE) {
-                        return new NBTTagInt((int) lval);
-                    }
+                    if (lval >= Integer.MIN_VALUE && lval <= Integer.MAX_VALUE) { return new NBTTagInt((int) lval); }
 
                     return new NBTTagLong(lval);
                 } else {
                     double dval = jsonPrimitive.getAsDouble();
                     float fval = (float) dval;
 
-                    if (Math.abs(dval - fval) < 0.0001) {
-                        return new NBTTagFloat(fval);
-                    }
+                    if (Math.abs(dval - fval) < 0.0001) { return new NBTTagFloat(fval); }
 
                     return new NBTTagDouble(dval);
                 }
@@ -931,16 +925,16 @@ public class MMUtils {
                 return new NBTTagIntArray(nbtList.stream().mapToInt(i -> ((NBTTagInt) i).func_150287_d()).toArray());
             } else if (type == Constants.NBT.TAG_BYTE) {
                 final byte[] abyte = new byte[nbtList.size()];
-    
+
                 for (int i = 0; i < nbtList.size(); i++) {
                     abyte[i] = ((NBTTagByte) nbtList.get(i)).func_150290_f();
                 }
-    
+
                 return new NBTTagByteArray(abyte);
             } else {
                 NBTTagList nbtTagList = new NBTTagList();
                 nbtList.forEach(nbtTagList::appendTag);
-    
+
                 return nbtTagList;
             }
             // spotless:on
@@ -965,9 +959,7 @@ public class MMUtils {
      */
     @SuppressWarnings("unchecked")
     public static JsonElement toJsonObjectExact(NBTBase nbt) {
-        if (nbt == null) {
-            return null;
-        }
+        if (nbt == null) { return null; }
 
         if (nbt instanceof NBTTagCompound) {
             final NBTTagCompound nbtTagCompound = (NBTTagCompound) nbt;
@@ -1026,9 +1018,7 @@ public class MMUtils {
      * The opposite of {@link #toJsonObjectExact(NBTBase)}
      */
     public static NBTBase toNbtExact(JsonElement jsonElement) throws JsonParseException {
-        if (jsonElement == null) {
-            return null;
-        }
+        if (jsonElement == null) { return null; }
 
         if (jsonElement instanceof JsonPrimitive primitive) {
             if (!primitive.isString()) throw new JsonParseException("expected json primitive to be string: '" + primitive + "'");
@@ -1110,39 +1100,41 @@ public class MMUtils {
     }
 
     public static boolean areStacksBasicallyEqual(ItemStack a, ItemStack b) {
-        if (a == null || b == null) {
-            return a == null && b == null;
-        }
+        if (a == null || b == null) { return a == null && b == null; }
 
-        return a.getItem() == b.getItem() && a.getItemDamage() == b.getItemDamage()
-            && ItemStack.areItemStackTagsEqual(a, b);
+        return a.getItem() == b.getItem() && a.getItemDamage() == b.getItemDamage() && ItemStack.areItemStackTagsEqual(a, b);
     }
 
     /**
      * The logic for creating a plan.
      * This really belongs in {@link Messages}, but I put it here so that it's hotswappable.
-     * 
+     *
      * @param player
      * @param state
      * @param manipulator
      * @param flags
      */
-    public static void createPlanImpl(EntityPlayer player, MMState state, ItemMatterManipulator manipulator,
-        int flags) {
+    public static void createPlanImpl(
+        EntityPlayer player,
+        MMState state,
+        ItemMatterManipulator manipulator,
+        int flags
+    ) {
         List<PendingBlock> blocks = state.getPendingBlocks(manipulator.tier, player.getEntityWorld());
         RequiredItemAnalysis itemAnalysis = BlockAnalyzer
             .getRequiredItemsForBuild(player, blocks, (flags & PLAN_ALL) != 0);
 
         List<BigItemStack> requiredItems = mapToList(
             itemAnalysis.requiredItems.entrySet(),
-            e -> new BigItemStack(e.getKey(), e.getValue()));
+            e -> new BigItemStack(e.getKey(), e.getValue())
+        );
 
         MMInventory inv = new MMInventory(player, state, manipulator.tier);
 
         Pair<Boolean, List<BigItemStack>> extractResult = inv.tryConsumeItems(
             requiredItems,
-            IPseudoInventory.CONSUME_SIMULATED | IPseudoInventory.CONSUME_PARTIAL
-                | IPseudoInventory.CONSUME_IGNORE_CREATIVE);
+            IPseudoInventory.CONSUME_SIMULATED | IPseudoInventory.CONSUME_PARTIAL | IPseudoInventory.CONSUME_IGNORE_CREATIVE
+        );
 
         List<BigItemStack> availableItems = extractResult.right() == null ? new ArrayList<>() : extractResult.right();
 
@@ -1161,22 +1153,24 @@ public class MMUtils {
                             "%s%s: %s%d%s (%s%d%s missing)",
                             stack.getItemStack()
                                 .getDisplayName(),
-                            EnumChatFormatting.GRAY.toString(),
-                            EnumChatFormatting.GOLD.toString(),
+                            GRAY,
+                            GOLD,
                             stack.getStackSize(),
-                            EnumChatFormatting.GRAY.toString(),
-                            EnumChatFormatting.RED.toString(),
+                            GRAY,
+                            RED,
                             stack.getStackSize() - available,
-                            EnumChatFormatting.GRAY.toString());
+                            GRAY
+                        );
                     } else {
                         return String.format(
                             "%s%s: %s%d%s",
                             stack.getItemStack()
                                 .getDisplayName(),
-                            EnumChatFormatting.GRAY.toString(),
-                            EnumChatFormatting.GOLD.toString(),
+                            GRAY,
+                            GOLD,
                             stack.getStackSize(),
-                            EnumChatFormatting.GRAY.toString());
+                            GRAY
+                        );
                     }
                 })
                 .sorted()
@@ -1211,7 +1205,8 @@ public class MMUtils {
                         player,
                         state.config.coordA.toString(),
                         requiredItems,
-                        (flags & PLAN_AUTO_SUBMIT) != 0);
+                        (flags & PLAN_AUTO_SUBMIT) != 0
+                    );
                 } else {
                     sendInfoToPlayer(player, "Not creating pattern because all required items are present.");
                 }
@@ -1290,9 +1285,7 @@ public class MMUtils {
     @Optional(Names.GREG_TECH)
     public static boolean isGTCable(ImmutableBlockSpec spec) {
         if (spec.getBlock() instanceof BlockMachines) {
-            if (getIndexSafe(GregTechAPI.METATILEENTITIES, spec.getMeta()) instanceof IConnectable) {
-                return true;
-            }
+            if (getIndexSafe(GregTechAPI.METATILEENTITIES, spec.getMeta()) instanceof IConnectable) { return true; }
         }
 
         return false;
@@ -1308,9 +1301,7 @@ public class MMUtils {
     @Optional(Names.APPLIED_ENERGISTICS2)
     public static boolean isAECable(Item item, int metadata) {
         if (item instanceof IPartItem partItem) {
-            if (partItem.createPartFromItemStack(new ItemStack(item, 1, metadata)) instanceof IPartCable) {
-                return true;
-            }
+            if (partItem.createPartFromItemStack(new ItemStack(item, 1, metadata)) instanceof IPartCable) { return true; }
         }
 
         return false;

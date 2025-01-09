@@ -7,6 +7,7 @@ import java.util.EnumMap;
 import net.minecraftforge.common.util.ForgeDirection;
 
 public enum Orientation {
+
     NONE(UNKNOWN, UNKNOWN),
     DOWN_DOWN(DOWN, DOWN),
     UP_DOWN(UP, DOWN),

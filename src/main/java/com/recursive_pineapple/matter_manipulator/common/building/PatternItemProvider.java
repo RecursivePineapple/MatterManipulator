@@ -3,10 +3,10 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
-import org.jetbrains.annotations.Nullable;
-
 import appeng.api.AEApi;
 import appeng.api.definitions.IItemDefinition;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An item provider that creates encoded AE patterns from blank patterns.
@@ -28,9 +28,7 @@ public class PatternItemProvider implements IItemProvider {
     public PatternItemProvider() {}
 
     public static PatternItemProvider fromPattern(ItemStack stack) {
-        if (!PATTERN.isSameAs(stack)) {
-            return null;
-        }
+        if (!PATTERN.isSameAs(stack)) { return null; }
 
         PatternItemProvider pattern = new PatternItemProvider();
 
@@ -52,9 +50,7 @@ public class PatternItemProvider implements IItemProvider {
             if (!inv.tryConsumeItems(stack)) {
                 ItemStack toConsume = BLANK_PATTERN.maybeStack(amount == null ? 1 : amount)
                     .get();
-                if (!inv.tryConsumeItems(toConsume)) {
-                    return null;
-                }
+                if (!inv.tryConsumeItems(toConsume)) { return null; }
             }
         }
 

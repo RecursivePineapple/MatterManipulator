@@ -8,15 +8,15 @@ import static net.minecraftforge.common.util.ForgeDirection.UNKNOWN;
 import static net.minecraftforge.common.util.ForgeDirection.UP;
 import static net.minecraftforge.common.util.ForgeDirection.WEST;
 
-import org.joml.Matrix4f;
-import org.joml.Vector3f;
-import org.joml.Vector3i;
+import net.minecraftforge.common.util.ForgeDirection;
 
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMConfig.VoxelAABB;
 import com.recursive_pineapple.matter_manipulator.common.networking.Messages;
 
-import net.minecraftforge.common.util.ForgeDirection;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
+import org.joml.Vector3i;
 
 /**
  * Represents the rotation and flipping.
@@ -91,8 +91,8 @@ public class Transform {
 
     /**
      * Rotates this transform.
-     * 
-     * @param dir    The axis to rotate around
+     *
+     * @param dir The axis to rotate around
      * @param amount The amount to rotate (1 = 90 degrees)
      */
     public void rotate(ForgeDirection dir, int amount) {
@@ -181,13 +181,11 @@ public class Transform {
 
         Matrix4f flip = new Matrix4f();
 
-        if (facing.getFlip()
-            .isHorizontallyFlipped()) {
+        if (facing.getFlip().isHorizontallyFlipped()) {
             flip.scale(-1, 1, 1);
         }
 
-        if (facing.getFlip()
-            .isVerticallyFliped()) {
+        if (facing.getFlip().isVerticallyFliped()) {
             flip.scale(1, -1, 1);
         }
 
@@ -207,8 +205,7 @@ public class Transform {
         for (ExtendedFacing candidate : ExtendedFacing.getAllWith(forward)) {
             if (candidate.getRelativeLeftInWorld() != left) continue;
             if (candidate.getRelativeDownInWorld() != down) continue;
-            if (candidate.getFlip()
-                .isVerticallyFliped()) continue;
+            if (candidate.getFlip().isVerticallyFliped()) continue;
 
             return candidate;
         }

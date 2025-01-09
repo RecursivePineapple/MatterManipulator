@@ -5,15 +5,18 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.ToIntFunction;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import com.recursive_pineapple.matter_manipulator.common.structure.StructureWrapper.CasingInfo;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import net.minecraft.client.resources.I18n;
 
 import gregtech.api.enums.HatchElement;
 import gregtech.api.interfaces.IHatchElement;
 import gregtech.api.metatileentity.implementations.MTEEnhancedMultiBlockBase;
 import gregtech.api.util.MultiblockTooltipBuilder;
+
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.recursive_pineapple.matter_manipulator.common.structure.StructureWrapper.CasingInfo;
+import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.chars.CharArrayList;
 import it.unimi.dsi.fastutil.chars.CharComparator;
@@ -22,14 +25,14 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntArraySet;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.ObjectArraySet;
-import net.minecraft.client.resources.I18n;
 import tectech.thing.metaTileEntity.multi.base.TTMultiblockBase;
 
 public class MultiblockTooltipBuilder2<MTE extends MTEEnhancedMultiBlockBase<?> & IStructureProvider<MTE>> extends MultiblockTooltipBuilder {
-    
+
     public final StructureWrapper<MTE> structure;
 
-    private final Object2ObjectArrayMap<IHatchElement<? super MTE>, String> hatchNameOverrides = new Object2ObjectArrayMap<>(), hatchInfoOverrides = new Object2ObjectArrayMap<>();
+    private final Object2ObjectArrayMap<IHatchElement<? super MTE>, String> hatchNameOverrides = new Object2ObjectArrayMap<>();
+    private final Object2ObjectArrayMap<IHatchElement<? super MTE>, String> hatchInfoOverrides = new Object2ObjectArrayMap<>();
     private final List<IHatchElement<? super MTE>> hatchOrder = new ArrayList<>();
     private boolean hasMultiampHatches = false, printMultiampSupport = true;
 
@@ -41,12 +44,12 @@ public class MultiblockTooltipBuilder2<MTE extends MTEEnhancedMultiBlockBase<?> 
         super.beginStructureBlock(structure.size.x, structure.size.y, structure.size.z, hollow);
         return this;
     }
-    
+
     public MultiblockTooltipBuilder2<MTE> beginStructureBlock() {
         super.beginStructureBlock(structure.size.x, structure.size.y, structure.size.z, false);
         return this;
     }
-    
+
     public MultiblockTooltipBuilder2<MTE> addCasing(ICasing casing) {
         structure.addCasingInfoAuto(this, casing);
         return this;
@@ -173,7 +176,7 @@ public class MultiblockTooltipBuilder2<MTE extends MTEEnhancedMultiBlockBase<?> 
                     return Integer.compare(i1, i2);
                 }
             };
-    
+
             casings.sort(comparator);
         } else {
             casings.sort(null);
@@ -219,7 +222,8 @@ public class MultiblockTooltipBuilder2<MTE extends MTEEnhancedMultiBlockBase<?> 
                 }
             };
 
-            Comparator<Pair<ICasing, IHatchElement<? super MTE>>> customComparator = Comparator.nullsFirst(Comparator.comparing(p -> hatchNameOverrides.get(p.right())));
+            Comparator<Pair<ICasing, IHatchElement<? super MTE>>> customComparator = Comparator
+                .nullsFirst(Comparator.comparing(p -> hatchNameOverrides.get(p.right())));
 
             hatchesSorted.sort(Comparator.comparingInt(comparator).thenComparing(customComparator));
         }

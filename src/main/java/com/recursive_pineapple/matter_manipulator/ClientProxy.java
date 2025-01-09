@@ -1,11 +1,12 @@
 package com.recursive_pineapple.matter_manipulator;
 
-import com.recursive_pineapple.matter_manipulator.common.entities.EntityItemLarge;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
+import net.minecraft.entity.player.EntityPlayer;
 
 import cpw.mods.fml.client.FMLClientHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
-import net.minecraft.entity.player.EntityPlayer;
+
+import com.recursive_pineapple.matter_manipulator.common.entities.EntityItemLarge;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
 
 public class ClientProxy extends CommonProxy {
 

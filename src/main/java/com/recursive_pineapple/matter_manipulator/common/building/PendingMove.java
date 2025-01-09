@@ -5,15 +5,6 @@ import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.se
 import java.util.ArrayList;
 import java.util.List;
 
-import com.recursive_pineapple.matter_manipulator.asm.Optional;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
-import com.recursive_pineapple.matter_manipulator.common.networking.SoundResource;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
-
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -21,12 +12,23 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
+
 import net.minecraftforge.common.MinecraftForge;
 
-import WayofTime.alchemicalWizardry.api.event.TeleposeEvent;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.interfaces.tileentity.IIC2Enet;
 import gregtech.api.metatileentity.BaseMetaTileEntity;
+
+import com.recursive_pineapple.matter_manipulator.asm.Optional;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
+import com.recursive_pineapple.matter_manipulator.common.networking.SoundResource;
+import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
+
+import WayofTime.alchemicalWizardry.api.event.TeleposeEvent;
 import it.unimi.dsi.fastutil.Pair;
 
 /**
@@ -71,7 +73,8 @@ public class PendingMove extends AbstractBuildable {
             if (source.getBlock().getBlockHardness(world, s.x, s.y, s.z) < 0) {
                 MMUtils.sendErrorToPlayer(
                     player,
-                    String.format("Could not move invulnerable source block X=%d, Y=%d, Z=%d", s.x, s.y, s.z));
+                    String.format("Could not move invulnerable source block X=%d, Y=%d, Z=%d", s.x, s.y, s.z)
+                );
                 continue;
             }
 
@@ -89,7 +92,8 @@ public class PendingMove extends AbstractBuildable {
             if (!canPlace) {
                 MMUtils.sendErrorToPlayer(
                     player,
-                    String.format("Destination was blocked for source block X=%d, Y=%d, Z=%d", d.x, d.y, d.z));
+                    String.format("Destination was blocked for source block X=%d, Y=%d, Z=%d", d.x, d.y, d.z)
+                );
                 continue;
             }
 
@@ -117,7 +121,8 @@ public class PendingMove extends AbstractBuildable {
             if (!swapBlocks(world, s, source, d, target)) {
                 MMUtils.sendErrorToPlayer(
                     player,
-                    String.format("Could not move block X=%d, Y=%d, Z=%d: %s", s.x, s.y, s.z, source.getDisplayName()));
+                    String.format("Could not move block X=%d, Y=%d, Z=%d: %s", s.x, s.y, s.z, source.getDisplayName())
+                );
             }
 
             playSound(world, s.x, s.y, s.z, SoundResource.MOB_ENDERMEN_PORTAL);
@@ -139,7 +144,7 @@ public class PendingMove extends AbstractBuildable {
 
     @Override
     public void onStopped() {
-        
+
     }
 
     private void initMoves() {
@@ -175,7 +180,9 @@ public class PendingMove extends AbstractBuildable {
                     moves.add(
                         Pair.of(
                             new Location(worldId, x, y, z),
-                            new Location(worldId, dest.x + dX, dest.y + dY, dest.z + dZ)));
+                            new Location(worldId, dest.x + dX, dest.y + dY, dest.z + dZ)
+                        )
+                    );
                 }
             }
         }
@@ -211,17 +218,13 @@ public class PendingMove extends AbstractBuildable {
         Block blockI = worldI.getBlock(xi, yi, zi);
         Block blockF = worldF.getBlock(xf, yf, zf);
 
-        if (blockI.equals(Blocks.air) && blockF.equals(Blocks.air)) {
-            return false;
-        }
+        if (blockI.equals(Blocks.air) && blockF.equals(Blocks.air)) { return false; }
 
         int metaI = worldI.getBlockMetadata(xi, yi, zi);
         int metaF = worldF.getBlockMetadata(xf, yf, zf);
 
         if (Mods.BloodMagic.isModLoaded()) {
-            if (!allowTelepose(worldI, worldF, s, spec1, d, spec2)) {
-                return false;
-            }
+            if (!allowTelepose(worldI, worldF, s, spec1, d, spec2)) { return false; }
         }
 
         // CLEAR TILES
@@ -264,11 +267,10 @@ public class PendingMove extends AbstractBuildable {
             newTileEntityF.zCoord = zi;
 
             if (Mods.GregTech.isModLoaded()) {
-                if (newTileEntityF instanceof IGregTechTileEntity igte
-                    && igte.getMetaTileEntity() instanceof BaseMetaTileEntity bmte) {
+                if (newTileEntityF instanceof IGregTechTileEntity igte && igte.getMetaTileEntity() instanceof BaseMetaTileEntity bmte) {
                     bmte.setCableUpdateDelay(100);
                 }
-    
+
                 if (newTileEntityF instanceof IIC2Enet enet) {
                     enet.doEnetUpdate();
                 }
@@ -292,7 +294,8 @@ public class PendingMove extends AbstractBuildable {
             d.y,
             d.z,
             spec2.getBlock(),
-            spec2.getBlockMeta());
+            spec2.getBlockMeta()
+        );
         if (MinecraftForge.EVENT_BUS.post(evt)) return false;
         return true;
     }

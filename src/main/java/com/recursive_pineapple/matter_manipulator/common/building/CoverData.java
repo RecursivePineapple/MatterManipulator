@@ -23,7 +23,7 @@ public class CoverData {
     public transient CoverBehaviorBase<?> behaviour;
     public transient ISerializableObject coverDataObject;
 
-    public CoverData() { }
+    public CoverData() {}
 
     public CoverData(PortableItemStack cover, NBTBase coverData, int tickRateAddition) {
         this.cover = cover;
@@ -39,8 +39,7 @@ public class CoverData {
         if (coverID == null) {
             ItemStack stack = getCover();
 
-            coverID = (Item.getIdFromItem(stack.getItem()) & 0xFFFF)
-                | ((Items.feather.getDamage(stack) & 0xFFFF) << 16);
+            coverID = (Item.getIdFromItem(stack.getItem()) & 0xFFFF) | ((Items.feather.getDamage(stack) & 0xFFFF) << 16);
         }
 
         return coverID;
@@ -70,13 +69,13 @@ public class CoverData {
         dup.coverData = coverData.copy();
         dup.tickRateAddition = tickRateAddition;
         dup.coverID = coverID;
-        
+
         return dup;
     }
 
     /**
      * Converts a CoverInfo into a CoverData.
-     * 
+     *
      * @return The CoverData, or null if there's no cover.
      */
     public static CoverData fromInfo(CoverInfo info) {
@@ -91,7 +90,8 @@ public class CoverData {
             new PortableItemStack(item, metadata),
             info.getCoverData()
                 .saveDataToNBT(),
-            info.getTickRateAddition());
+            info.getTickRateAddition()
+        );
     }
 
     @Override

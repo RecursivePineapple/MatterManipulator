@@ -2,6 +2,11 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 
 import java.util.List;
 
+import net.minecraft.block.Block;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
+
 import com.google.gson.annotations.SerializedName;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
@@ -12,10 +17,6 @@ import gcewing.architecture.common.tile.TileShape;
 import gcewing.architecture.compat.BlockCompatUtils;
 import gcewing.architecture.compat.IBlockState;
 import gcewing.architecture.compat.MetaBlockState;
-import net.minecraft.block.Block;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
 
 public class ArchitectureCraftAnalysisResult implements ITileAnalysisIntegration {
 
@@ -33,10 +34,14 @@ public class ArchitectureCraftAnalysisResult implements ITileAnalysisIntegration
 
         result.shape = tileShape.shape.id;
 
-        result.material = new PortableItemStack(new ItemStack(tileShape.baseBlockState.getBlock(), 0, BlockCompatUtils.getMetaFromBlockState(tileShape.baseBlockState)));
+        result.material = new PortableItemStack(
+            new ItemStack(tileShape.baseBlockState.getBlock(), 0, BlockCompatUtils.getMetaFromBlockState(tileShape.baseBlockState))
+        );
 
         if (tileShape.secondaryBlockState != null) {
-            result.cladding = new PortableItemStack(new ItemStack(tileShape.secondaryBlockState.getBlock(), 0, BlockCompatUtils.getMetaFromBlockState(tileShape.secondaryBlockState)));
+            result.cladding = new PortableItemStack(
+                new ItemStack(tileShape.secondaryBlockState.getBlock(), 0, BlockCompatUtils.getMetaFromBlockState(tileShape.secondaryBlockState))
+            );
         }
 
         return result;
@@ -52,9 +57,7 @@ public class ArchitectureCraftAnalysisResult implements ITileAnalysisIntegration
             }
 
             if (cladding != null) {
-                if (!addCladding(ctx, tileShape, false)) {
-                    return false;
-                }
+                if (!addCladding(ctx, tileShape, false)) { return false; }
             }
 
             tileShape.markChanged();
@@ -71,9 +74,7 @@ public class ArchitectureCraftAnalysisResult implements ITileAnalysisIntegration
 
         if (te instanceof TileShape tileShape) {
             removeCladding(context, tileShape, true);
-            if (!addCladding(context, tileShape, true)) {
-                return false;
-            }
+            if (!addCladding(context, tileShape, true)) { return false; }
 
             return true;
         }
@@ -142,7 +143,7 @@ public class ArchitectureCraftAnalysisResult implements ITileAnalysisIntegration
         if (shape != null) details.add(shape.title);
 
         ItemStack stack = material == null ? null : material.toStack();
-        
+
         if (stack != null) details.add(stack.getDisplayName());
     }
 
@@ -190,7 +191,11 @@ public class ArchitectureCraftAnalysisResult implements ITileAnalysisIntegration
 
     @Override
     public String toString() {
-        return "ArchitectureCraftAnalysisResult [shape=" + shape + ", material=" + material + ", cladding=" + cladding
-                + "]";
+        return "ArchitectureCraftAnalysisResult [shape=" + shape
+            + ", material="
+            + material
+            + ", cladding="
+            + cladding
+            + "]";
     }
 }

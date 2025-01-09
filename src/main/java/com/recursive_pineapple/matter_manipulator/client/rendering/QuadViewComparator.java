@@ -2,9 +2,9 @@ package com.recursive_pineapple.matter_manipulator.client.rendering;
 
 import java.util.Comparator;
 
-import org.joml.Vector3f;
-
 import com.gtnewhorizon.gtnhlib.client.renderer.quad.QuadView;
+
+import org.joml.Vector3f;
 
 /**
  * Sorts QuadViews according to their distance from the player.

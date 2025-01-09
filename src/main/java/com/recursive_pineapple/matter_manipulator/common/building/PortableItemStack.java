@@ -6,10 +6,10 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
-import com.google.gson.annotations.SerializedName;
-
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
+
+import com.google.gson.annotations.SerializedName;
 
 /**
  * An item stack that can be moved between worlds without id shifting.
@@ -59,9 +59,7 @@ public class PortableItemStack implements IItemProvider {
 
     public static PortableItemStack withNBT(ItemStack stack) {
         PortableItemStack portable = new PortableItemStack(stack);
-        portable.nbt = stack.getTagCompound() == null ? null
-            : (NBTTagCompound) stack.getTagCompound()
-                .copy();
+        portable.nbt = stack.getTagCompound() == null ? null : (NBTTagCompound) stack.getTagCompound().copy();
         return portable;
     }
 
@@ -86,7 +84,8 @@ public class PortableItemStack implements IItemProvider {
             itemStack = new ItemStack(
                 item,
                 amount == null ? 1 : amount,
-                metadata == null ? 0 : metadata);
+                metadata == null ? 0 : metadata
+            );
 
             if (nbt != null) {
                 itemStack.setTagCompound((NBTTagCompound) nbt.copy());
@@ -108,13 +107,9 @@ public class PortableItemStack implements IItemProvider {
     public ItemStack getStack(IPseudoInventory inv, boolean consume) {
         ItemStack stack = toStack();
 
-        if (!consume) {
-            return stack;
-        }
+        if (!consume) { return stack; }
 
-        if (!inv.tryConsumeItems(stack)) {
-            return null;
-        }
+        if (!inv.tryConsumeItems(stack)) { return null; }
 
         return stack;
     }

@@ -1,8 +1,5 @@
 package com.recursive_pineapple.matter_manipulator;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.SidedProxy;
@@ -14,6 +11,9 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import cpw.mods.fml.common.registry.GameRegistry.Type;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 @Mod(modid = MMMod.MODID, version = Tags.VERSION, name = "Matter Manipulator", acceptedMinecraftVersions = "[1.7.10]")
 public class MMMod {
 
@@ -22,7 +22,8 @@ public class MMMod {
 
     @SidedProxy(
         clientSide = "com.recursive_pineapple.matter_manipulator.ClientProxy",
-        serverSide = "com.recursive_pineapple.matter_manipulator.CommonProxy")
+        serverSide = "com.recursive_pineapple.matter_manipulator.CommonProxy"
+    )
     public static CommonProxy proxy;
 
     @Mod.EventHandler

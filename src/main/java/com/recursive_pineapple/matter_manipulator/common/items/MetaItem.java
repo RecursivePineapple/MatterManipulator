@@ -4,15 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
-
-import cpw.mods.fml.common.Optional.Method;
-import cpw.mods.fml.common.registry.GameRegistry;
-import cpw.mods.fml.relauncher.ReflectionHelper;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-import gregtech.client.GTTooltipHandler;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
@@ -20,8 +11,19 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
 
+import cpw.mods.fml.common.Optional.Method;
+import cpw.mods.fml.common.registry.GameRegistry;
+import cpw.mods.fml.relauncher.ReflectionHelper;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
+import gregtech.client.GTTooltipHandler;
+
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
+
 public class MetaItem extends Item {
-    
+
     public final String name;
 
     public final IIcon[] icons;
@@ -32,7 +34,7 @@ public class MetaItem extends Item {
 
         setHasSubtypes(true);
         setMaxDamage(0);
-        
+
         GameRegistry.registerItem(this, name);
 
         int max = Arrays.stream(IDMetaItem.values()).mapToInt(x -> x.ID).max().getAsInt();
@@ -74,7 +76,7 @@ public class MetaItem extends Item {
     }
 
     private static String getItemTier(IDMetaItem metaItem) {
-        return switch(metaItem) {
+        return switch (metaItem) {
             case PowerCore0 -> Tier.HV.tooltip.get();
             case ComputerCore0 -> Tier.HV.tooltip.get();
             case TeleporterCore0 -> Tier.HV.tooltip.get();
@@ -115,6 +117,7 @@ public class MetaItem extends Item {
     }
 
     private enum Tier {
+
         ULV,
         LV,
         MV,

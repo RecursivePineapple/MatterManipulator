@@ -12,16 +12,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 
-import com.google.gson.annotations.SerializedName;
-import com.recursive_pineapple.matter_manipulator.common.compat.BlockProperty;
-import com.recursive_pineapple.matter_manipulator.common.compat.BlockPropertyRegistry;
-import com.recursive_pineapple.matter_manipulator.common.utils.ItemId;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
-
-import cpw.mods.fml.common.registry.GameRegistry;
-import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -33,8 +23,19 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import net.minecraft.world.World;
 
+import cpw.mods.fml.common.registry.GameRegistry;
+import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
+
+import com.google.gson.annotations.SerializedName;
+import com.recursive_pineapple.matter_manipulator.common.compat.BlockProperty;
+import com.recursive_pineapple.matter_manipulator.common.compat.BlockPropertyRegistry;
+import com.recursive_pineapple.matter_manipulator.common.utils.ItemId;
+import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
+
 public class BlockSpec implements ImmutableBlockSpec {
-    
+
     public static final UniqueIdentifier AIR_ID = new UniqueIdentifier("minecraft:air");
 
     @SerializedName("b")
@@ -148,7 +149,7 @@ public class BlockSpec implements ImmutableBlockSpec {
                 itemId = Optional.of(ItemId.create(item.get(), metadata, null));
             } else {
                 itemId = Optional.empty();
-            }    
+            }
         }
 
         return itemId.orElse(null);
@@ -164,7 +165,8 @@ public class BlockSpec implements ImmutableBlockSpec {
         return getItem() == null ? 0 : getItem().getMetadata(getMeta());
     }
 
-    private static final MethodHandle CREATE_STACKED_BLOCK = MMUtils.exposeMethod(Block.class, MethodType.methodType(ItemStack.class, int.class), "createStackedBlock", "func_149644_j", "j");
+    private static final MethodHandle CREATE_STACKED_BLOCK = MMUtils
+        .exposeMethod(Block.class, MethodType.methodType(ItemStack.class, int.class), "createStackedBlock", "func_149644_j", "j");
 
     @Override
     public ItemStack getStack() {
@@ -178,15 +180,15 @@ public class BlockSpec implements ImmutableBlockSpec {
                     throw new RuntimeException("Could not invoke " + CREATE_STACKED_BLOCK, t);
                 }
             }
-    
+
             if (stack == null || stack.getItem() == null) {
                 Item item = getItem();
-    
+
                 if (item == null) {
                     this.stack = Optional.empty();
                     return null;
                 }
-    
+
                 if (item.getHasSubtypes()) {
                     stack = new ItemStack(item, 1, metadata);
                 } else {
@@ -202,7 +204,7 @@ public class BlockSpec implements ImmutableBlockSpec {
 
             if (this.stack.isPresent()) {
                 NBTTagCompound tag = new NBTTagCompound();
-                
+
                 if (arch != null) arch.getItemTag(tag);
 
                 this.stack.get().setTagCompound(tag.hasNoTags() ? null : tag);
@@ -251,7 +253,7 @@ public class BlockSpec implements ImmutableBlockSpec {
         if (Objects.equals(properties, this.properties)) return this;
 
         BlockSpec spec = clone();
-        
+
         spec.properties = properties == null || properties.isEmpty() ? null : new EnumMap<>(properties);
 
         return spec;
@@ -303,9 +305,24 @@ public class BlockSpec implements ImmutableBlockSpec {
 
     @Override
     public String toString() {
-        return "BlockSpec [isBlock=" + isBlock + ", objectId=" + objectId + ", metadata=" + metadata + ", properties="
-                + properties + ", arch=" + arch + ", block=" + block + ", item=" + item + ", itemId=" + itemId
-                + ", stack=" + stack + "]";
+        return "BlockSpec [isBlock=" + isBlock
+            + ", objectId="
+            + objectId
+            + ", metadata="
+            + metadata
+            + ", properties="
+            + properties
+            + ", arch="
+            + arch
+            + ", block="
+            + block
+            + ", item="
+            + item
+            + ", itemId="
+            + itemId
+            + ", stack="
+            + stack
+            + "]";
     }
 
     public static boolean contains(Collection<BlockSpec> specs, BlockSpec spec) {
@@ -337,9 +354,7 @@ public class BlockSpec implements ImmutableBlockSpec {
     public static BlockSpec fromBlock(BlockSpec pooled, World world, int x, int y, int z, Block block, int blockMeta) {
         Item item = MMUtils.getItemFromBlock(block, blockMeta);
 
-        if (item == null) {
-            return new BlockSpec().setObject(Blocks.air, 0);
-        }
+        if (item == null) { return new BlockSpec().setObject(Blocks.air, 0); }
 
         if (block != Blocks.wall_sign && block != Blocks.standing_sign) {
             block = MMUtils.getBlockFromItem(item, item.getMetadata(blockMeta));
@@ -367,7 +382,7 @@ public class BlockSpec implements ImmutableBlockSpec {
 
             for (CopyableProperty name : CopyableProperty.VALUES) {
                 BlockProperty<?> property = properties.get(name.toString());
-    
+
                 if (property == null) continue;
 
                 values.put(name, property.getValueAsString(world, x, y, z));

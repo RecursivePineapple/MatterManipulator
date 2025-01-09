@@ -44,23 +44,37 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
+
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
-import org.joml.Vector3d;
-import org.joml.Vector3f;
-import org.joml.Vector3i;
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.opengl.GL11;
+import cpw.mods.fml.client.registry.ClientRegistry;
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.Optional.Interface;
+import cpw.mods.fml.common.Optional.InterfaceList;
+import cpw.mods.fml.common.eventhandler.EventPriority;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.InputEvent;
+import cpw.mods.fml.common.gameevent.PlayerEvent;
+import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
+import cpw.mods.fml.common.registry.GameRegistry;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
+import appeng.api.features.INetworkEncodable;
 
 import com.google.common.collect.MapMaker;
 import com.gtnewhorizon.gtnhlib.util.AboveHotbarHUD;
 import com.gtnewhorizon.structurelib.StructureLibAPI;
 import com.gtnewhorizon.structurelib.entity.fx.WeightlessParticleFX;
 import com.gtnewhorizons.modularui.api.UIInfos;
+import com.gtnewhorizons.modularui.api.drawable.AdaptableUITexture;
+import com.gtnewhorizons.modularui.api.drawable.IDrawable;
+import com.gtnewhorizons.modularui.api.drawable.OffsetDrawable;
+import com.gtnewhorizons.modularui.api.drawable.shapes.Rectangle;
 import com.gtnewhorizons.modularui.api.math.Alignment;
 import com.gtnewhorizons.modularui.api.math.Color;
 import com.gtnewhorizons.modularui.api.math.CrossAxisAlignment;
@@ -81,13 +95,9 @@ import com.gtnewhorizons.modularui.common.widget.Row;
 import com.gtnewhorizons.modularui.common.widget.TextWidget;
 import com.gtnewhorizons.modularui.common.widget.VanillaButtonWidget;
 import com.gtnewhorizons.modularui.common.widget.textfield.NumericWidget;
-import com.gtnewhorizons.modularui.api.drawable.AdaptableUITexture;
-import com.gtnewhorizons.modularui.api.drawable.IDrawable;
-import com.gtnewhorizons.modularui.api.drawable.OffsetDrawable;
-import com.gtnewhorizons.modularui.api.drawable.shapes.Rectangle;
-import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.InteractionConfig;
 import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.RenderingConfig;
+import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.client.gui.DirectionDrawable;
 import com.recursive_pineapple.matter_manipulator.client.gui.RadialMenuBuilder;
 import com.recursive_pineapple.matter_manipulator.client.rendering.BoxRenderer;
@@ -97,21 +107,6 @@ import com.recursive_pineapple.matter_manipulator.common.building.PendingBlock;
 import com.recursive_pineapple.matter_manipulator.common.building.PendingBuild;
 import com.recursive_pineapple.matter_manipulator.common.building.PendingMove;
 import com.recursive_pineapple.matter_manipulator.common.data.WeightedSpecList;
-
-import appeng.api.features.INetworkEncodable;
-import cpw.mods.fml.client.registry.ClientRegistry;
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.Optional.Interface;
-import cpw.mods.fml.common.Optional.InterfaceList;
-import cpw.mods.fml.common.eventhandler.EventPriority;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.InputEvent;
-import cpw.mods.fml.common.gameevent.PlayerEvent;
-import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
-import cpw.mods.fml.common.registry.GameRegistry;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMConfig.VoxelAABB;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.BlockRemoveMode;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.BlockSelectMode;
@@ -123,6 +118,12 @@ import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
+import org.joml.Vector3d;
+import org.joml.Vector3f;
+import org.joml.Vector3i;
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.opengl.GL11;
+
 import ic2.api.item.IElectricItemManager;
 import ic2.api.item.ISpecialElectricItem;
 
@@ -131,8 +132,7 @@ import ic2.api.item.ISpecialElectricItem;
     @Interface(modid = Names.INDUSTRIAL_CRAFT2, iface = "ic2.api.item.ISpecialElectricItem"),
     @Interface(modid = Names.INDUSTRIAL_CRAFT2, iface = "ic2.api.item.IElectricItemManager"),
 })
-public class ItemMatterManipulator extends Item
-    implements ISpecialElectricItem, IElectricItemManager, INetworkEncodable {
+public class ItemMatterManipulator extends Item implements ISpecialElectricItem, IElectricItemManager, INetworkEncodable {
 
     public final ManipulatorTier tier;
 
@@ -155,8 +155,7 @@ public class ItemMatterManipulator extends Item
             .bus()
             .register(this);
 
-        if (FMLCommonHandler.instance()
-            .getSide() == Side.CLIENT) {
+        if (FMLCommonHandler.instance().getSide() == Side.CLIENT) {
             renderer = new MatterManipulatorRenderer();
         }
     }
@@ -190,8 +189,14 @@ public class ItemMatterManipulator extends Item
         public final double maxCharge;
         public final int capabilities;
 
-        private ManipulatorTier(int maxRange, int placeSpeed, int placeTicks, int voltageTier, double maxCharge,
-            int capabilities) {
+        private ManipulatorTier(
+            int maxRange,
+            int placeSpeed,
+            int placeTicks,
+            int voltageTier,
+            double maxCharge,
+            int capabilities
+        ) {
             this.maxRange = maxRange;
             this.placeSpeed = placeSpeed;
             this.placeTicks = placeTicks;
@@ -243,8 +248,13 @@ public class ItemMatterManipulator extends Item
     }
 
     @Override
-    public final double charge(ItemStack stack, double toCharge, int voltageTier, boolean ignoreTransferLimit,
-        boolean simulate) {
+    public final double charge(
+        ItemStack stack,
+        double toCharge,
+        int voltageTier,
+        boolean ignoreTransferLimit,
+        boolean simulate
+    ) {
         NBTTagCompound tag = getOrCreateNbtData(stack);
 
         double maxTransfer = ignoreTransferLimit ? toCharge : Math.min(toCharge, getTransferLimit(stack));
@@ -259,11 +269,15 @@ public class ItemMatterManipulator extends Item
     }
 
     @Override
-    public final double discharge(ItemStack stack, double toDischarge, int voltageTier, boolean ignoreTransferLimit,
-        boolean batteryLike, boolean simulate) {
-        if (voltageTier != Integer.MAX_VALUE && voltageTier > tier.voltageTier) {
-            return 0;
-        }
+    public final double discharge(
+        ItemStack stack,
+        double toDischarge,
+        int voltageTier,
+        boolean ignoreTransferLimit,
+        boolean batteryLike,
+        boolean simulate
+    ) {
+        if (voltageTier != Integer.MAX_VALUE && voltageTier > tier.voltageTier) { return 0; }
 
         NBTTagCompound tag = getOrCreateNbtData(stack);
 
@@ -398,8 +412,12 @@ public class ItemMatterManipulator extends Item
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void addInformation(ItemStack itemStack, EntityPlayer player, List<String> desc,
-        boolean advancedItemTooltips) {
+    public void addInformation(
+        ItemStack itemStack,
+        EntityPlayer player,
+        List<String> desc,
+        boolean advancedItemTooltips
+    ) {
         MMState state = getState(itemStack);
 
         // spotless:off
@@ -408,7 +426,7 @@ public class ItemMatterManipulator extends Item
         } else {
             if (tier.hasCap(CONNECTS_TO_AE) || tier.hasCap(CONNECTS_TO_UPLINK)) {
                 long time = System.currentTimeMillis();
-    
+
                 if ((time - lastTooltipQueryMS) > 1000) {
                     lastTooltipQueryMS = time;
 
@@ -439,7 +457,7 @@ public class ItemMatterManipulator extends Item
                     desc.add("Does not have an ME connection.");
                 }
             }
-            
+
             if (tier.hasCap(CONNECTS_TO_UPLINK)) {
                 if (state.uplinkAddress != null) {
                     if (ttUplinkWorks) {
@@ -487,7 +505,7 @@ public class ItemMatterManipulator extends Item
                     case NONE -> "No blocks";
                 });
             }
-            
+
             if (state.config.placeMode == PlaceMode.GEOMETRY) {
                 addInfoLine(desc, "Shape: %s", switch (state.config.shape) {
                     case LINE -> "Line";
@@ -495,10 +513,10 @@ public class ItemMatterManipulator extends Item
                     case SPHERE -> "Sphere";
                     case CYLINDER -> "Cylinder";
                 });
-            
+
                 addInfoLine(desc, "Coordinate A: %s", state.config.coordA);
                 addInfoLine(desc, "Coordinate B: %s", state.config.coordB);
-        
+
                 addInfoLine(desc, "Corner block: %s", state.config.corners);
                 addInfoLine(desc, "Edge block: %s", state.config.edges);
                 addInfoLine(desc, "Face block: %s", state.config.faces);
@@ -536,7 +554,7 @@ public class ItemMatterManipulator extends Item
             if (state.config.placeMode == PlaceMode.CABLES) {
                 addInfoLine(desc, "Coordinate A: %s", state.config.coordA);
                 addInfoLine(desc, "Coordinate B: %s", state.config.coordB);
-        
+
                 addInfoLine(desc, "Cable: %s", state.config.cables);
             }
         }
@@ -562,11 +580,14 @@ public class ItemMatterManipulator extends Item
             desc.add(
                 String.format(
                     format,
-                    EnumChatFormatting.BLUE.toString() + toString.apply(value) + EnumChatFormatting.RESET.toString()));
+                    EnumChatFormatting.BLUE.toString() + toString.apply(value) + EnumChatFormatting.RESET.toString()
+                )
+            );
         } else {
             desc.add(
                 String
-                    .format(format, EnumChatFormatting.GRAY.toString() + "None" + EnumChatFormatting.RESET.toString()));
+                    .format(format, EnumChatFormatting.GRAY.toString() + "None" + EnumChatFormatting.RESET.toString())
+            );
         }
     }
 
@@ -578,7 +599,7 @@ public class ItemMatterManipulator extends Item
 
         if (state.config.action != null) {
             MovingObjectPosition hit = MMUtils.getHitResult(player, true);
-    
+
             if (handleAction(stack, world, player, state, hit)) {
                 setState(stack, state);
 
@@ -595,8 +616,7 @@ public class ItemMatterManipulator extends Item
                 location.offset(ForgeDirection.getOrientation(hit.sideHit));
             }
 
-            if (state.config.placeMode == PlaceMode.GEOMETRY || state.config.placeMode == PlaceMode.EXCHANGING
-                || state.config.placeMode == PlaceMode.CABLES) {
+            if (state.config.placeMode == PlaceMode.GEOMETRY || state.config.placeMode == PlaceMode.EXCHANGING || state.config.placeMode == PlaceMode.CABLES) {
                 state.config.coordA = location;
                 state.config.coordB = null;
                 state.config.coordC = null;
@@ -605,7 +625,7 @@ public class ItemMatterManipulator extends Item
             }
 
             setState(stack, state);
-            
+
             return stack;
         } else {
             if (player.isSneaking()) {
@@ -620,19 +640,26 @@ public class ItemMatterManipulator extends Item
 
     /**
      * Handles the pending action. Responsible for clearing the action afterwards.
-     * 
+     *
      * @return True when the action was successfully handled. Treated as a no-op when false.
      */
-    public boolean handleAction(ItemStack itemStack, World world, EntityPlayer player, MMState state,
-        MovingObjectPosition hit) {
+    public boolean handleAction(
+        ItemStack itemStack,
+        World world,
+        EntityPlayer player,
+        MMState state,
+        MovingObjectPosition hit
+    ) {
         switch (state.config.action) {
             case MOVING_COORDS: {
                 Vector3i lookingAt = MMUtils.getLookingAtLocation(player);
 
-                if (state.config.placeMode == PlaceMode.GEOMETRY && state.config.coordAOffset == null
-                    && state.config.coordBOffset != null
-                    && state.config.coordCOffset == null
-                    && state.config.shape.requiresC()) {
+                if (
+                    state.config.placeMode == PlaceMode.GEOMETRY && state.config.coordAOffset == null &&
+                        state.config.coordBOffset != null &&
+                        state.config.coordCOffset == null &&
+                        state.config.shape.requiresC()
+                ) {
                     state.config.coordA = state.config.getCoordA(world, lookingAt);
                     state.config.coordB = state.config.getCoordB(world, lookingAt);
                     state.config.coordC = null;
@@ -721,14 +748,10 @@ public class ItemMatterManipulator extends Item
     public void onMouseEvent(MouseEvent event) {
         final EntityPlayer player = Minecraft.getMinecraft().thePlayer;
 
-        if (player == null || player.isDead) {
-            return;
-        }
+        if (player == null || player.isDead) { return; }
 
         final ItemStack heldItem = player.getHeldItem();
-        if (heldItem == null) {
-            return;
-        }
+        if (heldItem == null) { return; }
 
         if (event.button == 2 /* MMB */ && event.buttonstate && heldItem.getItem() == this) {
             event.setCanceled(true);
@@ -758,8 +781,13 @@ public class ItemMatterManipulator extends Item
         }
     }
 
-    private void onPickBlock(World world, EntityPlayer player, ItemStack stack, MMState state,
-        MovingObjectPosition hit) {
+    private void onPickBlock(
+        World world,
+        EntityPlayer player,
+        ItemStack stack,
+        MMState state,
+        MovingObjectPosition hit
+    ) {
 
         BlockSpec block = BlockSpec.fromPickBlock(world, player, hit);
 
@@ -809,16 +837,23 @@ public class ItemMatterManipulator extends Item
         if (add) {
             MMUtils.sendInfoToPlayer(
                 player,
-                String.format("Added %s to %s", block.getDisplayName(), what));
+                String.format("Added %s to %s", block.getDisplayName(), what)
+            );
         } else {
             MMUtils.sendInfoToPlayer(
                 player,
-                String.format("Set %s to: %s", what, block.getDisplayName()));
+                String.format("Set %s to: %s", what, block.getDisplayName())
+            );
         }
     }
 
-    private void onExchangeSetTarget(World world, EntityPlayer player, ItemStack stack, MMState state,
-        MovingObjectPosition hit) {
+    private void onExchangeSetTarget(
+        World world,
+        EntityPlayer player,
+        ItemStack stack,
+        MMState state,
+        MovingObjectPosition hit
+    ) {
 
         BlockSpec block = BlockSpec.fromPickBlock(player.worldObj, player, hit);
 
@@ -831,12 +866,19 @@ public class ItemMatterManipulator extends Item
             player,
             String.format(
                 "Set block to replace with to: %s",
-                block.getDisplayName()));
+                block.getDisplayName()
+            )
+        );
     }
 
-    private void onExchangeAddWhitelist(World world, EntityPlayer player, ItemStack stack, MMState state,
-        MovingObjectPosition hit) {
-        
+    private void onExchangeAddWhitelist(
+        World world,
+        EntityPlayer player,
+        ItemStack stack,
+        MMState state,
+        MovingObjectPosition hit
+    ) {
+
         BlockSpec block = BlockSpec.fromPickBlock(player.worldObj, player, hit);
 
         if (hit != null) checkForAECables(block, world, hit.blockX, hit.blockY, hit.blockZ);
@@ -851,7 +893,9 @@ public class ItemMatterManipulator extends Item
             player,
             String.format(
                 "Added block to exchange whitelist: %s",
-                block.getDisplayName()));
+                block.getDisplayName()
+            )
+        );
     }
 
     private void onExchangeSetWhitelist(World world, EntityPlayer player, ItemStack stack, MMState state, MovingObjectPosition hit) {
@@ -866,7 +910,9 @@ public class ItemMatterManipulator extends Item
             player,
             String.format(
                 "Set exchange whitelist to only contain: %s",
-                block.getDisplayName()));
+                block.getDisplayName()
+            )
+        );
     }
 
     private void onPickCable(World world, EntityPlayer player, ItemStack stack, MMState state, MovingObjectPosition hit) {
@@ -876,7 +922,7 @@ public class ItemMatterManipulator extends Item
             if (Mods.GregTech.isModLoaded()) {
                 MMUtils.getGTCable(cable, world, hit.blockX, hit.blockY, hit.blockZ);
             }
-    
+
             if (cable.isAir() && Mods.AppliedEnergistics2.isModLoaded()) {
                 MMUtils.getAECable(cable, world, hit.blockX, hit.blockY, hit.blockZ);
             }
@@ -886,7 +932,8 @@ public class ItemMatterManipulator extends Item
 
         MMUtils.sendInfoToPlayer(
             player,
-            String.format("Set cables to: %s", cable.getDisplayName()));
+            String.format("Set cables to: %s", cable.getDisplayName())
+        );
     }
 
     private void checkForAECables(BlockSpec spec, World world, int x, int y, int z) {
@@ -937,7 +984,7 @@ public class ItemMatterManipulator extends Item
     private void stopBuildable(EntityPlayer player) {
         if (!player.worldObj.isRemote) {
             IBuildable buildable = PENDING_BUILDS.remove(player);
-    
+
             if (buildable != null) buildable.onStopped();
         }
     }
@@ -991,8 +1038,8 @@ public class ItemMatterManipulator extends Item
                     MMMod.LOG.error("Could not place blocks", t);
                     MMUtils.sendErrorToPlayer(
                         player,
-                        EnumChatFormatting.RED
-                            + "Could not place blocks due to a crash. Check the logs for more info.");
+                        "Could not place blocks due to a crash. Check the logs for more info."
+                    );
                 }
             }
         }
@@ -1008,7 +1055,8 @@ public class ItemMatterManipulator extends Item
                 player.getEntityWorld(),
                 MathHelper.floor_double(player.posX),
                 MathHelper.floor_double(player.posY),
-                MathHelper.floor_double(player.posZ));
+                MathHelper.floor_double(player.posZ)
+            );
 
             blocks.removeIf(block -> block.distanceTo2(playerLocation) > maxRange2);
         }
@@ -1741,7 +1789,7 @@ public class ItemMatterManipulator extends Item
                     if (currState.config.coordA != null) {
                         currState.config.coordA = new Location(player.worldObj, currState.config.coordA.toVec().add(l));
                     }
-                    
+
                     if (currState.config.coordB != null) {
                         currState.config.coordB = new Location(player.worldObj, currState.config.coordB.toVec().add(l));
                     }
@@ -1760,7 +1808,7 @@ public class ItemMatterManipulator extends Item
                     if (currState.config.coordA != null) {
                         Messages.SetA.sendToServer(currState.config.coordA.toVec().add(l));
                     }
-                    
+
                     if (currState.config.coordB != null) {
                         Messages.SetB.sendToServer(currState.config.coordB.toVec().add(l));
                     }
@@ -1797,7 +1845,7 @@ public class ItemMatterManipulator extends Item
                     MMState currState = getState(player.getHeldItem());
 
                     Vector3i size;
-                    
+
                     if (coord == 2) {
                         size = currState.config.getPasteVisualDeltas(null, false).size();
                     } else {
@@ -1846,7 +1894,7 @@ public class ItemMatterManipulator extends Item
                 .setOnClick(
                     (t, u) -> {
                         int i = getter.getAsInt();
-                        
+
                         i -= storage.getOffset();
 
                         setter.accept(i);
@@ -1921,7 +1969,9 @@ public class ItemMatterManipulator extends Item
                 Minecraft.getMinecraft().thePlayer.addChatMessage(
                     new ChatComponentText(
                         EnumChatFormatting.RED
-                            + "Could not render preview due to a crash. Check the logs for more info."));
+                            + "Could not render preview due to a crash. Check the logs for more info."
+                    )
+                );
                 lastExceptionPrint = now;
             }
         }
@@ -2137,7 +2187,8 @@ public class ItemMatterManipulator extends Item
                     player.getEntityWorld(),
                     MathHelper.floor_double(player.posX),
                     MathHelper.floor_double(player.posY),
-                    MathHelper.floor_double(player.posZ));
+                    MathHelper.floor_double(player.posZ)
+                );
 
                 Vector3i vA = coordA.toVec();
                 Vector3i vB = coordB.toVec();
@@ -2159,8 +2210,8 @@ public class ItemMatterManipulator extends Item
 
                 BoxRenderer.INSTANCE.finish();
 
-                boolean needsAnalysis = (System.currentTimeMillis() - lastAnalysisMS) >= ANALYSIS_INTERVAL_MS
-                    || !Objects.equals(lastAnalyzedConfig, state.config);
+                boolean needsAnalysis = (System.currentTimeMillis() - lastAnalysisMS) >= ANALYSIS_INTERVAL_MS ||
+                    !Objects.equals(lastAnalyzedConfig, state.config);
 
                 boolean needsHintDraw = needsAnalysis || (!Objects.equals(lastPlayerPosition, playerLocation) && tier.maxRange != -1);
 
@@ -2245,81 +2296,89 @@ public class ItemMatterManipulator extends Item
                 if (isSourceAValid && isSourceBValid) {
                     Objects.requireNonNull(sourceA);
                     Objects.requireNonNull(sourceB);
-    
+
                     copyDeltas = new VoxelAABB(sourceA.toVec(), sourceB.toVec());
-    
+
                     BoxRenderer.INSTANCE
                         .drawAround(copyDeltas.toBoundingBox(), new Vector3f(0.15f, 0.6f, 0.75f));
                 }
-    
+
                 VoxelAABB pasteDeltas = null;
-    
+
                 if (isPasteValid) {
                     Objects.requireNonNull(paste);
-    
+
                     pasteDeltas = state.config.getPasteVisualDeltas(player.worldObj, true);
-    
+
                     if (pasteDeltas == null) {
                         pasteDeltas = new VoxelAABB(paste.toVec(), paste.toVec());
                     }
-    
+
                     BoxRenderer.INSTANCE.drawAround(pasteDeltas.toBoundingBox(), new Vector3f(0.75f, 0.5f, 0.15f));
-    
+
                     Location playerLocation = new Location(
                         player.getEntityWorld(),
                         MathHelper.floor_double(player.posX),
                         MathHelper.floor_double(player.posY),
-                        MathHelper.floor_double(player.posZ));
-    
-                    boolean needsAnalysis = (System.currentTimeMillis() - lastAnalysisMS) >= ANALYSIS_INTERVAL_MS
-                        || !Objects.equals(lastAnalyzedConfig, state.config);
-    
+                        MathHelper.floor_double(player.posZ)
+                    );
+
+                    boolean needsAnalysis = (System.currentTimeMillis() - lastAnalysisMS) >= ANALYSIS_INTERVAL_MS ||
+                        !Objects.equals(lastAnalyzedConfig, state.config);
+
                     boolean needsHintDraw = needsAnalysis || !Objects.equals(lastPlayerPosition, playerLocation);
-    
+
                     if (needsAnalysis) {
                         lastAnalysisMS = System.currentTimeMillis();
                         lastAnalyzedConfig = state.config;
                         analysisCache = state.getPendingBlocks(tier, player.getEntityWorld());
                     }
-    
+
                     if (needsHintDraw) {
                         lastPlayerPosition = playerLocation;
                         lastDrawer = ItemMatterManipulator.this;
                         drawHints(event, state, player, playerLocation);
                     }
                 }
-    
+
                 if (pasteDeltas != null) {
                     String array = "";
-            
+
                     Vector3i span = state.config.arraySpan;
                     if (span != null) {
                         array = String.format(
                             " stX=%d stY=%d stZ=%d",
                             span.x >= 0 ? span.x + 1 : span.x,
                             span.y >= 0 ? span.y + 1 : span.y,
-                            span.z >= 0 ? span.z + 1 : span.z);
+                            span.z >= 0 ? span.z + 1 : span.z
+                        );
                     }
-        
+
                     AboveHotbarHUD.renderTextAboveHotbar(
                         pasteDeltas.describe() + array,
                         (int) (ANALYSIS_INTERVAL_MS * 20 / 1000),
                         false,
-                        false);
+                        false
+                    );
                 } else if (copyDeltas != null) {
                     AboveHotbarHUD.renderTextAboveHotbar(
                         copyDeltas.describe(),
                         (int) (ANALYSIS_INTERVAL_MS * 20 / 1000),
                         false,
-                        false);
+                        false
+                    );
                 }
             } finally {
                 BoxRenderer.INSTANCE.finish();
             }
         }
 
-        private void drawHints(RenderWorldLastEvent event, MMState state, EntityPlayer player,
-            Location playerLocation) {
+        private void drawHints(
+            RenderWorldLastEvent event,
+            MMState state,
+            EntityPlayer player,
+            Location playerLocation
+        ) {
             StructureLibAPI.startHinting(player.worldObj);
 
             int buildable = tier.maxRange * tier.maxRange;
@@ -2342,9 +2401,7 @@ public class ItemMatterManipulator extends Item
                 Block block = pendingBlock.getBlock();
                 BlockSpec.fromBlock(pooled, player.worldObj, pendingBlock.x, pendingBlock.y, pendingBlock.z);
 
-                if (pendingBlock.isInWorld(player.worldObj) && block != null
-                    && block != Blocks.air
-                    && !pooled.isEquivalent(pendingBlock.spec)) {
+                if (pendingBlock.isInWorld(player.worldObj) && block != null && block != Blocks.air && !pooled.isEquivalent(pendingBlock.spec)) {
 
                     if (++i > RenderingConfig.maxHints) break;
 
@@ -2354,7 +2411,8 @@ public class ItemMatterManipulator extends Item
                         pendingBlock.y,
                         pendingBlock.z,
                         block,
-                        pendingBlock.spec.getBlockMeta());
+                        pendingBlock.spec.getBlockMeta()
+                    );
 
                     // Exchanging hints should be shown through the block
                     if (state.config.placeMode == PlaceMode.EXCHANGING) {
@@ -2363,7 +2421,8 @@ public class ItemMatterManipulator extends Item
                             player.worldObj,
                             pendingBlock.x,
                             pendingBlock.y,
-                            pendingBlock.z);
+                            pendingBlock.z
+                        );
                         // Reset the hint colour so that it doesn't look like an error
                         StructureLibAPI.updateHintParticleTint(
                             player,
@@ -2371,7 +2430,10 @@ public class ItemMatterManipulator extends Item
                             pendingBlock.x,
                             pendingBlock.y,
                             pendingBlock.z,
-                            new short[] { 255, 255, 255, 255 });
+                            new short[] {
+                                255, 255, 255, 255
+                            }
+                        );
                     }
                 }
             }
@@ -2407,10 +2469,10 @@ public class ItemMatterManipulator extends Item
 
             try {
                 tessellator.startDrawing(GL11.GL_LINES);
-    
+
                 for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
                     Vector3d delta = getVecForDir(dir);
-    
+
                     if (fromSurface) {
                         tessellator.addVertex(delta.x * 0.5, delta.y * 0.5, delta.z * 0.5);
                     } else {
@@ -2424,9 +2486,9 @@ public class ItemMatterManipulator extends Item
                 } catch (Throwable t) {
                     t.printStackTrace();
                 }
-    
+
                 GL11.glPopMatrix();
-    
+
                 GL11.glDepthMask(true);
                 GL11.glEnable(GL11.GL_TEXTURE_2D);
                 GL11.glDisable(GL11.GL_BLEND);

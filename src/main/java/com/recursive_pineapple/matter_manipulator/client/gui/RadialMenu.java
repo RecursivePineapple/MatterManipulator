@@ -10,9 +10,6 @@ import java.util.function.Supplier;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 
-import org.joml.Vector2d;
-import org.lwjgl.opengl.GL11;
-
 import com.gtnewhorizons.modularui.api.GlStateManager;
 import com.gtnewhorizons.modularui.api.drawable.IDrawable;
 import com.gtnewhorizons.modularui.api.drawable.TextRenderer;
@@ -21,6 +18,9 @@ import com.gtnewhorizons.modularui.api.math.Size;
 import com.gtnewhorizons.modularui.api.widget.Interactable;
 import com.gtnewhorizons.modularui.api.widget.Widget;
 import com.recursive_pineapple.matter_manipulator.common.networking.SoundResource;
+
+import org.joml.Vector2d;
+import org.lwjgl.opengl.GL11;
 
 /**
  * A radial menu widget that fills the whole screen.
@@ -120,8 +120,7 @@ public class RadialMenu extends Widget implements Interactable {
                 continue;
             }
 
-            boolean isHoveredOver = mouseRadius >= innerRadius && mouseRadius <= outerRadius
-                && isAngleBetween(mouseTheta, option.startTheta, option.endTheta);
+            boolean isHoveredOver = mouseRadius >= innerRadius && mouseRadius <= outerRadius && isAngleBetween(mouseTheta, option.startTheta, option.endTheta);
 
             if (isHoveredOver) {
                 GL11.glColor4f(0.25f, 0.25f, 0.25f, 1f);
@@ -162,7 +161,8 @@ public class RadialMenu extends Widget implements Interactable {
                 (option.startTheta + option.endTheta) / 2,
                 60, // hardcoded wordwrap width, not great but idk how to fix it
                 0xFFCCCCCC,
-                option.label.get());
+                option.label.get()
+            );
         }
 
         GL11.glEnable(GL11.GL_LIGHTING);
@@ -178,8 +178,7 @@ public class RadialMenu extends Widget implements Interactable {
         double mouseTheta = mouse.y;
 
         for (RadialMenuOption option : options) {
-            boolean isHoveredOver = mouseRadius >= innerRadius && mouseRadius <= outerRadius
-                && isAngleBetween(mouseTheta, option.startTheta, option.endTheta);
+            boolean isHoveredOver = mouseRadius >= innerRadius && mouseRadius <= outerRadius && isAngleBetween(mouseTheta, option.startTheta, option.endTheta);
 
             if (isHoveredOver) {
                 if (option.hidden.getAsBoolean()) {
@@ -248,8 +247,8 @@ public class RadialMenu extends Widget implements Interactable {
         int dim = Math.min(size.width, size.height);
 
         // spotless:off
-        int x = (int)map(Math.cos(theta) * radius, -1, 1, size.width / 2 - dim / 2, size.width / 2 + dim / 2);
-        int y = (int)map(Math.sin(theta) * radius, -1, 1, size.height / 2 - dim / 2, size.height / 2 + dim / 2);
+        int x = (int) map(Math.cos(theta) * radius, -1, 1, size.width / 2 - dim / 2, size.width / 2 + dim / 2);
+        int y = (int) map(Math.sin(theta) * radius, -1, 1, size.height / 2 - dim / 2, size.height / 2 + dim / 2);
         // spotless:on
 
         List<String> lines = renderer.listFormattedStringToWidth(text, wrapWidth);

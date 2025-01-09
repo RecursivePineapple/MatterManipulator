@@ -12,16 +12,16 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
-import org.joml.Vector3i;
-
-import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.DebugConfig;
+import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigFluidStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.FluidId;
 import com.recursive_pineapple.matter_manipulator.common.utils.ItemId;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+
+import org.joml.Vector3i;
 
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
@@ -200,7 +200,8 @@ public class BlockAnalyzer {
                     if (toRemove > 0) {
                         extractedItems.add(
                             req.copy()
-                                .setStackSize(toRemove));
+                                .setStackSize(toRemove)
+                        );
                         amtInPending -= toRemove;
                         req.decStackSize(toRemove);
 
@@ -240,7 +241,8 @@ public class BlockAnalyzer {
                         if (toRemove > 0) {
                             extractedItems.add(
                                 req.copy()
-                                    .setStackSize(toRemove));
+                                    .setStackSize(toRemove)
+                            );
                             amtInPending -= toRemove;
                             req.decStackSize(toRemove);
 
@@ -257,8 +259,7 @@ public class BlockAnalyzer {
 
                 ItemId id;
 
-                if (fuzzy && !req.getItem()
-                    .getHasSubtypes()) {
+                if (fuzzy && !req.getItem().getHasSubtypes()) {
                     id = ItemId.createAsWildcard(req.getItemStack());
                 } else {
                     id = ItemId.create(req.getItemStack());
@@ -304,12 +305,15 @@ public class BlockAnalyzer {
 
     /**
      * Gets the required items for a build
-     * 
+     *
      * @param fromScratch When true, existing blocks will be ignored.
      * @return
      */
-    public static RequiredItemAnalysis getRequiredItemsForBuild(EntityPlayer player, List<PendingBlock> blocks,
-        boolean fromScratch) {
+    public static RequiredItemAnalysis getRequiredItemsForBuild(
+        EntityPlayer player,
+        List<PendingBlock> blocks,
+        boolean fromScratch
+    ) {
         BlockItemCheckContext context = new BlockItemCheckContext();
         context.player = player;
         context.world = player.getEntityWorld();

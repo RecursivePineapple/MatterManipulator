@@ -7,11 +7,8 @@ import java.util.stream.Collectors;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraftforge.common.util.ForgeDirection;
 
-import com.gtnewhorizon.gtnhlib.util.map.ItemStackMap;
-import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import net.minecraftforge.common.util.ForgeDirection;
 
 import appeng.api.AEApi;
 import appeng.api.implementations.tiles.ISegmentedInventory;
@@ -28,6 +25,10 @@ import appeng.me.cache.P2PCache;
 import appeng.parts.automation.UpgradeInventory;
 import appeng.parts.p2p.PartP2PTunnel;
 import appeng.parts.p2p.PartP2PTunnelNormal;
+
+import com.gtnewhorizon.gtnhlib.util.map.ItemStackMap;
+import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
+import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 
 /**
  * Stores data for AE facade parts. Also stores the data for AE cables.
@@ -110,8 +111,7 @@ public class AEPartData {
 
     public Class<? extends IPart> getPartClass() {
         if (mPartClass == null) {
-            if (mPart.toStack()
-                .getItem() instanceof IPartItem partItem) {
+            if (mPart.toStack().getItem() instanceof IPartItem partItem) {
                 IPart part = partItem.createPartFromItemStack(mPart.toStack());
 
                 mPartClass = Optional.ofNullable(part)
@@ -137,7 +137,7 @@ public class AEPartData {
     /**
      * Updates an existing part on a cable bus.
      * Will attune p2ps to the correct variant if possible.
-     * 
+     *
      * @return True if the part was updated successfully, or false if the TileAnalysisResult should bail.
      */
     public boolean updatePart(IBlockApplyContext context, IPartHost partHost, ForgeDirection side) {
@@ -150,7 +150,7 @@ public class AEPartData {
             part = partHost.getPart(side);
         }
 
-        if (part instanceof PartP2PTunnel<?>tunnel) {
+        if (part instanceof PartP2PTunnel<?> tunnel) {
             tunnel.output = mP2POutput;
 
             try {
@@ -181,14 +181,13 @@ public class AEPartData {
                 ItemStackMap<Long> targetMap = MMUtils.getItemStackHistogram(
                     Arrays.stream(mAEUpgrades)
                         .map(PortableItemStack::toStack)
-                        .collect(Collectors.toList()));
+                        .collect(Collectors.toList())
+                );
                 ItemStackMap<Long> actualMap = MMUtils
                     .getItemStackHistogram(Arrays.asList(MMUtils.inventoryToArray(upgradeInv)));
 
                 if (!targetMap.equals(actualMap)) {
-                    if (!MMUtils.installUpgrades(context, upgradeInv, mAEUpgrades, true, false)) {
-                        return false;
-                    }
+                    if (!MMUtils.installUpgrades(context, upgradeInv, mAEUpgrades, true, false)) { return false; }
                 }
             }
 
@@ -217,11 +216,14 @@ public class AEPartData {
     /**
      * Gets any required items for a part that exists in the world.
      * Effectively a no-op, should not be called with a real IBlockApplyContext.
-     * 
+     *
      * @return True if the op succeeded
      */
-    public boolean getRequiredItemsForExistingPart(IBlockApplyContext context, IPartHost partHost,
-        ForgeDirection side) {
+    public boolean getRequiredItemsForExistingPart(
+        IBlockApplyContext context,
+        IPartHost partHost,
+        ForgeDirection side
+    ) {
         IPart part = partHost.getPart(side);
 
         if (part instanceof ISegmentedInventory segmentedInventory) {
@@ -229,14 +231,13 @@ public class AEPartData {
                 ItemStackMap<Long> targetMap = MMUtils.getItemStackHistogram(
                     Arrays.stream(mAEUpgrades)
                         .map(PortableItemStack::toStack)
-                        .collect(Collectors.toList()));
+                        .collect(Collectors.toList())
+                );
                 ItemStackMap<Long> actualMap = MMUtils
                     .getItemStackHistogram(Arrays.asList(MMUtils.inventoryToArray(upgradeInv)));
 
                 if (!targetMap.equals(actualMap)) {
-                    if (!MMUtils.installUpgrades(context, upgradeInv, mAEUpgrades, true, true)) {
-                        return false;
-                    }
+                    if (!MMUtils.installUpgrades(context, upgradeInv, mAEUpgrades, true, true)) { return false; }
                 }
             }
 
@@ -251,7 +252,7 @@ public class AEPartData {
 
     /**
      * Gets all required items for a part that doesn't exist.
-     * 
+     *
      * @param context
      * @return True if the op succeeded
      */

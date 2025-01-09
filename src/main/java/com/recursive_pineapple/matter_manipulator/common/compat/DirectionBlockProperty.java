@@ -2,14 +2,17 @@ package com.recursive_pineapple.matter_manipulator.common.compat;
 
 import static net.minecraftforge.common.util.ForgeDirection.*;
 
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-
 import net.minecraft.world.World;
+
 import net.minecraftforge.common.util.ForgeDirection;
 
+import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+
 public interface DirectionBlockProperty extends BlockProperty<ForgeDirection> {
-    
-    default DirectionBlockProperty setName(String name) { return this; }
+
+    default DirectionBlockProperty setName(String name) {
+        return this;
+    }
 
     @Override
     default ForgeDirection parse(String text) throws Exception {
@@ -22,6 +25,7 @@ public interface DirectionBlockProperty extends BlockProperty<ForgeDirection> {
     }
 
     public static abstract class AbstractDirectionBlockProperty implements DirectionBlockProperty {
+
         private String name = "facing";
 
         @Override
@@ -29,7 +33,7 @@ public interface DirectionBlockProperty extends BlockProperty<ForgeDirection> {
             this.name = name;
             return this;
         }
-        
+
         @Override
         public String getName() {
             return name;
@@ -42,6 +46,7 @@ public interface DirectionBlockProperty extends BlockProperty<ForgeDirection> {
 
     public static DirectionBlockProperty facing() {
         return new AbstractDirectionBlockProperty("facing") {
+
             @Override
             public ForgeDirection getValue(World world, int x, int y, int z) {
                 return MMUtils.getIndexSafe(ForgeDirection.VALID_DIRECTIONS, world.getBlockMetadata(x, y, z));
@@ -74,19 +79,23 @@ public interface DirectionBlockProperty extends BlockProperty<ForgeDirection> {
                 case 0 -> UP;
                 case 5 -> DOWN;
                 default -> NORTH;
-            });
+            }
+        );
     }
 
     public static interface D2M {
+
         int getMeta(ForgeDirection dir);
     }
 
     public static interface M2D {
+
         ForgeDirection getDir(int meta);
     }
 
     public static DirectionBlockProperty facing(int mask, D2M toMeta, M2D toDir) {
         return new AbstractDirectionBlockProperty("facing") {
+
             @Override
             public ForgeDirection getValue(World world, int x, int y, int z) {
                 return toDir.getDir(world.getBlockMetadata(x, y, z) & mask);
@@ -96,7 +105,7 @@ public interface DirectionBlockProperty extends BlockProperty<ForgeDirection> {
             public void setValue(World world, int x, int y, int z, ForgeDirection value) {
                 int meta = 0;
                 if (mask != -1) {
-                    meta = world.getBlockMetadata(x, y, z) & ~mask; 
+                    meta = world.getBlockMetadata(x, y, z) & ~mask;
                 }
 
                 world.setBlockMetadataWithNotify(x, y, z, toMeta.getMeta(value) | meta, 2);
@@ -105,11 +114,13 @@ public interface DirectionBlockProperty extends BlockProperty<ForgeDirection> {
     }
 
     public static interface D2M2 {
+
         int getMeta(ForgeDirection dir, int existing);
     }
 
     public static DirectionBlockProperty facing(D2M2 toMeta, M2D toDir) {
         return new AbstractDirectionBlockProperty("facing") {
+
             @Override
             public ForgeDirection getValue(World world, int x, int y, int z) {
                 return toDir.getDir(world.getBlockMetadata(x, y, z));
@@ -145,6 +156,7 @@ public interface DirectionBlockProperty extends BlockProperty<ForgeDirection> {
                 if (meta == down) return DOWN;
 
                 return UNKNOWN;
-            });
+            }
+        );
     }
 }

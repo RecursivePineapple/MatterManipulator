@@ -2,15 +2,15 @@ package com.recursive_pineapple.matter_manipulator.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.jupiter.api.Test;
-
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 
+import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+
+import org.junit.jupiter.api.Test;
+
 class UtilsTests {
-    
+
     @Test
     void testNBTExact() {
         NBTTagCompound tag = new NBTTagCompound();
@@ -21,8 +21,12 @@ class UtilsTests {
         tag.setFloat("e", 123.456f);
         tag.setDouble("f", 123.456);
         tag.setString("g", "hello world");
-        tag.setIntArray("h", new int[] { 1, 2, 3, 4, 5 });
-        tag.setByteArray("i", new byte[] { 1, 2, 3, 4, 5 });
+        tag.setIntArray("h", new int[] {
+            1, 2, 3, 4, 5
+        });
+        tag.setByteArray("i", new byte[] {
+            1, 2, 3, 4, 5
+        });
 
         NBTTagList list = new NBTTagList();
         list.appendTag(tag);

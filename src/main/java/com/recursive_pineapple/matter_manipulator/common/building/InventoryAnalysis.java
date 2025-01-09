@@ -4,13 +4,13 @@ import java.util.Objects;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.inventory.IInventory;
+import net.minecraft.item.ItemStack;
+
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
 import com.recursive_pineapple.matter_manipulator.common.utils.InventoryAdapter;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
-
-import net.minecraft.inventory.IInventory;
-import net.minecraft.item.ItemStack;
 
 /**
  * An analysis for an inventory.
@@ -24,7 +24,7 @@ public class InventoryAnalysis {
 
     /**
      * Gets an analysis for an inventory.
-     * 
+     *
      * @param fuzzy When true, NBT will be ignored and items will be fuzzily-retrieved.
      */
     public static @Nullable InventoryAnalysis fromInventory(IInventory inv, boolean fuzzy) {
@@ -52,12 +52,12 @@ public class InventoryAnalysis {
         if (Mods.AppliedEnergistics2.isModLoaded()) {
             if (!fuzzy) {
                 IItemProvider cell = AECellItemProvider.fromWorkbenchItem(stack);
-    
+
                 if (cell != null) return cell;
             }
-    
+
             IItemProvider pattern = PatternItemProvider.fromPattern(stack);
-    
+
             if (pattern != null) return pattern;
         }
 
@@ -66,8 +66,8 @@ public class InventoryAnalysis {
 
     /**
      * Applies the analysis
-     * 
-     * @param consume  When true, items will be consumed
+     *
+     * @param consume When true, items will be consumed
      * @param simulate When true, the inventory will not be modified in any way
      * @return True when the inventory was successfully updated
      */
@@ -144,7 +144,7 @@ public class InventoryAnalysis {
     @Override
     protected InventoryAnalysis clone() {
         InventoryAnalysis dup = new InventoryAnalysis();
-        
+
         dup.mFuzzy = mFuzzy;
         dup.mItems = MMUtils.mapToArray(mItems, IItemProvider[]::new, x -> x == null ? null : x.clone());
 

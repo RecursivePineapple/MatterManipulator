@@ -23,20 +23,20 @@ import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
 public class ASMUtils {
-    
+
     @FunctionalInterface
     public static interface InsnPredicate {
+
         public boolean test(MethodNode method, AbstractInsnNode node);
     }
 
     public static interface InsnConsumer {
+
         public void consume(AbstractInsnNode first, AbstractInsnNode last, List<AbstractInsnNode> contents);
     }
 
     public static boolean findInsns(MethodNode method, InsnPredicate[] matchers, InsnConsumer consumer) {
-        if(matchers.length == 0) {
-            return false;
-        }
+        if (matchers.length == 0) { return false; }
 
         AbstractInsnNode current = method.instructions.getFirst();
 
@@ -44,16 +44,16 @@ public class ASMUtils {
 
         boolean foundAnything = false;
 
-        while(current != null) {
+        while (current != null) {
             int i = 0;
 
             AbstractInsnNode cursor = current;
 
             contents.clear();
 
-            while(cursor != null && i < matchers.length) {
-                if(cursor.getOpcode() != -1) {
-                    if(matchers[i].test(method, cursor)) {
+            while (cursor != null && i < matchers.length) {
+                if (cursor.getOpcode() != -1) {
+                    if (matchers[i].test(method, cursor)) {
                         i++;
                     } else {
                         break;
@@ -64,7 +64,7 @@ public class ASMUtils {
                 cursor = cursor.getNext();
             }
 
-            if(i == matchers.length) {
+            if (i == matchers.length) {
                 AbstractInsnNode first = current;
                 current = cursor.getNext();
 
@@ -83,7 +83,7 @@ public class ASMUtils {
         return findInsns(method, matchers, (first, last, nodes) -> {
             AbstractInsnNode[] inject = toInject.get();
 
-            for(var node : inject) {
+            for (var node : inject) {
                 method.instructions.insert(last, node);
                 last = node;
             }
@@ -97,7 +97,7 @@ public class ASMUtils {
     }
 
     public static void removeInsns(MethodNode method, List<AbstractInsnNode> nodes) {
-        for(AbstractInsnNode node : nodes) {
+        for (AbstractInsnNode node : nodes) {
             removeInsn(method, node);
         }
     }
@@ -118,11 +118,11 @@ public class ASMUtils {
 
         method.instructions.remove(node);
 
-        if(node instanceof LabelNode label) {
+        if (node instanceof LabelNode label) {
             var iter = method.tryCatchBlocks.iterator();
 
-            while(iter.hasNext()) {
-                if(iter.next().start == label) {
+            while (iter.hasNext()) {
+                if (iter.next().start == label) {
                     iter.remove();
                 }
             }
@@ -131,9 +131,7 @@ public class ASMUtils {
 
     public static AbstractInsnNode findInsn(MethodNode method, List<AbstractInsnNode> insns, InsnPredicate matcher) {
         for (AbstractInsnNode insn : insns) {
-            if (matcher.test(method, insn)) {
-                return insn;
-            }
+            if (matcher.test(method, insn)) { return insn; }
         }
 
         return null;
@@ -142,65 +140,65 @@ public class ASMUtils {
     public static InsnPredicate isGetStatic(@Nullable String owner, @Nullable String desc, @Nullable String name) {
         return (method, insn) -> insn.getOpcode() == Opcodes.GETSTATIC &&
             insn instanceof FieldInsnNode node &&
-            (owner == null || owner.equals(node.owner)) && 
-            (desc == null || desc.equals(node.desc)) && 
+            (owner == null || owner.equals(node.owner)) &&
+            (desc == null || desc.equals(node.desc)) &&
             (name == null || name.equals(node.name));
     }
 
     public static InsnPredicate isPutStatic(@Nullable String owner, @Nullable String desc, @Nullable String name) {
         return (method, insn) -> insn.getOpcode() == Opcodes.PUTSTATIC &&
             insn instanceof FieldInsnNode node &&
-            (owner == null || owner.equals(node.owner)) && 
-            (desc == null || desc.equals(node.desc)) && 
+            (owner == null || owner.equals(node.owner)) &&
+            (desc == null || desc.equals(node.desc)) &&
             (name == null || name.equals(node.name));
     }
 
     public static InsnPredicate isGetVar(@Nullable String desc, @Nullable String name) {
         return (method, insn) -> {
-            if(insn.getOpcode() == Opcodes.ALOAD && insn instanceof VarInsnNode node) {
+            if (insn.getOpcode() == Opcodes.ALOAD && insn instanceof VarInsnNode node) {
                 LocalVariableNode var = getVariableNode(method.localVariables, node.var);
 
                 return var != null && (desc == null || desc.equals(var.desc)) && (name == null || name.equals(var.name));
             } else {
                 return false;
             }
-        };  
+        };
     }
 
     public static InsnPredicate isStoreVar(@Nullable String desc, @Nullable String name) {
         return (method, insn) -> {
-            if(insn.getOpcode() == Opcodes.ASTORE && insn instanceof VarInsnNode node) {
+            if (insn.getOpcode() == Opcodes.ASTORE && insn instanceof VarInsnNode node) {
                 LocalVariableNode var = getVariableNode(method.localVariables, node.var);
 
                 return var != null && (desc == null || desc.equals(var.desc)) && (name == null || name.equals(var.name));
             } else {
                 return false;
             }
-        };  
+        };
     }
 
     public static InsnPredicate isInvokeStatic(@Nullable String owner, @Nullable String desc, @Nullable String name) {
         return (method, insn) -> insn.getOpcode() == Opcodes.INVOKESTATIC &&
             insn instanceof MethodInsnNode node &&
-            (owner == null || owner.equals(node.owner)) && 
-            (desc == null || desc.equals(node.desc)) && 
-            (name == null || name.equals(node.name)) && 
+            (owner == null || owner.equals(node.owner)) &&
+            (desc == null || desc.equals(node.desc)) &&
+            (name == null || name.equals(node.name)) &&
             node.itf == false;
     }
 
     public static InsnPredicate isInvokeInterface(@Nullable String owner, @Nullable String desc, @Nullable String name) {
         return (method, insn) -> insn.getOpcode() == Opcodes.INVOKEINTERFACE &&
             insn instanceof MethodInsnNode node &&
-            (owner == null || owner.equals(node.owner)) && 
-            (desc == null || desc.equals(node.desc)) && 
-            (name == null || name.equals(node.name)) && 
+            (owner == null || owner.equals(node.owner)) &&
+            (desc == null || desc.equals(node.desc)) &&
+            (name == null || name.equals(node.name)) &&
             node.itf == true;
     }
 
     public static InsnPredicate isInvoke(@Nullable String owner, @Nullable String desc, @Nullable String name) {
         return (method, insn) -> insn instanceof MethodInsnNode node &&
-            (owner == null || owner.equals(node.owner)) && 
-            (desc == null || desc.equals(node.desc)) && 
+            (owner == null || owner.equals(node.owner)) &&
+            (desc == null || desc.equals(node.desc)) &&
             (name == null || name.equals(node.name));
     }
 
@@ -213,8 +211,8 @@ public class ASMUtils {
     public static InsnPredicate isInit(@Nullable String owner, @Nullable String desc) {
         return (method, insn) -> insn.getOpcode() == Opcodes.INVOKESPECIAL &&
             insn instanceof MethodInsnNode node &&
-            (owner == null || owner.equals(node.owner)) && 
-            node.name.equals("<init>") && 
+            (owner == null || owner.equals(node.owner)) &&
+            node.name.equals("<init>") &&
             (desc == null || desc.equals(node.desc)) &&
             !node.itf;
     }
@@ -230,77 +228,94 @@ public class ASMUtils {
     }
 
     public static @Nullable LocalVariableNode getVariableNode(@Nullable List<LocalVariableNode> vars, int index) {
-        if(vars == null) {
-            return null;
-        }
+        if (vars == null) { return null; }
 
-        for(var var : vars) {
-            if(var.index == index) {
-                return var;
-            }
+        for (var var : vars) {
+            if (var.index == index) { return var; }
         }
 
         return null;
     }
 
     public static void debug(LocalVariableNode var) {
-        System.out.format("LocalVariableNode{name=%s, desc=%s, signature=%s, index=%s}\n",
-            var.name, var.desc, var.signature, var.index
+        System.out.format(
+            "LocalVariableNode{name=%s, desc=%s, signature=%s, index=%s}\n",
+            var.name,
+            var.desc,
+            var.signature,
+            var.index
         );
     }
 
     public static void debug(AbstractInsnNode insn, @Nullable List<LocalVariableNode> vars) {
-        if(insn instanceof MethodInsnNode method) {
-            System.out.format("MethodInsnNode{opcode=%s, owner=%s, name=%s, desc=%s, itf=%b}\n",
+        if (insn instanceof MethodInsnNode method) {
+            System.out.format(
+                "MethodInsnNode{opcode=%s, owner=%s, name=%s, desc=%s, itf=%b}\n",
                 getOpcodeName(method.getOpcode()),
-                method.owner, method.name, method.desc, method.itf
+                method.owner,
+                method.name,
+                method.desc,
+                method.itf
             );
-        } else if(insn instanceof FieldInsnNode field) {
-            System.out.format("FieldInsnNode{opcode=%s, owner=%s, name=%s, desc=%s}\n",
+        } else if (insn instanceof FieldInsnNode field) {
+            System.out.format(
+                "FieldInsnNode{opcode=%s, owner=%s, name=%s, desc=%s}\n",
                 getOpcodeName(field.getOpcode()),
-                field.owner, field.name, field.desc
+                field.owner,
+                field.name,
+                field.desc
             );
-        } else if(insn instanceof TypeInsnNode type) {
-            System.out.format("TypeInsnNode{opcode=%s, desc=%s}\n",
+        } else if (insn instanceof TypeInsnNode type) {
+            System.out.format(
+                "TypeInsnNode{opcode=%s, desc=%s}\n",
                 getOpcodeName(type.getOpcode()),
                 type.desc
             );
-        } else if(insn instanceof LdcInsnNode ldc) {
-            System.out.format("LdcInsnNode{opcode=%s, cst=%s}\n",
+        } else if (insn instanceof LdcInsnNode ldc) {
+            System.out.format(
+                "LdcInsnNode{opcode=%s, cst=%s}\n",
                 getOpcodeName(ldc.getOpcode()),
                 ldc.cst
             );
-        } else if(insn instanceof VarInsnNode var) {
+        } else if (insn instanceof VarInsnNode var) {
             if (vars == null) {
-                System.out.format("VarInsnNode{opcode=%s, var index=%s, var name=%s}\n",
+                System.out.format(
+                    "VarInsnNode{opcode=%s, var index=%s, var name=%s}\n",
                     getOpcodeName(var.getOpcode()),
                     var.var
                 );
             } else {
                 LocalVariableNode vnode = getVariableNode(vars, var.var);
                 if (vnode == null) {
-                    System.out.format("VarInsnNode{opcode=%s, var index=%s, name=unknown}\n",
+                    System.out.format(
+                        "VarInsnNode{opcode=%s, var index=%s, name=unknown}\n",
                         getOpcodeName(var.getOpcode()),
                         var.var
                     );
                 } else {
-                    System.out.format("VarInsnNode{opcode=%s, var index=%s, name=%s, desc=%s, signature=%s}\n",
+                    System.out.format(
+                        "VarInsnNode{opcode=%s, var index=%s, name=%s, desc=%s, signature=%s}\n",
                         getOpcodeName(var.getOpcode()),
                         var.var,
-                        vnode.name, vnode.desc, vnode.signature
+                        vnode.name,
+                        vnode.desc,
+                        vnode.signature
                     );
                 }
             }
-        } else if(insn instanceof InsnNode insnNode) {
-            System.out.format("InsnNode{opcode=%s}\n",
+        } else if (insn instanceof InsnNode insnNode) {
+            System.out.format(
+                "InsnNode{opcode=%s}\n",
                 getOpcodeName(insnNode.getOpcode())
             );
         } else if (insn instanceof LabelNode label) {
-            System.out.format("LabelNode{label=%s}\n",
+            System.out.format(
+                "LabelNode{label=%s}\n",
                 label.getLabel()
             );
         } else if (insn instanceof LineNumberNode ln) {
-            System.out.format("LineNumberNode{start=%s, line=%d}\n",
+            System.out.format(
+                "LineNumberNode{start=%s, line=%d}\n",
                 ln.start.getLabel(),
                 ln.line
             );
@@ -313,7 +328,7 @@ public class ASMUtils {
                 Object local = frame.local.get(i);
 
                 if (local instanceof Integer primitive) {
-                    locals.add(varName + ": " + switch(primitive.intValue()) {
+                    locals.add(varName + ": " + switch (primitive.intValue()) {
                         case 0 -> "ITEM_TOP";
                         case 1 -> "ITEM_INTEGER";
                         case 2 -> "ITEM_FLOAT";
@@ -344,7 +359,7 @@ public class ASMUtils {
                 Object stackValue = frame.stack.get(i);
 
                 if (stackValue instanceof Integer primitive) {
-                    locals.add(i + ": " + switch(primitive.intValue()) {
+                    locals.add(i + ": " + switch (primitive.intValue()) {
                         case 0 -> "ITEM_TOP";
                         case 1 -> "ITEM_INTEGER";
                         case 2 -> "ITEM_FLOAT";
@@ -369,7 +384,8 @@ public class ASMUtils {
                 }
             }
 
-            System.out.format("FrameNode{type=%s, locals={%s}, stack={%s}}\n",
+            System.out.format(
+                "FrameNode{type=%s, locals={%s}, stack={%s}}\n",
                 switch (frame.type) {
                     case -1 -> "F_NEW";
                     case 0 -> "F_FULL";
@@ -383,12 +399,13 @@ public class ASMUtils {
                 String.join(", ", stack)
             );
         } else if (insn instanceof JumpInsnNode jump) {
-            System.out.format("JumpInsnNode{opcode=%s, label=%s}\n",
+            System.out.format(
+                "JumpInsnNode{opcode=%s, label=%s}\n",
                 getOpcodeName(insn.getOpcode()),
                 jump.label
             );
         } else {
-            var insnName = switch(insn.getType()) {
+            var insnName = switch (insn.getType()) {
                 case 0 -> "INSN";
                 case 1 -> "INT_INSN";
                 case 2 -> "VAR_INSN";
@@ -418,7 +435,7 @@ public class ASMUtils {
     }
 
     public static String getOpcodeName(int opcode) {
-        return switch(opcode) { 
+        return switch (opcode) {
             case 0 -> "NOP";
             case 1 -> "ACONST_NULL";
             case 2 -> "ICONST_M1";

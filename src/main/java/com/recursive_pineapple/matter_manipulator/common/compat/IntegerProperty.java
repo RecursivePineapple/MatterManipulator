@@ -2,12 +2,12 @@ package com.recursive_pineapple.matter_manipulator.common.compat;
 
 import java.util.List;
 
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-
 import net.minecraft.world.World;
 
+import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+
 public interface IntegerProperty extends BlockProperty<Integer> {
-    
+
     public default Integer getValue(World world, int x, int y, int z) {
         return getInt(world, x, y, z);
     }
@@ -27,6 +27,7 @@ public interface IntegerProperty extends BlockProperty<Integer> {
 
     public default BlockProperty<String> map(List<String> values) {
         return new BlockProperty<String>() {
+
             @Override
             public String getName() {
                 return IntegerProperty.this.getName();
@@ -51,11 +52,12 @@ public interface IntegerProperty extends BlockProperty<Integer> {
 
     public static IntegerProperty meta(String name, int mask, int shift) {
         return new IntegerProperty() {
+
             @Override
             public String getName() {
                 return name;
             }
-            
+
             @Override
             public int getInt(World world, int x, int y, int z) {
                 return (world.getBlockMetadata(x, y, z) & mask) >> shift;

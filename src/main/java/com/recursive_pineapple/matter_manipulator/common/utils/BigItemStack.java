@@ -4,18 +4,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
-
-import appeng.api.storage.data.IAEItemStack;
-import appeng.util.item.AEItemStack;
-import cpw.mods.fml.common.Optional.Method;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
+import cpw.mods.fml.common.Optional.Method;
+
+import appeng.api.storage.data.IAEItemStack;
+import appeng.util.item.AEItemStack;
+
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
+
 public class BigItemStack {
-    
+
     public Item item;
     public long stackSize;
     public int meta;
@@ -23,7 +25,7 @@ public class BigItemStack {
 
     public transient ItemId id;
 
-    public BigItemStack() { }
+    public BigItemStack() {}
 
     public BigItemStack(ItemStack stack) {
         this.item = stack.getItem();

@@ -10,7 +10,7 @@ import com.recursive_pineapple.matter_manipulator.common.building.ImmutableBlock
 import it.unimi.dsi.fastutil.objects.ObjectIntMutablePair;
 
 public class WeightedSpecList {
-    
+
     public ArrayList<ObjectIntMutablePair<BlockSpec>> specs = new ArrayList<>();
 
     public WeightedSpecList(BlockSpec... values) {
@@ -35,7 +35,8 @@ public class WeightedSpecList {
 
         int sum = 0;
 
-        for (var p : specs) sum += p.rightInt();
+        for (var p : specs)
+            sum += p.rightInt();
 
         if (sum == 0) return BlockSpec.AIR;
 
@@ -52,9 +53,7 @@ public class WeightedSpecList {
 
     public boolean contains(BlockSpec spec) {
         for (var p : specs) {
-            if (Objects.equals(p.first(), spec)) {
-                return true;
-            }
+            if (Objects.equals(p.first(), spec)) { return true; }
         }
 
         return false;
