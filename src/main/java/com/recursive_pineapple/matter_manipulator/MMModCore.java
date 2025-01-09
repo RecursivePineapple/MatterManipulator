@@ -9,7 +9,9 @@ public class MMModCore implements IFMLLoadingPlugin {
 
     @Override
     public String[] getASMTransformerClass() {
-        return new String[] { "com.recursive_pineapple.matter_manipulator.asm.DeMemberator" };
+        return new String[] {
+            "com.recursive_pineapple.matter_manipulator.asm.DeMemberator"
+        };
     }
 
     @Override
@@ -24,7 +26,7 @@ public class MMModCore implements IFMLLoadingPlugin {
 
     @Override
     public void injectData(Map<String, Object> data) {
-
+        
     }
 
     @Override

@@ -11,6 +11,21 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
+import com.gtnewhorizon.gtnhlib.util.CoordinatePacker;
+import com.recursive_pineapple.matter_manipulator.MMMod;
+import com.recursive_pineapple.matter_manipulator.asm.Optional;
+import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.PlaceMode;
+import com.recursive_pineapple.matter_manipulator.common.networking.SoundResource;
+import com.recursive_pineapple.matter_manipulator.common.utils.BigFluidStack;
+import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
+import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
+
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -19,21 +34,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
-
-import com.gtnewhorizon.gtnhlib.util.CoordinatePacker;
-import com.recursive_pineapple.matter_manipulator.MMMod;
-import com.recursive_pineapple.matter_manipulator.asm.Optional;
-import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.PlaceMode;
-import com.recursive_pineapple.matter_manipulator.common.networking.SoundResource;
-import com.recursive_pineapple.matter_manipulator.common.utils.BigFluidStack;
-import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
@@ -112,8 +112,7 @@ public class PendingBuild extends AbstractBuildable {
                 continue;
             }
 
-            if (next.spec.isAir() && existing.getBlock()
-                .isAir(world, x, y, z)) {
+            if (next.spec.isAir() && existing.getBlock().isAir(world, x, y, z)) {
                 pendingBlocks.removeFirst();
                 continue;
             }
@@ -135,15 +134,12 @@ public class PendingBuild extends AbstractBuildable {
 
             // checks if the existing block is removable
             boolean canPlace = switch (state.config.removeMode) {
-                case NONE -> existing.getBlock()
-                    .isAir(world, x, y, z);
-                case REPLACEABLE -> existing.getBlock()
-                    .isReplaceable(world, x, y, z);
+                case NONE -> existing.getBlock().isAir(world, x, y, z);
+                case REPLACEABLE -> existing.getBlock().isReplaceable(world, x, y, z);
                 case ALL -> true;
             };
 
-            canPlace &= existing.getBlock()
-                .getBlockHardness(world, x, y, z) >= 0;
+            canPlace &= existing.getBlock().getBlockHardness(world, x, y, z) >= 0;
 
             // we don't want to remove these even though they'll never be placed because we want to see how many blocks
             // couldn't be placed
@@ -159,8 +155,7 @@ public class PendingBuild extends AbstractBuildable {
             }
 
             // if there's an existing block then remove it if possible
-            if (!existing.getBlock()
-                .isAir(world, x, y, z)) {
+            if (!existing.getBlock().isAir(world, x, y, z)) {
                 if (!tier.hasCap(ItemMatterManipulator.ALLOW_REMOVING)) {
                     pendingBlocks.removeFirst();
                     continue;
@@ -178,8 +173,7 @@ public class PendingBuild extends AbstractBuildable {
 
             // check block dependencies for things like levers
             // if we can't place this block, shuffle it to the back of the list
-            if (!next.getBlock()
-                .canPlaceBlockAt(proxiedWorld, next.x, next.y, next.z)) {
+            if (!next.getBlock().canPlaceBlockAt(proxiedWorld, next.x, next.y, next.z)) {
                 pendingBlocks.addLast(pendingBlocks.removeFirst());
                 shuffleCount++;
 
@@ -230,9 +224,8 @@ public class PendingBuild extends AbstractBuildable {
         if (!first.isFree()) {
             total = toPlace.size() * perBlock.stackSize;
 
-            List<BigItemStack> extractedStacks = tryConsumeItems(
-                Arrays.asList(new BigItemStack(perBlock).setStackSize(total)),
-                CONSUME_PARTIAL).right();
+            List<BigItemStack> extractedStacks = tryConsumeItems(Arrays.asList(new BigItemStack(perBlock).setStackSize(total)), CONSUME_PARTIAL)
+                .right();
 
             extracted = extractedStacks.isEmpty() ? null : extractedStacks.get(0);
 
@@ -243,16 +236,21 @@ public class PendingBuild extends AbstractBuildable {
                         "Could not find item, %d block%s will be skipped temporarily:",
                         toPlace.size(),
                         toPlace.size() > 1 ? "s" : ""));
-                sendWarningToPlayer(player, String.format("  %s x %d", first.getDisplayName(), total));
+                sendWarningToPlayer(
+                    player,
+                    String.format(
+                        "  %s x %d",
+                        first.getDisplayName(),
+                        total));
 
                 for (PendingBlock pending : toPlace) {
                     pendingBlocks.add(pending);
-
+        
                     long coord = CoordinatePacker.pack(pending.x, pending.y, pending.z);
-
+                    
                     visited.remove(coord);
                 }
-
+                
                 toPlace.clear();
             }
         }
@@ -278,7 +276,7 @@ public class PendingBuild extends AbstractBuildable {
                     applyContext.pendingBlock = pending;
                     pending.apply(applyContext, world);
                 }
-
+    
                 world.notifyBlockOfNeighborChange(x, y, z, Blocks.air);
                 continue;
             }
@@ -311,7 +309,7 @@ public class PendingBuild extends AbstractBuildable {
                     if (!world.setBlock(x, y, z, block, metadata, 3)) {
                         continue;
                     }
-
+    
                     if (world.getBlock(x, y, z) == block) {
                         block.onBlockPlacedBy(world, x, y, z, player, stack);
                         block.onPostBlockPlaced(world, x, y, z, metadata);
@@ -336,22 +334,18 @@ public class PendingBuild extends AbstractBuildable {
                     toPlace.size() - i > 1 ? "s" : ""));
             sendWarningToPlayer(
                 player,
-                String.format("  %s x %d", first.getDisplayName(), total - (toPlace.size() - i) * perBlock.stackSize));
+                String.format(
+                    "  %s x %d",
+                    first.getDisplayName(),
+                    total - (toPlace.size() - i) * perBlock.stackSize));
         }
 
         sendInfoToPlayer(player, "Placed " + i + " blocks (" + pendingBlocks.size() + " remaining)");
 
         if (extracted != null && extracted.stackSize >= perBlock.stackSize) {
             // extra stuff left over somehow
-            MMMod.LOG.error(
-                "Didn't consume enough items! " + perBlock.getDisplayName()
-                    + "; expected to consume "
-                    + total
-                    + ", but consumed "
-                    + (total - extracted.stackSize));
-            givePlayerItems(
-                extracted.toStacks()
-                    .toArray(new ItemStack[0]));
+            MMMod.LOG.error("Didn't consume enough items! " + perBlock.getDisplayName() + "; expected to consume " + total + ", but consumed " + (total - extracted.stackSize));
+            givePlayerItems(extracted.toStacks().toArray(new ItemStack[0]));
         }
 
         for (; i < toPlace.size(); i++) {
@@ -360,7 +354,7 @@ public class PendingBuild extends AbstractBuildable {
             pendingBlocks.add(pending);
 
             long coord = CoordinatePacker.pack(pending.x, pending.y, pending.z);
-
+            
             visited.remove(coord);
         }
 
@@ -454,9 +448,7 @@ public class PendingBuild extends AbstractBuildable {
                 if (GregTech.isModLoaded()) blockName = getGTBlockName(pendingBlock);
 
                 if (blockName == null) {
-                    blockName = BlockSpec
-                        .fromBlock(null, player.worldObj, pendingBlock.x, pendingBlock.y, pendingBlock.z)
-                        .getDisplayName();
+                    blockName = BlockSpec.fromBlock(null, player.worldObj, pendingBlock.x, pendingBlock.y, pendingBlock.z).getDisplayName();
                 }
             }
 
@@ -480,9 +472,7 @@ public class PendingBuild extends AbstractBuildable {
                 if (GregTech.isModLoaded()) blockName = getGTBlockName(pendingBlock);
 
                 if (blockName == null) {
-                    blockName = BlockSpec
-                        .fromBlock(null, player.worldObj, pendingBlock.x, pendingBlock.y, pendingBlock.z)
-                        .getDisplayName();
+                    blockName = BlockSpec.fromBlock(null, player.worldObj, pendingBlock.x, pendingBlock.y, pendingBlock.z).getDisplayName();
                 }
             }
 
@@ -500,8 +490,10 @@ public class PendingBuild extends AbstractBuildable {
 
     @Optional(Names.GREG_TECH)
     private String getGTBlockName(PendingBlock pendingBlock) {
-        if (player.worldObj
-            .getTileEntity(pendingBlock.x, pendingBlock.y, pendingBlock.z) instanceof IGregTechTileEntity igte) {
+        if (player.worldObj.getTileEntity(
+            pendingBlock.x,
+            pendingBlock.y,
+            pendingBlock.z) instanceof IGregTechTileEntity igte) {
             IMetaTileEntity imte = igte.getMetaTileEntity();
             if (imte != null) {
                 return imte.getLocalName();

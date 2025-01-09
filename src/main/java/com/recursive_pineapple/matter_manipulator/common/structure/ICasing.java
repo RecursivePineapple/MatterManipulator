@@ -4,19 +4,16 @@ import static com.gtnewhorizon.structurelib.structure.StructureUtility.lazy;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlock;
 import static gregtech.api.enums.Textures.BlockIcons.getCasingTextureForId;
 
-import net.minecraft.block.Block;
-import net.minecraft.item.ItemStack;
-
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
 
 import gregtech.api.interfaces.ITexture;
+import net.minecraft.block.Block;
+import net.minecraft.item.ItemStack;
 
 public interface ICasing {
-
+    
     public Block getBlock();
-
     public int getMeta();
-
     public int getTextureId();
 
     public default ItemStack toStack(int amount) {

@@ -14,8 +14,8 @@ import net.minecraft.world.World;
 
 import org.joml.Vector3i;
 
-import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.DebugConfig;
 import com.recursive_pineapple.matter_manipulator.MMMod;
+import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.DebugConfig;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigFluidStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
@@ -57,9 +57,7 @@ public class BlockAnalyzer {
             PendingBlock pending = spec.instantiate(world, voxel.x, voxel.y, voxel.z);
 
             if (checkTiles) {
-                pending.analyze(
-                    world.getTileEntity(voxel.x, voxel.y, voxel.z),
-                    PendingBlock.ANALYZE_ALL & ~PendingBlock.ANALYZE_ARCH);
+                pending.analyze(world.getTileEntity(voxel.x, voxel.y, voxel.z), PendingBlock.ANALYZE_ALL & ~PendingBlock.ANALYZE_ARCH);
             }
 
             pending.x -= a.x;

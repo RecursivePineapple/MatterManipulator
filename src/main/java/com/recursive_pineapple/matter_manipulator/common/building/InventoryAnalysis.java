@@ -4,13 +4,13 @@ import java.util.Objects;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.inventory.IInventory;
-import net.minecraft.item.ItemStack;
-
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
 import com.recursive_pineapple.matter_manipulator.common.utils.InventoryAdapter;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
+
+import net.minecraft.inventory.IInventory;
+import net.minecraft.item.ItemStack;
 
 /**
  * An analysis for an inventory.
@@ -52,12 +52,12 @@ public class InventoryAnalysis {
         if (Mods.AppliedEnergistics2.isModLoaded()) {
             if (!fuzzy) {
                 IItemProvider cell = AECellItemProvider.fromWorkbenchItem(stack);
-
+    
                 if (cell != null) return cell;
             }
-
+    
             IItemProvider pattern = PatternItemProvider.fromPattern(stack);
-
+    
             if (pattern != null) return pattern;
         }
 
@@ -73,8 +73,7 @@ public class InventoryAnalysis {
      */
     public boolean apply(IBlockApplyContext context, IInventory inv, boolean consume, boolean simulate) {
         if (inv.getSizeInventory() != mItems.length) {
-            context.warn(
-                "inventory was the wrong size (expected " + mItems.length + ", was " + inv.getSizeInventory() + ")");
+            context.warn("inventory was the wrong size (expected " + mItems.length + ", was " + inv.getSizeInventory() + ")");
             return false;
         }
 
@@ -87,8 +86,7 @@ public class InventoryAnalysis {
         }
     }
 
-    public boolean apply(IBlockApplyContext context, IInventory inv, InventoryAdapter adapter, boolean consume,
-        boolean simulate) {
+    public boolean apply(IBlockApplyContext context, IInventory inv, InventoryAdapter adapter, boolean consume, boolean simulate) {
         boolean didSomething = false;
         boolean success = true;
 
@@ -146,7 +144,7 @@ public class InventoryAnalysis {
     @Override
     protected InventoryAnalysis clone() {
         InventoryAnalysis dup = new InventoryAnalysis();
-
+        
         dup.mFuzzy = mFuzzy;
         dup.mItems = MMUtils.mapToArray(mItems, IItemProvider[]::new, x -> x == null ? null : x.clone());
 

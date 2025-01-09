@@ -2,15 +2,15 @@ package com.recursive_pineapple.matter_manipulator.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-
 import org.junit.jupiter.api.Test;
 
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 
-class UtilsTests {
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 
+class UtilsTests {
+    
     @Test
     void testNBTExact() {
         NBTTagCompound tag = new NBTTagCompound();

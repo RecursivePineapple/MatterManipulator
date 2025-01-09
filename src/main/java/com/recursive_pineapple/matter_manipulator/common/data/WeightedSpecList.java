@@ -10,7 +10,7 @@ import com.recursive_pineapple.matter_manipulator.common.building.ImmutableBlock
 import it.unimi.dsi.fastutil.objects.ObjectIntMutablePair;
 
 public class WeightedSpecList {
-
+    
     public ArrayList<ObjectIntMutablePair<BlockSpec>> specs = new ArrayList<>();
 
     public WeightedSpecList(BlockSpec... values) {
@@ -67,12 +67,9 @@ public class WeightedSpecList {
         for (var p : specs) {
             if (sb.length() > 0) sb.append(", ");
 
-            sb.append(
-                p.left()
-                    .getDisplayName());
+            sb.append(p.left().getDisplayName());
 
-            if (p.rightInt() > 1) sb.append(" x ")
-                .append(p.rightInt());
+            if (p.rightInt() > 1) sb.append(" x ").append(p.rightInt());
         }
 
         return sb.toString();

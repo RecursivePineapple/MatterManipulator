@@ -5,8 +5,6 @@ import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.List;
 
-import net.minecraft.launchwrapper.IClassTransformer;
-
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
@@ -17,13 +15,14 @@ import org.objectweb.asm.tree.MethodNode;
 
 import com.gtnewhorizon.gtnhlib.asm.ClassConstantPoolParser;
 
+import net.minecraft.launchwrapper.IClassTransformer;
+
 /**
  * Removes members
  */
 public class DeMemberator implements IClassTransformer {
-
-    private final ClassConstantPoolParser parser = new ClassConstantPoolParser(
-        "Lcom/recursive_pineapple/matter_manipulator/asm/Optional;");
+    
+    private final ClassConstantPoolParser parser = new ClassConstantPoolParser("Lcom/recursive_pineapple/matter_manipulator/asm/Optional;");
 
     @Override
     public byte[] transform(String name, String transformedName, byte[] basicClass) {
@@ -78,14 +77,12 @@ public class DeMemberator implements IClassTransformer {
 
                 for (String mod : mods) {
                     try {
-                        Method method = Class.forName("cpw.mods.fml.common.Loader")
-                            .getMethod("isModLoaded", String.class);
+                        Method method = Class.forName("cpw.mods.fml.common.Loader").getMethod("isModLoaded", String.class);
 
                         if (!(boolean) method.invoke(null, mod)) {
                             return true;
                         }
-                    } catch (NoSuchMethodException | SecurityException | ClassNotFoundException | IllegalAccessException
-                        | IllegalArgumentException | InvocationTargetException e) {
+                    } catch (NoSuchMethodException | SecurityException | ClassNotFoundException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                         throw new RuntimeException(e);
                     }
                 }

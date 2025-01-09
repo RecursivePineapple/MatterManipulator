@@ -1,11 +1,10 @@
 package com.recursive_pineapple.matter_manipulator.common.networking;
 
-import net.minecraft.network.INetHandler;
-import net.minecraft.world.IBlockAccess;
-
 import com.google.common.io.ByteArrayDataInput;
 
 import io.netty.buffer.ByteBuf;
+import net.minecraft.network.INetHandler;
+import net.minecraft.world.IBlockAccess;
 
 public abstract class MMPacket {
 

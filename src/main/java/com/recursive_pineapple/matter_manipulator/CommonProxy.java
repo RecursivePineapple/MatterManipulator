@@ -1,7 +1,5 @@
 package com.recursive_pineapple.matter_manipulator;
 
-import net.minecraft.entity.player.EntityPlayer;
-
 import com.recursive_pineapple.matter_manipulator.common.compat.BlockPropertyRegistry;
 import com.recursive_pineapple.matter_manipulator.common.entities.EntityItemLarge;
 import com.recursive_pineapple.matter_manipulator.common.items.MMItems;
@@ -14,6 +12,7 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
+import net.minecraft.entity.player.EntityPlayer;
 
 public class CommonProxy {
 
@@ -27,7 +26,7 @@ public class CommonProxy {
 
     public void init(FMLInitializationEvent event) {
         EntityItemLarge.registerCommon();
-
+        
         if (Mods.GregTech.isModLoaded()) {
             MMItems.registerMultis();
         }

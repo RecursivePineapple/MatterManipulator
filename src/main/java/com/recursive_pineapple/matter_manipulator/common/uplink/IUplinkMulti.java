@@ -3,10 +3,6 @@ package com.recursive_pineapple.matter_manipulator.common.uplink;
 import java.util.List;
 import java.util.Map;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.fluids.FluidStack;
-
 import com.google.common.collect.MapMaker;
 import com.recursive_pineapple.matter_manipulator.common.building.IPseudoInventory;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
@@ -16,23 +12,25 @@ import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import it.unimi.dsi.fastutil.Pair;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
+import net.minecraftforge.fluids.FluidStack;
 
 public interface IUplinkMulti {
-
+    
     public boolean isActive();
 
     public Location getLocation();
 
     public UplinkState getState();
-
+    
     @SideOnly(Side.CLIENT)
     public void setState(UplinkState state);
 
     /**
      * See {@link IPseudoInventory#tryConsumeItems(List, int)}
      */
-    public Pair<UplinkStatus, List<BigItemStack>> tryConsumeItems(List<BigItemStack> requestedItems, boolean simulate,
-        boolean fuzzy);
+    public Pair<UplinkStatus, List<BigItemStack>> tryConsumeItems(List<BigItemStack> requestedItems, boolean simulate, boolean fuzzy);
 
     /**
      * See {@link IPseudoInventory#givePlayerItems(ItemStack...)}

@@ -159,7 +159,7 @@ public class MMUtils {
     public static final String UNDERLINE = EnumChatFormatting.UNDERLINE.toString();
     public static final String ITALIC = EnumChatFormatting.ITALIC.toString();
     public static final String RESET = EnumChatFormatting.RESET.toString();
-
+    
     private MMUtils() {}
 
     public static int clamp(int val, int lo, int hi) {
@@ -591,11 +591,11 @@ public class MMUtils {
 
         return -1;
     }
-
+    
     public static <T> T getIndexSafe(T[] array, int index) {
         return array == null || index < 0 || index >= array.length ? null : array[index];
     }
-
+    
     public static <T> T getIndexSafe(List<T> list, int index) {
         return list == null || index < 0 || index >= list.size() ? null : list.get(index);
     }
@@ -606,7 +606,7 @@ public class MMUtils {
 
         return list.get(rng.nextInt(list.size()));
     }
-
+    
     /**
      * Empties all items in an inventory into a pseudo inventory.
      * Will reset/disassemble any items as necessary.
@@ -921,8 +921,7 @@ public class MMUtils {
                 if (tag == null) continue;
 
                 if (type == -1) type = tag.getId();
-                if (type != tag.getId())
-                    throw new IllegalArgumentException("NBT lists cannot contain tags of varying types");
+                if (type != tag.getId()) throw new IllegalArgumentException("NBT lists cannot contain tags of varying types");
 
                 nbtList.add(tag);
             }
@@ -1015,13 +1014,9 @@ public class MMUtils {
                 }
             }
 
-            return new JsonPrimitive(
-                "1" + Base64.getEncoder()
-                    .encodeToString(baos.toByteArray()));
+            return new JsonPrimitive("1" + Base64.getEncoder().encodeToString(baos.toByteArray()));
         } else if (nbt instanceof NBTTagByteArray a) {
-            return new JsonPrimitive(
-                "2" + Base64.getEncoder()
-                    .encodeToString(a.func_150292_c()));
+            return new JsonPrimitive("2" + Base64.getEncoder().encodeToString(a.func_150292_c()));
         } else {
             throw new IllegalArgumentException("Unsupported NBT Tag: " + NBTBase.NBTTypes[nbt.getId()] + " - " + nbt);
         }
@@ -1036,8 +1031,7 @@ public class MMUtils {
         }
 
         if (jsonElement instanceof JsonPrimitive primitive) {
-            if (!primitive.isString())
-                throw new JsonParseException("expected json primitive to be string: '" + primitive + "'");
+            if (!primitive.isString()) throw new JsonParseException("expected json primitive to be string: '" + primitive + "'");
 
             String data = primitive.getAsString();
 
@@ -1070,9 +1064,7 @@ public class MMUtils {
                         return new NBTTagString(data);
                     }
                     case '1' -> {
-                        ByteArrayInputStream bais = new ByteArrayInputStream(
-                            Base64.getDecoder()
-                                .decode(data));
+                        ByteArrayInputStream bais = new ByteArrayInputStream(Base64.getDecoder().decode(data));
                         DataInputStream dis = new DataInputStream(bais);
 
                         int count = bais.available() / 4;
@@ -1090,9 +1082,7 @@ public class MMUtils {
                         return new NBTTagIntArray(array);
                     }
                     case '2' -> {
-                        return new NBTTagByteArray(
-                            Base64.getDecoder()
-                                .decode(data));
+                        return new NBTTagByteArray(Base64.getDecoder().decode(data));
                     }
                 }
             } catch (NumberFormatException e) {
@@ -1289,8 +1279,7 @@ public class MMUtils {
         } else if (item instanceof ItemReed specialPlacing) {
             block = specialPlacing.field_150935_a;
         } else if (AppliedEnergistics2.isModLoaded() && isAECable(item, metadata)) {
-            block = PendingBlock.AE_BLOCK_CABLE.get()
-                .getBlock();
+            block = PendingBlock.AE_BLOCK_CABLE.get().getBlock();
         } else {
             block = Block.getBlockFromItem(item);
         }
@@ -1341,8 +1330,7 @@ public class MMUtils {
 
     @Optional(Names.GREG_TECH)
     public static boolean getGTCable(BlockSpec spec, World world, int x, int y, int z) {
-        if (world.getTileEntity(x, y, z) instanceof IGregTechTileEntity igte
-            && igte.getMetaTileEntity() instanceof IConnectable) {
+        if (world.getTileEntity(x, y, z) instanceof IGregTechTileEntity igte && igte.getMetaTileEntity() instanceof IConnectable) {
             spec.setObject(Item.getItemFromBlock(world.getBlock(x, y, z)), igte.getMetaTileID());
 
             return true;

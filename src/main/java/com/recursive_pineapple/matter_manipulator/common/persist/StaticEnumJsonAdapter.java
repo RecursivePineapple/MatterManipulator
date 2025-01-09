@@ -11,7 +11,7 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
 public class StaticEnumJsonAdapter<T extends Enum<T>> implements JsonSerializer<T>, JsonDeserializer<T> {
-
+    
     private final Class<T> clazz;
     private final T[] values;
 
@@ -26,9 +26,9 @@ public class StaticEnumJsonAdapter<T extends Enum<T>> implements JsonSerializer<
 
         if (primitive.isNumber()) {
             int index = primitive.getAsInt();
-
+    
             if (index < 0 || index >= values.length) throw new JsonParseException("illegal enum index: " + index);
-
+    
             return values[index];
         } else {
             try {

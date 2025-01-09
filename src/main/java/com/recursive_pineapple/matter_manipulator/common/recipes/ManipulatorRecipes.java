@@ -7,11 +7,6 @@ import static gregtech.api.util.GTModHandler.getModItem;
 import static gregtech.api.util.GTRecipeBuilder.*;
 import static gregtech.api.util.GTRecipeConstants.*;
 
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidRegistry;
-import net.minecraftforge.fluids.FluidStack;
-
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.items.MMItemList;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
@@ -28,12 +23,16 @@ import gregtech.api.recipe.RecipeMaps;
 import gregtech.api.util.GTOreDictUnificator;
 import gregtech.api.util.GTUtility;
 import gtPlusPlus.core.item.ModItems;
+import net.minecraft.item.ItemStack;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidRegistry;
+import net.minecraftforge.fluids.FluidStack;
 import tectech.recipe.TTRecipeAdder;
 import tectech.thing.CustomItemList;
 
 public class ManipulatorRecipes {
-
-    private ManipulatorRecipes() {}
+    
+    private ManipulatorRecipes() { }
 
     private static boolean ae, gt, th, eio, gs;
 

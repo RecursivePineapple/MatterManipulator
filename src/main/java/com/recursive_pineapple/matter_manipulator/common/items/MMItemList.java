@@ -4,7 +4,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
 public enum MMItemList {
-
     MK0,
     MK1,
     MK2,

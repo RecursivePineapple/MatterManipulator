@@ -5,8 +5,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.ToIntFunction;
 
-import net.minecraft.client.resources.I18n;
-
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.recursive_pineapple.matter_manipulator.common.structure.StructureWrapper.CasingInfo;
@@ -24,15 +22,14 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntArraySet;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.ObjectArraySet;
+import net.minecraft.client.resources.I18n;
 import tectech.thing.metaTileEntity.multi.base.TTMultiblockBase;
 
-public class MultiblockTooltipBuilder2<MTE extends MTEEnhancedMultiBlockBase<?> & IStructureProvider<MTE>>
-    extends MultiblockTooltipBuilder {
-
+public class MultiblockTooltipBuilder2<MTE extends MTEEnhancedMultiBlockBase<?> & IStructureProvider<MTE>> extends MultiblockTooltipBuilder {
+    
     public final StructureWrapper<MTE> structure;
 
-    private final Object2ObjectArrayMap<IHatchElement<? super MTE>, String> hatchNameOverrides = new Object2ObjectArrayMap<>(),
-        hatchInfoOverrides = new Object2ObjectArrayMap<>();
+    private final Object2ObjectArrayMap<IHatchElement<? super MTE>, String> hatchNameOverrides = new Object2ObjectArrayMap<>(), hatchInfoOverrides = new Object2ObjectArrayMap<>();
     private final List<IHatchElement<? super MTE>> hatchOrder = new ArrayList<>();
     private boolean hasMultiampHatches = false, printMultiampSupport = true;
 
@@ -44,12 +41,12 @@ public class MultiblockTooltipBuilder2<MTE extends MTEEnhancedMultiBlockBase<?> 
         super.beginStructureBlock(structure.size.x, structure.size.y, structure.size.z, hollow);
         return this;
     }
-
+    
     public MultiblockTooltipBuilder2<MTE> beginStructureBlock() {
         super.beginStructureBlock(structure.size.x, structure.size.y, structure.size.z, false);
         return this;
     }
-
+    
     public MultiblockTooltipBuilder2<MTE> addCasing(ICasing casing) {
         structure.addCasingInfoAuto(this, casing);
         return this;
@@ -60,8 +57,7 @@ public class MultiblockTooltipBuilder2<MTE extends MTEEnhancedMultiBlockBase<?> 
         return this;
     }
 
-    public MultiblockTooltipBuilder2<MTE> addHatchLocationOverride(IHatchElement<? super MTE> hatch,
-        String newLocation) {
+    public MultiblockTooltipBuilder2<MTE> addHatchLocationOverride(IHatchElement<? super MTE> hatch, String newLocation) {
         hatchInfoOverrides.put(hatch, newLocation);
         return this;
     }
@@ -85,9 +81,7 @@ public class MultiblockTooltipBuilder2<MTE extends MTEEnhancedMultiBlockBase<?> 
         if (info == null) info = I18n.format("mm.structure.hatch-info", casing.getLocalizedName());
 
         if (dots != null && dots.length > 0) {
-            info += I18n.format(
-                "mm.structure.hatch-dots",
-                String.join(", ", MMUtils.mapToList(new IntArrayList(dots), i -> i.toString())));
+            info += I18n.format("mm.structure.hatch-dots", String.join(", ", MMUtils.mapToList(new IntArrayList(dots), i -> i.toString())));
         }
 
         if (override != null) {
@@ -179,7 +173,7 @@ public class MultiblockTooltipBuilder2<MTE extends MTEEnhancedMultiBlockBase<?> 
                     return Integer.compare(i1, i2);
                 }
             };
-
+    
             casings.sort(comparator);
         } else {
             casings.sort(null);
@@ -225,12 +219,9 @@ public class MultiblockTooltipBuilder2<MTE extends MTEEnhancedMultiBlockBase<?> 
                 }
             };
 
-            Comparator<Pair<ICasing, IHatchElement<? super MTE>>> customComparator = Comparator
-                .nullsFirst(Comparator.comparing(p -> hatchNameOverrides.get(p.right())));
+            Comparator<Pair<ICasing, IHatchElement<? super MTE>>> customComparator = Comparator.nullsFirst(Comparator.comparing(p -> hatchNameOverrides.get(p.right())));
 
-            hatchesSorted.sort(
-                Comparator.comparingInt(comparator)
-                    .thenComparing(customComparator));
+            hatchesSorted.sort(Comparator.comparingInt(comparator).thenComparing(customComparator));
         }
 
         for (var hatch : hatchesSorted) {

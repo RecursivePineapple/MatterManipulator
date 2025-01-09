@@ -58,8 +58,8 @@ import appeng.api.storage.data.IAEItemStack;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import gregtech.api.enums.Materials;
-import gregtech.api.enums.Textures.BlockIcons.CustomIcon;
 import gregtech.api.enums.TierEU;
+import gregtech.api.enums.Textures.BlockIcons.CustomIcon;
 import gregtech.api.interfaces.IHatchElement;
 import gregtech.api.interfaces.ITexture;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
@@ -79,8 +79,7 @@ import it.unimi.dsi.fastutil.Pair;
 import mcp.mobius.waila.api.IWailaConfigHandler;
 import mcp.mobius.waila.api.IWailaDataAccessor;
 
-public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink>
-    implements ISurvivalConstructable, IUplinkMulti, IStructureProvider<MTEMMUplink> {
+public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implements ISurvivalConstructable, IUplinkMulti, IStructureProvider<MTEMMUplink> {
 
     private static final long BASE_PLASMA_EU_COST = 16_384;
 
@@ -137,7 +136,9 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink>
             AdvancedIridiumPlatedMachineCasing,
             1,
             8,
-            Arrays.asList(InputHatch, Energy, Maintenance, UplinkHatchAdder.Instance));
+            Arrays.asList(
+                InputHatch, Energy, Maintenance, UplinkHatchAdder.Instance
+            ));
         structure.addCasing('B', NAQ_ALLOY_FRAMES);
         structure.addCasing('C', TRINIUM_FRAMES);
         structure.addCasing('D', MatterGenerationCoil);
@@ -180,7 +181,6 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink>
     }
 
     private static enum UplinkHatchAdder implements IHatchElement<MTEMMUplink> {
-
         Instance;
 
         @Override
@@ -221,36 +221,28 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink>
     protected MultiblockTooltipBuilder createTooltip() {
         MultiblockTooltipBuilder2<MTEMMUplink> tt = new MultiblockTooltipBuilder2<>(structure);
 
-        String hatch = MMItemList.UplinkHatch.get(1)
-            .getDisplayName();
+        String hatch = MMItemList.UplinkHatch.get(1).getDisplayName();
 
         tt.addMachineType("Matter Manipulator Quantum Uplink")
             .addInfo("Interdimensional and infinite range uplink for matter manipulators.")
             .addInfo("Allows manipulators to convert plans into AE patterns.")
-            .addInfo(
-                "Connects directly to an ME system via a " + EnumChatFormatting.GOLD
-                    + hatch
-                    + EnumChatFormatting.GRAY
-                    + ".")
+            .addInfo("Connects directly to an ME system via a " + EnumChatFormatting.GOLD + hatch + EnumChatFormatting.GRAY + ".")
             .addInfo(" ")
             .addInfo("Consumes 1A ZPM while active.")
             .addInfo("Must be fed with plasma via an input hatch.")
-            .addInfo(
-                "Transfers to/from the manipulator cost " + String.format("%,d", BASE_PLASMA_EU_COST)
-                    + " EU in plasma per item or per bucket.")
-            .addInfo(
-                "Insert a compatible manipulator in the controller slot while the machine is running to bind it to the uplink.");
+            .addInfo("Transfers to/from the manipulator cost " + String.format("%,d", BASE_PLASMA_EU_COST) + " EU in plasma per item or per bucket.")
+            .addInfo("Insert a compatible manipulator in the controller slot while the machine is running to bind it to the uplink.");
 
         tt.beginStructureBlock();
         tt.addController("Front Center");
         tt.addHatchNameOverride(UplinkHatchAdder.Instance, hatch);
-        tt.addAllCasingInfo(
-            Arrays.asList(
-                AdvancedIridiumPlatedMachineCasing,
-                MatterGenerationCoil,
-                TRINIUM_FRAMES,
-                NAQ_ALLOY_FRAMES,
-                RadiantNaquadahAlloyCasing));
+        tt.addAllCasingInfo(Arrays.asList(
+            AdvancedIridiumPlatedMachineCasing,
+            MatterGenerationCoil,
+            TRINIUM_FRAMES,
+            NAQ_ALLOY_FRAMES,
+            RadiantNaquadahAlloyCasing
+        ));
 
         tt.toolTipFinisher(AuthorPineapple);
 
@@ -340,7 +332,11 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink>
         IGregTechTileEntity igte = getBaseMetaTileEntity();
 
         if (igte != null) {
-            return new Location(igte.getWorld(), igte.getXCoord(), igte.getYCoord(), igte.getZCoord());
+            return new Location(
+                igte.getWorld(),
+                igte.getXCoord(),
+                igte.getYCoord(),
+                igte.getZCoord());
         } else {
             return null;
         }
@@ -504,7 +500,7 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink>
                         return Pair.of(UplinkStatus.NO_PLASMA, null);
                     }
                 }
-
+            
                 IAEItemStack result = itemInventory.extractItems(
                     match,
                     simulate ? Actionable.SIMULATE : Actionable.MODULATE,
@@ -544,8 +540,7 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink>
                 return UplinkStatus.NO_PLASMA;
             }
 
-            IAEItemStack result = itemInventory
-                .injectItems(item.getAEItemStack(), Actionable.MODULATE, hatch.getRequestSource());
+            IAEItemStack result = itemInventory.injectItems(item.getAEItemStack(), Actionable.MODULATE, hatch.getRequestSource());
 
             item.setStackSize(result == null ? 0 : result.getStackSize());
         }
@@ -577,8 +572,7 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink>
                 return UplinkStatus.NO_PLASMA;
             }
 
-            IAEFluidStack result = fluidInventory
-                .injectItems(fluid.getAEFluidStack(), Actionable.MODULATE, hatch.getRequestSource());
+            IAEFluidStack result = fluidInventory.injectItems(fluid.getAEFluidStack(), Actionable.MODULATE, hatch.getRequestSource());
 
             fluid.setStackSize(result == null ? 0 : result.getStackSize());
         }
@@ -619,7 +613,8 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink>
                 if (fuel != null) {
                     long euPerLitre = fuel.mSpecialValue;
 
-                    int litresToConsume = (int) Math.min(Integer.MAX_VALUE, MMUtils.ceilDiv(euToGenerate, euPerLitre));
+                    int litresToConsume = (int) Math
+                        .min(Integer.MAX_VALUE, MMUtils.ceilDiv(euToGenerate, euPerLitre));
 
                     FluidStack toConsume = tank.fluid.copy();
                     toConsume.amount = litresToConsume;
@@ -659,11 +654,7 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink>
                 patternName += " (" + details + ")";
             }
 
-            hatch.addRequest(
-                submitter,
-                patternName,
-                MMUtils.mapToList(requiredItems, BigItemStack::getAEItemStack),
-                autocraft);
+            hatch.addRequest(submitter, patternName, MMUtils.mapToList(requiredItems, BigItemStack::getAEItemStack), autocraft);
 
             MMUtils.sendInfoToPlayer(
                 submitter,
@@ -757,8 +748,12 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink>
         IGregTechTileEntity igte = getBaseMetaTileEntity();
 
         if (igte != null) {
-            Location l = new Location(igte.getWorld(), igte.getXCoord(), igte.getYCoord(), igte.getZCoord());
-
+            Location l = new Location(
+                igte.getWorld(),
+                igte.getXCoord(),
+                igte.getYCoord(),
+                igte.getZCoord());
+    
             Messages.UpdateUplinkState.sendToPlayersAround(l, this);
         }
     }

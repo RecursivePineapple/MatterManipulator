@@ -2,14 +2,13 @@ package com.recursive_pineapple.matter_manipulator.common.utils;
 
 import java.util.Objects;
 
-import net.minecraft.block.Block;
-
 import com.recursive_pineapple.matter_manipulator.common.building.ImmutableBlockSpec;
 
 import cpw.mods.fml.common.registry.GameRegistry;
+import net.minecraft.block.Block;
 
 public class LazyBlock extends Lazy<ImmutableBlockMeta> {
-
+    
     public final Mods mod;
     public final String blockName;
 

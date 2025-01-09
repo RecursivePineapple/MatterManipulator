@@ -3,7 +3,7 @@ package com.recursive_pineapple.matter_manipulator.common.utils;
 import net.minecraftforge.oredict.OreDictionary;
 
 public class MMValues {
-
+    
     private MMValues() {}
 
     /**

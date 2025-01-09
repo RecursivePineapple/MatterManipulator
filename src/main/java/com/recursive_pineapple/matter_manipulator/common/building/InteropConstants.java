@@ -1,12 +1,11 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
-import net.minecraft.block.Block;
-
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
 import gregtech.api.GregTechAPI;
+import net.minecraft.block.Block;
 import tectech.thing.casing.TTCasingsContainer;
 
 /**

@@ -6,8 +6,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import net.minecraft.item.ItemStack;
-
 import org.joml.Vector3i;
 
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
@@ -26,6 +24,7 @@ import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.chars.Char2IntArrayMap;
 import it.unimi.dsi.fastutil.chars.Char2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.IntBinaryOperator;
+import net.minecraft.item.ItemStack;
 
 /**
  * A wrapper for structure checking.
@@ -46,7 +45,6 @@ public class StructureWrapper<MTE extends MTEEnhancedMultiBlockBase<?> & IStruct
     public Char2IntArrayMap casingCounts;
 
     public static class CasingInfo<MTE> {
-
         public int definitionCasingCount, maxHatches, dot;
         public ICasing casing;
         public IHatchElement<? super MTE>[] hatches;
@@ -63,11 +61,11 @@ public class StructureWrapper<MTE extends MTEEnhancedMultiBlockBase<?> & IStruct
             definitionText = provider.getDefinition();
             casings = new Char2ObjectArrayMap<>();
             casingCounts = new Char2IntArrayMap();
-
+    
             int width = 0;
             int height = 0;
             int length = definitionText.length;
-
+    
             // find the controller offset and count the number of casings
             int z = 0;
             for (String[] a : definitionText) {
@@ -78,7 +76,7 @@ public class StructureWrapper<MTE extends MTEEnhancedMultiBlockBase<?> & IStruct
                     for (int x = 0; x < b.length(); x++) {
                         char c = b.charAt(x);
                         if (c == ' ' || c == '-' || c == '+') continue;
-
+    
                         casingCounts.mergeInt(c, 1, Integer::sum);
 
                         if (c == '~') {
@@ -93,9 +91,7 @@ public class StructureWrapper<MTE extends MTEEnhancedMultiBlockBase<?> & IStruct
             size = new Vector3i(width, height, length);
 
             if (offset == null) {
-                throw new IllegalStateException(
-                    "Structure definition for " + provider
-                        + " did not contain a tilde! This is required so that the wrapper knows where the controller is.");
+                throw new IllegalStateException("Structure definition for " + provider + " did not contain a tilde! This is required so that the wrapper knows where the controller is.");
             }
 
             structureDefinition = provider.compile(definitionText);
@@ -121,7 +117,7 @@ public class StructureWrapper<MTE extends MTEEnhancedMultiBlockBase<?> & IStruct
             } catch (NoSuchMethodError ignored) {
                 // probably got hotswapped
                 MMMod.LOG.info("Caught an exception that was probably caused by a hotswap.", ignored);
-
+    
                 loadStructure();
 
                 return checkStructureImpl(instance);
@@ -154,7 +150,7 @@ public class StructureWrapper<MTE extends MTEEnhancedMultiBlockBase<?> & IStruct
             } catch (NoSuchMethodError ignored) {
                 // probably got hotswapped
                 MMMod.LOG.info("Caught an exception that was probably caused by a hotswap.", ignored);
-
+    
                 loadStructure();
 
                 constructImpl(instance, trigger, hintsOnly);
@@ -190,7 +186,7 @@ public class StructureWrapper<MTE extends MTEEnhancedMultiBlockBase<?> & IStruct
             } catch (NoSuchMethodError ignored) {
                 // probably got hotswapped
                 MMMod.LOG.info("Caught an exception that was probably caused by a hotswap.", ignored);
-
+    
                 loadStructure();
 
                 return survivalConstructImpl(instance, trigger, elementBudget, env);
@@ -198,8 +194,7 @@ public class StructureWrapper<MTE extends MTEEnhancedMultiBlockBase<?> & IStruct
         }
     }
 
-    private int survivalConstructImpl(MTE instance, ItemStack trigger, int elementBudget,
-        ISurvivalBuildEnvironment env) {
+    private int survivalConstructImpl(MTE instance, ItemStack trigger, int elementBudget, ISurvivalBuildEnvironment env) {
         final IGregTechTileEntity tTile = instance.getBaseMetaTileEntity();
         int built = structureDefinition.survivalBuild(
             instance,
@@ -227,10 +222,10 @@ public class StructureWrapper<MTE extends MTEEnhancedMultiBlockBase<?> & IStruct
 
         if (casing.maxHatches > 0) {
             final IntBinaryOperator sum = Integer::sum;
-
-            IStructureElement<MTE> adder = onElementPass(
-                instance -> { instance.getWrapperInstanceInfo().actualCasingCounts.mergeInt(c, 1, sum); },
-                casing.casing.asElement());
+    
+            IStructureElement<MTE> adder = onElementPass(instance -> {
+                instance.getWrapperInstanceInfo().actualCasingCounts.mergeInt(c, 1, sum);
+            }, casing.casing.asElement());
 
             return HatchElementBuilder.<MTE>builder()
                 .atLeast(casing.hatches)
@@ -286,8 +281,7 @@ public class StructureWrapper<MTE extends MTEEnhancedMultiBlockBase<?> & IStruct
     }
 
     @SuppressWarnings("unchecked")
-    public StructureWrapper<MTE> addCasingWithHatches(char c, ICasing casing, int dot, int maxHatches,
-        List<IHatchElement<? super MTE>> hatches) {
+    public StructureWrapper<MTE> addCasingWithHatches(char c, ICasing casing, int dot, int maxHatches, List<IHatchElement<? super MTE>> hatches) {
         Objects.requireNonNull(casing);
         Objects.requireNonNull(hatches);
 
@@ -321,12 +315,19 @@ public class StructureWrapper<MTE extends MTEEnhancedMultiBlockBase<?> & IStruct
     }
 
     public StructureWrapper<MTE> addCasingInfoExact(MultiblockTooltipBuilder tt, ICasing casing) {
-        tt.addCasingInfoExactly(casing.getLocalizedName(), getCasingMax(casing), false);
+        tt.addCasingInfoExactly(
+            casing.getLocalizedName(),
+            getCasingMax(casing),
+            false);
         return this;
     }
 
     public StructureWrapper<MTE> addCasingInfoRange(MultiblockTooltipBuilder tt, ICasing casing) {
-        tt.addCasingInfoRange(casing.getLocalizedName(), getCasingMin(casing), getCasingMax(casing), false);
+        tt.addCasingInfoRange(
+            casing.getLocalizedName(),
+            getCasingMin(casing),
+            getCasingMax(casing),
+            false);
         return this;
     }
 

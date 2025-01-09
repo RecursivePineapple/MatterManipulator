@@ -2,6 +2,7 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 
 import java.io.File;
 
+import gregtech.common.GTIteratorRandom;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
@@ -17,10 +18,8 @@ import net.minecraft.world.storage.IPlayerFileData;
 import net.minecraft.world.storage.ISaveHandler;
 import net.minecraft.world.storage.WorldInfo;
 
-import gregtech.common.GTIteratorRandom;
-
 public class ProxiedWorld extends World {
-
+    
     private final World world;
 
     public GTIteratorRandom mRandom = new GTIteratorRandom();

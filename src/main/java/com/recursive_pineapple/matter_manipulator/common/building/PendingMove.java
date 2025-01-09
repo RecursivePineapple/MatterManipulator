@@ -5,6 +5,15 @@ import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.se
 import java.util.ArrayList;
 import java.util.List;
 
+import com.recursive_pineapple.matter_manipulator.asm.Optional;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
+import com.recursive_pineapple.matter_manipulator.common.networking.SoundResource;
+import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
+
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -13,15 +22,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
-
-import com.recursive_pineapple.matter_manipulator.asm.Optional;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
-import com.recursive_pineapple.matter_manipulator.common.networking.SoundResource;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
 import WayofTime.alchemicalWizardry.api.event.TeleposeEvent;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
@@ -68,8 +68,7 @@ public class PendingMove extends AbstractBuildable {
 
             BlockSpec.fromBlock(source, world, s.x, s.y, s.z);
 
-            if (source.getBlock()
-                .getBlockHardness(world, s.x, s.y, s.z) < 0) {
+            if (source.getBlock().getBlockHardness(world, s.x, s.y, s.z) < 0) {
                 MMUtils.sendErrorToPlayer(
                     player,
                     String.format("Could not move invulnerable source block X=%d, Y=%d, Z=%d", s.x, s.y, s.z));
@@ -80,15 +79,12 @@ public class PendingMove extends AbstractBuildable {
 
             // check if we can remove the existing target block
             boolean canPlace = switch (state.config.removeMode) {
-                case NONE -> target.getBlock()
-                    .isAir(world, d.x, d.y, d.z);
-                case REPLACEABLE -> target.getBlock()
-                    .isReplaceable(world, d.x, d.y, d.z);
+                case NONE -> target.getBlock().isAir(world, d.x, d.y, d.z);
+                case REPLACEABLE -> target.getBlock().isReplaceable(world, d.x, d.y, d.z);
                 case ALL -> true;
             };
 
-            canPlace &= target.getBlock()
-                .getBlockHardness(world, d.x, d.y, d.z) >= 0;
+            canPlace &= target.getBlock().getBlockHardness(world, d.x, d.y, d.z) >= 0;
 
             if (!canPlace) {
                 MMUtils.sendErrorToPlayer(
@@ -98,8 +94,7 @@ public class PendingMove extends AbstractBuildable {
             }
 
             // remove the existing block if needed
-            if (!target.getBlock()
-                .isAir(world, d.x, d.y, d.z)) {
+            if (!target.getBlock().isAir(world, d.x, d.y, d.z)) {
                 if (!tryConsumePower(stack, world, d.x, d.y, d.z, target)) {
                     MMUtils.sendErrorToPlayer(player, "Matter Manipulator ran out of EU.");
                     break;
@@ -109,8 +104,7 @@ public class PendingMove extends AbstractBuildable {
             }
 
             // if we can't move the source block then skip it for now
-            if (!source.getBlock()
-                .canPlaceBlockAt(world, d.x, d.y, d.z)) {
+            if (!source.getBlock().canPlaceBlockAt(world, d.x, d.y, d.z)) {
                 continue;
             }
 
@@ -145,7 +139,7 @@ public class PendingMove extends AbstractBuildable {
 
     @Override
     public void onStopped() {
-
+        
     }
 
     private void initMoves() {
@@ -274,7 +268,7 @@ public class PendingMove extends AbstractBuildable {
                     && igte.getMetaTileEntity() instanceof BaseMetaTileEntity bmte) {
                     bmte.setCableUpdateDelay(100);
                 }
-
+    
                 if (newTileEntityF instanceof IIC2Enet enet) {
                     enet.doEnetUpdate();
                 }
@@ -285,8 +279,7 @@ public class PendingMove extends AbstractBuildable {
     }
 
     @Optional(Names.BLOOD_MAGIC)
-    private static boolean allowTelepose(World worldI, World worldF, Location s, BlockSpec spec1, Location d,
-        BlockSpec spec2) {
+    private static boolean allowTelepose(World worldI, World worldF, Location s, BlockSpec spec1, Location d, BlockSpec spec2) {
         TeleposeEvent evt = new TeleposeEvent(
             worldI,
             s.x,

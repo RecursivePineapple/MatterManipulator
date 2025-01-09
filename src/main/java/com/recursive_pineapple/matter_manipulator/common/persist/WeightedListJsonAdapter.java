@@ -23,8 +23,7 @@ public class WeightedListJsonAdapter implements JsonSerializer<WeightedSpecList>
     private static final Type BLOCK_SPEC = new TypeToken<BlockSpec>() {}.getType();
 
     @Override
-    public WeightedSpecList deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
-        throws JsonParseException {
+    public WeightedSpecList deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         if (!(json instanceof JsonArray array)) return new WeightedSpecList();
 
         WeightedSpecList list = new WeightedSpecList();
@@ -43,8 +42,7 @@ public class WeightedListJsonAdapter implements JsonSerializer<WeightedSpecList>
     @Override
     public JsonElement serialize(WeightedSpecList src, Type typeOfSrc, JsonSerializationContext context) {
         if (src.specs.size() == 1) {
-            BlockSpec spec = src.specs.get(0)
-                .left();
+            BlockSpec spec = src.specs.get(0).left();
 
             if (spec == null || spec.isAir()) return JsonNull.INSTANCE;
         }
