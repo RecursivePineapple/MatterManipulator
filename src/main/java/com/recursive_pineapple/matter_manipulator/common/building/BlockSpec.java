@@ -12,6 +12,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -352,24 +354,34 @@ public class BlockSpec implements ImmutableBlockSpec {
     }
 
     public static BlockSpec fromBlock(BlockSpec pooled, World world, int x, int y, int z, Block block, int blockMeta) {
-        Item item = MMUtils.getItemFromBlock(block, blockMeta);
-
-        if (item == null) { return new BlockSpec().setObject(Blocks.air, 0); }
-
-        if (block != Blocks.wall_sign && block != Blocks.standing_sign) {
-            block = MMUtils.getBlockFromItem(item, item.getMetadata(blockMeta));
-        }
-
-        int itemMeta = block.getDamageValue(world, x, y, z);
-
         BlockSpec spec = pooled != null ? pooled.reset() : new BlockSpec();
 
         spec.isBlock = true;
         spec.objectId = GameRegistry.findUniqueIdentifierFor(block);
-        spec.metadata = itemMeta;
         spec.block = block;
-        spec.item = Optional.of(item);
-        spec.itemId = Optional.of(ItemId.create(item, itemMeta, null));
+
+        if (!MMUtils.isFree(block, blockMeta)) {
+            @Nullable
+            Item item = MMUtils.getItemFromBlock(block, blockMeta);
+    
+            if (item == null) { return new BlockSpec().setObject(Blocks.air, 0); }
+    
+            if (block != Blocks.wall_sign && block != Blocks.standing_sign) {
+                block = MMUtils.getBlockFromItem(item, item.getMetadata(blockMeta));
+            }
+
+            int itemMeta = block.getDamageValue(world, x, y, z);
+    
+            spec.metadata = itemMeta;
+            spec.item = Optional.ofNullable(item);
+            spec.itemId = item == null ? Optional.empty() : Optional.of(ItemId.create(item, itemMeta, null));
+        } else {
+            spec.metadata = 0;
+            spec.item = Optional.empty();
+            spec.itemId = Optional.empty();
+            spec.stack = Optional.empty();
+        }
+
         if (Mods.ArchitectureCraft.isModLoaded()) {
             spec.arch = ArchitectureCraftAnalysisResult.analyze(world.getTileEntity(x, y, z));
         }

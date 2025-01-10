@@ -404,7 +404,7 @@ public class MMState {
 
                 pending.add(rep);
             } else if (replacingWithAECable) {
-                PendingBlock rep = PendingBlock.AE_BLOCK_CABLE.get().asSpec().instantiate(world, x, y, z);
+                PendingBlock rep = MMUtils.AE_BLOCK_CABLE.get().asSpec().instantiate(world, x, y, z);
 
                 if (world.getTileEntity(x, y, z) instanceof IPartHost) {
                     rep.analyze(world.getTileEntity(x, y, z), PendingBlock.ANALYZE_ALL);
@@ -449,7 +449,7 @@ public class MMState {
             for (Vector3i voxel : getLineVoxels(a.x, a.y, a.z, b.x, b.y, b.z)) {
                 if (AppliedEnergistics2.isModLoaded()) {
                     if (MMUtils.getAECable(pooled, world, voxel.x, voxel.y, voxel.z)) {
-                        PendingBlock pendingBlock = PendingBlock.AE_BLOCK_CABLE.get().asSpec().instantiate(world, voxel.x, voxel.y, voxel.z);
+                        PendingBlock pendingBlock = MMUtils.AE_BLOCK_CABLE.get().asSpec().instantiate(world, voxel.x, voxel.y, voxel.z);
 
                         pendingBlock.analyze(world.getTileEntity(voxel.x, voxel.y, voxel.z), PendingBlock.ANALYZE_ALL);
 
@@ -532,7 +532,7 @@ public class MMState {
 
                     AEAnalysisResult ae;
 
-                    if (PendingBlock.AE_BLOCK_CABLE.matches(world.getBlock(x, y, z), 0)) {
+                    if (MMUtils.AE_BLOCK_CABLE.matches(world.getBlock(x, y, z), 0)) {
                         ae = AEAnalysisResult.analyze(world.getTileEntity(voxel.x, voxel.y, voxel.z));
                         ae.mAEParts[ForgeDirection.UNKNOWN.ordinal()] = new AEPartData(cable);
                     } else {

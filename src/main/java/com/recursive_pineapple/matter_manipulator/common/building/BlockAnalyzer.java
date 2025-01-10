@@ -6,11 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Items;
-import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.world.World;
+import org.joml.Vector3i;
 
 import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.DebugConfig;
 import com.recursive_pineapple.matter_manipulator.MMMod;
@@ -21,10 +17,13 @@ import com.recursive_pineapple.matter_manipulator.common.utils.FluidId;
 import com.recursive_pineapple.matter_manipulator.common.utils.ItemId;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 
-import org.joml.Vector3i;
-
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Items;
+import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.World;
 
 public class BlockAnalyzer {
 
@@ -89,6 +88,14 @@ public class BlockAnalyzer {
 
     public static interface IBlockApplyContext extends IPseudoInventory {
 
+        public World getWorld();
+
+        public int getX();
+
+        public int getY();
+
+        public int getZ();
+
         public TileEntity getTileEntity();
 
         public EntityPlayer getRealPlayer();
@@ -109,6 +116,26 @@ public class BlockAnalyzer {
         public ItemStack manipulator;
 
         public static final double EU_PER_ACTION = 8192;
+
+        @Override
+        public World getWorld() {
+            return world;
+        }
+
+        @Override
+        public int getX() {
+            return x;
+        }
+
+        @Override
+        public int getY() {
+            return y;
+        }
+
+        @Override
+        public int getZ() {
+            return z;
+        }
 
         @Override
         public TileEntity getTileEntity() {
@@ -164,6 +191,26 @@ public class BlockAnalyzer {
 
         public Object2LongOpenHashMap<ItemId> storedItems = new Object2LongOpenHashMap<>();
         public Object2LongOpenHashMap<FluidId> storedFluids = new Object2LongOpenHashMap<>();
+
+        @Override
+        public World getWorld() {
+            return world;
+        }
+
+        @Override
+        public int getX() {
+            return x;
+        }
+
+        @Override
+        public int getY() {
+            return y;
+        }
+
+        @Override
+        public int getZ() {
+            return z;
+        }
 
         @Override
         public TileEntity getTileEntity() {

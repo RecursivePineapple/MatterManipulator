@@ -27,7 +27,7 @@ import com.recursive_pineapple.matter_manipulator.common.compat.BlockPropertyReg
 import com.recursive_pineapple.matter_manipulator.common.compat.Orientation;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
-import com.recursive_pineapple.matter_manipulator.common.utils.LazyBlock;
+import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 
 import org.jetbrains.annotations.NotNull;
@@ -44,6 +44,7 @@ public class PendingBlock extends Location {
     public ITileAnalysisIntegration gt;
     public ITileAnalysisIntegration ae;
     public ITileAnalysisIntegration arch;
+    public ITileAnalysisIntegration mp;
 
     public InventoryAnalysis inventory = null;
 
@@ -116,6 +117,7 @@ public class PendingBlock extends Location {
         if (gt != null) list.add(gt);
         if (ae != null) list.add(ae);
         if (arch != null) list.add(arch);
+        if (mp != null) list.add(mp);
 
         return list;
     }
@@ -194,16 +196,8 @@ public class PendingBlock extends Location {
         return spec.shouldBeSkipped();
     }
 
-    public static final LazyBlock AE_BLOCK_CABLE = new LazyBlock(Mods.AppliedEnergistics2, "tile.BlockCableBus");
-
     public boolean isFree() {
-        Block block = getBlock();
-
-        if (block == Blocks.air) return true;
-
-        if (AE_BLOCK_CABLE.matches(spec)) return true;
-
-        return false;
+        return MMUtils.isFree(spec.getBlock(), spec.getBlockMeta());
     }
 
     public PendingBlock clone(boolean shallow) {
@@ -217,6 +211,7 @@ public class PendingBlock extends Location {
         if (gt != null) dup.gt = gt.clone();
         if (ae != null) dup.ae = ae.clone();
         if (arch != null) dup.arch = arch.clone();
+        if (mp != null) dup.mp = mp.clone();
         if (inventory != null) dup.inventory = inventory.clone();
         dup.renderOrder = renderOrder;
         dup.buildOrder = buildOrder;
@@ -354,6 +349,7 @@ public class PendingBlock extends Location {
         result = prime * result + ((gt == null) ? 0 : gt.hashCode());
         result = prime * result + ((ae == null) ? 0 : ae.hashCode());
         result = prime * result + ((arch == null) ? 0 : arch.hashCode());
+        result = prime * result + ((mp == null) ? 0 : mp.hashCode());
         result = prime * result + ((inventory == null) ? 0 : inventory.hashCode());
         result = prime * result + renderOrder;
         result = prime * result + buildOrder;
@@ -378,6 +374,9 @@ public class PendingBlock extends Location {
         if (arch == null) {
             if (other.arch != null) return false;
         } else if (!arch.equals(other.arch)) return false;
+        if (mp == null) {
+            if (other.mp != null) return false;
+        } else if (!mp.equals(other.mp)) return false;
         if (inventory == null) {
             if (other.inventory != null) return false;
         } else if (!inventory.equals(other.inventory)) return false;
@@ -398,7 +397,7 @@ public class PendingBlock extends Location {
 
                 return (long) chunkX | (long) (chunkZ << 32);
             })
-            .thenComparingInt(b -> Objects.hash(b.gt, b.ae, b.arch, b.inventory));
+            .thenComparingInt(b -> Objects.hash(b.gt, b.ae, b.arch, b.mp, b.inventory));
     }
 
     public static PendingBlock fromBlock(World world, int x, int y, int z) {
@@ -409,6 +408,7 @@ public class PendingBlock extends Location {
     public static final int ANALYZE_GT = 0b1 << counter++;
     public static final int ANALYZE_AE = 0b1 << counter++;
     public static final int ANALYZE_ARCH = 0b1 << counter++;
+    public static final int ANALYZE_MP = 0b1 << counter++;
     public static final int ANALYZE_INV = 0b1 << counter++;
     public static final int ANALYZE_ALL = -1;
 
@@ -426,11 +426,26 @@ public class PendingBlock extends Location {
                 this.arch = ArchitectureCraftAnalysisResult.analyze(te);
             }
 
+            if ((flags & ANALYZE_MP) != 0 && Mods.ForgeMultipart.isModLoaded()) {
+                this.mp = MultipartAnalysisResult.analyze(te);
+            }
+
             if ((flags & ANALYZE_INV) != 0 && te instanceof IInventory inventory) {
                 this.inventory = InventoryAnalysis.fromInventory(inventory, false);
             }
         }
 
         return this;
+    }
+
+    public static boolean areEquivalent(PendingBlock a, PendingBlock b) {
+        ItemStack sa = a.getStack();
+        ItemStack sb = b.getStack();
+
+        if (sa == null && sb == null) {
+            return a.spec.equals(b.spec);
+        } else {
+            return ItemStack.areItemStacksEqual(sa, sb);
+        }
     }
 }

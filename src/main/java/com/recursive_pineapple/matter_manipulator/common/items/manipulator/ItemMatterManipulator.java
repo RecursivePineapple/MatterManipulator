@@ -938,7 +938,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
 
     private void checkForAECables(BlockSpec spec, World world, int x, int y, int z) {
         if (tier.hasCap(ALLOW_CABLES) && AppliedEnergistics2.isModLoaded()) {
-            if (spec.getItem() == PendingBlock.AE_BLOCK_CABLE.get().getItem()) {
+            if (spec.getItem() == MMUtils.AE_BLOCK_CABLE.get().getItem()) {
                 MMUtils.getAECable(spec, world, x, y, z);
             }
         }

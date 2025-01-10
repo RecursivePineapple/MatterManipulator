@@ -15,7 +15,10 @@ public enum Mods {
     BloodMagic(Names.BLOOD_MAGIC),
     CarpentersBlocks(Names.CARPENTERS_BLOCKS),
     EnderIO(Names.ENDER_I_O),
+    /** Creates the actual block parts from blocks. */
     ForgeMicroblocks(Names.FORGE_MICROBLOCKS),
+    /** The forge multipart library. */
+    ForgeMultipart(Names.FORGE_MULTIPART),
     GregTech(Names.GREG_TECH),
     GTPlusPlus(Names.G_T_PLUS_PLUS),
     GraviSuite(Names.GRAVI_SUITE),
@@ -47,6 +50,7 @@ public enum Mods {
         public static final String CARPENTERS_BLOCKS = "CarpentersBlocks";
         public static final String ENDER_I_O = "EnderIO";
         public static final String FORGE_MICROBLOCKS = "ForgeMicroblock";
+        public static final String FORGE_MULTIPART = "ForgeMultipart";
         public static final String GREG_TECH = "gregtech";
         public static final String GRAVI_SUITE = "GraviSuite";
         public static final String G_T_PLUS_PLUS = "miscutils";

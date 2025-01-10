@@ -97,6 +97,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.gtnewhorizon.gtnhlib.util.map.ItemStackMap;
+import com.gtnewhorizon.structurelib.util.XSTR;
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.RequiredItemAnalysis;
@@ -1250,7 +1251,19 @@ public class MMUtils {
         }
     }
 
-    private static final Random RNG = new Random();
+    private static final XSTR RNG = new XSTR();
+
+    public static final LazyBlock AE_BLOCK_CABLE = new LazyBlock(Mods.AppliedEnergistics2, "tile.BlockCableBus");
+    public static final LazyBlock FMP_BLOCK = new LazyBlock(Mods.ForgeMultipart, "block");
+
+    public static boolean isFree(Block block, int metadata) {
+        if (block == Blocks.air) return true;
+
+        if (FMP_BLOCK.matches(block, metadata)) return true;
+        if (AE_BLOCK_CABLE.matches(block, metadata)) return true;
+
+        return false;
+    }
 
     public static Item getItemFromBlock(Block block, int metadata) {
         if (block == null) block = Blocks.air;
@@ -1274,7 +1287,7 @@ public class MMUtils {
         } else if (item instanceof ItemReed specialPlacing) {
             block = specialPlacing.field_150935_a;
         } else if (AppliedEnergistics2.isModLoaded() && isAECable(item, metadata)) {
-            block = PendingBlock.AE_BLOCK_CABLE.get().getBlock();
+            block = MMUtils.AE_BLOCK_CABLE.get().getBlock();
         } else {
             block = Block.getBlockFromItem(item);
         }

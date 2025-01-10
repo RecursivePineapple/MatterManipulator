@@ -125,7 +125,7 @@ public class PendingBuild extends AbstractBuildable {
             existing.analyze(world.getTileEntity(x, y, z), PendingBlock.ANALYZE_ARCH);
 
             // if the existing block is the same as the one we're trying to place, just apply its tile data
-            if (ItemStack.areItemStacksEqual(existing.getStack(), next.getStack())) {
+            if (PendingBlock.areEquivalent(existing, next)) {
                 PendingBlock block = pendingBlocks.removeFirst();
 
                 if (supportsConfiguring()) {
@@ -278,7 +278,7 @@ public class PendingBuild extends AbstractBuildable {
 
             BlockSpec existing = BlockSpec.fromBlock(pooled, world, x, y, z);
 
-            if (existing.isEquivalent(pending.spec)) {
+            if (existing.equals(pending.spec)) {
                 // somehow the block already exists, despite us checking to make sure that this shouldn't happen
                 // just to be safe, we only consume the item when we actually place something
                 if (supportsConfiguring()) {
@@ -414,6 +414,26 @@ public class PendingBuild extends AbstractBuildable {
 
         public PendingBuildApplyContext(ItemStack manipulatorItemStack) {
             this.manipulatorItemStack = manipulatorItemStack;
+        }
+
+        @Override
+        public World getWorld() {
+            return player.worldObj;
+        }
+
+        @Override
+        public int getX() {
+            return pendingBlock.x;
+        }
+
+        @Override
+        public int getY() {
+            return pendingBlock.y;
+        }
+
+        @Override
+        public int getZ() {
+            return pendingBlock.z;
         }
 
         @Override
