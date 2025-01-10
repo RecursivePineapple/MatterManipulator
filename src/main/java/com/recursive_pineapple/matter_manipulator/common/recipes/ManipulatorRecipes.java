@@ -483,24 +483,9 @@ public class ManipulatorRecipes {
         if (ae) GTValues.RA.stdBuilder()
             .itemInputs(
                 GTUtility.getIntegratedCircuit(5),
-                AEApi.instance()
-                    .definitions()
-                    .blocks()
-                    .wireless()
-                    .maybeStack(1)
-                    .get(),
-                AEApi.instance()
-                    .definitions()
-                    .blocks()
-                    .energyCell()
-                    .maybeStack(1)
-                    .get(),
-                AEApi.instance()
-                    .definitions()
-                    .materials()
-                    .cell256kPart()
-                    .maybeStack(1)
-                    .get(),
+                AEApi.instance().definitions().blocks().wireless().maybeStack(1).get(),
+                AEApi.instance().definitions().blocks().energyCell().maybeStack(1).get(),
+                AEApi.instance().definitions().materials().cell256kPart().maybeStack(1).get(),
                 getModItem(AE2FluidCraft.ID, "fluid_interface", 1),
                 ItemList.Conveyor_Module_IV.get(2),
                 ItemList.Electric_Pump_IV.get(2),
@@ -516,47 +501,14 @@ public class ManipulatorRecipes {
 
         // Quantum Downlink
         if (ae) GTValues.RA.stdBuilder()
-            .metadata(
-                RESEARCH_ITEM,
-                AEApi.instance()
-                    .definitions()
-                    .blocks()
-                    .quantumRing()
-                    .maybeStack(1)
-                    .get()
-            )
+            .metadata(RESEARCH_ITEM, AEApi.instance().definitions().blocks().quantumRing().maybeStack(1).get())
             .metadata(RESEARCH_TIME, 120 * MINUTES)
             .itemInputs(
-                AEApi.instance()
-                    .definitions()
-                    .blocks()
-                    .quantumRing()
-                    .maybeStack(8)
-                    .get(),
-                AEApi.instance()
-                    .definitions()
-                    .blocks()
-                    .quantumLink()
-                    .maybeStack(1)
-                    .get(),
-                AEApi.instance()
-                    .definitions()
-                    .blocks()
-                    .controller()
-                    .maybeStack(1)
-                    .get(),
-                AEApi.instance()
-                    .definitions()
-                    .blocks()
-                    .energyCellDense()
-                    .maybeStack(1)
-                    .get(),
-                AEApi.instance()
-                    .definitions()
-                    .materials()
-                    .cell4096kPart()
-                    .maybeStack(1)
-                    .get(),
+                AEApi.instance().definitions().blocks().quantumRing().maybeStack(8).get(),
+                AEApi.instance().definitions().blocks().quantumLink().maybeStack(1).get(),
+                AEApi.instance().definitions().blocks().controller().maybeStack(1).get(),
+                AEApi.instance().definitions().blocks().energyCellDense().maybeStack(1).get(),
+                AEApi.instance().definitions().materials().cell4096kPart().maybeStack(1).get(),
                 getModItem(AE2FluidCraft.ID, "fluid_interface", 1),
                 ItemList.Conveyor_Module_ZPM.get(2),
                 ItemList.Electric_Pump_ZPM.get(2),
@@ -598,38 +550,18 @@ public class ManipulatorRecipes {
 
         // Quantum Uplink ME Connector Hatch
         if (ae) TTRecipeAdder.addResearchableAssemblylineRecipe(
-            AEApi.instance()
-                .definitions()
-                .parts()
-                .patternTerminal()
-                .maybeStack(1)
-                .get(),
+            AEApi.instance().definitions().parts().patternTerminal().maybeStack(1).get(),
             80_000,
             32,
             (int) TierEU.RECIPE_UV,
             2,
             new Object[] {
                 CustomItemList.dataIn_Hatch.get(1),
-                AEApi.instance()
-                    .definitions()
-                    .materials()
-                    .cell16384kPart()
-                    .maybeStack(1)
-                    .get(),
+                AEApi.instance().definitions().materials().cell16384kPart().maybeStack(1).get(),
                 getModItem(AE2FluidCraft.ID, "fluid_interface", 1),
-                AEApi.instance()
-                    .definitions()
-                    .parts()
-                    .patternTerminal()
-                    .maybeStack(1)
-                    .get(),
+                AEApi.instance().definitions().parts().patternTerminal().maybeStack(1).get(),
                 ItemList.Robot_Arm_UV.get(1),
-                AEApi.instance()
-                    .definitions()
-                    .materials()
-                    .blankPattern()
-                    .maybeStack(64)
-                    .get(),
+                AEApi.instance().definitions().materials().blankPattern().maybeStack(64).get(),
                 new Object[] {
                     OrePrefixes.circuit.get(Materials.UV), 4
                 }
@@ -644,48 +576,18 @@ public class ManipulatorRecipes {
 
         // Matter Manipulator Quantum Uplink
         if (ae) TTRecipeAdder.addResearchableAssemblylineRecipe(
-            AEApi.instance()
-                .definitions()
-                .blocks()
-                .quantumLink()
-                .maybeStack(1)
-                .get(),
+            AEApi.instance().definitions().blocks().quantumLink().maybeStack(1).get(),
             160_000,
             32,
             (int) TierEU.RECIPE_UV,
             4,
             new Object[] {
                 CustomItemList.Machine_Multi_DataBank.get(1),
-                AEApi.instance()
-                    .definitions()
-                    .blocks()
-                    .controller()
-                    .maybeStack(4)
-                    .get(),
-                AEApi.instance()
-                    .definitions()
-                    .blocks()
-                    .quantumRing()
-                    .maybeStack(8)
-                    .get(),
-                AEApi.instance()
-                    .definitions()
-                    .blocks()
-                    .quantumLink()
-                    .maybeStack(1)
-                    .get(),
-                AEApi.instance()
-                    .definitions()
-                    .blocks()
-                    .iOPort()
-                    .maybeStack(1)
-                    .get(),
-                AEApi.instance()
-                    .definitions()
-                    .materials()
-                    .cardSuperSpeed()
-                    .maybeStack(2)
-                    .get(),
+                AEApi.instance().definitions().blocks().controller().maybeStack(4).get(),
+                AEApi.instance().definitions().blocks().quantumRing().maybeStack(8).get(),
+                AEApi.instance().definitions().blocks().quantumLink().maybeStack(1).get(),
+                AEApi.instance().definitions().blocks().iOPort().maybeStack(1).get(),
+                AEApi.instance().definitions().materials().cardSuperSpeed().maybeStack(2).get(),
                 CustomItemList.dataOut_Hatch.get(1),
                 CustomItemList.DATApipe.get(32),
                 new Object[] {
