@@ -2,6 +2,8 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 
 import java.io.File;
 
+import com.gtnewhorizon.structurelib.util.XSTR;
+
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
@@ -17,13 +19,9 @@ import net.minecraft.world.storage.IPlayerFileData;
 import net.minecraft.world.storage.ISaveHandler;
 import net.minecraft.world.storage.WorldInfo;
 
-import gregtech.common.GTIteratorRandom;
-
 public class ProxiedWorld extends World {
 
     private final World world;
-
-    public GTIteratorRandom mRandom = new GTIteratorRandom();
 
     public int airX, airY, airZ;
 
@@ -73,7 +71,7 @@ public class ProxiedWorld extends World {
             }
         }, "DUMMY_DIMENSION", null, new WorldSettings(new WorldInfo(new NBTTagCompound())), new Profiler());
 
-        this.rand = this.mRandom;
+        this.rand = new XSTR();
         this.world = world;
         this.chunkProvider = world.getChunkProvider();
     }
