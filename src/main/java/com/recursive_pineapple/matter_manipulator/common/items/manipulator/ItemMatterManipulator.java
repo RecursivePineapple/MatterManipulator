@@ -130,7 +130,7 @@ import ic2.api.item.ISpecialElectricItem;
 @InterfaceList({
     @Interface(modid = Names.APPLIED_ENERGISTICS2, iface = "appeng.api.features.INetworkEncodable", striprefs = true),
     @Interface(modid = Names.INDUSTRIAL_CRAFT2, iface = "ic2.api.item.ISpecialElectricItem"),
-    @Interface(modid = Names.INDUSTRIAL_CRAFT2, iface = "ic2.api.item.IElectricItemManager"),
+    @Interface(modid = Names.INDUSTRIAL_CRAFT2, iface = "ic2.api.item.IElectricItemManager", striprefs = true),
 })
 public class ItemMatterManipulator extends Item implements ISpecialElectricItem, IElectricItemManager, INetworkEncodable {
 
