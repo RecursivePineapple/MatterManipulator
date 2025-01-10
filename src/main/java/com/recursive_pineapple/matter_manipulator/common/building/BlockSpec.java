@@ -1,5 +1,7 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
+import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.ArchitectureCraft;
+
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.util.ArrayList;
@@ -78,7 +80,7 @@ public class BlockSpec implements ImmutableBlockSpec {
         item = null;
         itemId = null;
         stack = null;
-        arch = null;
+        if (ArchitectureCraft.isModLoaded()) arch = null;
 
         return this;
     }
@@ -207,7 +209,7 @@ public class BlockSpec implements ImmutableBlockSpec {
             if (this.stack.isPresent()) {
                 NBTTagCompound tag = new NBTTagCompound();
 
-                if (arch != null) arch.getItemTag(tag);
+                if (ArchitectureCraft.isModLoaded() && arch != null) arch.getItemTag(tag);
 
                 this.stack.get().setTagCompound(tag.hasNoTags() ? null : tag);
             }
@@ -220,7 +222,7 @@ public class BlockSpec implements ImmutableBlockSpec {
     public PendingBlock instantiate(int worldId, int x, int y, int z) {
         PendingBlock pendingBlock = new PendingBlock(worldId, x, y, z, this);
 
-        if (arch != null) {
+        if (ArchitectureCraft.isModLoaded() && arch != null) {
             pendingBlock.arch = arch.clone();
         }
 
@@ -238,7 +240,7 @@ public class BlockSpec implements ImmutableBlockSpec {
         dup.item = item;
         dup.itemId = itemId;
         dup.stack = stack;
-        dup.arch = arch == null ? null : arch.clone();
+        if (ArchitectureCraft.isModLoaded()) dup.arch = arch == null ? null : arch.clone();
 
         return dup;
     }
@@ -264,7 +266,7 @@ public class BlockSpec implements ImmutableBlockSpec {
     private String getItemDetails() {
         List<String> details = new ArrayList<>(0);
 
-        if (arch != null) arch.getItemDetails(details);
+        if (ArchitectureCraft.isModLoaded() && arch != null) arch.getItemDetails(details);
 
         return details.isEmpty() ? "" : String.format(" (%s)", String.join(", ", details));
     }
@@ -281,7 +283,9 @@ public class BlockSpec implements ImmutableBlockSpec {
         result = prime * result + ((objectId == null) ? 0 : objectId.hashCode());
         result = prime * result + metadata;
         result = prime * result + ((properties == null) ? 0 : properties.hashCode());
-        result = prime * result + ((arch == null) ? 0 : arch.hashCode());
+        if (ArchitectureCraft.isModLoaded()) {
+            result = prime * result + ((arch == null) ? 0 : arch.hashCode());
+        }
         return result;
     }
 
@@ -299,9 +303,11 @@ public class BlockSpec implements ImmutableBlockSpec {
         if (properties == null) {
             if (other.properties != null) return false;
         } else if (!properties.equals(other.properties)) return false;
-        if (arch == null) {
-            if (other.arch != null) return false;
-        } else if (!arch.equals(other.arch)) return false;
+        if (ArchitectureCraft.isModLoaded()) {
+            if (arch == null) {
+                if (other.arch != null) return false;
+            } else if (!arch.equals(other.arch)) return false;
+        }
         return true;
     }
 
@@ -314,8 +320,7 @@ public class BlockSpec implements ImmutableBlockSpec {
             + metadata
             + ", properties="
             + properties
-            + ", arch="
-            + arch
+            + (ArchitectureCraft.isModLoaded() ? ", arch=" + arch : "")
             + ", block="
             + block
             + ", item="
