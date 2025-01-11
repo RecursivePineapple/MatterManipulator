@@ -8,7 +8,7 @@ This tool is in beta, meaning that it can be used in survival worlds if you're f
 
 If you're using this in GTNH 2.7.x, you must upgrade your GT5u jar to the latest custom release found [here](https://github.com/RecursivePineapple/GT5-Unofficial/releases) that matches your modpack version. This patched GT5u contains several patches that are required for the matter manipulator to properly interact with GT machines. Your game will crash if you try to use a matter manipulator in GTNH without this jar.
 
-This mod will be added to GTNH some time in the new year, after 2.7 is released and stable. The compat PR has been merged, so you can use the mod in any nightly from 2025.
+The compat PR has been merged and the mod has been added to the nightlies. Any nightly from 813 onward has the mod in it already and can be used without further steps, but as always expect nightlies to have potentially game-breaking problems. Nightlies from 800 to 812 can be used if you put the mod in them. Any prior nightlies won't work properly.
 
 You can find the releases [here](https://github.com/RecursivePineapple/MatterManipulator/releases).
 
