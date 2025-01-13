@@ -70,6 +70,11 @@ public class PendingMove extends AbstractBuildable {
 
             BlockSpec.fromBlock(source, world, s.x, s.y, s.z);
 
+            if (source.isAir()) {
+                iter.remove();
+                continue;
+            }
+
             if (source.getBlock().getBlockHardness(world, s.x, s.y, s.z) < 0) {
                 MMUtils.sendErrorToPlayer(
                     player,
