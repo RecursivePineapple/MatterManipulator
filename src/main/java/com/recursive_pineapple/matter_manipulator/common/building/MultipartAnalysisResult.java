@@ -7,12 +7,7 @@ import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Trans
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 
 import codechicken.lib.vec.BlockCoord;
-import codechicken.microblock.CommonMicroClass;
-import codechicken.microblock.ItemMicroPart;
 import codechicken.microblock.Microblock;
-import codechicken.microblock.MicroblockPlacement;
-import codechicken.multipart.MultipartGenerator;
-import codechicken.multipart.TSlottedPart;
 import codechicken.multipart.TileMultipart;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -50,14 +45,12 @@ public class MultipartAnalysisResult implements ITileAnalysisIntegration {
 
     @Override
     public boolean getRequiredItemsForExistingBlock(IBlockApplyContext context) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getRequiredItemsForExistingBlock'");
+        return true;
     }
 
     @Override
     public boolean getRequiredItemsForNewBlock(IBlockApplyContext context) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getRequiredItemsForNewBlock'");
+        return true;
     }
 
     @Override

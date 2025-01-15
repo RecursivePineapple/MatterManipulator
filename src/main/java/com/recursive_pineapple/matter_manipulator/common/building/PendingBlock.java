@@ -117,7 +117,7 @@ public class PendingBlock extends Location {
         if (gt != null) list.add(gt);
         if (ae != null) list.add(ae);
         if (arch != null) list.add(arch);
-        if (mp != null) list.add(mp);
+        // if (mp != null) list.add(mp);
 
         return list;
     }
@@ -426,9 +426,9 @@ public class PendingBlock extends Location {
                 this.arch = ArchitectureCraftAnalysisResult.analyze(te);
             }
 
-            if ((flags & ANALYZE_MP) != 0 && Mods.ForgeMultipart.isModLoaded()) {
-                this.mp = MultipartAnalysisResult.analyze(te);
-            }
+            // if ((flags & ANALYZE_MP) != 0 && Mods.ForgeMultipart.isModLoaded()) {
+            //     this.mp = MultipartAnalysisResult.analyze(te);
+            // }
 
             if ((flags & ANALYZE_INV) != 0 && te instanceof IInventory inventory) {
                 this.inventory = InventoryAnalysis.fromInventory(inventory, false);
