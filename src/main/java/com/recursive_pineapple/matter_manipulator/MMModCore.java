@@ -1,11 +1,16 @@
 package com.recursive_pineapple.matter_manipulator;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import com.gtnewhorizon.gtnhmixins.IEarlyMixinLoader;
+import com.recursive_pineapple.matter_manipulator.mixin.Mixin;
 
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 
 @IFMLLoadingPlugin.MCVersion("1.7.10")
-public class MMModCore implements IFMLLoadingPlugin {
+public class MMModCore implements IFMLLoadingPlugin, IEarlyMixinLoader {
 
     @Override
     public String[] getASMTransformerClass() {
@@ -32,5 +37,15 @@ public class MMModCore implements IFMLLoadingPlugin {
     @Override
     public String getAccessTransformerClass() {
         return null;
+    }
+
+    @Override
+    public String getMixinConfig() {
+        return "mixins.matter-manipulator.early.json";
+    }
+
+    @Override
+    public List<String> getMixins(Set<String> loadedCoreMods) {
+        return Mixin.getEarlyMixins(loadedCoreMods);
     }
 }
