@@ -427,7 +427,7 @@ public class PendingBlock extends Location {
             }
 
             // if ((flags & ANALYZE_MP) != 0 && Mods.ForgeMultipart.isModLoaded()) {
-            //     this.mp = MultipartAnalysisResult.analyze(te);
+            // this.mp = MultipartAnalysisResult.analyze(te);
             // }
 
             if ((flags & ANALYZE_INV) != 0 && te instanceof IInventory inventory) {

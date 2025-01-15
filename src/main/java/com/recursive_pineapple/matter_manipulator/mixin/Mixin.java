@@ -7,20 +7,24 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import cpw.mods.fml.relauncher.FMLLaunchHandler;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import cpw.mods.fml.relauncher.FMLLaunchHandler;
-
 public enum Mixin {
 
-    BlockDropCapturing(new Builder("Expose mechanism to capture non-standard block drops")
-        .addMixinClasses("MixinBlockDropCapturing")
-        .setPhase(Phase.EARLY)),
-    DireAutoCraftDrops(new Builder("Change dire autocrafting table to use getDrops instead of breakBlock")
-        .addMixinClasses("MixinBlockExtremeAutoCrafter")
-        .addTargetedMod(TargetedMod.AVARITIA_ADDONS)
-        .setPhase(Phase.LATE)),
+    BlockDropCapturing(
+        new Builder("Expose mechanism to capture non-standard block drops")
+            .addMixinClasses("MixinBlockDropCapturing")
+            .setPhase(Phase.EARLY)
+    ),
+    DireAutoCraftDrops(
+        new Builder("Change dire autocrafting table to use getDrops instead of breakBlock")
+            .addMixinClasses("MixinBlockExtremeAutoCrafter")
+            .addTargetedMod(TargetedMod.AVARITIA_ADDONS)
+            .setPhase(Phase.LATE)
+    ),
 
     ;
 
@@ -40,21 +44,13 @@ public enum Mixin {
         this.applyIf = builder.applyIf;
         this.phase = builder.phase;
         this.side = builder.side;
-        if (this.mixinClasses.isEmpty()) {
-            throw new RuntimeException("No mixin class specified for Mixin : " + this.name());
-        }
+        if (this.mixinClasses.isEmpty()) throw new RuntimeException("No mixin class specified for Mixin : " + this.name());
         if (this.targetedMods.isEmpty()) {
             this.targetedMods.add(TargetedMod.VANILLA);
         }
-        if (this.applyIf == null) {
-            throw new RuntimeException("No ApplyIf function specified for Mixin : " + this.name());
-        }
-        if (this.phase == null) {
-            throw new RuntimeException("No Phase specified for Mixin : " + this.name());
-        }
-        if (this.side == null) {
-            throw new RuntimeException("No Side function specified for Mixin : " + this.name());
-        }
+        if (this.applyIf == null) throw new RuntimeException("No ApplyIf function specified for Mixin : " + this.name());
+        if (this.phase == null) throw new RuntimeException("No Phase specified for Mixin : " + this.name());
+        if (this.side == null) throw new RuntimeException("No Side function specified for Mixin : " + this.name());
     }
 
     public static List<String> getEarlyMixins(Set<String> loadedCoreMods) {
@@ -91,10 +87,11 @@ public enum Mixin {
     }
 
     private boolean shouldLoadSide() {
-        return side == Side.BOTH || (side == Side.SERVER && FMLLaunchHandler.side()
-            .isServer())
-            || (side == Side.CLIENT && FMLLaunchHandler.side()
-                .isClient());
+        if (side == Side.BOTH) return true;
+        if (side == Side.SERVER && FMLLaunchHandler.side().isServer()) return true;
+        if (side == Side.CLIENT && FMLLaunchHandler.side().isClient()) return true;
+
+        return false;
     }
 
     private boolean allModsLoaded(List<TargetedMod> targetedMods, Set<String> loadedCoreMods, Set<String> loadedMods) {
@@ -106,9 +103,7 @@ public enum Mixin {
             // Check coremod first
             if (!loadedCoreMods.isEmpty() && target.coreModClass != null && !loadedCoreMods.contains(target.coreModClass)) {
                 return false;
-            } else if (!loadedMods.isEmpty() && target.modId != null && !loadedMods.contains(target.modId)) {
-                return false;
-            }
+            } else if (!loadedMods.isEmpty() && target.modId != null && !loadedMods.contains(target.modId)) { return false; }
         }
 
         return true;
@@ -123,18 +118,16 @@ public enum Mixin {
             // Check coremod first
             if (!loadedCoreMods.isEmpty() && target.coreModClass != null && loadedCoreMods.contains(target.coreModClass)) {
                 return false;
-            } else if (!loadedMods.isEmpty() && target.modId != null && loadedMods.contains(target.modId)) {
-                return false;
-            }
+            } else if (!loadedMods.isEmpty() && target.modId != null && loadedMods.contains(target.modId)) { return false; }
         }
 
         return true;
     }
 
     private boolean shouldLoad(Set<String> loadedCoreMods, Set<String> loadedMods) {
-        return shouldLoadSide() && applyIf.get()
-            && allModsLoaded(targetedMods, loadedCoreMods, loadedMods)
-            && noModsLoaded(excludedMods, loadedCoreMods, loadedMods);
+        return shouldLoadSide() && applyIf.get() &&
+            allModsLoaded(targetedMods, loadedCoreMods, loadedMods) &&
+            noModsLoaded(excludedMods, loadedCoreMods, loadedMods);
     }
 
     @SuppressWarnings("unused")
@@ -158,17 +151,13 @@ public enum Mixin {
         }
 
         public Builder setPhase(Phase phase) {
-            if (this.phase != null) {
-                throw new RuntimeException("Trying to define Phase twice for " + this.name);
-            }
+            if (this.phase != null) throw new RuntimeException("Trying to define Phase twice for " + this.name);
             this.phase = phase;
             return this;
         }
 
         public Builder setSide(Side side) {
-            if (this.side != null) {
-                throw new RuntimeException("Trying to define Side twice for " + this.name);
-            }
+            if (this.side != null) throw new RuntimeException("Trying to define Side twice for " + this.name);
             this.side = side;
             return this;
         }

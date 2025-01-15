@@ -7,7 +7,7 @@ import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 
 public interface BlockCaptureDrops {
-    
+
     public void captureDrops();
 
     public List<ItemStack> stopCapturingDrops();

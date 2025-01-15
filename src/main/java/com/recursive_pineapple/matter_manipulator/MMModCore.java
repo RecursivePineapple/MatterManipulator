@@ -4,10 +4,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
+
 import com.gtnewhorizon.gtnhmixins.IEarlyMixinLoader;
 import com.recursive_pineapple.matter_manipulator.mixin.Mixin;
-
-import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 
 @IFMLLoadingPlugin.MCVersion("1.7.10")
 public class MMModCore implements IFMLLoadingPlugin, IEarlyMixinLoader {
