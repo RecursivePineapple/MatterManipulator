@@ -27,6 +27,7 @@ import com.recursive_pineapple.matter_manipulator.common.networking.SoundResourc
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
+import com.recursive_pineapple.matter_manipulator.mixin.BlockCaptureDrops;
 
 import WayofTime.alchemicalWizardry.api.event.TeleposeEvent;
 import it.unimi.dsi.fastutil.Pair;
@@ -197,79 +198,84 @@ public class PendingMove extends AbstractBuildable {
     // https://github.com/GTNewHorizons/BloodMagic/blob/master/src/main/java/WayofTime/alchemicalWizardry/common/block/BlockTeleposer.java#L158
     public static boolean swapBlocks(World world, Location s, BlockSpec spec1, Location d, BlockSpec spec2) {
 
-        World worldI = world.provider.dimensionId == s.worldId ? world : s.getWorld();
-        int xi = s.x;
-        int yi = s.y;
-        int zi = s.z;
-        World worldF = world.provider.dimensionId == d.worldId ? world : d.getWorld();
-        int xf = d.x;
-        int yf = d.y;
-        int zf = d.z;
+        World worldS = world.provider.dimensionId == s.worldId ? world : s.getWorld();
+        int sx = s.x;
+        int sy = s.y;
+        int sz = s.z;
+        World worldD = world.provider.dimensionId == d.worldId ? world : d.getWorld();
+        int dx = d.x;
+        int dy = d.y;
+        int dz = d.z;
 
-        TileEntity tileEntityI = worldI.getTileEntity(xi, yi, zi);
-        TileEntity tileEntityF = worldF.getTileEntity(xf, yf, zf);
+        TileEntity tileEntityS = worldS.getTileEntity(sx, sy, sz);
+        TileEntity tileEntityD = worldD.getTileEntity(dx, dy, dz);
 
-        NBTTagCompound nbttag1 = new NBTTagCompound();
-        NBTTagCompound nbttag2 = new NBTTagCompound();
+        NBTTagCompound tagS = new NBTTagCompound();
+        NBTTagCompound tagD = new NBTTagCompound();
 
-        if (tileEntityI != null) {
-            tileEntityI.writeToNBT(nbttag1);
+        if (tileEntityS != null) {
+            tileEntityS.writeToNBT(tagS);
         }
 
-        if (tileEntityF != null) {
-            tileEntityF.writeToNBT(nbttag2);
+        if (tileEntityD != null) {
+            tileEntityD.writeToNBT(tagD);
         }
 
-        Block blockI = worldI.getBlock(xi, yi, zi);
-        Block blockF = worldF.getBlock(xf, yf, zf);
+        Block blockS = worldS.getBlock(sx, sy, sz);
+        Block blockD = worldD.getBlock(dx, dy, dz);
 
-        if (blockI.equals(Blocks.air) && blockF.equals(Blocks.air)) { return false; }
+        if (blockS.equals(Blocks.air) && blockD.equals(Blocks.air)) { return false; }
 
-        int metaI = worldI.getBlockMetadata(xi, yi, zi);
-        int metaF = worldF.getBlockMetadata(xf, yf, zf);
+        int metaS = worldS.getBlockMetadata(sx, sy, sz);
+        int metaD = worldD.getBlockMetadata(dx, dy, dz);
 
         if (Mods.BloodMagic.isModLoaded()) {
-            if (!allowTelepose(worldI, worldF, s, spec1, d, spec2)) { return false; }
+            if (!allowTelepose(worldS, worldD, s, spec1, d, spec2)) { return false; }
         }
 
         // CLEAR TILES
-        Block finalBlock = blockF;
+        if (blockD != null) {
+            TileEntity tileToSet = blockD.createTileEntity(worldD, metaD);
 
-        if (finalBlock != null) {
-            TileEntity tileToSet = finalBlock.createTileEntity(worldF, metaF);
-
-            worldF.setTileEntity(xf, yf, zf, tileToSet);
+            worldD.setTileEntity(dx, dy, dz, tileToSet);
         }
 
-        if (blockI != null) {
-            TileEntity tileToSet = blockI.createTileEntity(worldI, metaI);
+        if (blockS != null) {
+            TileEntity tileToSet = blockS.createTileEntity(worldS, metaS);
 
-            worldI.setTileEntity(xi, yi, zi, tileToSet);
+            worldS.setTileEntity(sx, sy, sz, tileToSet);
         }
 
         // TILES CLEARED
-        worldF.setBlock(xf, yf, zf, blockI, metaI, 3);
+        BlockCaptureDrops.captureDrops(blockS);
+        BlockCaptureDrops.captureDrops(blockD);
 
-        if (tileEntityI != null) {
-            TileEntity newTileEntityI = TileEntity.createAndLoadEntity(nbttag1);
+        worldD.setBlock(dx, dy, dz, blockS, metaS, 3);
 
-            worldF.setTileEntity(xf, yf, zf, newTileEntityI);
+        if (tileEntityS != null) {
+            TileEntity newTileEntityI = TileEntity.createAndLoadEntity(tagS);
 
-            newTileEntityI.xCoord = xf;
-            newTileEntityI.yCoord = yf;
-            newTileEntityI.zCoord = zf;
+            worldD.setTileEntity(dx, dy, dz, newTileEntityI);
+
+            newTileEntityI.xCoord = dx;
+            newTileEntityI.yCoord = dy;
+            newTileEntityI.zCoord = dz;
         }
 
-        worldI.setBlock(xi, yi, zi, finalBlock, metaF, 3);
+        worldS.setBlock(sx, sy, sz, blockD, metaD, 3);
 
-        if (tileEntityF != null) {
-            TileEntity newTileEntityF = TileEntity.createAndLoadEntity(nbttag2);
+        // delete any items that were dropped
+        BlockCaptureDrops.stopCapturingDrops(blockS);
+        BlockCaptureDrops.stopCapturingDrops(blockD);
 
-            worldI.setTileEntity(xi, yi, zi, newTileEntityF);
+        if (tileEntityD != null) {
+            TileEntity newTileEntityF = TileEntity.createAndLoadEntity(tagD);
 
-            newTileEntityF.xCoord = xi;
-            newTileEntityF.yCoord = yi;
-            newTileEntityF.zCoord = zi;
+            worldS.setTileEntity(sx, sy, sz, newTileEntityF);
+
+            newTileEntityF.xCoord = sx;
+            newTileEntityF.yCoord = sy;
+            newTileEntityF.zCoord = sz;
 
             if (Mods.GregTech.isModLoaded()) {
                 if (newTileEntityF instanceof IGregTechTileEntity igte && igte.getMetaTileEntity() instanceof BaseMetaTileEntity bmte) {

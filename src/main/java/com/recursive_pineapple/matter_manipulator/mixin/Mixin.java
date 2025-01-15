@@ -14,6 +14,14 @@ import cpw.mods.fml.relauncher.FMLLaunchHandler;
 
 public enum Mixin {
 
+    BlockDropCapturing(new Builder("Expose mechanism to capture non-standard block drops")
+        .addMixinClasses("MixinBlockDropCapturing")
+        .setPhase(Phase.EARLY)),
+    DireAutoCraftDrops(new Builder("Change dire autocrafting table to use getDrops instead of breakBlock")
+        .addMixinClasses("MixinBlockExtremeAutoCrafter")
+        .addTargetedMod(TargetedMod.AVARITIA_ADDONS)
+        .setPhase(Phase.LATE)),
+
     ;
 
     public static final Logger LOGGER = LogManager.getLogger("MatterManipulator-Mixin");

@@ -60,6 +60,7 @@ import com.recursive_pineapple.matter_manipulator.common.utils.LazyBlock;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
+import com.recursive_pineapple.matter_manipulator.mixin.BlockCaptureDrops;
 
 import org.joml.Vector3d;
 
@@ -166,7 +167,11 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
             givePlayerItems(items.toArray(new ItemStack[0]));
         }
 
+        BlockCaptureDrops.captureDrops(block);
+
         world.setBlockToAir(x, y, z);
+
+        givePlayerItems(BlockCaptureDrops.stopCapturingDrops(block).toArray(new ItemStack[0]));
     }
 
     @Optional({

@@ -627,7 +627,11 @@ public class MMUtils {
         for (int slot = 0; slot < size; slot++) {
             if (!adapter.isValidSlot(src, slot)) continue;
 
-            ItemStack stack = adapter.extract(src, slot);
+            ItemStack stack = src.getStackInSlot(slot);
+
+            if (stack == null || stack.getItem() == null || stack.stackSize == 0) continue;
+
+            stack = adapter.extract(src, slot);
 
             if (stack != null && stack.getItem() != null) {
                 dest.givePlayerItems(resetItem(dest, stack));
