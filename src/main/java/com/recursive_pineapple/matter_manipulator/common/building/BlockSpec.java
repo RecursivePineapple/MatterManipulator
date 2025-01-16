@@ -368,15 +368,15 @@ public class BlockSpec implements ImmutableBlockSpec {
         if (!MMUtils.isFree(block, blockMeta)) {
             @Nullable
             Item item = MMUtils.getItemFromBlock(block, blockMeta);
-    
+
             if (item == null) { return new BlockSpec().setObject(Blocks.air, 0); }
-    
+
             if (block != Blocks.wall_sign && block != Blocks.standing_sign) {
                 block = MMUtils.getBlockFromItem(item, item.getMetadata(blockMeta));
             }
 
             int itemMeta = block.getDamageValue(world, x, y, z);
-    
+
             spec.metadata = itemMeta;
             spec.item = Optional.ofNullable(item);
             spec.itemId = item == null ? Optional.empty() : Optional.of(ItemId.create(item, itemMeta, null));

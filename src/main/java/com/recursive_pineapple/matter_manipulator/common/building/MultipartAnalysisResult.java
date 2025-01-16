@@ -2,21 +2,17 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 
 import java.util.List;
 
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.World;
+
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 
 import codechicken.lib.vec.BlockCoord;
-import codechicken.microblock.CommonMicroClass;
-import codechicken.microblock.ItemMicroPart;
 import codechicken.microblock.Microblock;
-import codechicken.microblock.MicroblockPlacement;
-import codechicken.multipart.MultipartGenerator;
-import codechicken.multipart.TSlottedPart;
 import codechicken.multipart.TileMultipart;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.world.World;
 
 public class MultipartAnalysisResult implements ITileAnalysisIntegration {
 
@@ -67,7 +63,7 @@ public class MultipartAnalysisResult implements ITileAnalysisIntegration {
 
     @Override
     public void getItemDetails(List<String> details) {
-        
+
     }
 
     @Override

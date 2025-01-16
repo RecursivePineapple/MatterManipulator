@@ -2,8 +2,6 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 
 import java.io.File;
 
-import com.gtnewhorizon.structurelib.util.XSTR;
-
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
@@ -18,6 +16,8 @@ import net.minecraft.world.chunk.storage.IChunkLoader;
 import net.minecraft.world.storage.IPlayerFileData;
 import net.minecraft.world.storage.ISaveHandler;
 import net.minecraft.world.storage.WorldInfo;
+
+import com.gtnewhorizon.structurelib.util.XSTR;
 
 public class ProxiedWorld extends World {
 
