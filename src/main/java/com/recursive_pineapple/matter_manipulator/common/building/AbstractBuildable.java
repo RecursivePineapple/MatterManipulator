@@ -82,13 +82,9 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
     public boolean tryConsumePower(ItemStack stack, World world, int x, int y, int z, ImmutableBlockSpec spec) {
         double euUsage = EU_PER_BLOCK * spec.getBlock().getBlockHardness(world, x, y, z);
 
-        try {
-            Block block = spec.getBlock();
-            if (block.hasTileEntity(spec.getBlockMeta())) {
-                euUsage *= TE_PENALTY;
-            }
-        } catch (Throwable e) {
-            MMMod.LOG.error("Could not get Block.isBlockContainer field", e);
+        Block block = spec.getBlock();
+        if (block.hasTileEntity(spec.getBlockMeta())) {
+            euUsage *= TE_PENALTY;
         }
 
         return tryConsumePower(stack, x, y, z, euUsage);
