@@ -131,7 +131,7 @@ public class BlockPropertyRegistry {
 
         properties.putAll(props);
 
-        if (block.isBlockContainer) {
+        if (block.hasTileEntity(world.getBlockMetadata(x, y, z))) {
             TileEntity tile = world.getTileEntity(x, y, z);
 
             if (tile != null) {
@@ -154,7 +154,7 @@ public class BlockPropertyRegistry {
         BlockProperty<?> prop = props.get(name);
         if (prop != null) return prop;
 
-        if (block.isBlockContainer) {
+        if (block.hasTileEntity(world.getBlockMetadata(x, y, z))) {
             TileEntity tile = world.getTileEntity(x, y, z);
 
             if (tile != null) {

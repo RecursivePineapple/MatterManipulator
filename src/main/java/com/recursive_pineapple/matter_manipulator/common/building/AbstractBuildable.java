@@ -84,7 +84,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
 
         try {
             Block block = spec.getBlock();
-            if (block.isBlockContainer) {
+            if (block.hasTileEntity(spec.getBlockMeta())) {
                 euUsage *= TE_PENALTY;
             }
         } catch (Throwable e) {
