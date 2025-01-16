@@ -19,7 +19,7 @@ public enum Mods {
     ForgeMicroblocks(Names.FORGE_MICROBLOCKS),
     /** The forge multipart library. */
     ForgeMultipart(Names.FORGE_MULTIPART),
-    FloogLights(Names.FLOOD_LIGHTS),
+    FloodLights(Names.FLOOD_LIGHTS),
     GregTech(Names.GREG_TECH),
     GTPlusPlus(Names.G_T_PLUS_PLUS),
     GraviSuite(Names.GRAVI_SUITE),

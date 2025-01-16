@@ -176,7 +176,7 @@ public class BlockPropertyRegistry {
         if (Mods.StorageDrawers.isModLoaded()) initStorageDrawers();
         if (Mods.IndustrialCraft2.isModLoaded()) initIC2();
         if (Mods.ArchitectureCraft.isModLoaded()) initArch();
-        if (Mods.FloogLights.isModLoaded()) initFloodLights();
+        if (Mods.FloodLights.isModLoaded()) initFloodLights();
     }
 
     // #region Vanilla
