@@ -41,26 +41,26 @@ dependencies {
     implementation("com.github.GTNewHorizons:GTNHLib:0.6.2:dev")
     implementation("com.github.GTNewHorizons:ModularUI:1.2.17:dev")
 
-    compileOnly('com.github.GTNewHorizons:Angelica:1.0.0-beta28:api') { transitive = false }
-    compileOnly("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-521-GTNH:dev") { transitive = false }
+    compileOnly('com.github.GTNewHorizons:Angelica:1.0.0-beta29:api') { transitive = false }
+    compileOnly("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-523-GTNH:dev") { transitive = false }
     compileOnly("com.github.GTNewHorizons:ArchitectureCraft:1.10.2") { transitive = false }
     compileOnly("com.github.GTNewHorizons:BloodMagic:1.7.0:dev") { transitive = false }
     compileOnly("curse.maven:cofh-lib-220333:2388748") { transitive = false }
     compileOnly("com.github.GTNewHorizons:EnderIO:2.9.2:dev") { transitive = false }
     compileOnly("com.github.GTNewHorizons:ForgeMultipart:1.6.2:dev") { transitive = false }
-    compileOnly("com.github.GTNewHorizons:GT5-Unofficial:5.09.51.73:dev") { transitive = false }
-    compileOnly("com.github.GTNewHorizons:Hodgepodge:2.6.15:dev") { transitive = false }
+    compileOnly("com.github.GTNewHorizons:GT5-Unofficial:5.09.51.75:dev") { transitive = false }
+    compileOnly("com.github.GTNewHorizons:Hodgepodge:2.6.16:dev") { transitive = false }
     compileOnly("net.industrial-craft:industrialcraft-2:2.2.828-experimental:dev") { transitive = false }
     compileOnly("curse.maven:mekanism-268560:2475797") { transitive = false }
-    compileOnly("com.github.GTNewHorizons:NotEnoughItems:2.7.20-GTNH:dev") { transitive = false }
+    compileOnly("com.github.GTNewHorizons:NotEnoughItems:2.7.22-GTNH:dev") { transitive = false }
     compileOnly("com.github.GTNewHorizons:OpenComputers:1.11.4-GTNH:dev") { transitive = false }
     compileOnly("com.github.GTNewHorizons:waila:1.8.2:dev") { transitive = false }
 
-    runtimeOnlyNonPublishable("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-521-GTNH:dev")
-    runtimeOnlyNonPublishable("com.github.GTNewHorizons:GT5-Unofficial:5.09.51.73:dev")
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-523-GTNH:dev")
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:GT5-Unofficial:5.09.51.75:dev")
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:ArchitectureCraft:1.10.2")
-    runtimeOnlyNonPublishable("com.github.GTNewHorizons:NotEnoughItems:2.7.20-GTNH:dev")
-    runtimeOnlyNonPublishable("com.github.GTNewHorizons:Hodgepodge:2.6.15:dev")
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:NotEnoughItems:2.7.22-GTNH:dev")
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:Hodgepodge:2.6.16:dev")
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:ForgeMultipart:1.6.2:dev")
 
     compileOnly deobf("https://www.immibis.com/mcmoddl/files/immibis-microblocks-59.1.2.jar", "immibis-microblocks-59.1.2")
