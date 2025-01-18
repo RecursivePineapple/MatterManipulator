@@ -46,12 +46,12 @@ import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
+import de.keridos.floodlights.tileentity.TileEntityMetaFloodlight;
+import de.keridos.floodlights.tileentity.TileEntitySmallFloodlight;
 import gcewing.architecture.common.tile.TileArchitecture;
 import ic2.api.tile.IWrenchable;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import scala.tools.nsc.typechecker.MethodSynthesis.MethodSynth.Getter;
-import scala.tools.nsc.typechecker.MethodSynthesis.MethodSynth.Setter;
 
 public class BlockPropertyRegistry {
 
@@ -131,7 +131,7 @@ public class BlockPropertyRegistry {
 
         properties.putAll(props);
 
-        if (block.isBlockContainer) {
+        if (block.hasTileEntity(world.getBlockMetadata(x, y, z))) {
             TileEntity tile = world.getTileEntity(x, y, z);
 
             if (tile != null) {
@@ -154,7 +154,7 @@ public class BlockPropertyRegistry {
         BlockProperty<?> prop = props.get(name);
         if (prop != null) return prop;
 
-        if (block.isBlockContainer) {
+        if (block.hasTileEntity(world.getBlockMetadata(x, y, z))) {
             TileEntity tile = world.getTileEntity(x, y, z);
 
             if (tile != null) {
@@ -176,6 +176,7 @@ public class BlockPropertyRegistry {
         if (Mods.StorageDrawers.isModLoaded()) initStorageDrawers();
         if (Mods.IndustrialCraft2.isModLoaded()) initIC2();
         if (Mods.ArchitectureCraft.isModLoaded()) initArch();
+        if (Mods.FloodLights.isModLoaded()) initFloodLights();
     }
 
     // #region Vanilla
@@ -844,6 +845,131 @@ public class BlockPropertyRegistry {
                 }
             }
         );
+    }
+
+    // #endregion
+
+    // #region FloodLights
+
+    private static void initFloodLights() {
+        registerTileEntityInterfaceProperty(TileEntityMetaFloodlight.class, new AbstractDirectionBlockProperty("facing") {
+
+            @Override
+            public ForgeDirection getValue(World world, int x, int y, int z) {
+                if (!(world.getTileEntity(x, y, z) instanceof TileEntityMetaFloodlight floodlight)) return UNKNOWN;
+
+                return floodlight.getOrientation();
+            }
+
+            @Override
+            public void setValue(World world, int x, int y, int z, ForgeDirection forgeDirection) {
+                // Do the same thing FloodLights do in `onBlockPlacedBy`
+                if (!(world.getTileEntity(x, y, z) instanceof TileEntityMetaFloodlight floodlight)) return;
+
+                floodlight.setOrientation(forgeDirection);
+
+                if (!(floodlight instanceof TileEntitySmallFloodlight)) {
+                    // copy rotation info into metadata because FloodLights does it too
+                    world.setBlockMetadataWithNotify(x, y, z, forgeDirection.ordinal(), 2);
+                } else {
+                    // NB: small electric light does not use metadata for rotation
+                    // instead, it uses it to discern normal/small floodlights
+                    // so don't modify metadata, just update it
+                    world.markBlockForUpdate(x, y, z);
+                }
+            }
+        });
+
+        registerTileEntityInterfaceProperty(TileEntityMetaFloodlight.class, new BooleanProperty() {
+
+            @Override
+            public String getName() {
+                return "inverted";
+            }
+
+            @Override
+            public boolean getBoolean(World world, int x, int y, int z) {
+                if (!(world.getTileEntity(x, y, z) instanceof TileEntityMetaFloodlight floodlight)) return false;
+
+                return floodlight.getInverted();
+            }
+
+            @Override
+            public void setBoolean(World world, int x, int y, int z, boolean value) {
+                if (!(world.getTileEntity(x, y, z) instanceof TileEntityMetaFloodlight floodlight)) return;
+
+                if (floodlight.getInverted() != value) {
+                    floodlight.toggleInverted();
+                }
+            }
+        });
+
+        registerTileEntityInterfaceProperty(TileEntityMetaFloodlight.class, new IntegerProperty() {
+
+            @Override
+            public String getName() {
+                return "mode";
+            }
+
+            @Override
+            public int getInt(World world, int x, int y, int z) {
+                if (!(world.getTileEntity(x, y, z) instanceof TileEntityMetaFloodlight floodlight)) return 0;
+
+                return floodlight.getMode();
+            }
+
+            @Override
+            public void setInt(World world, int x, int y, int z, int value) {
+                if (!(world.getTileEntity(x, y, z) instanceof TileEntityMetaFloodlight floodlight)) return;
+
+                floodlight.setMode(value);
+            }
+        });
+
+        registerTileEntityInterfaceProperty(TileEntityMetaFloodlight.class, new IntegerProperty() {
+
+            @Override
+            public String getName() {
+                return "color";
+            }
+
+            @Override
+            public int getInt(World world, int x, int y, int z) {
+                if (!(world.getTileEntity(x, y, z) instanceof TileEntityMetaFloodlight floodlight)) return 0;
+
+                return floodlight.getColor();
+            }
+
+            @Override
+            public void setInt(World world, int x, int y, int z, int value) {
+                if (!(world.getTileEntity(x, y, z) instanceof TileEntityMetaFloodlight floodlight)) return;
+
+                floodlight.setColor(value);
+            }
+        });
+
+        registerTileEntityInterfaceProperty(TileEntitySmallFloodlight.class, new BooleanProperty() {
+
+            @Override
+            public String getName() {
+                return "rotation_state";
+            }
+
+            @Override
+            public boolean getBoolean(World world, int x, int y, int z) {
+                if (!(world.getTileEntity(x, y, z) instanceof TileEntitySmallFloodlight floodlight)) return false;
+
+                return floodlight.getRotationState();
+            }
+
+            @Override
+            public void setBoolean(World world, int x, int y, int z, boolean value) {
+                if (!(world.getTileEntity(x, y, z) instanceof TileEntitySmallFloodlight floodlight)) return;
+
+                floodlight.setRotationState(value);
+                world.markBlockForUpdate(x, y, z);
+            }
+        });
     }
 
     // #endregion

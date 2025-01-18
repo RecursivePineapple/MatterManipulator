@@ -11,7 +11,6 @@ import net.minecraft.item.ItemStack;
 import gregtech.api.metatileentity.implementations.MTEEnhancedMultiBlockBase;
 
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
-import com.gtnewhorizons.modularui.api.drawable.TextRenderer;
 
 import it.unimi.dsi.fastutil.chars.Char2IntArrayMap;
 
@@ -26,8 +25,6 @@ public class StructureWrapperInstanceInfo<MTE extends MTEEnhancedMultiBlockBase<
     public StructureWrapperInstanceInfo(StructureWrapper<MTE> structure) {
         this.structure = structure;
     }
-
-    private static final int ERROR_WRAP_WIDTH = 180;
 
     public String getErrors() {
         List<String> lines = new ArrayList<>();
@@ -48,7 +45,7 @@ public class StructureWrapperInstanceInfo<MTE extends MTEEnhancedMultiBlockBase<
                     RESET
                 );
 
-                lines.addAll(TextRenderer.getFontRenderer().listFormattedStringToWidth(error, ERROR_WRAP_WIDTH));
+                lines.add(error);
             }
         }
 
