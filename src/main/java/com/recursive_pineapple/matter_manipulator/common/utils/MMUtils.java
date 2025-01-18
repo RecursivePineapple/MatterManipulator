@@ -120,15 +120,6 @@ import it.unimi.dsi.fastutil.Pair;
 public class MMUtils {
 
     /**
-     * Plans will have jobs automatically started (see {@link #GetRequiredItems}).
-     */
-    public static final int PLAN_AUTO_SUBMIT = 0b1;
-    /**
-     * Plans will ignore existing blocks (see {@link #GetRequiredItems}).
-     */
-    public static final int PLAN_ALL = 0b10;
-
-    /**
      * The ME network is online and the player is within range of an access point.
      */
     public static final int TOOLTIP_AE_WORKS = 0b1;
@@ -1111,6 +1102,16 @@ public class MMUtils {
     }
 
     /**
+     * Plans will have jobs automatically started (see
+     * {@link #createPlanImpl(EntityPlayer, MMState, ItemMatterManipulator, int)}).
+     */
+    public static final int PLAN_AUTO_SUBMIT = 0b1;
+    /**
+     * Plans will ignore existing blocks (see {@link #createPlanImpl(EntityPlayer, MMState, ItemMatterManipulator, int)}).
+     */
+    public static final int PLAN_ALL = 0b10;
+
+    /**
      * The logic for creating a plan.
      * This really belongs in {@link Messages}, but I put it here so that it's hotswappable.
      *
@@ -1125,6 +1126,25 @@ public class MMUtils {
         ItemMatterManipulator manipulator,
         int flags
     ) {
+        // deep copy
+        state = MMState.load(state.save());
+
+        if (!Location.areCompatible(state.config.coordA, state.config.coordB)) {
+            sendErrorToPlayer(player, "Must have copy region marked.");
+            return;
+        }
+
+        if ((flags & PLAN_ALL) != 0) {
+            if (!Location.areCompatible(state.config.coordA, state.config.coordC)) {
+                state.config.coordC = state.config.coordA.clone();
+            }
+        } else {
+            if (!Location.areCompatible(state.config.coordA, state.config.coordC)) {
+                sendErrorToPlayer(player, "Must have paste region marked to detect missing items.");
+                return;
+            }
+        }
+
         List<PendingBlock> blocks = state.getPendingBlocks(manipulator.tier, player.getEntityWorld());
         RequiredItemAnalysis itemAnalysis = BlockAnalyzer
             .getRequiredItemsForBuild(player, blocks, (flags & PLAN_ALL) != 0);
