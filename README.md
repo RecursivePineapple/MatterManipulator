@@ -10,7 +10,7 @@ If you're using this in GTNH 2.7.x, you must upgrade your GT5u jar to the latest
 
 The compat PR has been merged and the mod has been added to the nightlies. Any nightly from 813 onward has the mod in it already and can be used without further steps, but as always expect nightlies to have potentially game-breaking problems. Nightlies from 800 to 812 can be used if you put the mod in them. Any prior nightlies won't work properly.
 
-You can find the releases [here](https://github.com/RecursivePineapple/MatterManipulator/releases).
+You can find the releases [here](https://github.com/RecursivePineapple/MatterManipulator/releases). If you're playing any of the 2.7 releases, you'll want the latest release with a `+2.7.x` suffix. Prior to v0.0.15, all builds were compatible with 2.7. If you're playing on a nightly, you'll want the latest release with a `+nightly` suffix. No compatibility guarantees are given for old nightly releases, so please update as soon as possible if you're playing on an old nightly and your game fails to start. Feel free to contact recursive_pineapple for help.
 
 See [here](https://github.com/users/RecursivePineapple/projects/1/views/1) for more information on what's being worked on. I'll use this github project to track what I need to work on and their priorities.
 
