@@ -197,8 +197,6 @@ public enum Messages {
     GetRequiredItems(server(intPacket((player, stack, manipulator, state, value) -> {
         if (state.config.placeMode != PlaceMode.COPYING) { return; }
 
-        if (state.config.coordA == null || state.config.coordB == null || state.config.coordC == null) { return; }
-
         MMUtils.createPlanImpl(player, state, manipulator, value);
     }))),
     ClearManualPlans(server(simple((player, stack, manipulator, state) -> {
