@@ -186,6 +186,7 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
             ),
             TextWidget.dynamicString(() -> structureInstanceInfo.getErrors())
                 .setTextAlignment(Alignment.CenterLeft)
+                .setMaxWidth(179)
                 .setEnabled(structureInstanceInfo.hasErrors)
         );
     }
