@@ -44,6 +44,8 @@ import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 
 import gtPlusPlus.xmod.gregtech.api.enums.GregtechItemList;
+import tectech.thing.metaTileEntity.hatch.MTEHatchDynamoTunnel;
+import tectech.thing.metaTileEntity.hatch.MTEHatchEnergyTunnel;
 import tectech.thing.metaTileEntity.multi.base.TTMultiblockBase;
 
 public class GTAnalysisResult implements ITileAnalysisIntegration {
@@ -63,6 +65,7 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
     public JsonElement mGTData = null;
     public long mGTMEBusCapacity = 0;
     public double[] mTTParams = null;
+    public int mAmperes = 0;
 
     private static int counter = 0;
     private static final short GT_BASIC_IO_PUSH_ITEMS = (short) (0b1 << counter++);
@@ -235,6 +238,14 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
 
         if (mte instanceof TTMultiblockBase tt && tt.parametrization.hasInputs()) {
             mTTParams = tt.parametrization.getInputs();
+        }
+
+        if (mte instanceof MTEHatchEnergyTunnel hatch) {
+            mAmperes = hatch.Amperes;
+        }
+
+        if (mte instanceof MTEHatchDynamoTunnel dynamo) {
+            mAmperes = dynamo.Amperes;
         }
     }
 
@@ -416,6 +427,14 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
 
             if (mTTParams != null && mTTParams.length == 20 && mte instanceof TTMultiblockBase tt) {
                 tt.parametrization.setInputs(mTTParams);
+            }
+
+            if (mte instanceof MTEHatchEnergyTunnel hatch) {
+                hatch.Amperes = MMUtils.clamp(mAmperes, 0, hatch.maxAmperes);
+            }
+
+            if (mte instanceof MTEHatchDynamoTunnel dynamo) {
+                dynamo.Amperes = MMUtils.clamp(mAmperes, 0, dynamo.maxAmperes);
             }
         }
 
