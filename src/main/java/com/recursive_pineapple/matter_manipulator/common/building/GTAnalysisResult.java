@@ -17,6 +17,7 @@ import gregtech.api.enums.ItemList;
 import gregtech.api.enums.VoidingMode;
 import gregtech.api.interfaces.IConfigurationCircuitSupport;
 import gregtech.api.interfaces.IDataCopyable;
+import gregtech.api.interfaces.IMEConnectable;
 import gregtech.api.interfaces.metatileentity.IConnectable;
 import gregtech.api.interfaces.metatileentity.IFluidLockable;
 import gregtech.api.interfaces.metatileentity.IItemLockable;
@@ -81,6 +82,7 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
     private static final short GT_MULTI_BATCH_MODE = (short) (0b1 << counter++);
     private static final short GT_MULTI_INPUT_SEPARATION = (short) (0b1 << counter++);
     private static final short GT_MULTI_RECIPE_LOCK = (short) (0b1 << counter++);
+    private static final short GT_ME_CONNECT_ALL_SIDES = (short) (0b1 << counter++);
 
     private static final GTAnalysisResult NO_OP = new GTAnalysisResult();
 
@@ -246,6 +248,10 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
 
         if (mte instanceof MTEHatchDynamoTunnel dynamo) {
             mAmperes = dynamo.Amperes;
+        }
+
+        if (mte instanceof IMEConnectable me && me.connectsToAllSides()) {
+            mGTFlags |= GT_ME_CONNECT_ALL_SIDES;
         }
     }
 
@@ -435,6 +441,10 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
 
             if (mte instanceof MTEHatchDynamoTunnel dynamo) {
                 dynamo.Amperes = MMUtils.clamp(mAmperes, 0, dynamo.maxAmperes);
+            }
+
+            if (mte instanceof IMEConnectable me) {
+                me.setConnectsToAllSides((mGTFlags & GT_ME_CONNECT_ALL_SIDES) != 0);
             }
         }
 
