@@ -10,10 +10,10 @@ public enum UplinkStatus {
     @Override
     public String toString() {
         return switch (this) {
-            case OK -> "ok";
-            case NO_PLASMA -> "insufficient plasma";
-            case AE_OFFLINE -> "could not connect to the ME system";
-            case NO_HATCH -> "missing ME hatch";
+            case OK -> "Ok";
+            case NO_PLASMA -> "Insufficient plasma";
+            case AE_OFFLINE -> "Could not connect to the ME system";
+            case NO_HATCH -> "Missing ME hatch";
         };
     }
 }

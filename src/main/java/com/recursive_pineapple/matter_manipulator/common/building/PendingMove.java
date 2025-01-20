@@ -45,6 +45,8 @@ public class PendingMove extends AbstractBuildable {
 
     @Override
     public void tryPlaceBlocks(ItemStack stack, EntityPlayer player) {
+        resetWarnings();
+
         if (moves == null) {
             initMoves();
         }
