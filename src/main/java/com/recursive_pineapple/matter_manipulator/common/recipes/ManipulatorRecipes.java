@@ -22,6 +22,7 @@ import gregtech.api.recipe.RecipeMaps;
 import gregtech.api.util.GTOreDictUnificator;
 import gregtech.api.util.GTUtility;
 import gregtech.api.util.recipe.Scanning;
+import gregtech.api.util.recipe.Scanning;
 
 import appeng.api.AEApi;
 
@@ -270,7 +271,7 @@ public class ManipulatorRecipes {
         // Power core MK2
         GTValues.RA.stdBuilder()
             .metadata(RESEARCH_ITEM, ItemList.Circuit_Chip_HPIC.get(2))
-            .metadata(SCANNING, new Scanning(10 * SECONDS, TierEU.RECIPE_LuV))
+            .metadata(SCANNING, new Scanning(1 * MINUTES, TierEU.RECIPE_LuV))
             .itemInputs(
                 GTOreDictUnificator.get(OrePrefixes.itemCasing, Materials.HSSS, 8),
                 ItemList.Energy_LapotronicOrb2.get(1),
@@ -293,7 +294,7 @@ public class ManipulatorRecipes {
         // Computer core MK2
         GTValues.RA.stdBuilder()
             .metadata(RESEARCH_ITEM, GTOreDictUnificator.get(OrePrefixes.frameGt, Materials.HSSS, 1))
-            .metadata(SCANNING, new Scanning(10 * SECONDS, TierEU.RECIPE_LuV))
+            .metadata(SCANNING, new Scanning(1 * MINUTES, TierEU.RECIPE_LuV))
             .itemInputs(
                 GTOreDictUnificator.get(OrePrefixes.frameGt, Materials.HSSS, 1),
                 new Object[] {
@@ -315,7 +316,7 @@ public class ManipulatorRecipes {
         // Teleporter core MK2
         if (gs) GTValues.RA.stdBuilder()
             .metadata(RESEARCH_ITEM, GTOreDictUnificator.get(OrePrefixes.frameGt, Materials.Quantium, 1))
-            .metadata(SCANNING, new Scanning(10 * SECONDS, TierEU.RECIPE_LuV))
+            .metadata(SCANNING, new Scanning(1 * MINUTES, TierEU.RECIPE_LuV))
             .itemInputs(
                 GTOreDictUnificator.get(OrePrefixes.frameGt, Materials.Quantium, 1),
                 ItemList.Emitter_LuV.get(2),
@@ -350,7 +351,7 @@ public class ManipulatorRecipes {
         // Lens MK2
         GTValues.RA.stdBuilder()
             .metadata(RESEARCH_ITEM, WerkstoffLoader.RedZircon.get(OrePrefixes.lens, 1))
-            .metadata(SCANNING, new Scanning(10 * SECONDS, TierEU.RECIPE_LuV))
+            .metadata(SCANNING, new Scanning(1 * MINUTES, TierEU.RECIPE_LuV))
             .itemInputs(
                 WerkstoffLoader.RedZircon.get(OrePrefixes.lens, 2),
                 GTOreDictUnificator.get(OrePrefixes.ring, Materials.HSSS, 4),
@@ -391,7 +392,7 @@ public class ManipulatorRecipes {
         // Power core MK3
         GTValues.RA.stdBuilder()
             .metadata(RESEARCH_ITEM, ItemList.Circuit_Chip_UHPIC.get(2))
-            .metadata(SCANNING, new Scanning(10 * SECONDS, TierEU.RECIPE_ZPM))
+            .metadata(SCANNING, new Scanning(2 * MINUTES, TierEU.RECIPE_ZPM))
             .itemInputs(
                 GTOreDictUnificator.get(OrePrefixes.itemCasing, Materials.NaquadahAlloy, 8),
                 ItemList.Energy_Module.get(1),
@@ -411,7 +412,7 @@ public class ManipulatorRecipes {
         // Computer core MK3
         GTValues.RA.stdBuilder()
             .metadata(RESEARCH_ITEM, GTOreDictUnificator.get(OrePrefixes.frameGt, Materials.NaquadahAlloy, 1))
-            .metadata(SCANNING, new Scanning(10 * SECONDS, TierEU.RECIPE_ZPM))
+            .metadata(SCANNING, new Scanning(2 * MINUTES, TierEU.RECIPE_ZPM))
             .itemInputs(
                 GTOreDictUnificator.get(OrePrefixes.frameGt, Materials.NaquadahAlloy, 1),
                 new Object[] {
@@ -430,7 +431,7 @@ public class ManipulatorRecipes {
         // Teleporter core MK3
         if (gs) GTValues.RA.stdBuilder()
             .metadata(RESEARCH_ITEM, GTOreDictUnificator.get(OrePrefixes.frameGt, Materials.MysteriousCrystal, 1))
-            .metadata(SCANNING, new Scanning(10 * SECONDS, TierEU.RECIPE_ZPM))
+            .metadata(SCANNING, new Scanning(2 * MINUTES, TierEU.RECIPE_ZPM))
             .itemInputs(
                 GTOreDictUnificator.get(OrePrefixes.frameGt, Materials.MysteriousCrystal, 1),
                 ItemList.Emitter_ZPM.get(2),
@@ -466,7 +467,7 @@ public class ManipulatorRecipes {
         // Lens MK3
         GTValues.RA.stdBuilder()
             .metadata(RESEARCH_ITEM, WerkstoffLoader.MagnetoResonaticDust.get(OrePrefixes.lens, 1))
-            .metadata(SCANNING, new Scanning(10 * SECONDS, TierEU.RECIPE_ZPM))
+            .metadata(SCANNING, new Scanning(2 * MINUTES, TierEU.RECIPE_ZPM))
             .itemInputs(
                 WerkstoffLoader.MagnetoResonaticDust.get(OrePrefixes.lens, 2),
                 GTOreDictUnificator.get(OrePrefixes.ring, Materials.NaquadahAlloy, 4),
@@ -502,8 +503,11 @@ public class ManipulatorRecipes {
 
         // Quantum Downlink
         if (ae) GTValues.RA.stdBuilder()
-            .metadata(RESEARCH_ITEM, AEApi.instance().definitions().blocks().quantumRing().maybeStack(1).get())
-            .metadata(SCANNING, new Scanning(10 * SECONDS, TierEU.RECIPE_ZPM))
+            .metadata(
+                RESEARCH_ITEM,
+                AEApi.instance().definitions().blocks().quantumRing().maybeStack(1).get()
+            )
+            .metadata(SCANNING, new Scanning(4 * MINUTES, TierEU.RECIPE_LuV))
             .itemInputs(
                 AEApi.instance().definitions().blocks().quantumRing().maybeStack(8).get(),
                 AEApi.instance().definitions().blocks().quantumLink().maybeStack(1).get(),
