@@ -61,6 +61,8 @@ public class PendingBuild extends AbstractBuildable {
 
     @Override
     public void tryPlaceBlocks(ItemStack stack, EntityPlayer player) {
+        resetWarnings();
+
         List<PendingBlock> toPlace = new ArrayList<>(tier.placeSpeed);
 
         Integer lastChunkX = null, lastChunkZ = null;
