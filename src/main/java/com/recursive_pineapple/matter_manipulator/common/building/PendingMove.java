@@ -72,7 +72,7 @@ public class PendingMove extends AbstractBuildable {
             if (!isEditable(world, s.x, s.y, s.z) || !isEditable(world, d.x, d.y, d.z)) {
                 MMUtils.sendErrorToPlayer(
                     player,
-                    String.format("Could not move protected block X=%d, Y=%d, Z=%d", s.x, s.y, s.z)
+                    String.format("Could not move protected block X=%d, Y=%d, Z=%d: %s", s.x, s.y, s.z, source.getDisplayName())
                 );
                 iter.remove();
                 continue;
@@ -88,7 +88,7 @@ public class PendingMove extends AbstractBuildable {
             if (source.getBlock().getBlockHardness(world, s.x, s.y, s.z) < 0) {
                 MMUtils.sendErrorToPlayer(
                     player,
-                    String.format("Could not move invulnerable source block X=%d, Y=%d, Z=%d", s.x, s.y, s.z)
+                    String.format("Could not move invulnerable source block X=%d, Y=%d, Z=%d: %s", s.x, s.y, s.z, source.getDisplayName())
                 );
                 iter.remove();
                 continue;
@@ -108,7 +108,7 @@ public class PendingMove extends AbstractBuildable {
             if (!canPlace) {
                 MMUtils.sendErrorToPlayer(
                     player,
-                    String.format("Destination was blocked for source block X=%d, Y=%d, Z=%d", d.x, d.y, d.z)
+                    String.format("Destination was blocked for source block X=%d, Y=%d, Z=%d: %s", d.x, d.y, d.z, source.getDisplayName())
                 );
                 iter.remove();
                 continue;
