@@ -59,6 +59,8 @@ public class PendingMove extends AbstractBuildable {
         int ops = 0;
         var iter = moves.listIterator(moves.size());
 
+        ArrayList<Pair<Location, Location>> shuffled = new ArrayList<>();
+
         // try to move `placeSpeed` blocks from here to there
         while (ops < tier.placeSpeed && iter.hasPrevious()) {
             Pair<Location, Location> move = iter.previous();
@@ -68,6 +70,11 @@ public class PendingMove extends AbstractBuildable {
 
             // if either block is protected, ignore them completely and print a warning
             if (!isEditable(world, s.x, s.y, s.z) || !isEditable(world, d.x, d.y, d.z)) {
+                MMUtils.sendErrorToPlayer(
+                    player,
+                    String.format("Could not move protected block X=%d, Y=%d, Z=%d", s.x, s.y, s.z)
+                );
+                iter.remove();
                 continue;
             }
 
@@ -83,6 +90,7 @@ public class PendingMove extends AbstractBuildable {
                     player,
                     String.format("Could not move invulnerable source block X=%d, Y=%d, Z=%d", s.x, s.y, s.z)
                 );
+                iter.remove();
                 continue;
             }
 
@@ -102,6 +110,7 @@ public class PendingMove extends AbstractBuildable {
                     player,
                     String.format("Destination was blocked for source block X=%d, Y=%d, Z=%d", d.x, d.y, d.z)
                 );
+                iter.remove();
                 continue;
             }
 
@@ -117,6 +126,8 @@ public class PendingMove extends AbstractBuildable {
 
             // if we can't move the source block then skip it for now
             if (!source.getBlock().canPlaceBlockAt(world, d.x, d.y, d.z)) {
+                shuffled.add(move);
+                iter.remove();
                 continue;
             }
 
@@ -139,6 +150,8 @@ public class PendingMove extends AbstractBuildable {
             iter.remove();
             ops++;
         }
+
+        moves.addAll(shuffled);
 
         playSounds();
         actuallyGivePlayerStuff();
@@ -226,13 +239,13 @@ public class PendingMove extends AbstractBuildable {
         Block blockS = worldS.getBlock(sx, sy, sz);
         Block blockD = worldD.getBlock(dx, dy, dz);
 
-        if (blockS.equals(Blocks.air) && blockD.equals(Blocks.air)) { return false; }
+        if (blockS.equals(Blocks.air) && blockD.equals(Blocks.air)) return false;
 
         int metaS = worldS.getBlockMetadata(sx, sy, sz);
         int metaD = worldD.getBlockMetadata(dx, dy, dz);
 
         if (Mods.BloodMagic.isModLoaded()) {
-            if (!allowTelepose(worldS, worldD, s, spec1, d, spec2)) { return false; }
+            if (!allowTelepose(worldS, worldD, s, spec1, d, spec2)) return false;
         }
 
         // CLEAR TILES
@@ -280,17 +293,22 @@ public class PendingMove extends AbstractBuildable {
             newTileEntityF.zCoord = sz;
 
             if (Mods.GregTech.isModLoaded()) {
-                if (newTileEntityF instanceof IGregTechTileEntity igte && igte.getMetaTileEntity() instanceof BaseMetaTileEntity bmte) {
-                    bmte.setCableUpdateDelay(100);
-                }
-
-                if (newTileEntityF instanceof IIC2Enet enet) {
-                    enet.doEnetUpdate();
-                }
+                updateGTIfNeeded(newTileEntityF);
             }
         }
 
         return true;
+    }
+
+    @Optional(Names.GREG_TECH)
+    private static void updateGTIfNeeded(TileEntity te) {
+        if (te instanceof IGregTechTileEntity igte && igte.getMetaTileEntity() instanceof BaseMetaTileEntity bmte) {
+            bmte.setCableUpdateDelay(100);
+        }
+
+        if (te instanceof IIC2Enet enet) {
+            enet.doEnetUpdate();
+        }
     }
 
     @Optional(Names.BLOOD_MAGIC)
