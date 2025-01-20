@@ -22,7 +22,6 @@ import gregtech.api.recipe.RecipeMaps;
 import gregtech.api.util.GTOreDictUnificator;
 import gregtech.api.util.GTUtility;
 import gregtech.api.util.recipe.Scanning;
-import gregtech.api.util.recipe.Scanning;
 
 import appeng.api.AEApi;
 
