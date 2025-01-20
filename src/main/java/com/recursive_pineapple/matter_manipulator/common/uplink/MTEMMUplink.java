@@ -92,7 +92,7 @@ import mcp.mobius.waila.api.IWailaDataAccessor;
 
 public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implements ISurvivalConstructable, IUplinkMulti, IStructureProvider<MTEMMUplink> {
 
-    private static final long BASE_PLASMA_EU_COST = 16_384;
+    private static final long BASE_PLASMA_EU_COST = 131_072;
 
     private long pendingPlasmaEU = 0;
     private long address = 0;
