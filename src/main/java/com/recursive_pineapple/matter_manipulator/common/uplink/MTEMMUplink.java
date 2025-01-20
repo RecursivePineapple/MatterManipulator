@@ -11,6 +11,7 @@ import static gregtech.api.enums.HatchElement.Maintenance;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import javax.annotation.Nonnull;
 
@@ -47,13 +48,19 @@ import gregtech.api.util.GTRecipe;
 import gregtech.api.util.IGTHatchAdder;
 import gregtech.api.util.MultiblockTooltipBuilder;
 import gregtech.api.util.shutdown.ShutDownReason;
+import gregtech.common.tileentities.machines.MTEHatchInputME;
 
 import appeng.api.config.Actionable;
 import appeng.api.config.FuzzyMode;
+import appeng.api.config.PowerMultiplier;
+import appeng.api.networking.security.IActionHost;
+import appeng.api.networking.security.MachineSource;
 import appeng.api.networking.storage.IStorageGrid;
 import appeng.api.storage.IMEMonitor;
 import appeng.api.storage.data.IAEFluidStack;
 import appeng.api.storage.data.IAEItemStack;
+import appeng.me.GridAccessException;
+import appeng.util.item.AEFluidStack;
 
 import com.google.common.collect.ImmutableList;
 import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable;
@@ -258,7 +265,7 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
             )
         );
 
-        tt.toolTipFinisher(AuthorPineapple);
+        tt.toolTipFinisher(EnumChatFormatting.WHITE, 0, AuthorPineapple);
 
         return tt;
     }
@@ -640,6 +647,9 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
         }
     }
 
+    private static final Function<MTEHatchInputME, FluidStack[]> ME_HATCH_STORED_FLUIDS = MMUtils
+        .exposeFieldGetterLambda(MTEHatchInputME.class, "storedFluids");
+
     /**
      * Converts plasma in hatches to EU.
      */
@@ -647,28 +657,69 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
         FuelBackend fuels = RecipeMaps.plasmaFuels.getBackend();
 
         for (MTEHatchInput input : mInputHatches) {
-            for (FluidTankInfo tank : input.getTankInfo(ForgeDirection.UNKNOWN)) {
-                if (tank.fluid == null) continue;
+            if (input instanceof MTEHatchInputME me) {
+                try {
+                    var inv = me.getProxy().getStorage().getFluidInventory();
+                    var energy = me.getProxy().getEnergy();
 
-                GTRecipe fuel = fuels.findFuel(tank.fluid);
+                    FluidStack[] fluids = ME_HATCH_STORED_FLUIDS.apply(me);
 
-                if (fuel != null) {
-                    long euPerLitre = fuel.mSpecialValue;
+                    for (FluidStack fluid : fluids) {
+                        if (fluid == null) continue;
 
-                    int litresToConsume = (int) Math
-                        .min(Integer.MAX_VALUE, MMUtils.ceilDiv(euToGenerate, euPerLitre));
+                        GTRecipe fuel = fuels.findFuel(fluid);
 
-                    FluidStack toConsume = tank.fluid.copy();
-                    toConsume.amount = litresToConsume;
+                        if (fuel != null) {
+                            long euPerLitre = fuel.mSpecialValue;
 
-                    FluidStack drained = input.drain(ForgeDirection.UNKNOWN, toConsume, true);
+                            int litresToConsume = (int) Math.min(Integer.MAX_VALUE, MMUtils.ceilDiv(euToGenerate, euPerLitre));
 
-                    long generated = drained.amount * euPerLitre;
-                    euToGenerate -= generated;
-                    pendingPlasmaEU += generated;
+                            FluidStack toConsume = fluid.copy();
+                            toConsume.amount = litresToConsume;
+
+                            IAEFluidStack drained = inv.extractItems(
+                                AEFluidStack.create(toConsume),
+                                Actionable.MODULATE,
+                                new MachineSource((IActionHost) me.getBaseMetaTileEntity())
+                            );
+
+                            if (drained == null) continue;
+
+                            energy.extractAEPower(drained.getStackSize(), Actionable.MODULATE, PowerMultiplier.CONFIG);
+
+                            long generated = drained.getStackSize() * euPerLitre;
+                            euToGenerate -= generated;
+                            pendingPlasmaEU += generated;
+                        }
+
+                        if (euToGenerate <= 0) { return; }
+                    }
+                } catch (GridAccessException e) {
+                    // :P
                 }
+            } else {
+                for (FluidTankInfo tank : input.getTankInfo(ForgeDirection.UNKNOWN)) {
+                    if (tank.fluid == null) continue;
 
-                if (euToGenerate <= 0) { return; }
+                    GTRecipe fuel = fuels.findFuel(tank.fluid);
+
+                    if (fuel != null) {
+                        long euPerLitre = fuel.mSpecialValue;
+
+                        int litresToConsume = (int) Math.min(Integer.MAX_VALUE, MMUtils.ceilDiv(euToGenerate, euPerLitre));
+
+                        FluidStack toConsume = tank.fluid.copy();
+                        toConsume.amount = litresToConsume;
+
+                        FluidStack drained = input.drain(ForgeDirection.UNKNOWN, toConsume, true);
+
+                        long generated = drained.amount * euPerLitre;
+                        euToGenerate -= generated;
+                        pendingPlasmaEU += generated;
+                    }
+
+                    if (euToGenerate <= 0) { return; }
+                }
             }
         }
     }
