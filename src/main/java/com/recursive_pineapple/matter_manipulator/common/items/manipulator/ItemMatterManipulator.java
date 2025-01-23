@@ -938,7 +938,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
 
     private void checkForAECables(BlockSpec spec, World world, int x, int y, int z) {
         if (tier.hasCap(ALLOW_CABLES) && AppliedEnergistics2.isModLoaded()) {
-            if (spec.getItem() == MMUtils.AE_BLOCK_CABLE.get().getItem()) {
+            if (MMUtils.AE_BLOCK_CABLE.matches(spec)) {
                 MMUtils.getAECable(spec, world, x, y, z);
             }
         }
@@ -1539,13 +1539,11 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
                 if (t.flipY) flips.add("Y");
                 if (t.flipZ) flips.add("Z");
 
-                String[] names = { "Down", "Up", "North", "South", "West", "East" };
-
                 return String.format(
                     "Flip: %s\nUp: %s\nForward: %s",
                     flips.isEmpty() ? "None" : String.join(", ", flips),
-                    names[t.up.ordinal()],
-                    names[t.forward.ordinal()]);
+                    MMUtils.getDirectionDisplayName(t.up),
+                    MMUtils.getDirectionDisplayName(t.forward));
             });
 
             Widget[] left = {
