@@ -1,5 +1,6 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
+import static com.recursive_pineapple.matter_manipulator.common.utils.MMValues.W;
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.ArchitectureCraft;
 
 import java.lang.invoke.MethodHandle;
@@ -34,6 +35,7 @@ import com.google.gson.annotations.SerializedName;
 import com.recursive_pineapple.matter_manipulator.common.compat.BlockProperty;
 import com.recursive_pineapple.matter_manipulator.common.compat.BlockPropertyRegistry;
 import com.recursive_pineapple.matter_manipulator.common.utils.ItemId;
+import com.recursive_pineapple.matter_manipulator.common.utils.LazyBlock;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
@@ -164,8 +166,12 @@ public class BlockSpec implements ImmutableBlockSpec {
         return metadata;
     }
 
+    private static final LazyBlock DYSON_CASING = new LazyBlock(Mods.GTNHIntergalactic, "dysonswarmparts", W);
+
     @Override
     public int getBlockMeta() {
+        if (DYSON_CASING.isLoaded() && DYSON_CASING.get().getBlock() == this.getBlock()) return metadata;
+
         return getItem() == null ? 0 : getItem().getMetadata(getMeta());
     }
 
