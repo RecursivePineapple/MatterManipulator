@@ -323,7 +323,7 @@ public class PendingBlock extends Location {
                 try {
                     prop.setValueFromText(world, x, y, z, value);
                 } catch (Exception e) {
-                    context.error("could not apply property " + property + ": " + e.getMessage());
+                    context.error("Could not apply property " + property + ": " + e.getMessage());
                 }
             }
         }
