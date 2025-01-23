@@ -1375,4 +1375,20 @@ public class MMUtils {
 
         return false;
     }
+
+    public static String getDirectionDisplayName(ForgeDirection dir) {
+        return getDirectionDisplayName(dir, false);
+    }
+
+    public static String getDirectionDisplayName(ForgeDirection dir, boolean unknownIsCentre) {
+        return switch (dir) {
+            case DOWN -> "Down";
+            case EAST -> "East";
+            case NORTH -> "North";
+            case SOUTH -> "South";
+            case UNKNOWN -> unknownIsCentre ? "Center" : "Unknown";
+            case UP -> "Up";
+            case WEST -> "West";
+        };
+    }
 }
