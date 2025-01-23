@@ -73,7 +73,7 @@ public class InventoryAnalysis {
      */
     public boolean apply(IBlockApplyContext context, IInventory inv, boolean consume, boolean simulate) {
         if (inv.getSizeInventory() != mItems.length) {
-            context.warn("inventory was the wrong size (expected " + mItems.length + ", was " + inv.getSizeInventory() + ")");
+            context.warn("Inventory was the wrong size (expected " + mItems.length + ", was " + inv.getSizeInventory() + ")");
             return false;
         }
 
@@ -100,7 +100,7 @@ public class InventoryAnalysis {
                 ItemStack stack = inv.getStackInSlot(slot);
                 if (stack != null) {
                     if (!adapter.canExtract(inv, slot)) {
-                        context.warn("could not extract item in slot " + slot + ": " + stack.getDisplayName());
+                        context.warn("Could not extract item in slot " + slot + ": " + stack.getDisplayName());
                         continue;
                     }
 
@@ -114,14 +114,14 @@ public class InventoryAnalysis {
 
                 if (target != null) {
                     if (!adapter.canInsert(inv, slot, target.getStack(null, false))) {
-                        context.warn("invalid item for slot " + slot + ": " + target.toString());
+                        context.warn("Invalid item for slot " + slot + ": " + target.toString());
                         continue;
                     }
 
                     ItemStack toInsert = target.getStack(context, consume);
 
                     if (toInsert == null) {
-                        context.warn("could not gather item for inventory: " + target.toString());
+                        context.warn("Could not gather item for inventory: " + target.toString());
                         success = false;
                     } else {
                         if (!simulate) {

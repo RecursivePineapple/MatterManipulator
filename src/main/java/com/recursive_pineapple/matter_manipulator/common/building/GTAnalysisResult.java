@@ -297,7 +297,7 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
                         gte.setFrontFacing(mGTFacing.getDirection());
                         alignment.toolSetExtendedFacing(mGTFacing);
                     } else {
-                        ctx.error("could not set direction to '" + mGTFacing.getLocalizedName() + "'");
+                        ctx.error("Could not set direction to '" + mGTFacing.getLocalizedName() + "'");
                     }
                 }
             } else {
@@ -451,12 +451,12 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
         ItemStack stack = cover.getCover();
 
         if (!gte.canPlaceCoverItemAtSide(side, stack)) {
-            context.error("was not allowed to put cover on " + side.name().toLowerCase() + "side: " + stack.getDisplayName());
+            context.error("Was not allowed to put cover on " + side.name().toLowerCase() + "side: " + stack.getDisplayName());
             return;
         }
 
         if (!context.tryConsumeItems(stack)) {
-            context.error("could not find cover: " + stack.getDisplayName());
+            context.error("Could not find cover: " + stack.getDisplayName());
             return;
         }
 

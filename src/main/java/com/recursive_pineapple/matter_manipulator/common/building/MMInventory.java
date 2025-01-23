@@ -41,7 +41,7 @@ import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
-import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.booleans.BooleanObjectImmutablePair;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 
 /**
@@ -65,9 +65,9 @@ public class MMInventory implements IPseudoInventory {
     }
 
     @Override
-    public Pair<Boolean, List<BigItemStack>> tryConsumeItems(List<BigItemStack> items, int flags) {
+    public BooleanObjectImmutablePair<List<BigItemStack>> tryConsumeItems(List<BigItemStack> items, int flags) {
         if ((flags & CONSUME_IGNORE_CREATIVE) == 0 && player.capabilities.isCreativeMode) {
-            return Pair.of(true, items);
+            return BooleanObjectImmutablePair.of(true, items);
         } else {
             List<BigItemStack> simulated = MMUtils.mapToList(items, BigItemStack::copy);
             List<BigItemStack> extracted = new ArrayList<>();
@@ -84,10 +84,10 @@ public class MMInventory implements IPseudoInventory {
 
             // if we aren't allowed to partially consume items, make sure everything was consumed
             if ((flags & CONSUME_PARTIAL) == 0) {
-                if (simulated.stream().anyMatch(s -> s.getStackSize() > 0)) { return Pair.of(false, null); }
+                if (simulated.stream().anyMatch(s -> s.getStackSize() > 0)) { return BooleanObjectImmutablePair.of(false, null); }
             }
 
-            if ((flags & CONSUME_SIMULATED) != 0) { return Pair.of(true, extracted); }
+            if ((flags & CONSUME_SIMULATED) != 0) { return BooleanObjectImmutablePair.of(true, extracted); }
 
             simulated = MMUtils.mapToList(items, BigItemStack::copy);
             extracted.clear();
@@ -117,7 +117,7 @@ public class MMInventory implements IPseudoInventory {
                 merged.incStackSize(ex.getStackSize());
             }
 
-            return Pair.of(true, new ArrayList<>(out.values()));
+            return BooleanObjectImmutablePair.of(true, new ArrayList<>(out.values()));
         }
     }
 
