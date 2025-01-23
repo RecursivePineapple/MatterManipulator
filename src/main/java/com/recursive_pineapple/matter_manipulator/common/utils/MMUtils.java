@@ -1320,6 +1320,15 @@ public class MMUtils {
     }
 
     @Optional(Names.GREG_TECH)
+    public static boolean isGTMachine(ImmutableBlockSpec spec) {
+        if (spec.getBlock() instanceof BlockMachines) {
+            if (getIndexSafe(GregTechAPI.METATILEENTITIES, spec.getMeta()) != null) { return true; }
+        }
+
+        return false;
+    }
+
+    @Optional(Names.GREG_TECH)
     public static boolean isGTCable(ImmutableBlockSpec spec) {
         if (spec.getBlock() instanceof BlockMachines) {
             if (getIndexSafe(GregTechAPI.METATILEENTITIES, spec.getMeta()) instanceof IConnectable) { return true; }
