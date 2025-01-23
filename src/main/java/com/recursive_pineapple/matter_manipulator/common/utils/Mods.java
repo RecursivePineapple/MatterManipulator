@@ -22,6 +22,7 @@ public enum Mods {
     FloodLights(Names.FLOOD_LIGHTS),
     GregTech(Names.GREG_TECH),
     GTPlusPlus(Names.G_T_PLUS_PLUS),
+    GTNHIntergalactic(Names.GTNH_INTERGALACTIC),
     GraviSuite(Names.GRAVI_SUITE),
     Hodgepodge(Names.HODGEPODGE),
     IndustrialCraft2(Names.INDUSTRIAL_CRAFT2),
@@ -56,6 +57,7 @@ public enum Mods {
         public static final String GREG_TECH = "gregtech";
         public static final String GRAVI_SUITE = "GraviSuite";
         public static final String G_T_PLUS_PLUS = "miscutils";
+        public static final String GTNH_INTERGALACTIC = "gtnhintergalactic";
         public static final String HODGEPODGE = "hodgepodge";
         public static final String INDUSTRIAL_CRAFT2 = "IC2";
         public static final String LOGISTICS_PIPES = "LogisticsPipes";
