@@ -364,58 +364,55 @@ public class MMState {
         XSTR rng = new XSTR(config.hashCode());
 
         BlockSpec existing = new BlockSpec();
-        BlockSpec aeCable = new BlockSpec();
+
+        boolean replacingAir = config.replaceWhitelist.contains(BlockSpec.air());
 
         for (Vector3i voxel : MMUtils.getBlocksInBB(coordA, deltas)) {
             int x = voxel.x;
             int y = voxel.y;
             int z = voxel.z;
 
-            if (world.isAirBlock(x, y, z)) continue;
+            if (!replacingAir) {
+                if (world.isAirBlock(x, y, z)) continue;
+            }
+
+            if (existing == null) existing = new BlockSpec();
 
             BlockSpec.fromBlock(existing, world, x, y, z);
 
-            if (existing.isAir()) continue;
+            if (existing.shouldBeSkipped()) continue;
 
-            boolean wasAECable = false;
-
-            if (MMUtils.getAECable(aeCable, world, x, y, z)) {
-                if (!config.replaceWhitelist.contains(aeCable)) continue;
-
-                wasAECable = true;
+            if (!replacingAir) {
+                if (existing.isAir()) continue;
             }
 
-            if (!wasAECable) {
-                if (!config.replaceWhitelist.contains(existing)) continue;
+            if (AppliedEnergistics2.isModLoaded()) {
+                // get ae cable if possible
+                MMUtils.getAECable(existing, world, x, y, z);
             }
+
+            if (!config.replaceWhitelist.contains(existing)) continue;
 
             ImmutableBlockSpec replacement = config.replaceWith.get(rng);
+            ImmutableBlockSpec block = replacement;
 
-            boolean replacingWithGTCable = tier.hasCap(ItemMatterManipulator.ALLOW_CABLES) && GregTech.isModLoaded() && MMUtils.isGTCable(replacement);
-            boolean replacingWithAECable = tier.hasCap(ItemMatterManipulator.ALLOW_CABLES) && AppliedEnergistics2.isModLoaded() &&
-                MMUtils.isAECable(replacement);
-
-            if (replacingWithGTCable) {
-                PendingBlock rep = replacement.instantiate(world, x, y, z);
-
-                if (MMUtils.isGTCable(existing)) {
-                    rep.analyze(world.getTileEntity(x, y, z), PendingBlock.ANALYZE_ALL);
+            if (tier.hasCap(ItemMatterManipulator.ALLOW_CABLES)) {
+                if (AppliedEnergistics2.isModLoaded() && MMUtils.isAECable(replacement)) {
+                    block = MMUtils.AE_BLOCK_CABLE.get().asSpec();
                 }
-
-                pending.add(rep);
-            } else if (replacingWithAECable) {
-                PendingBlock rep = MMUtils.AE_BLOCK_CABLE.get().asSpec().instantiate(world, x, y, z);
-
-                if (world.getTileEntity(x, y, z) instanceof IPartHost) {
-                    rep.analyze(world.getTileEntity(x, y, z), PendingBlock.ANALYZE_ALL);
-                }
-
-                placingAECable(rep, replacement);
-
-                pending.add(rep);
-            } else {
-                pending.add(replacement.instantiate(world, x, y, z));
             }
+
+            PendingBlock rep = block.instantiate(world, x, y, z);
+
+            rep.analyze(world.getTileEntity(x, y, z), PendingBlock.ANALYZE_ALL);
+
+            if (tier.hasCap(ItemMatterManipulator.ALLOW_CABLES)) {
+                if (AppliedEnergistics2.isModLoaded() && MMUtils.isAECable(replacement)) {
+                    placingAECable(rep, replacement);
+                }
+            }
+
+            pending.add(rep);
         }
 
         return pending;
