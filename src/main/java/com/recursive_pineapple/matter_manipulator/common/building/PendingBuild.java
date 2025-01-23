@@ -39,7 +39,7 @@ import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
-import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.booleans.BooleanObjectImmutablePair;
 
 /**
  * Handles all building logic.
@@ -464,7 +464,7 @@ public class PendingBuild extends AbstractBuildable {
         }
 
         @Override
-        public Pair<Boolean, List<BigItemStack>> tryConsumeItems(List<BigItemStack> items, int flags) {
+        public BooleanObjectImmutablePair<List<BigItemStack>> tryConsumeItems(List<BigItemStack> items, int flags) {
             return PendingBuild.this.tryConsumeItems(items, flags);
         }
 
@@ -486,7 +486,13 @@ public class PendingBuild extends AbstractBuildable {
                 if (GregTech.isModLoaded()) blockName = getGTBlockName(pendingBlock);
 
                 if (blockName == null) {
-                    blockName = BlockSpec.fromBlock(null, player.worldObj, pendingBlock.x, pendingBlock.y, pendingBlock.z).getDisplayName();
+                    BlockSpec spec = BlockSpec.fromBlock(null, player.worldObj, pendingBlock.x, pendingBlock.y, pendingBlock.z);
+
+                    if (MMUtils.AE_BLOCK_CABLE.matches(spec)) {
+                        blockName = MMUtils.AE_BLOCK_CABLE.get().asSpec().getDisplayName();
+                    } else {
+                        blockName = spec.getDisplayName();
+                    }
                 }
             }
 
@@ -511,8 +517,12 @@ public class PendingBuild extends AbstractBuildable {
             if (pendingBlock.isInWorld(player.worldObj)) {
                 if (GregTech.isModLoaded()) blockName = getGTBlockName(pendingBlock);
 
-                if (blockName == null) {
-                    blockName = BlockSpec.fromBlock(null, player.worldObj, pendingBlock.x, pendingBlock.y, pendingBlock.z).getDisplayName();
+                BlockSpec spec = BlockSpec.fromBlock(null, player.worldObj, pendingBlock.x, pendingBlock.y, pendingBlock.z);
+
+                if (MMUtils.AE_BLOCK_CABLE.matches(spec)) {
+                    blockName = MMUtils.AE_BLOCK_CABLE.get().asSpec().getDisplayName();
+                } else {
+                    blockName = spec.getDisplayName();
                 }
             }
 

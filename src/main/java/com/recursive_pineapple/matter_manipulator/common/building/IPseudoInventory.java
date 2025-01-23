@@ -10,7 +10,7 @@ import com.recursive_pineapple.matter_manipulator.common.utils.BigFluidStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 
-import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.booleans.BooleanObjectImmutablePair;
 
 /**
  * Something that can accept and provide items/fluids.
@@ -40,7 +40,7 @@ public interface IPseudoInventory {
      * @return Key = whether the extract was successful. Value = the list of items extracted (only relevant for fuzzy
      *         mode).
      */
-    public Pair<Boolean, List<BigItemStack>> tryConsumeItems(List<BigItemStack> items, int flags);
+    public BooleanObjectImmutablePair<List<BigItemStack>> tryConsumeItems(List<BigItemStack> items, int flags);
 
     /**
      * Consumes a set of items.
@@ -48,7 +48,7 @@ public interface IPseudoInventory {
      * @return True when the items were successfully consumed.
      */
     public default boolean tryConsumeItems(ItemStack... items) {
-        return tryConsumeItems(MMUtils.mapToList(items, BigItemStack::new), 0).first();
+        return tryConsumeItems(MMUtils.mapToList(items, BigItemStack::new), 0).leftBoolean();
     }
 
     public void givePlayerItems(List<BigItemStack> items);

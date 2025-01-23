@@ -23,7 +23,7 @@ import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 
 import org.joml.Vector3i;
 
-import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.booleans.BooleanObjectImmutablePair;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 
 public class BlockAnalyzer {
@@ -154,7 +154,7 @@ public class BlockAnalyzer {
         }
 
         @Override
-        public Pair<Boolean, List<BigItemStack>> tryConsumeItems(List<BigItemStack> items, int flags) {
+        public BooleanObjectImmutablePair<List<BigItemStack>> tryConsumeItems(List<BigItemStack> items, int flags) {
             return build.tryConsumeItems(items, flags);
         }
 
@@ -229,7 +229,7 @@ public class BlockAnalyzer {
         }
 
         @Override
-        public Pair<Boolean, List<BigItemStack>> tryConsumeItems(List<BigItemStack> items, int flags) {
+        public BooleanObjectImmutablePair<List<BigItemStack>> tryConsumeItems(List<BigItemStack> items, int flags) {
             boolean simulate = (flags & CONSUME_SIMULATED) != 0;
             boolean fuzzy = (flags & CONSUME_FUZZY) != 0;
 
@@ -316,7 +316,7 @@ public class BlockAnalyzer {
                 requiredItems.addTo(id, req.getStackSize());
             }
 
-            return Pair.of(true, items);
+            return BooleanObjectImmutablePair.of(true, items);
         }
 
         @Override

@@ -44,6 +44,7 @@ public interface ImmutableBlockSpec extends ImmutableItemMeta {
         return ItemStack.areItemStacksEqual(getStack(), other.getStack());
     }
 
+    /** Returns true when this contains air. BlockSpecs may be air if an invalid block was analyzed. */
     public default boolean isAir() {
         return getObjectId() == null || getBlock() == null || getBlock() == Blocks.air;
     }
