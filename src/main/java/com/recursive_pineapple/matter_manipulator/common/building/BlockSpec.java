@@ -166,7 +166,7 @@ public class BlockSpec implements ImmutableBlockSpec {
         return metadata;
     }
 
-    private static final LazyBlock DYSON_CASING = new LazyBlock(Mods.GTNHIntergalactic, "dysonswarmparts", W);
+    private static final LazyBlock DYSON_CASING = new LazyBlock(Mods.GalaxySpace, "dysonswarmparts", W);
 
     @Override
     public int getBlockMeta() {
