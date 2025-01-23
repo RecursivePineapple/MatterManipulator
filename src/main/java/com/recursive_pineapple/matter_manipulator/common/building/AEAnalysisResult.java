@@ -32,6 +32,7 @@ import appeng.util.SettingsFrom;
 import com.google.gson.JsonElement;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
+import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.ItemId;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 
@@ -157,7 +158,9 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
                 AEPartData expected = mAEParts[dir.ordinal()];
 
                 ItemId actualItem = part == null ? null : ItemId.createWithoutNBT(part.getItemStack(PartItemStack.Break));
-                ItemId expectedItem = expected == null ? null : ItemId.createWithoutNBT(expected.getEffectivePartStack());
+
+                ItemStack expectedStack = expected == null ? null : expected.getEffectivePartStack();
+                ItemId expectedItem = expectedStack == null ? null : ItemId.createWithoutNBT(expectedStack);
 
                 boolean isAttunable = part instanceof PartP2PTunnelNormal && expected != null && expected.isAttunable();
 
@@ -165,11 +168,30 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
                 if (!isAttunable) {
                     // change the part into the proper version
                     if (actualItem != null && (expectedItem == null || !Objects.equals(actualItem, expectedItem))) {
+                        if (expectedStack != null && !partHost.canAddPart(expectedStack, dir)) {
+                            ctx.error("Invalid location (" + MMUtils.getDirectionDisplayName(dir, true) + ") for part (" + expectedStack.getDisplayName() + ")");
+                            continue;
+                        }
+
+                        if (expectedStack != null) {
+                            var result = ctx.tryConsumeItems(Arrays.asList(new BigItemStack(expectedStack)), IPseudoInventory.CONSUME_SIMULATED);
+
+                            if (!result.leftBoolean()) {
+                                ctx.error("Could not extract item: " + expectedStack.getDisplayName());
+                                continue;
+                            }
+                        }
+
                         removePart(ctx, partHost, dir, false);
                         actualItem = null;
                     }
 
                     if (actualItem == null && expectedItem != null) {
+                        if (expectedStack != null && !partHost.canAddPart(expectedStack, dir)) {
+                            ctx.error("Invalid location (" + MMUtils.getDirectionDisplayName(dir, true) + ") for part (" + expectedStack.getDisplayName() + ")");
+                            continue;
+                        }
+        
                         if (!installPart(ctx, partHost, dir, expected, false)) { return false; }
                     }
                 }
