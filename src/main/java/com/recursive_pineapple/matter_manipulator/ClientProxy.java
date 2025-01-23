@@ -6,7 +6,8 @@ import cpw.mods.fml.client.FMLClientHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 
 import com.recursive_pineapple.matter_manipulator.common.entities.EntityItemLarge;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMKeyInputs;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMRenderer;
 
 public class ClientProxy extends CommonProxy {
 
@@ -15,7 +16,8 @@ public class ClientProxy extends CommonProxy {
         super.init(event);
 
         EntityItemLarge.registerClient();
-        ItemMatterManipulator.initKeybindings();
+        MMRenderer.init();
+        MMKeyInputs.init();
     }
 
     @Override
