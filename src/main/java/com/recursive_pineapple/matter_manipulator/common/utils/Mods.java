@@ -20,6 +20,7 @@ public enum Mods {
     /** The forge multipart library. */
     ForgeMultipart(Names.FORGE_MULTIPART),
     FloodLights(Names.FLOOD_LIGHTS),
+    GalaxySpace(Names.GALAXY_SPACE),
     GregTech(Names.GREG_TECH),
     GTPlusPlus(Names.G_T_PLUS_PLUS),
     GTNHIntergalactic(Names.GTNH_INTERGALACTIC),
@@ -54,6 +55,7 @@ public enum Mods {
         public static final String FORGE_MICROBLOCKS = "ForgeMicroblock";
         public static final String FORGE_MULTIPART = "ForgeMultipart";
         public static final String FLOOD_LIGHTS = "FloodLights";
+        public static final String GALAXY_SPACE = "GalaxySpace";
         public static final String GREG_TECH = "gregtech";
         public static final String GRAVI_SUITE = "GraviSuite";
         public static final String G_T_PLUS_PLUS = "miscutils";
