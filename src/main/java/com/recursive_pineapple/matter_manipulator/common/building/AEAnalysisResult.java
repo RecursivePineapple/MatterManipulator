@@ -183,10 +183,12 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
 
                     if (actualItem == null && expectedItem != null) {
                         if (expectedStack != null && !partHost.canAddPart(expectedStack, dir)) {
-                            ctx.error("Invalid location (" + MMUtils.getDirectionDisplayName(dir, true) + ") for part (" + expectedStack.getDisplayName() + ")");
+                            ctx.error(
+                                "Invalid location (" + MMUtils.getDirectionDisplayName(dir, true) + ") for part (" + expectedStack.getDisplayName() + ")"
+                            );
                             continue;
                         }
-        
+
                         if (!installPart(ctx, partHost, dir, expected, false)) { return false; }
                     }
                 }

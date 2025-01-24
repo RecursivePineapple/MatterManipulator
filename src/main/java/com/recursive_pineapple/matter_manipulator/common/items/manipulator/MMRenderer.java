@@ -31,8 +31,8 @@ import com.gtnewhorizon.gtnhlib.util.AboveHotbarHUD;
 import com.gtnewhorizon.gtnhlib.util.CoordinatePacker;
 import com.gtnewhorizon.structurelib.StructureLibAPI;
 import com.gtnewhorizon.structurelib.entity.fx.WeightlessParticleFX;
-import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.RenderingConfig;
 import com.recursive_pineapple.matter_manipulator.GlobalMMConfig;
+import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.RenderingConfig;
 import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.client.rendering.BoxRenderer;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockSpec;
@@ -62,7 +62,7 @@ public class MMRenderer {
     private static List<PendingBlock> analysisCache = null;
 
     private static ItemMatterManipulator lastDrawer = null;
-    
+
     private static boolean wasValid = false;
 
     private static final long ANALYSIS_INTERVAL_MS = 10_000;
@@ -77,10 +77,10 @@ public class MMRenderer {
 
     private static boolean wasInUse = false;
 
-    private MMRenderer() { }
+    private MMRenderer() {}
 
     /** Just loads the class */
-    public static void init() { }
+    public static void init() {}
 
     public static void markNeedsRedraw() {
         needsHintDraw = true;
@@ -168,7 +168,7 @@ public class MMRenderer {
         lastAnalyzedConfig = null;
         lastPlayerPosition = null;
         analysisCache = null;
-        
+
         needsHintDraw = false;
         needsAnalysis = false;
 
@@ -565,7 +565,8 @@ public class MMRenderer {
                 pendingBlock.z,
                 errors,
                 warnings,
-                RenderingConfig.hintsOnTop || state.config.placeMode == PlaceMode.EXCHANGING || (RenderingConfig.hintsOnTopAir && pendingBlock.spec.isAir()));
+                RenderingConfig.hintsOnTop || state.config.placeMode == PlaceMode.EXCHANGING || (RenderingConfig.hintsOnTopAir && pendingBlock.spec.isAir())
+            );
         }
 
         if (warnings != null) {
@@ -603,11 +604,26 @@ public class MMRenderer {
         StructureLibAPI.endHinting(player.worldObj);
     }
 
-    private static final short[] WHITE = { 255, 255, 255, 255 };
-    private static final short[] WARNING = { 255, 170, 0, 255 };
-    private static final short[] ERROR = { 255, 85, 85, 255 };
+    private static final short[] WHITE = {
+        255, 255, 255, 255
+    };
+    private static final short[] WARNING = {
+        255, 170, 0, 255
+    };
+    private static final short[] ERROR = {
+        255, 85, 85, 255
+    };
 
-    private static void markHintDrawthrough(World world, EntityPlayer player, int x, int y, int z, LongOpenHashSet errors, LongOpenHashSet warnings, boolean drawOnTop) {
+    private static void markHintDrawthrough(
+        World world,
+        EntityPlayer player,
+        int x,
+        int y,
+        int z,
+        LongOpenHashSet errors,
+        LongOpenHashSet warnings,
+        boolean drawOnTop
+    ) {
         long packed = CoordinatePacker.pack(x, y, z);
 
         short[] colour = WHITE;
