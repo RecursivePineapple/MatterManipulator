@@ -365,27 +365,22 @@ public class BlockSpec implements ImmutableBlockSpec {
         spec.objectId = GameRegistry.findUniqueIdentifierFor(block);
         spec.block = block;
 
-        if (!MMUtils.isFree(block, blockMeta)) {
-            @Nullable
-            Item item = MMUtils.getItemFromBlock(block, blockMeta);
+        @Nullable
+        Item item = MMUtils.getItemFromBlock(block, blockMeta);
 
+        if (!MMUtils.isFree(block, blockMeta)) {
             if (item == null) { return new BlockSpec().setObject(Blocks.air, 0); }
 
             if (block != Blocks.wall_sign && block != Blocks.standing_sign) {
                 block = MMUtils.getBlockFromItem(item, item.getMetadata(blockMeta));
             }
-
-            int itemMeta = block.getDamageValue(world, x, y, z);
-
-            spec.metadata = itemMeta;
-            spec.item = Optional.ofNullable(item);
-            spec.itemId = item == null ? Optional.empty() : Optional.of(ItemId.create(item, itemMeta, null));
-        } else {
-            spec.metadata = 0;
-            spec.item = Optional.empty();
-            spec.itemId = Optional.empty();
-            spec.stack = Optional.empty();
         }
+
+        int itemMeta = block.getDamageValue(world, x, y, z);
+
+        spec.metadata = itemMeta;
+        spec.item = Optional.ofNullable(item);
+        spec.itemId = item == null ? Optional.empty() : Optional.of(ItemId.create(item, itemMeta, null));
 
         if (Mods.ArchitectureCraft.isModLoaded()) {
             spec.arch = ArchitectureCraftAnalysisResult.analyze(world.getTileEntity(x, y, z));

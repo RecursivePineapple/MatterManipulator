@@ -29,7 +29,6 @@ import appeng.api.networking.IGridNode;
 import appeng.api.networking.energy.IEnergyGrid;
 import appeng.api.networking.security.ISecurityGrid;
 import appeng.api.networking.storage.IStorageGrid;
-import appeng.api.parts.IPartHost;
 import appeng.api.parts.IPartItem;
 import appeng.api.storage.IMEMonitor;
 import appeng.api.storage.data.IAEItemStack;

@@ -168,16 +168,11 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
                 if (!isAttunable) {
                     // change the part into the proper version
                     if (actualItem != null && (expectedItem == null || !Objects.equals(actualItem, expectedItem))) {
-                        if (expectedStack != null && !partHost.canAddPart(expectedStack, dir)) {
-                            ctx.error("Invalid location (" + MMUtils.getDirectionDisplayName(dir, true) + ") for part (" + expectedStack.getDisplayName() + ")");
-                            continue;
-                        }
-
                         if (expectedStack != null) {
                             var result = ctx.tryConsumeItems(Arrays.asList(new BigItemStack(expectedStack)), IPseudoInventory.CONSUME_SIMULATED);
 
                             if (!result.leftBoolean()) {
-                                ctx.error("Could not extract item: " + expectedStack.getDisplayName());
+                                ctx.warn("Could not extract item: " + expectedStack.getDisplayName());
                                 continue;
                             }
                         }
