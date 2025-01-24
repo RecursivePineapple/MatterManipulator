@@ -32,6 +32,7 @@ import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMRenderer;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.BlockRemoveMode;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.BlockSelectMode;
@@ -51,6 +52,8 @@ import org.joml.Vector3i;
 
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongList;
 
 /**
  * Contains all networking messages that the manipulator can send.
@@ -364,6 +367,29 @@ public enum Messages {
                 packet.worldId = sound.left().worldId;
                 packet.location = CoordinatePacker.pack(sound.left().x, sound.left().y, sound.left().z);
                 packet.sound = sound.right().ordinal();
+            }
+
+            return packet;
+        }
+    })),
+    BuildStatus(client(new ISimplePacketHandler<Messages.BuildStatusPacket>() {
+
+        @Override
+        @SideOnly(Side.CLIENT)
+        public void handle(EntityPlayer player, BuildStatusPacket packet) {
+            MMRenderer.setStatusHints(packet.errors, packet.warnings);
+        }
+
+        @Override
+        public BuildStatusPacket getNewPacket(Messages message, @Nullable Object value) {
+            BuildStatusPacket packet = new BuildStatusPacket(message);
+
+            @SuppressWarnings("unchecked")
+            Pair<LongList, LongList> pair = (Pair<LongList, LongList>) value;
+
+            if (pair != null) {
+                packet.errors = pair.left();
+                packet.warnings = pair.right();
             }
 
             return packet;
@@ -943,4 +969,68 @@ public enum Messages {
             }
         };
     }
+
+    private static class BuildStatusPacket extends SimplePacket {
+
+        public LongList errors, warnings;
+
+        public BuildStatusPacket(Messages message) {
+            super(message);
+        }
+
+        @Override
+        public void encode(ByteBuf buffer) {
+            buffer.writeInt(errors == null ? 0 : errors.size());
+
+            if (errors != null) {
+                int size = errors.size();
+                for (int i = 0; i < size; i++) {
+                    buffer.writeLong(errors.getLong(i));
+                }
+            }
+
+            buffer.writeInt(warnings == null ? 0 : warnings.size());
+
+            if (warnings != null) {
+                int size = warnings.size();
+                for (int i = 0; i < size; i++) {
+                    buffer.writeLong(warnings.getLong(i));
+                }
+            }
+        }
+
+        @Override
+        public MMPacket decode(ByteArrayDataInput buffer) {
+            BuildStatusPacket message = new BuildStatusPacket(super.message);
+
+            int size = buffer.readInt();
+
+            if (size > 0) {
+                LongList errors = new LongArrayList();
+                errors.size(size);
+
+                for (int i = 0; i < size; i++) {
+                    errors.set(i, buffer.readLong());
+                }
+
+                message.errors = errors;
+            }
+
+            size = buffer.readInt();
+
+            if (size > 0) {
+                LongList warnings = new LongArrayList();
+                warnings.size(size);
+
+                for (int i = 0; i < size; i++) {
+                    warnings.set(i, buffer.readLong());
+                }
+
+                message.warnings = warnings;
+            }
+
+            return message;
+        }
+    }
+
 }

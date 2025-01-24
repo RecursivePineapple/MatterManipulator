@@ -13,6 +13,7 @@ import java.util.Objects;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
@@ -32,6 +33,7 @@ import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemM
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.PlaceMode;
+import com.recursive_pineapple.matter_manipulator.common.networking.Messages;
 import com.recursive_pineapple.matter_manipulator.common.networking.SoundResource;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigFluidStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
@@ -39,7 +41,10 @@ import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
+import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.booleans.BooleanObjectImmutablePair;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongList;
 
 /**
  * Handles all building logic.
@@ -48,6 +53,9 @@ public class PendingBuild extends AbstractBuildable {
 
     private LinkedList<PendingBlock> pendingBlocks;
     private HashSet<Long> visited = new HashSet<>();
+
+    private LongList errors = new LongArrayList();
+    private LongList warnings = new LongArrayList();
 
     public PendingBuild(
         EntityPlayer player,
@@ -386,7 +394,10 @@ public class PendingBuild extends AbstractBuildable {
         if (pendingItems.size() > 0 || pendingFluids.size() > 0) {
             MMMod.LOG.error("Build stopped without delivering all items! There's a bug somewhere!");
         }
+
         actuallyGivePlayerStuff();
+
+        Messages.BuildStatus.sendToPlayer((EntityPlayerMP) player, Pair.of(errors, warnings));
     }
 
     private boolean supportsConfiguring() {
@@ -507,6 +518,8 @@ public class PendingBuild extends AbstractBuildable {
                     message
                 )
             );
+
+            PendingBuild.this.warnings.add(CoordinatePacker.pack(pendingBlock.x, pendingBlock.y, pendingBlock.z));
         }
 
         @Override
@@ -537,6 +550,8 @@ public class PendingBuild extends AbstractBuildable {
                     message
                 )
             );
+
+            PendingBuild.this.errors.add(CoordinatePacker.pack(pendingBlock.x, pendingBlock.y, pendingBlock.z));
         }
     }
 

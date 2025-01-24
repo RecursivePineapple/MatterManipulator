@@ -12,52 +12,39 @@ import static net.minecraftforge.common.util.ForgeDirection.SOUTH;
 import static net.minecraftforge.common.util.ForgeDirection.UP;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
 
-import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.particle.EntityFX;
-import net.minecraft.client.renderer.OpenGlHelper;
-import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.EnumRarity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 
 import net.minecraftforge.client.event.MouseEvent;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
-import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Optional.Interface;
 import cpw.mods.fml.common.Optional.InterfaceList;
-import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.InputEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
 import cpw.mods.fml.common.registry.GameRegistry;
@@ -67,9 +54,6 @@ import cpw.mods.fml.relauncher.SideOnly;
 import appeng.api.features.INetworkEncodable;
 
 import com.google.common.collect.MapMaker;
-import com.gtnewhorizon.gtnhlib.util.AboveHotbarHUD;
-import com.gtnewhorizon.structurelib.StructureLibAPI;
-import com.gtnewhorizon.structurelib.entity.fx.WeightlessParticleFX;
 import com.gtnewhorizons.modularui.api.UIInfos;
 import com.gtnewhorizons.modularui.api.drawable.AdaptableUITexture;
 import com.gtnewhorizons.modularui.api.drawable.IDrawable;
@@ -95,19 +79,15 @@ import com.gtnewhorizons.modularui.common.widget.Row;
 import com.gtnewhorizons.modularui.common.widget.TextWidget;
 import com.gtnewhorizons.modularui.common.widget.VanillaButtonWidget;
 import com.gtnewhorizons.modularui.common.widget.textfield.NumericWidget;
-import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.InteractionConfig;
-import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.RenderingConfig;
 import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.client.gui.DirectionDrawable;
 import com.recursive_pineapple.matter_manipulator.client.gui.RadialMenuBuilder;
-import com.recursive_pineapple.matter_manipulator.client.rendering.BoxRenderer;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockSpec;
 import com.recursive_pineapple.matter_manipulator.common.building.IBuildable;
 import com.recursive_pineapple.matter_manipulator.common.building.PendingBlock;
 import com.recursive_pineapple.matter_manipulator.common.building.PendingBuild;
 import com.recursive_pineapple.matter_manipulator.common.building.PendingMove;
 import com.recursive_pineapple.matter_manipulator.common.data.WeightedSpecList;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMConfig.VoxelAABB;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.BlockRemoveMode;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.BlockSelectMode;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.PendingAction;
@@ -118,11 +98,7 @@ import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
-import org.joml.Vector3d;
-import org.joml.Vector3f;
 import org.joml.Vector3i;
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.opengl.GL11;
 
 import ic2.api.item.IElectricItemManager;
 import ic2.api.item.ISpecialElectricItem;
@@ -135,9 +111,6 @@ import ic2.api.item.ISpecialElectricItem;
 public class ItemMatterManipulator extends Item implements ISpecialElectricItem, IElectricItemManager, INetworkEncodable {
 
     public final ManipulatorTier tier;
-
-    @SideOnly(Side.CLIENT)
-    private MatterManipulatorRenderer renderer;
 
     public ItemMatterManipulator(ManipulatorTier tier) {
         String name = "itemMatterManipulator" + tier.tier;
@@ -154,10 +127,6 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
         FMLCommonHandler.instance()
             .bus()
             .register(this);
-
-        if (FMLCommonHandler.instance().getSide() == Side.CLIENT) {
-            renderer = new MatterManipulatorRenderer();
-        }
     }
 
     private static int counter = 0;
@@ -1947,552 +1916,6 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
                 }));
     }
     // spotless:on
-
-    // #endregion
-
-    // #region Rendering
-
-    private long lastExceptionPrint = 0;
-
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    @SideOnly(Side.CLIENT)
-    public void renderSelection(RenderWorldLastEvent event) {
-        try {
-            renderer.renderSelection(event);
-        } catch (Throwable t) {
-            MMMod.LOG.error("Could not render matter manipulator preview", t);
-
-            long now = System.currentTimeMillis();
-            if ((now - lastExceptionPrint) > 10_000) {
-                Minecraft.getMinecraft().thePlayer.addChatMessage(
-                    new ChatComponentText(
-                        EnumChatFormatting.RED
-                            + "Could not render preview due to a crash. Check the logs for more info."
-                    )
-                );
-                lastExceptionPrint = now;
-            }
-        }
-    }
-
-    @SubscribeEvent
-    @SideOnly(Side.CLIENT)
-    public void onKeyPressed(InputEvent.KeyInputEvent event) {
-        renderer.onKeyPressed();
-    }
-
-    @SideOnly(Side.CLIENT)
-    public static void initKeybindings() {
-        MatterManipulatorRenderer.initKeybindings();
-    }
-
-    @SideOnly(Side.CLIENT)
-    private class MatterManipulatorRenderer {
-
-        private long lastAnalysisMS = 0;
-
-        private MMConfig lastAnalyzedConfig = null;
-
-        private Location lastPlayerPosition = null;
-
-        private List<PendingBlock> analysisCache = null;
-
-        private ItemMatterManipulator lastDrawer = null;
-
-        private static final long ANALYSIS_INTERVAL_MS = 10_000;
-
-        public static final KeyBinding CONTROL = new KeyBinding("key.mm-ctrl", Keyboard.KEY_LCONTROL, "key.mm");
-        public static final KeyBinding CUT = new KeyBinding("key.mm-cut", Keyboard.KEY_X, "key.mm");
-        public static final KeyBinding COPY = new KeyBinding("key.mm-copy", Keyboard.KEY_C, "key.mm");
-        public static final KeyBinding PASTE = new KeyBinding("key.mm-paste", Keyboard.KEY_V, "key.mm");
-        public static final KeyBinding RESET = new KeyBinding("key.mm-reset", Keyboard.KEY_Z, "key.mm");
-
-        public static void initKeybindings() {
-            ClientRegistry.registerKeyBinding(CONTROL);
-            ClientRegistry.registerKeyBinding(CUT);
-            ClientRegistry.registerKeyBinding(COPY);
-            ClientRegistry.registerKeyBinding(PASTE);
-            ClientRegistry.registerKeyBinding(RESET);
-        }
-
-        public void onKeyPressed() {
-            EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-            ItemStack held = player.getHeldItem();
-
-            if (held != null && held.getItem() == ItemMatterManipulator.this) {
-                MMState state = getState(held);
-
-                if (CONTROL.getKeyCode() == 0 || CONTROL.getIsKeyPressed()) {
-                    if (CUT.isPressed()) {
-                        if (state.config.placeMode != PlaceMode.MOVING) {
-                            Messages.SetPlaceMode.sendToServer(PlaceMode.MOVING);
-                        }
-                        if (InteractionConfig.pasteAutoClear) {
-                            Messages.ClearCoords.sendToServer();
-                            if (InteractionConfig.resetTransform) {
-                                Messages.ClearTransform.sendToServer();
-                            }
-                        }
-                        Messages.MarkCut.sendToServer();
-                    } else if (COPY.isPressed()) {
-                        if (state.config.placeMode != PlaceMode.COPYING) {
-                            Messages.SetPlaceMode.sendToServer(PlaceMode.COPYING);
-                        }
-                        if (InteractionConfig.pasteAutoClear) {
-                            Messages.ClearCoords.sendToServer();
-                            if (InteractionConfig.resetTransform) {
-                                Messages.ClearTransform.sendToServer();
-                            }
-                        }
-                        Messages.MarkCopy.sendToServer();
-                    } else if (PASTE.isPressed()) {
-                        // set the mode to copying if we aren't in a mode supports pasting (moving/copying)
-                        if (state.config.placeMode != PlaceMode.COPYING && state.config.placeMode != PlaceMode.MOVING) {
-                            Messages.SetPlaceMode.sendToServer(PlaceMode.COPYING);
-                        }
-                        Messages.MarkPaste.sendToServer();
-                    } else if (RESET.isPressed()) {
-                        Messages.ClearCoords.sendToServer();
-                        if (InteractionConfig.resetTransform) {
-                            Messages.ClearTransform.sendToServer();
-                        }
-                    }
-                }
-            }
-        }
-
-        /**
-         * Renders the overlay.
-         */
-        public void renderSelection(RenderWorldLastEvent event) {
-            EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-            ItemStack held = player.getHeldItem();
-
-            if (held != null && held.getItem() == ItemMatterManipulator.this) {
-                MMState state = getState(held);
-
-                switch (state.config.placeMode) {
-                    case GEOMETRY:
-                    case EXCHANGING:
-                    case CABLES: {
-                        renderGeom(event, state, player);
-                        break;
-                    }
-                    case COPYING:
-                    case MOVING: {
-                        renderRegions(event, state, player);
-                        break;
-                    }
-                }
-
-                try {
-                    @SuppressWarnings("unchecked")
-                    List<EntityFX> fxLayers = Minecraft.getMinecraft().effectRenderer.fxLayers[0];
-
-                    // remove all of the structurelib hint particles
-                    fxLayers.removeIf(particle -> particle instanceof WeightlessParticleFX);
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                }
-            } else {
-                if (lastDrawer == ItemMatterManipulator.this) {
-                    lastAnalysisMS = 0;
-                    lastAnalyzedConfig = null;
-                    lastPlayerPosition = null;
-                    analysisCache = null;
-                    lastDrawer = null;
-
-                    // reset the hints when this item just drew and the player isn't holding it anymore
-                    StructureLibAPI.startHinting(player.worldObj);
-                    StructureLibAPI.endHinting(player.worldObj);
-
-                    AboveHotbarHUD.renderTextAboveHotbar("", 0, false, false);
-                }
-            }
-        }
-
-        private void renderGeom(RenderWorldLastEvent event, MMState state, EntityPlayer player) {
-            Vector3i lookingAt = MMUtils.getLookingAtLocation(player);
-
-            Location coordA = state.config.getCoordA(player.worldObj, lookingAt);
-            Location coordB = state.config.getCoordB(player.worldObj, lookingAt);
-            Location coordC = state.config.getCoordC(player.worldObj, lookingAt);
-
-            state.config.coordA = coordA;
-            state.config.coordB = coordB;
-            state.config.coordC = coordC;
-
-            boolean isAValid = coordA != null && coordA.isInWorld(player.worldObj);
-            boolean isBValid = coordB != null && coordB.isInWorld(player.worldObj);
-            boolean isCValid = coordC != null && coordC.isInWorld(player.worldObj);
-
-            // For cylinders, coord B must be pinned to one of the axis planes and coord C must be on the normal of that
-            // plane
-            if (state.config.placeMode == PlaceMode.GEOMETRY && state.config.shape == Shape.CYLINDER) {
-                if (isAValid && isBValid) {
-                    Objects.requireNonNull(coordA);
-                    Objects.requireNonNull(coordB);
-
-                    Vector3i b2 = MMState.pinToPlanes(coordA.toVec(), coordB.toVec());
-
-                    coordB.x = b2.x;
-                    coordB.y = b2.y;
-                    coordB.z = b2.z;
-
-                    if (isCValid) {
-                        Objects.requireNonNull(coordC);
-                        Vector3i height = MMState.pinToLine(coordA.toVec(), b2, coordC.toVec());
-
-                        coordC.x = height.x;
-                        coordC.y = height.y;
-                        coordC.z = height.z;
-                    }
-                }
-            }
-
-            // For cables, coord B must be somewhere on one of the axes
-            if (isAValid && isBValid && state.config.placeMode == PlaceMode.CABLES) {
-                Objects.requireNonNull(coordA);
-                Objects.requireNonNull(coordB);
-
-                Vector3i b = MMState.pinToAxes(coordA.toVec(), coordB.toVec());
-
-                coordB.x = b.x;
-                coordB.y = b.y;
-                coordB.z = b.z;
-            }
-
-            if (isAValid && state.config.coordAOffset != null) {
-                GL11.glColor4f(0.15f, 0.6f, 0.75f, 0.75F);
-                drawRulers(player, coordA, false, event.partialTicks);
-            }
-
-            if (isBValid && state.config.coordBOffset != null) {
-                GL11.glColor4f(0.15f, 0.6f, 0.75f, 0.75F);
-                drawRulers(player, coordB, false, event.partialTicks);
-            }
-
-            if (isCValid && state.config.coordCOffset != null) {
-                GL11.glColor4f(0.15f, 0.6f, 0.75f, 0.75F);
-                drawRulers(player, coordC, false, event.partialTicks);
-            }
-
-            if (isAValid && isBValid) {
-                Objects.requireNonNull(coordA);
-                Objects.requireNonNull(coordB);
-
-                Location playerLocation = new Location(
-                    player.getEntityWorld(),
-                    MathHelper.floor_double(player.posX),
-                    MathHelper.floor_double(player.posY),
-                    MathHelper.floor_double(player.posZ)
-                );
-
-                Vector3i vA = coordA.toVec();
-                Vector3i vB = coordB.toVec();
-                Vector3i vC = null;
-
-                VoxelAABB aabb = new VoxelAABB(vA, vB);
-
-                // expand the AABB if the shape uses coord C
-                if ((state.config.placeMode != PlaceMode.GEOMETRY || state.config.shape.requiresC()) && isCValid) {
-                    Objects.requireNonNull(coordC);
-                    vC = coordC.toVec();
-
-                    aabb.union(vC);
-                }
-
-                BoxRenderer.INSTANCE.start(event.partialTicks);
-
-                BoxRenderer.INSTANCE.drawAround(aabb.toBoundingBox(), new Vector3f(0.15f, 0.6f, 0.75f));
-
-                BoxRenderer.INSTANCE.finish();
-
-                boolean needsAnalysis = (System.currentTimeMillis() - lastAnalysisMS) >= ANALYSIS_INTERVAL_MS ||
-                    !Objects.equals(lastAnalyzedConfig, state.config);
-
-                boolean needsHintDraw = needsAnalysis || (!Objects.equals(lastPlayerPosition, playerLocation) && tier.maxRange != -1);
-
-                if (needsAnalysis) {
-                    lastAnalysisMS = System.currentTimeMillis();
-                    lastAnalyzedConfig = state.config;
-                    analysisCache = state.getPendingBlocks(tier, player.getEntityWorld());
-                    analysisCache.removeIf(b -> b == null || b.getBlock() == Blocks.air);
-                    analysisCache.sort(Comparator.comparingInt((PendingBlock b) -> b.renderOrder));
-
-                    AboveHotbarHUD
-                        .renderTextAboveHotbar(aabb.describe(), (int) (ANALYSIS_INTERVAL_MS * 20 / 1000), false, false);
-                }
-
-                if (needsHintDraw) {
-                    lastPlayerPosition = playerLocation;
-                    lastDrawer = ItemMatterManipulator.this;
-                    drawHints(event, state, player, playerLocation);
-                }
-            }
-        }
-
-        private void renderRegions(RenderWorldLastEvent event, MMState state, EntityPlayer player) {
-            Location sourceA = state.config.coordA;
-            Location sourceB = state.config.coordB;
-            Location paste = state.config.coordC;
-
-            Vector3i lookingAt = MMUtils.getLookingAtLocation(player);
-
-            if (state.config.action != null) {
-                switch (state.config.action) {
-                    case MARK_COPY_A:
-                    case MARK_CUT_A: {
-                        sourceA = new Location(player.worldObj, lookingAt);
-                        GL11.glColor4f(0.15f, 0.6f, 0.75f, 0.75F);
-                        drawRulers(player, sourceA, false, event.partialTicks);
-                        break;
-                    }
-                    case MARK_COPY_B:
-                    case MARK_CUT_B: {
-                        sourceB = new Location(player.worldObj, lookingAt);
-                        GL11.glColor4f(0.15f, 0.6f, 0.75f, 0.75F);
-                        drawRulers(player, sourceB, false, event.partialTicks);
-                        break;
-                    }
-                    case MARK_PASTE: {
-                        paste = new Location(player.worldObj, lookingAt);
-                        GL11.glColor4f(0.75f, 0.5f, 0.15f, 0.75F);
-                        drawRulers(player, paste, false, event.partialTicks);
-                        break;
-                    }
-                    case MARK_ARRAY: {
-                        GL11.glColor4f(0.4f, 0.75f, 0.15f, 0.75F);
-                        drawRulers(player, new Location(player.worldObj, lookingAt), false, event.partialTicks);
-
-                        if (paste != null && paste.isInWorld(player.worldObj)) {
-                            state.config.arraySpan = state.config
-                                .getArrayMult(player.worldObj, sourceA, sourceB, paste, lookingAt);
-                        }
-
-                        break;
-                    }
-                    default: {
-                        return;
-                    }
-                }
-            }
-
-            state.config.coordA = sourceA;
-            state.config.coordB = sourceB;
-            state.config.coordC = paste;
-
-            boolean isSourceAValid = sourceA != null && sourceA.isInWorld(player.worldObj);
-            boolean isSourceBValid = sourceB != null && sourceB.isInWorld(player.worldObj);
-            boolean isPasteValid = paste != null && paste.isInWorld(player.worldObj);
-
-            VoxelAABB copyDeltas = null;
-
-            BoxRenderer.INSTANCE.start(event.partialTicks);
-
-            try {
-                if (isSourceAValid && isSourceBValid) {
-                    Objects.requireNonNull(sourceA);
-                    Objects.requireNonNull(sourceB);
-
-                    copyDeltas = new VoxelAABB(sourceA.toVec(), sourceB.toVec());
-
-                    BoxRenderer.INSTANCE
-                        .drawAround(copyDeltas.toBoundingBox(), new Vector3f(0.15f, 0.6f, 0.75f));
-                }
-
-                VoxelAABB pasteDeltas = null;
-
-                if (isPasteValid) {
-                    Objects.requireNonNull(paste);
-
-                    pasteDeltas = state.config.getPasteVisualDeltas(player.worldObj, true);
-
-                    if (pasteDeltas == null) {
-                        pasteDeltas = new VoxelAABB(paste.toVec(), paste.toVec());
-                    }
-
-                    BoxRenderer.INSTANCE.drawAround(pasteDeltas.toBoundingBox(), new Vector3f(0.75f, 0.5f, 0.15f));
-
-                    Location playerLocation = new Location(
-                        player.getEntityWorld(),
-                        MathHelper.floor_double(player.posX),
-                        MathHelper.floor_double(player.posY),
-                        MathHelper.floor_double(player.posZ)
-                    );
-
-                    boolean needsAnalysis = (System.currentTimeMillis() - lastAnalysisMS) >= ANALYSIS_INTERVAL_MS ||
-                        !Objects.equals(lastAnalyzedConfig, state.config);
-
-                    boolean needsHintDraw = needsAnalysis || !Objects.equals(lastPlayerPosition, playerLocation);
-
-                    if (needsAnalysis) {
-                        lastAnalysisMS = System.currentTimeMillis();
-                        lastAnalyzedConfig = state.config;
-                        analysisCache = state.getPendingBlocks(tier, player.getEntityWorld());
-                    }
-
-                    if (needsHintDraw) {
-                        lastPlayerPosition = playerLocation;
-                        lastDrawer = ItemMatterManipulator.this;
-                        drawHints(event, state, player, playerLocation);
-                    }
-                }
-
-                if (pasteDeltas != null) {
-                    String array = "";
-
-                    Vector3i span = state.config.arraySpan;
-                    if (span != null) {
-                        array = String.format(
-                            " stX=%d stY=%d stZ=%d",
-                            span.x >= 0 ? span.x + 1 : span.x,
-                            span.y >= 0 ? span.y + 1 : span.y,
-                            span.z >= 0 ? span.z + 1 : span.z
-                        );
-                    }
-
-                    AboveHotbarHUD.renderTextAboveHotbar(
-                        pasteDeltas.describe() + array,
-                        (int) (ANALYSIS_INTERVAL_MS * 20 / 1000),
-                        false,
-                        false
-                    );
-                } else if (copyDeltas != null) {
-                    AboveHotbarHUD.renderTextAboveHotbar(
-                        copyDeltas.describe(),
-                        (int) (ANALYSIS_INTERVAL_MS * 20 / 1000),
-                        false,
-                        false
-                    );
-                }
-            } finally {
-                BoxRenderer.INSTANCE.finish();
-            }
-        }
-
-        private void drawHints(
-            RenderWorldLastEvent event,
-            MMState state,
-            EntityPlayer player,
-            Location playerLocation
-        ) {
-            StructureLibAPI.startHinting(player.worldObj);
-
-            int buildable = tier.maxRange * tier.maxRange;
-
-            int i = 0;
-
-            BlockSpec pooled = new BlockSpec();
-
-            for (PendingBlock pendingBlock : analysisCache) {
-                if (tier.maxRange != -1) {
-                    int dist2 = pendingBlock.distanceTo2(playerLocation);
-
-                    if (dist2 > buildable) continue;
-                }
-
-                if (pendingBlock.spec.isAir() && player.worldObj.isAirBlock(pendingBlock.x, pendingBlock.y, pendingBlock.z)) {
-                    continue;
-                }
-
-                Block block = pendingBlock.getBlock();
-                BlockSpec.fromBlock(pooled, player.worldObj, pendingBlock.x, pendingBlock.y, pendingBlock.z);
-
-                if (pendingBlock.isInWorld(player.worldObj) && block != null && block != Blocks.air && !pooled.isEquivalent(pendingBlock.spec)) {
-
-                    if (++i > RenderingConfig.maxHints) break;
-
-                    StructureLibAPI.hintParticle(
-                        player.worldObj,
-                        pendingBlock.x,
-                        pendingBlock.y,
-                        pendingBlock.z,
-                        block,
-                        pendingBlock.spec.getBlockMeta()
-                    );
-
-                    // Exchanging hints should be shown through the block
-                    if (state.config.placeMode == PlaceMode.EXCHANGING) {
-                        StructureLibAPI.markHintParticleError(
-                            player,
-                            player.worldObj,
-                            pendingBlock.x,
-                            pendingBlock.y,
-                            pendingBlock.z
-                        );
-                        // Reset the hint colour so that it doesn't look like an error
-                        StructureLibAPI.updateHintParticleTint(
-                            player,
-                            player.worldObj,
-                            pendingBlock.x,
-                            pendingBlock.y,
-                            pendingBlock.z,
-                            new short[] {
-                                255, 255, 255, 255
-                            }
-                        );
-                    }
-                }
-            }
-
-            StructureLibAPI.endHinting(player.worldObj);
-        }
-
-        private static Vector3d getVecForDir(ForgeDirection dir) {
-            return new Vector3d(dir.offsetX, dir.offsetY, dir.offsetZ);
-        }
-
-        private static final int RULER_LENGTH = 128;
-
-        private void drawRulers(EntityPlayer player, Location l, boolean fromSurface, float partialTickTime) {
-            GL11.glEnable(GL11.GL_BLEND);
-            OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-            GL11.glLineWidth(2.0F);
-            GL11.glDisable(GL11.GL_TEXTURE_2D);
-            GL11.glDepthMask(false);
-
-            GL11.glPointSize(4);
-
-            OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-
-            GL11.glPushMatrix();
-
-            double d0 = player.lastTickPosX + (player.posX - player.lastTickPosX) * (double) partialTickTime;
-            double d1 = player.lastTickPosY + (player.posY - player.lastTickPosY) * (double) partialTickTime;
-            double d2 = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * (double) partialTickTime;
-            GL11.glTranslated(l.x - d0 + 0.5, l.y - d1 + 0.5, l.z - d2 + 0.5);
-
-            Tessellator tessellator = Tessellator.instance;
-
-            try {
-                tessellator.startDrawing(GL11.GL_LINES);
-
-                for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
-                    Vector3d delta = getVecForDir(dir);
-
-                    if (fromSurface) {
-                        tessellator.addVertex(delta.x * 0.5, delta.y * 0.5, delta.z * 0.5);
-                    } else {
-                        tessellator.addVertex(0, 0, 0);
-                    }
-                    tessellator.addVertex(delta.x * RULER_LENGTH, delta.y * RULER_LENGTH, delta.z * RULER_LENGTH);
-                }
-            } finally {
-                try {
-                    tessellator.draw();
-                } catch (Throwable t) {
-                    t.printStackTrace();
-                }
-
-                GL11.glPopMatrix();
-
-                GL11.glDepthMask(true);
-                GL11.glEnable(GL11.GL_TEXTURE_2D);
-                GL11.glDisable(GL11.GL_BLEND);
-            }
-        }
-    }
 
     // #endregion
 }
