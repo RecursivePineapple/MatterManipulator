@@ -17,14 +17,17 @@ public enum Mixin {
     BlockDropCapturing(
         new Builder("Expose mechanism to capture non-standard block drops")
             .addMixinClasses("MixinBlockDropCapturing")
-            .setPhase(Phase.EARLY)
     ),
     DireAutoCraftDrops(
         new Builder("Change dire autocrafting table to use getDrops instead of breakBlock")
             .addMixinClasses("MixinBlockExtremeAutoCrafter")
             .addTargetedMod(TargetedMod.AVARITIA_ADDONS)
-            .setPhase(Phase.LATE)
     ),
+    KeyCancelling(
+        new Builder("Cancel non-mm key presses")
+            .addMixinClasses("MixinKeyBinding")
+            .setSide(Side.CLIENT)
+    )
 
     ;
 
@@ -42,7 +45,7 @@ public enum Mixin {
         this.targetedMods = builder.targetedMods;
         this.excludedMods = builder.excludedMods;
         this.applyIf = builder.applyIf;
-        this.phase = builder.phase;
+        this.phase = builder.phase == null ? (builder.defaultMods ? Phase.EARLY : Phase.LATE) : builder.phase;
         this.side = builder.side;
         if (this.mixinClasses.isEmpty()) throw new RuntimeException("No mixin class specified for Mixin : " + this.name());
         if (this.targetedMods.isEmpty()) {
@@ -135,11 +138,12 @@ public enum Mixin {
 
         private final String name;
         private final List<String> mixinClasses = new ArrayList<>();
-        private final List<TargetedMod> targetedMods = new ArrayList<>();
+        private final List<TargetedMod> targetedMods = new ArrayList<>(Arrays.asList(TargetedMod.VANILLA));
         private final List<TargetedMod> excludedMods = new ArrayList<>();
         private Supplier<Boolean> applyIf = () -> true;
         private Phase phase = null;
         private Side side = Side.BOTH;
+        private boolean defaultMods = true;
 
         public Builder(String name) {
             this.name = name;
@@ -151,13 +155,11 @@ public enum Mixin {
         }
 
         public Builder setPhase(Phase phase) {
-            if (this.phase != null) throw new RuntimeException("Trying to define Phase twice for " + this.name);
             this.phase = phase;
             return this;
         }
 
         public Builder setSide(Side side) {
-            if (this.side != null) throw new RuntimeException("Trying to define Side twice for " + this.name);
             this.side = side;
             return this;
         }
@@ -168,6 +170,10 @@ public enum Mixin {
         }
 
         public Builder addTargetedMod(TargetedMod mod) {
+            if (defaultMods) {
+                targetedMods.clear();
+                defaultMods = false;
+            }
             this.targetedMods.add(mod);
             return this;
         }

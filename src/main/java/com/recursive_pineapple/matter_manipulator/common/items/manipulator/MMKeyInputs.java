@@ -5,6 +5,8 @@ import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 
+import net.minecraftforge.client.event.MouseEvent;
+
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.InputEvent.KeyInputEvent;
@@ -102,5 +104,26 @@ public class MMKeyInputs {
         }
 
         return;
+    }
+
+    /**
+     * For some reason, the key bindings will be phantom pressed if you change your hotbar while they're pressed.
+     * If you do the following, it will act up.
+     * <ol>
+     * <li>Bind hotbar 1 to C</li>
+     * <li>Press C</li>
+     * <li>Scroll back to the manipulator</li>
+     * <li>Press control</li>
+     * <li>Magically presses C somehow</li>
+     * </ol>
+     */
+    @SubscribeEvent
+    public static void onMouseScroll(MouseEvent event) {
+        if (event.dwheel == 0) return;
+
+        CUT.unpressKey();
+        COPY.unpressKey();
+        PASTE.unpressKey();
+        RESET.unpressKey();
     }
 }
