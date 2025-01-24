@@ -42,7 +42,7 @@ public class MMKeyInputs {
 
         MMState state = ItemMatterManipulator.getState(held);
 
-        if (CONTROL.getKeyCode() == 0 && !CONTROL.getIsKeyPressed()) return;
+        if (CONTROL.getKeyCode() != 0 && !CONTROL.getIsKeyPressed()) return;
 
         if (CUT.isPressed()) {
             if (state.config.placeMode != PlaceMode.MOVING) {
