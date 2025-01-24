@@ -18,7 +18,7 @@ import org.lwjgl.input.Keyboard;
 
 @EventBusSubscriber
 public class MMKeyInputs {
-    
+
     public static final KeyBinding CONTROL = new KeyBinding("key.mm-ctrl", Keyboard.KEY_LCONTROL, "key.mm");
     public static final KeyBinding CUT = new KeyBinding("key.mm-cut", Keyboard.KEY_X, "key.mm");
     public static final KeyBinding COPY = new KeyBinding("key.mm-copy", Keyboard.KEY_C, "key.mm");
@@ -48,7 +48,7 @@ public class MMKeyInputs {
             if (state.config.placeMode != PlaceMode.MOVING) {
                 Messages.SetPlaceMode.sendToServer(PlaceMode.MOVING);
             }
-            
+
             if (InteractionConfig.pasteAutoClear) {
                 Messages.ClearCoords.sendToServer();
 
@@ -56,12 +56,12 @@ public class MMKeyInputs {
                     Messages.ClearTransform.sendToServer();
                 }
             }
-            
+
             Messages.MarkCut.sendToServer();
 
             return;
         }
-        
+
         if (COPY.isPressed()) {
             if (state.config.placeMode != PlaceMode.COPYING) {
                 Messages.SetPlaceMode.sendToServer(PlaceMode.COPYING);
@@ -69,7 +69,7 @@ public class MMKeyInputs {
 
             if (InteractionConfig.pasteAutoClear) {
                 Messages.ClearCoords.sendToServer();
-                
+
                 if (InteractionConfig.resetTransform) {
                     Messages.ClearTransform.sendToServer();
                 }
@@ -79,21 +79,21 @@ public class MMKeyInputs {
 
             return;
         }
-        
+
         if (PASTE.isPressed()) {
             // set the mode to copying if we aren't in a mode supports pasting (moving/copying)
             if (state.config.placeMode != PlaceMode.COPYING && state.config.placeMode != PlaceMode.MOVING) {
                 Messages.SetPlaceMode.sendToServer(PlaceMode.COPYING);
             }
-            
+
             Messages.MarkPaste.sendToServer();
 
             return;
         }
-        
+
         if (RESET.isPressed()) {
             Messages.ClearCoords.sendToServer();
-            
+
             if (InteractionConfig.resetTransform) {
                 Messages.ClearTransform.sendToServer();
             }

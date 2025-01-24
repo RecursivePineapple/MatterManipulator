@@ -64,8 +64,6 @@ import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 
 public class MTEMMUplinkMEHatch extends MTEHatch implements IGridProxyable, IPowerChannelState, ICraftingProvider, ICraftingRequester {
 
-    public static final long REQUEST_TIMEOUT = 20 * 60;
-
     protected BaseActionSource requestSource = null;
     protected AENetworkProxy gridProxy = null;
     protected boolean additionalConnection = false;
