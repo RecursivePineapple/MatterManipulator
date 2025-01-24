@@ -50,7 +50,7 @@ import org.lwjgl.opengl.GL11;
 import it.unimi.dsi.fastutil.longs.LongList;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 
-@EventBusSubscriber
+@EventBusSubscriber(side = Side.CLIENT)
 public class MMRenderer {
 
     private static long lastAnalysisMS = 0;
@@ -180,7 +180,7 @@ public class MMRenderer {
     }
 
     @SubscribeEvent
-    private static void checkPlayerStoppedBuilding(PlayerTickEvent event) {
+    public static void checkPlayerStoppedBuilding(PlayerTickEvent event) {
         if (event.side != Side.CLIENT) return;
         if (event.phase != Phase.END) return;
         if (event.type != Type.PLAYER) return;
