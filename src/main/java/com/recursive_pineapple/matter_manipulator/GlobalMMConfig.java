@@ -24,10 +24,25 @@ public class GlobalMMConfig {
     @Config(modid = Names.MATTER_MANIPULATOR, category = "Rendering")
     public static class RenderingConfig {
 
-        @Config.Comment("Controls how many blocks are shown in the preview (client only)")
+        @Config.Comment("Controls how many blocks are shown in the preview. Client only.")
         @Config.DefaultInt(5_000)
         @Config.Name("Max Hints Shown")
         public static int maxHints;
+
+        @Config.Comment("Controls the duration of the build status warning/error hints (seconds). Client only. Set to 0 to never clear hints.")
+        @Config.DefaultInt(60)
+        @Config.Name("Build Status Timeout")
+        public static int statusExpiration;
+
+        @Config.Comment("When true, hints will always be drawn on top of the terrain. Client only.")
+        @Config.DefaultBoolean(true)
+        @Config.Name("Draw Hints On Top")
+        public static boolean hintsOnTop;
+
+        @Config.Comment("When true, hints representing blocks being replaced by air will always be drawn on top of the terrain. Client only.")
+        @Config.DefaultBoolean(true)
+        @Config.Name("Draw Hints On Top (Air)")
+        public static boolean hintsOnTopAir;
     }
 
     @Config(modid = Names.MATTER_MANIPULATOR, category = "Debug")
