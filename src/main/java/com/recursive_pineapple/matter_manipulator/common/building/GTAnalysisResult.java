@@ -429,11 +429,11 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
                 tt.parametrization.setInputs(mTTParams);
             }
 
-            if (mte instanceof MTEHatchEnergyTunnel hatch) {
+            if (mAmperes > 0 && mte instanceof MTEHatchEnergyTunnel hatch) {
                 hatch.Amperes = MMUtils.clamp(mAmperes, 0, hatch.maxAmperes);
             }
 
-            if (mte instanceof MTEHatchDynamoTunnel dynamo) {
+            if (mAmperes > 0 && mte instanceof MTEHatchDynamoTunnel dynamo) {
                 dynamo.Amperes = MMUtils.clamp(mAmperes, 0, dynamo.maxAmperes);
             }
         }
