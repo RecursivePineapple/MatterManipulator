@@ -11,11 +11,15 @@ import net.minecraftforge.fluids.FluidStack;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
+import appeng.api.networking.storage.IStorageGrid;
+
 import com.google.common.collect.MapMaker;
+import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.building.IPseudoInventory;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigFluidStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
+import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
 import it.unimi.dsi.fastutil.Pair;
 
@@ -44,6 +48,9 @@ public interface IUplinkMulti {
      * See {@link IPseudoInventory#givePlayerFluids(FluidStack...)}
      */
     public UplinkStatus tryGivePlayerFluids(List<BigFluidStack> fluids);
+
+    @Optional(Names.APPLIED_ENERGISTICS2)
+    public IStorageGrid getStorageGrid();
 
     /**
      * Submits a new plan to the ME hatch.
