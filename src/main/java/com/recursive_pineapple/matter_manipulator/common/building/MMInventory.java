@@ -7,6 +7,7 @@ import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregT
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,6 +22,7 @@ import net.minecraftforge.fluids.IFluidContainerItem;
 import appeng.api.config.Actionable;
 import appeng.api.config.FuzzyMode;
 import appeng.api.networking.security.PlayerSource;
+import appeng.api.networking.storage.IStorageGrid;
 import appeng.api.storage.data.IAEFluidStack;
 import appeng.api.storage.data.IAEItemStack;
 
@@ -58,6 +60,8 @@ public class MMInventory implements IPseudoInventory {
 
     private boolean printedUplinkWarning = false;
 
+    private HashSet<IStorageGrid> visitedGrids = new HashSet<>();
+
     public MMInventory(EntityPlayer player, MMState state, ManipulatorTier tier) {
         this.player = player;
         this.state = state;
@@ -69,6 +73,8 @@ public class MMInventory implements IPseudoInventory {
         if ((flags & CONSUME_IGNORE_CREATIVE) == 0 && player.capabilities.isCreativeMode) {
             return BooleanObjectImmutablePair.of(true, items);
         } else {
+            visitedGrids.clear();
+
             List<BigItemStack> simulated = MMUtils.mapToList(items, BigItemStack::copy);
             List<BigItemStack> extracted = new ArrayList<>();
 
@@ -368,18 +374,14 @@ public class MMInventory implements IPseudoInventory {
         boolean fuzzy = (flags & CONSUME_FUZZY) != 0;
 
         for (BigItemStack req : requestedItems) {
-            if (req.getStackSize() == 0) {
-                continue;
-            }
+            if (req.getStackSize() == 0) continue;
 
             if (!fuzzy) {
                 ItemId id = req.getId();
 
                 long amtInPending = pendingItems.getLong(id);
 
-                if (amtInPending == 0) {
-                    continue;
-                }
+                if (amtInPending == 0) continue;
 
                 long toRemove = Math.min(amtInPending, req.getStackSize());
 
@@ -404,20 +406,14 @@ public class MMInventory implements IPseudoInventory {
                 while (iter.hasNext()) {
                     var e = iter.next();
 
-                    if (e.getLongValue() == 0) {
-                        continue;
-                    }
+                    if (e.getLongValue() == 0) continue;
 
                     ItemStack stack = e.getKey()
                         .getItemStack();
 
-                    if (stack.getItem() != req.getItem()) {
-                        continue;
-                    }
+                    if (stack.getItem() != req.getItem()) continue;
 
-                    if (stack.getHasSubtypes() && Items.feather.getDamage(stack) != req.getItemDamage()) {
-                        continue;
-                    }
+                    if (stack.getHasSubtypes() && Items.feather.getDamage(stack) != req.getItemDamage()) continue;
 
                     long amtInPending = e.getLongValue();
                     long toRemove = Math.min(amtInPending, req.getStackSize());
@@ -452,20 +448,16 @@ public class MMInventory implements IPseudoInventory {
         ItemStack[] inv = player.inventory.mainInventory;
 
         for (BigItemStack req : requestedItems) {
-            if (req.getStackSize() == 0) {
-                continue;
-            }
+            if (req.getStackSize() == 0) continue;
 
             for (int i = 0; i < inv.length; i++) {
                 ItemStack slot = inv[i];
 
-                if (req.getStackSize() == 0) {
-                    break;
-                }
+                if (req.getStackSize() == 0) break;
 
-                if (slot == null || slot.getItem() == null || slot.stackSize == 0) {
-                    continue;
-                }
+                if (slot == null) continue;
+                if (slot.getItem() == null) continue;
+                if (slot.stackSize == 0) continue;
 
                 if (req.getItem() != slot.getItem()) continue;
 
@@ -506,18 +498,18 @@ public class MMInventory implements IPseudoInventory {
         boolean simulate = (flags & CONSUME_SIMULATED) != 0;
         boolean fuzzy = (flags & CONSUME_FUZZY) != 0;
 
-        if (state.encKey == null) { return; }
+        if (state.encKey == null) return;
 
         if (!state.hasMEConnection()) {
-            if (!state.connectToMESystem()) { return; }
+            if (!state.connectToMESystem()) return;
         }
 
-        if (!state.canInteractWithAE(player)) { return; }
+        if (!state.canInteractWithAE(player)) return;
+
+        if (!visitedGrids.add(state.storageGrid)) return;
 
         for (BigItemStack req : requestedItems) {
-            if (req.getStackSize() == 0) {
-                continue;
-            }
+            if (req.getStackSize() == 0) continue;
 
             IAEItemStack aeReq = req.getAEItemStack();
 
@@ -528,13 +520,9 @@ public class MMInventory implements IPseudoInventory {
             // spotless:on
 
             for (IAEItemStack match : matches) {
-                if (req.getStackSize() == 0) {
-                    break;
-                }
+                if (req.getStackSize() == 0) break;
 
-                if (match == null) {
-                    continue;
-                }
+                if (match == null) continue;
 
                 match = match.copy()
                     .setStackSize(req.getStackSize());
@@ -569,6 +557,8 @@ public class MMInventory implements IPseudoInventory {
         if (!state.hasUplinkConnection()) return;
 
         IUplinkMulti uplink = state.uplink;
+
+        if (!visitedGrids.add(uplink.getStorageGrid())) return;
 
         var result = uplink.tryConsumeItems(requestedItems, simulate, fuzzy);
 

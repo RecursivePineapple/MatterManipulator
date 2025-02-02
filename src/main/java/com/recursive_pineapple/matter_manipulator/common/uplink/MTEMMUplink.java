@@ -629,6 +629,14 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
         return UplinkStatus.OK;
     }
 
+    public IStorageGrid getStorageGrid() {
+        MTEMMUplinkMEHatch hatch = getMEHatch();
+
+        if (hatch == null) return null;
+
+        return hatch.getStorageGrid();
+    }
+
     /**
      * Tries to consume plasma EU.
      * Converts plasma to EU as needed.
