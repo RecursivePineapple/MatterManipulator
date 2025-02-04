@@ -243,9 +243,10 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         if (te instanceof ICoverable coverable) {
             for (ForgeDirection side : ForgeDirection.VALID_DIRECTIONS) {
                 if (coverable.getCoverIDAtSide(side) != 0) {
-                    ItemStack cover = coverable.removeCoverAtSide(side, true);
+                    ItemStack cover = coverable.getCoverInfoAtSide(side).getDrop();
 
                     if (cover != null && cover.getItem() != null) {
+                        coverable.setCoverItemAtSide(side, null);
                         givePlayerItems(cover);
                     }
                 }

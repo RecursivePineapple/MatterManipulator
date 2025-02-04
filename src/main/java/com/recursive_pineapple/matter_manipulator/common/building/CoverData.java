@@ -1,7 +1,5 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
-import net.minecraft.init.Items;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
 
@@ -19,7 +17,6 @@ public class CoverData {
     public NBTBase coverData;
     public Integer tickRateAddition;
 
-    public transient Integer coverID;
     public transient CoverBehaviorBase<?> behaviour;
     public transient ISerializableObject coverDataObject;
 
@@ -35,19 +32,9 @@ public class CoverData {
         return cover.toStack();
     }
 
-    public int getCoverID() {
-        if (coverID == null) {
-            ItemStack stack = getCover();
-
-            coverID = (Item.getIdFromItem(stack.getItem()) & 0xFFFF) | ((Items.feather.getDamage(stack) & 0xFFFF) << 16);
-        }
-
-        return coverID;
-    }
-
     public CoverBehaviorBase<?> getCoverBehaviour() {
         if (behaviour == null) {
-            behaviour = GregTechAPI.getCoverBehaviorNew(getCoverID());
+            behaviour = GregTechAPI.getCoverBehaviorNew(getCover());
         }
 
         return behaviour;
@@ -68,7 +55,6 @@ public class CoverData {
         dup.cover = cover.clone();
         dup.coverData = coverData.copy();
         dup.tickRateAddition = tickRateAddition;
-        dup.coverID = coverID;
 
         return dup;
     }
@@ -79,17 +65,11 @@ public class CoverData {
      * @return The CoverData, or null if there's no cover.
      */
     public static CoverData fromInfo(CoverInfo info) {
-        if (info.getCoverID() == 0) return null;
-
-        int itemId = info.getCoverID() & 0xFFFF;
-        int metadata = (info.getCoverID() >> 16) & 0xFFFF;
-
-        Item item = Item.getItemById(itemId);
+        if (info == null || info.getDrop() == null) return null;
 
         return new CoverData(
-            new PortableItemStack(item, metadata),
-            info.getCoverData()
-                .saveDataToNBT(),
+            PortableItemStack.withNBT(info.getDrop()),
+            info.getCoverData().saveDataToNBT(),
             info.getTickRateAddition()
         );
     }
