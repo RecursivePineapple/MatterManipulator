@@ -26,6 +26,7 @@ import net.minecraftforge.fluids.IFluidBlock;
 import net.minecraftforge.fluids.IFluidHandler;
 import net.minecraftforge.oredict.OreDictionary;
 
+import gregtech.api.interfaces.tileentity.IColoredTileEntity;
 import gregtech.api.interfaces.tileentity.ICoverable;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.interfaces.tileentity.IRedstoneEmitter;
@@ -327,6 +328,10 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
             for (ForgeDirection side : ForgeDirection.VALID_DIRECTIONS) {
                 emitter.setRedstoneOutputStrength(side, false);
             }
+        }
+
+        if (te instanceof IColoredTileEntity colored) {
+            colored.setColorization((byte) -1);
         }
     }
 
