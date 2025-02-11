@@ -269,7 +269,7 @@ public class ManipulatorRecipes {
 
         // Power core MK2
         GTValues.RA.stdBuilder()
-            .metadata(RESEARCH_ITEM, ItemList.Circuit_Chip_HPIC.get(2))
+            .metadata(RESEARCH_ITEM, ItemList.Circuit_Chip_HPIC.get(1))
             .metadata(SCANNING, new Scanning(1 * MINUTES, TierEU.RECIPE_LuV))
             .itemInputs(
                 GTOreDictUnificator.get(OrePrefixes.itemCasing, Materials.HSSS, 8),
@@ -390,7 +390,7 @@ public class ManipulatorRecipes {
 
         // Power core MK3
         GTValues.RA.stdBuilder()
-            .metadata(RESEARCH_ITEM, ItemList.Circuit_Chip_UHPIC.get(2))
+            .metadata(RESEARCH_ITEM, ItemList.Circuit_Chip_UHPIC.get(1))
             .metadata(SCANNING, new Scanning(2 * MINUTES, TierEU.RECIPE_ZPM))
             .itemInputs(
                 GTOreDictUnificator.get(OrePrefixes.itemCasing, Materials.NaquadahAlloy, 8),
