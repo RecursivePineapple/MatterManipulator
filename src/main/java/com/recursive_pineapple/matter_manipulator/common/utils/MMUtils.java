@@ -527,20 +527,30 @@ public class MMUtils {
     }
 
     public static <S, T> List<T> mapToList(Collection<S> in, Function<S, T> mapper) {
+        if (in == null) return null;
+
         List<T> out = new ArrayList<>(in.size());
+
         for (S s : in)
             out.add(mapper.apply(s));
+
         return out;
     }
 
     public static <S, T> List<T> mapToList(S[] in, Function<S, T> mapper) {
+        if (in == null) return null;
+
         List<T> out = new ArrayList<>(in.length);
+
         for (S s : in)
             out.add(mapper.apply(s));
+
         return out;
     }
 
     public static <S, T> T[] mapToArray(Collection<S> in, IntFunction<T[]> ctor, Function<S, T> mapper) {
+        if (in == null) return null;
+
         T[] out = ctor.apply(in.size());
 
         Iterator<S> iter = in.iterator();
@@ -552,9 +562,13 @@ public class MMUtils {
     }
 
     public static <S, T> T[] mapToArray(S[] in, IntFunction<T[]> ctor, Function<S, T> mapper) {
+        if (in == null) return null;
+
         T[] out = ctor.apply(in.length);
+
         for (int i = 0; i < out.length; i++)
             out[i] = mapper.apply(in[i]);
+
         return out;
     }
 

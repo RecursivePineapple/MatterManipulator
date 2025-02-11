@@ -2,8 +2,6 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.ArchitectureCraft;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
@@ -169,20 +167,13 @@ public class BlockSpec implements ImmutableBlockSpec {
         return getItem() == null ? 0 : getItem().getMetadata(getMeta());
     }
 
-    private static final MethodHandle CREATE_STACKED_BLOCK = MMUtils
-        .exposeMethod(Block.class, MethodType.methodType(ItemStack.class, int.class), "createStackedBlock", "func_149644_j", "j");
-
     @Override
     public ItemStack getStack() {
         if (this.stack == null) {
             ItemStack stack = null;
 
             if (isBlock) {
-                try {
-                    stack = (ItemStack) CREATE_STACKED_BLOCK.invoke(getBlock(), metadata);
-                } catch (Throwable t) {
-                    throw new RuntimeException("Could not invoke " + CREATE_STACKED_BLOCK, t);
-                }
+                stack = getBlock().createStackedBlock(metadata);
             }
 
             if (stack == null || stack.getItem() == null) {
