@@ -4,6 +4,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
 
 import gregtech.api.GregTechAPI;
+import gregtech.api.covers.CoverRegistry;
 import gregtech.api.util.CoverBehaviorBase;
 import gregtech.api.util.ISerializableObject;
 import gregtech.common.covers.CoverInfo;
@@ -34,7 +35,7 @@ public class CoverData {
 
     public CoverBehaviorBase<?> getCoverBehaviour() {
         if (behaviour == null) {
-            behaviour = GregTechAPI.getCoverBehaviorNew(getCover());
+            behaviour = CoverRegistry.getCoverBehaviorNew(getCover());
         }
 
         return behaviour;

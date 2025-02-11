@@ -34,6 +34,8 @@ import java.util.function.IntFunction;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
@@ -74,10 +76,12 @@ import cpw.mods.fml.relauncher.ReflectionHelper;
 
 import gregtech.api.GregTechAPI;
 import gregtech.api.interfaces.metatileentity.IConnectable;
+import gregtech.api.interfaces.tileentity.ICoverable;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.interfaces.tileentity.IHasInventory;
 import gregtech.api.metatileentity.BaseMetaTileEntity;
 import gregtech.common.blocks.BlockMachines;
+import gregtech.common.covers.CoverInfo;
 import gregtech.common.tileentities.machines.MTEHatchInputBusME;
 import gregtech.common.tileentities.machines.MTEHatchInputME;
 
@@ -688,6 +692,17 @@ public class MMUtils {
         } else {
             return false;
         }
+    }
+
+    @Optional(Names.GREG_TECH)
+    public static @Nullable CoverInfo getActualCover(ICoverable gte, ForgeDirection side) {
+        CoverInfo info = gte.getCoverInfoAtSide(side);
+
+        if (info == null || info == CoverInfo.EMPTY_INFO) return null;
+        if (info.getDrop() == null) return null;
+        if (!info.isValid()) return null;
+
+        return info;
     }
 
     /**
