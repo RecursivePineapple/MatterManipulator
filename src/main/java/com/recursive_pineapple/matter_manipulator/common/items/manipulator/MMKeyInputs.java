@@ -56,6 +56,7 @@ public class MMKeyInputs {
 
                 if (InteractionConfig.resetTransform) {
                     Messages.ClearTransform.sendToServer();
+                    Messages.ResetArray.sendToServer();
                 }
             }
 
@@ -74,6 +75,7 @@ public class MMKeyInputs {
 
                 if (InteractionConfig.resetTransform) {
                     Messages.ClearTransform.sendToServer();
+                    Messages.ResetArray.sendToServer();
                 }
             }
 
@@ -98,12 +100,11 @@ public class MMKeyInputs {
 
             if (InteractionConfig.resetTransform) {
                 Messages.ClearTransform.sendToServer();
+                Messages.ResetArray.sendToServer();
             }
 
             return;
         }
-
-        return;
     }
 
     /**
