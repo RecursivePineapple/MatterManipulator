@@ -162,6 +162,8 @@ public class BlockAnalyzer {
             boolean simulate = (flags & CONSUME_SIMULATED) != 0;
             boolean fuzzy = (flags & CONSUME_FUZZY) != 0;
 
+            if ((flags & CONSUME_REAL_ONLY) != 0) return BooleanObjectImmutablePair.of(false, new ArrayList<>());
+
             List<BigItemStack> extractedItems = new ArrayList<>();
 
             for (BigItemStack req : items) {
@@ -175,10 +177,7 @@ public class BlockAnalyzer {
                     long toRemove = Math.min(amtInPending, req.getStackSize());
 
                     if (toRemove > 0) {
-                        extractedItems.add(
-                            req.copy()
-                                .setStackSize(toRemove)
-                        );
+                        extractedItems.add(req.copy().setStackSize(toRemove));
                         amtInPending -= toRemove;
                         req.decStackSize(toRemove);
 
@@ -216,10 +215,7 @@ public class BlockAnalyzer {
                         long toRemove = Math.min(amtInPending, req.getStackSize());
 
                         if (toRemove > 0) {
-                            extractedItems.add(
-                                req.copy()
-                                    .setStackSize(toRemove)
-                            );
+                            extractedItems.add(req.copy().setStackSize(toRemove));
                             amtInPending -= toRemove;
                             req.decStackSize(toRemove);
 

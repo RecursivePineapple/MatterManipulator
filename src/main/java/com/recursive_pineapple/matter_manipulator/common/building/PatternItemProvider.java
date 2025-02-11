@@ -1,10 +1,14 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
+import java.util.Arrays;
+
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
 import appeng.api.AEApi;
 import appeng.api.definitions.IItemDefinition;
+
+import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -47,10 +51,9 @@ public class PatternItemProvider implements IItemProvider {
         stack.setTagCompound(pattern != null ? (NBTTagCompound) pattern.copy() : null);
 
         if (consume) {
-            if (!inv.tryConsumeItems(stack)) {
-                ItemStack toConsume = BLANK_PATTERN.maybeStack(amount == null ? 1 : amount)
-                    .get();
-                if (!inv.tryConsumeItems(toConsume)) { return null; }
+            if (!inv.tryConsumeItems(Arrays.asList(new BigItemStack(stack)), IPseudoInventory.CONSUME_REAL_ONLY).firstBoolean()) {
+                ItemStack toConsume = BLANK_PATTERN.maybeStack(amount == null ? 1 : amount).get();
+                if (!inv.tryConsumeItems(toConsume)) return null;
             }
         }
 
