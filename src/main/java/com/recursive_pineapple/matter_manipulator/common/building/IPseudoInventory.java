@@ -25,6 +25,8 @@ public interface IPseudoInventory {
     public static final int CONSUME_PARTIAL = 0b100;
     /** Creative mode infinite supply will be ignored, but not 111 stacks. */
     public static final int CONSUME_IGNORE_CREATIVE = 0b1000;
+    /** Only consume real items (extractions while planning will always fail). */
+    public static final int CONSUME_REAL_ONLY = 0b10000;
 
     /**
      * Atomically extracts items from this pseudo inventory.

@@ -90,10 +90,16 @@ public class MMInventory implements IPseudoInventory {
 
             // if we aren't allowed to partially consume items, make sure everything was consumed
             if ((flags & CONSUME_PARTIAL) == 0) {
-                if (simulated.stream().anyMatch(s -> s.getStackSize() > 0)) { return BooleanObjectImmutablePair.of(false, null); }
+                if (simulated.stream().anyMatch(s -> s.getStackSize() > 0)) {
+                    return BooleanObjectImmutablePair.of(false, null);
+                }
             }
 
-            if ((flags & CONSUME_SIMULATED) != 0) { return BooleanObjectImmutablePair.of(true, extracted); }
+            if ((flags & CONSUME_SIMULATED) != 0) {
+                return BooleanObjectImmutablePair.of(true, merge(extracted));
+            }
+
+            visitedGrids.clear();
 
             simulated = MMUtils.mapToList(items, BigItemStack::copy);
             extracted.clear();
@@ -107,24 +113,28 @@ public class MMInventory implements IPseudoInventory {
                 consumeItemsFromUplink(simulated, extracted, flags);
             }
 
-            ItemStackMap<BigItemStack> out = new ItemStackMap<>(true);
+            return BooleanObjectImmutablePair.of(true, merge(extracted));
+        }
+    }
 
-            for (BigItemStack ex : extracted) {
-                ItemStack stack = ex.getItemStack();
+    private static ArrayList<BigItemStack> merge(List<BigItemStack> unmerged) {
+        ItemStackMap<BigItemStack> out = new ItemStackMap<>(true);
 
-                BigItemStack merged = out.get(stack);
+        for (BigItemStack ex : unmerged) {
+            ItemStack stack = ex.getItemStack();
 
-                if (merged == null) {
-                    merged = ex.copy()
-                        .setStackSize(0);
-                    out.put(stack, merged);
-                }
+            BigItemStack merged = out.get(stack);
 
-                merged.incStackSize(ex.getStackSize());
+            if (merged == null) {
+                merged = ex.copy()
+                    .setStackSize(0);
+                out.put(stack, merged);
             }
 
-            return BooleanObjectImmutablePair.of(true, new ArrayList<>(out.values()));
+            merged.incStackSize(ex.getStackSize());
         }
+
+        return new ArrayList<>(out.values());
     }
 
     @Override
