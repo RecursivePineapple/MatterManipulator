@@ -3,7 +3,6 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
 
-import gregtech.api.GregTechAPI;
 import gregtech.api.covers.CoverRegistry;
 import gregtech.api.util.CoverBehaviorBase;
 import gregtech.api.util.ISerializableObject;
