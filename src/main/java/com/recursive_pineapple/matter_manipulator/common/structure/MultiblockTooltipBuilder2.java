@@ -140,9 +140,6 @@ public class MultiblockTooltipBuilder2<MTE extends MTEEnhancedMultiBlockBase<?> 
                     case OutputData:
                         addOtherStructurePart(I18n.format("tt.keyword.Structure.DataConnector"), info, dots);
                         break;
-                    case Param:
-                        addOtherStructurePart(I18n.format("gt.blockmachines.hatch.param.tier.05.name"), info, dots);
-                        break;
                     case Uncertainty:
                         addOtherStructurePart(I18n.format("gt.blockmachines.hatch.certain.tier.07.name"), info, dots);
                         break;
