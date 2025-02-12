@@ -41,6 +41,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
+import com.recursive_pineapple.matter_manipulator.GlobalMMConfig;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Optional.Interface;
 import cpw.mods.fml.common.Optional.InterfaceList;
@@ -145,10 +146,30 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
     public static enum ManipulatorTier {
 
         // spotless:off
-        Tier0(32, 16, 20, 3,      1_000_000d, ALLOW_GEOMETRY),
-        Tier1(64, 32, 10, 5,    100_000_000d, ALLOW_GEOMETRY | CONNECTS_TO_AE | ALLOW_REMOVING | ALLOW_EXCHANGING | ALLOW_CONFIGURING | ALLOW_CABLES),
-        Tier2(128, 64, 5, 6,  1_000_000_000d, ALLOW_GEOMETRY | CONNECTS_TO_AE | ALLOW_REMOVING | ALLOW_EXCHANGING | ALLOW_CONFIGURING | ALLOW_CABLES | ALLOW_COPYING | ALLOW_MOVING),
-        Tier3(-1, 256, 5, 7, 10_000_000_000d, ALLOW_GEOMETRY | CONNECTS_TO_AE | ALLOW_REMOVING | ALLOW_EXCHANGING | ALLOW_CONFIGURING | ALLOW_CABLES | ALLOW_COPYING | ALLOW_MOVING | CONNECTS_TO_UPLINK);
+        Tier0(
+            32,
+            16, 20,
+            3,
+            1_000_000d,
+            ALLOW_GEOMETRY),
+        Tier1(
+            64,
+            32, 10,
+            5,
+            100_000_000d,
+            ALLOW_GEOMETRY | CONNECTS_TO_AE | ALLOW_REMOVING | ALLOW_EXCHANGING | ALLOW_CONFIGURING | ALLOW_CABLES),
+        Tier2(
+            128,
+            64, 5,
+            6,
+            1_000_000_000d,
+            ALLOW_GEOMETRY | CONNECTS_TO_AE | ALLOW_REMOVING | ALLOW_EXCHANGING | ALLOW_CONFIGURING | ALLOW_CABLES | ALLOW_COPYING | ALLOW_MOVING),
+        Tier3(
+            -1,
+            GlobalMMConfig.BuildingConfig.mk3BlocksPerPlace, 5,
+            7,
+            10_000_000_000d,
+            ALLOW_GEOMETRY | CONNECTS_TO_AE | ALLOW_REMOVING | ALLOW_EXCHANGING | ALLOW_CONFIGURING | ALLOW_CABLES | ALLOW_COPYING | ALLOW_MOVING | CONNECTS_TO_UPLINK);
         // spotless:on
 
         public final int tier = ordinal();
