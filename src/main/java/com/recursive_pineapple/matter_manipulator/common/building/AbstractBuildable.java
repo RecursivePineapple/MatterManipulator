@@ -26,6 +26,7 @@ import net.minecraftforge.fluids.IFluidBlock;
 import net.minecraftforge.fluids.IFluidHandler;
 import net.minecraftforge.oredict.OreDictionary;
 
+import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.BuildingConfig;
 import gregtech.api.interfaces.tileentity.IColoredTileEntity;
 import gregtech.api.interfaces.tileentity.ICoverable;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
@@ -130,7 +131,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         boolean eio = Mods.EnderIO.isModLoaded();
 
         if (ae && gt) emptySuperchest(te);
-        if (ae && gt) emptyMEOutput(te);
+        if (ae && gt && BuildingConfig.meEmptying) emptyMEOutput(te);
         emptyTileInventory(te);
         emptyTank(te);
         if (gt) removeCovers(te);
