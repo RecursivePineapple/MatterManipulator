@@ -390,13 +390,9 @@ public class PendingBlock extends Location {
      */
     public static Comparator<PendingBlock> getComparator() {
         return Comparator.comparingInt((PendingBlock b) -> b.buildOrder)
-            .thenComparing(Comparator.comparing(b -> b.spec, ImmutableBlockSpec.getComparator()))
-            .thenComparingLong(b -> {
-                int chunkX = b.x >> 4;
-                int chunkZ = b.z >> 4;
-
-                return (long) chunkX | (long) (chunkZ << 32);
-            })
+            .thenComparing(b -> b.spec, ImmutableBlockSpec.getComparator())
+            .thenComparingInt(b -> b.x >> 4)
+            .thenComparingInt(b -> b.z >> 4)
             .thenComparingInt(b -> Objects.hash(b.gt, b.ae, b.arch, b.mp, b.inventory));
     }
 
