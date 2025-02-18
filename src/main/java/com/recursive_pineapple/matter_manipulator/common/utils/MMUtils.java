@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -31,6 +32,7 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.IntFunction;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -72,6 +74,7 @@ import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.IFluidHandler;
 
+import com.recursive_pineapple.matter_manipulator.MMMod;
 import cpw.mods.fml.relauncher.ReflectionHelper;
 
 import gregtech.api.GregTechAPI;
@@ -100,10 +103,10 @@ import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
-import com.gtnewhorizon.gtnhlib.util.map.ItemStackMap;
 import com.gtnewhorizon.structurelib.util.XSTR;
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer;
+import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.RequiredItemAnalysis;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockSpec;
 import com.recursive_pineapple.matter_manipulator.common.building.IPseudoInventory;
@@ -120,6 +123,7 @@ import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 import org.joml.Vector3i;
 
 import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 
 public class MMUtils {
 
@@ -444,24 +448,50 @@ public class MMUtils {
         return null;
     }
 
-    public static ItemStackMap<Long> getItemStackHistogram(Iterable<ItemStack> stacks) {
+    public static Object2LongOpenHashMap<ItemId> getItemStackHistogram(Iterable<ItemStack> stacks) {
         return getItemStackHistogram(stacks, true);
     }
 
-    public static ItemStackMap<Long> getItemStackHistogram(Iterable<ItemStack> stacks, boolean NBTSensitive) {
-        ItemStackMap<Long> histogram = new ItemStackMap<>(NBTSensitive);
+    public static Object2LongOpenHashMap<ItemId> getItemStackHistogram(Iterable<ItemStack> stacks, boolean NBTSensitive) {
+        Object2LongOpenHashMap<ItemId> histogram = new Object2LongOpenHashMap<>();
 
         if (stacks == null) return histogram;
 
         for (ItemStack stack : stacks) {
             if (stack == null || stack.getItem() == null) continue;
-            histogram.merge(stack, (long) stack.stackSize, (Long a, Long b) -> a + b);
+            histogram.addTo(ItemId.create(stack), stack.stackSize);
         }
 
         return histogram;
     }
 
-    public static List<ItemStack> getStacksOfSize(ItemStackMap<Long> map, int maxStackSize) {
+    public static class StackMapDiff {
+        public Object2LongOpenHashMap<ItemId> added = new Object2LongOpenHashMap<>();
+        public Object2LongOpenHashMap<ItemId> removed = new Object2LongOpenHashMap<>();
+    }
+
+    public static StackMapDiff getStackMapDiff(Object2LongOpenHashMap<ItemId> before, Object2LongOpenHashMap<ItemId> after) {
+        HashSet<ItemId> keys = new HashSet<>();
+        keys.addAll(before.keySet());
+        keys.addAll(after.keySet());
+
+        StackMapDiff diff = new StackMapDiff();
+
+        for (ItemId id : keys) {
+            long beforeAmount = before.getLong(id);
+            long afterAmount = after.getLong(id);
+
+            if (afterAmount < beforeAmount) {
+                diff.removed.addTo(id, beforeAmount - afterAmount);
+            } else if (beforeAmount < afterAmount) {
+                diff.added.addTo(id, afterAmount - beforeAmount);
+            }
+        }
+
+        return diff;
+    }
+
+    public static List<ItemStack> getStacksOfSize(Object2LongOpenHashMap<ItemId> map, int maxStackSize) {
         ArrayList<ItemStack> list = new ArrayList<>();
 
         map.forEach((item, amount) -> {
@@ -469,9 +499,7 @@ public class MMUtils {
                 int toRemove = Math
                     .min(amount > Integer.MAX_VALUE ? Integer.MAX_VALUE : amount.intValue(), maxStackSize);
 
-                ItemStack copy = item.copy();
-                copy.stackSize = toRemove;
-                list.add(copy);
+                list.add(item.getItemStack(toRemove));
 
                 amount -= toRemove;
             }
@@ -775,35 +803,101 @@ public class MMUtils {
         boolean consume,
         boolean simulate
     ) {
+        boolean success = true;
+
         List<ItemStack> stacks = mapToList(pupgrades, PortableItemStack::toStack);
 
         stacks.removeIf(i -> i == null || !(i.getItem() instanceof IUpgradeModule));
 
         for (ItemStack stack : stacks) {
-            stack.stackSize = Math
-                .min(stack.stackSize, dest.getMaxInstalled(((IUpgradeModule) stack.getItem()).getType(stack)));
+            stack.stackSize = Math.min(stack.stackSize, dest.getMaxInstalled(((IUpgradeModule) stack.getItem()).getType(stack)));
         }
 
-        List<ItemStack> split = getStacksOfSize(stacks, dest.getInventoryStackLimit());
+        Object2LongOpenHashMap<ItemId> actual = getItemStackHistogram(Arrays.asList(inventoryToArray(dest)));
+        Object2LongOpenHashMap<ItemId> target = getItemStackHistogram(stacks);
 
-        ItemStack[] upgrades = split.subList(0, Math.min(split.size(), dest.getSizeInventory()))
-            .toArray(new ItemStack[0]);
+        StackMapDiff diff = getStackMapDiff(actual, target);
 
-        if (!consume || src.tryConsumeItems(upgrades)) {
-            if (!simulate) {
-                emptyInventory(src, dest);
+        if (diff.removed.isEmpty() && diff.added.isEmpty()) return success;
 
-                for (int i = 0; i < upgrades.length; i++) {
-                    dest.setInventorySlotContents(i, upgrades[i]);
+        List<ItemStack> toInstall = getStacksOfSize(diff.added, dest.getInventoryStackLimit());
+
+        long installable = dest.getSizeInventory() - actual.values().longStream().sum() + diff.removed.values().longStream().sum();
+
+        List<BigItemStack> toInstallBig = toInstall.subList(0, Math.min(toInstall.size(), (int) installable))
+            .stream()
+            .map(BigItemStack::new)
+            .collect(Collectors.toList());
+
+        var result = src.tryConsumeItems(toInstallBig, IPseudoInventory.CONSUME_PARTIAL);
+
+        List<BigItemStack> extracted = result.right();
+
+        for (BigItemStack wanted : toInstallBig) {
+            for (BigItemStack found : extracted) {
+                if (!found.isSameType(wanted)) continue;
+
+                wanted.stackSize -= found.stackSize;
+            }
+        }
+
+        if (src instanceof IBlockApplyContext ctx) {
+            for (BigItemStack wanted : toInstallBig) {
+                if (wanted.stackSize > 0) {
+                    ctx.warn("Could not find upgrade: " + wanted.getItemStack().getDisplayName() + " x " + wanted.stackSize);
+                    success = false;
                 }
+            }
+        }
 
-                dest.markDirty();
+        if (!simulate) {
+            for (var e : diff.removed.object2LongEntrySet()) {
+                long amount = e.getLongValue();
+
+                for (int slot = 0; slot < dest.getSizeInventory(); slot++) {
+                    if (amount <= 0) break;
+
+                    ItemStack inSlot = dest.getStackInSlot(slot);
+
+                    if (e.getKey().isSameAs(inSlot)) {
+                        src.givePlayerItems(inSlot);
+                        dest.setInventorySlotContents(slot, null);
+
+                        amount--;
+                    }
+                }
             }
 
-            return true;
-        } else {
-            return false;
+            int slot = 0;
+
+            outer: for (BigItemStack stack : extracted) {
+                for (ItemStack split : stack.toStacks(1)) {
+                    while (dest.getStackInSlot(slot) != null) {
+                        slot++;
+
+                        if (slot >= dest.getSizeInventory()) {
+                            MMMod.LOG.error(
+                                "Tried to install too many upgrades: voiding the rest. Dest={}, upgrade={}, slot={}",
+                                dest,
+                                split,
+                                slot,
+                                new Exception());
+
+                            if (src instanceof IBlockApplyContext ctx) {
+                                ctx.error("Tried to install too many upgrades: voiding the rest (this is a bug, please report it)");
+                            }
+                            break outer;
+                        }
+                    }
+
+                    dest.setInventorySlotContents(slot++, split);
+                }
+            }
+
+            dest.markDirty();
         }
+
+        return success;
     }
 
     public static NBTTagCompound copy(NBTTagCompound tag) {

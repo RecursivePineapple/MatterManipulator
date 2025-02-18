@@ -4,6 +4,8 @@ import static com.recursive_pineapple.matter_manipulator.common.utils.MMValues.W
 import static net.minecraftforge.common.util.Constants.NBT.TAG_COMPOUND;
 import static net.minecraftforge.common.util.Constants.NBT.TAG_INT;
 
+import java.util.Objects;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -167,5 +169,14 @@ public abstract class ItemId {
         NBTTagCompound nbt = nbt();
         itemStack.setTagCompound(nbt == null ? null : (NBTTagCompound) nbt.copy());
         return itemStack;
+    }
+
+    public boolean isSameAs(ItemStack stack) {
+        if (stack == null) return false;
+        if (item() != stack.getItem()) return false;
+        if (metaData() != Items.feather.getDamage(stack)) return false;
+        if (!Objects.equals(nbt(), stack.getTagCompound())) return false;
+        
+        return true;
     }
 }

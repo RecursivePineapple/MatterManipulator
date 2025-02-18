@@ -60,7 +60,7 @@ public class MMInventory implements IPseudoInventory {
 
     private boolean printedUplinkWarning = false;
 
-    private HashSet<IStorageGrid> visitedGrids = new HashSet<>();
+    private final HashSet<IStorageGrid> visitedGrids = new HashSet<>();
 
     public MMInventory(EntityPlayer player, MMState state, ManipulatorTier tier) {
         this.player = player;
