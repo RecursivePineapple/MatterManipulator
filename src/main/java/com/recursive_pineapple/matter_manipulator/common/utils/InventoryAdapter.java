@@ -10,14 +10,39 @@ import net.minecraft.item.ItemStack;
 
 import net.minecraftforge.common.util.ForgeDirection;
 
+import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
+import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.interfaces.tileentity.IHasInventory;
 
 import com.google.common.collect.ImmutableList;
 import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
+import gregtech.common.tileentities.machines.MTEHatchOutputBusME;
+import gregtech.common.tileentities.machines.MTEHatchOutputME;
+import tectech.thing.metaTileEntity.hatch.MTEHatchRack;
 
 public enum InventoryAdapter {
+
+    GTUnrestricted {
+        @Override
+        public boolean canHandle(IInventory inv) {
+            return GregTech.isModLoaded() && canHandleImpl(inv);
+        }
+
+        @Optional(Names.GREG_TECH)
+        private boolean canHandleImpl(IInventory inv) {
+            if (inv instanceof IGregTechTileEntity igte) {
+                IMetaTileEntity imte = igte.getMetaTileEntity();
+
+                if (imte instanceof MTEHatchOutputBusME) return true;
+                if (imte instanceof MTEHatchOutputME) return true;
+                if (imte instanceof MTEHatchRack) return true;
+            }
+
+            return false;
+        }
+    },
 
     GT {
 
