@@ -74,7 +74,6 @@ import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.IFluidHandler;
 
-import com.recursive_pineapple.matter_manipulator.MMMod;
 import cpw.mods.fml.relauncher.ReflectionHelper;
 
 import gregtech.api.GregTechAPI;
@@ -104,6 +103,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.gtnewhorizon.structurelib.util.XSTR;
+import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
@@ -466,6 +466,7 @@ public class MMUtils {
     }
 
     public static class StackMapDiff {
+
         public Object2LongOpenHashMap<ItemId> added = new Object2LongOpenHashMap<>();
         public Object2LongOpenHashMap<ItemId> removed = new Object2LongOpenHashMap<>();
     }
@@ -881,7 +882,8 @@ public class MMUtils {
                                 dest,
                                 split,
                                 slot,
-                                new Exception());
+                                new Exception()
+                            );
 
                             if (src instanceof IBlockApplyContext ctx) {
                                 ctx.error("Tried to install too many upgrades: voiding the rest (this is a bug, please report it)");

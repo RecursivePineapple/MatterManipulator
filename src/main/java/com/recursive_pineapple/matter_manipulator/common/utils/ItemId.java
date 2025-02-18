@@ -176,7 +176,7 @@ public abstract class ItemId {
         if (item() != stack.getItem()) return false;
         if (metaData() != Items.feather.getDamage(stack)) return false;
         if (!Objects.equals(nbt(), stack.getTagCompound())) return false;
-        
+
         return true;
     }
 }
