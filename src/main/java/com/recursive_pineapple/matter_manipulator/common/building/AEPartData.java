@@ -143,6 +143,8 @@ public class AEPartData {
     public boolean updatePart(IBlockApplyContext context, IPartHost partHost, ForgeDirection side) {
         IPart part = partHost.getPart(side);
 
+        boolean success = true;
+
         if (part instanceof PartP2PTunnelNormal && isAttunable()) {
             partHost.removePart(side, true);
 
@@ -154,8 +156,8 @@ public class AEPartData {
             tunnel.output = mP2POutput;
 
             try {
-                final P2PCache p2p = tunnel.getProxy()
-                    .getP2P();
+                final P2PCache p2p = tunnel.getProxy().getP2P();
+
                 // calls setFrequency
                 p2p.updateFreq(tunnel, mP2PFreq);
             } catch (final GridAccessException e) {
@@ -172,33 +174,24 @@ public class AEPartData {
 
         if (part instanceof IConfigurableObject configurable && configurable.getConfigManager() != null) {
             NBTTagCompound settings = mSettings == null ? new NBTTagCompound() : mSettings;
-            configurable.getConfigManager()
-                .readFromNBT(settings);
+            configurable.getConfigManager().readFromNBT(settings);
         }
 
         if (part instanceof ISegmentedInventory segmentedInventory) {
             if (segmentedInventory.getInventoryByName("upgrades") instanceof UpgradeInventory upgradeInv) {
-                ItemStackMap<Long> targetMap = MMUtils.getItemStackHistogram(
-                    Arrays.stream(mAEUpgrades)
-                        .map(PortableItemStack::toStack)
-                        .collect(Collectors.toList())
-                );
-                ItemStackMap<Long> actualMap = MMUtils
-                    .getItemStackHistogram(Arrays.asList(MMUtils.inventoryToArray(upgradeInv)));
-
-                if (!targetMap.equals(actualMap)) {
-                    if (!MMUtils.installUpgrades(context, upgradeInv, mAEUpgrades, true, false)) { return false; }
+                if (!MMUtils.installUpgrades(context, upgradeInv, mAEUpgrades, true, false)) {
+                    success = false;
                 }
             }
 
             IInventory config = segmentedInventory.getInventoryByName("config");
             if (config != null) {
-                mConfig.apply(context, config, false, false);
+                if (!mConfig.apply(context, config, false, false)) success = false;
             }
 
             IInventory patterns = segmentedInventory.getInventoryByName("patterns");
             if (mAEPatterns != null && patterns != null) {
-                mAEPatterns.apply(context, patterns, true, false);
+                if (!mAEPatterns.apply(context, patterns, true, false)) success = false;
             }
         }
 
@@ -210,7 +203,7 @@ public class AEPartData {
             priorityHost.setPriority(priority);
         }
 
-        return true;
+        return success;
     }
 
     /**
@@ -226,28 +219,20 @@ public class AEPartData {
     ) {
         IPart part = partHost.getPart(side);
 
+        boolean success = true;
+
         if (part instanceof ISegmentedInventory segmentedInventory) {
             if (segmentedInventory.getInventoryByName("upgrades") instanceof UpgradeInventory upgradeInv) {
-                ItemStackMap<Long> targetMap = MMUtils.getItemStackHistogram(
-                    Arrays.stream(mAEUpgrades)
-                        .map(PortableItemStack::toStack)
-                        .collect(Collectors.toList())
-                );
-                ItemStackMap<Long> actualMap = MMUtils
-                    .getItemStackHistogram(Arrays.asList(MMUtils.inventoryToArray(upgradeInv)));
-
-                if (!targetMap.equals(actualMap)) {
-                    if (!MMUtils.installUpgrades(context, upgradeInv, mAEUpgrades, true, true)) { return false; }
-                }
+                if (!MMUtils.installUpgrades(context, upgradeInv, mAEUpgrades, true, false)) success = false;
             }
 
             IInventory patterns = segmentedInventory.getInventoryByName("patterns");
             if (mAEPatterns != null && patterns != null) {
-                mAEPatterns.apply(context, patterns, true, true);
+                if (!mAEPatterns.apply(context, patterns, true, true)) success = false;
             }
         }
 
-        return true;
+        return success;
     }
 
     /**
