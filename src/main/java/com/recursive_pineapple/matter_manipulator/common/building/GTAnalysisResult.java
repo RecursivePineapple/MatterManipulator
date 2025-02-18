@@ -13,6 +13,7 @@ import net.minecraft.tileentity.TileEntity;
 
 import net.minecraftforge.common.util.ForgeDirection;
 
+import com.gtnewhorizon.structurelib.alignment.enumerable.Flip;
 import gregtech.api.enums.ItemList;
 import gregtech.api.enums.VoidingMode;
 import gregtech.api.interfaces.IConfigurationCircuitSupport;
@@ -301,11 +302,18 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
 
                 if (mGTFacing != null && alignment != null) {
 
-                    if (alignment.isNewExtendedFacingValid(mGTFacing)) {
-                        gte.setFrontFacing(mGTFacing.getDirection());
-                        alignment.toolSetExtendedFacing(mGTFacing);
+                    ExtendedFacing facing = mGTFacing;
+
+                    // maintenance hatches can be rotated but not flipped
+                    if (!alignment.isNewExtendedFacingValid(facing)) {
+                        facing = ExtendedFacing.of(mGTFacing.getDirection(), mGTFacing.getRotation(), Flip.NONE);
+                    }
+
+                    if (alignment.isNewExtendedFacingValid(facing)) {
+                        gte.setFrontFacing(facing.getDirection());
+                        alignment.toolSetExtendedFacing(facing);
                     } else {
-                        ctx.error("Could not set direction to '" + mGTFacing.getLocalizedName() + "'");
+                        ctx.error("Could not set direction to '" + facing.getLocalizedName() + "'");
                     }
                 }
             } else {
