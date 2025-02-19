@@ -11,7 +11,6 @@ import com.recursive_pineapple.matter_manipulator.common.compat.BlockPropertyReg
 import com.recursive_pineapple.matter_manipulator.common.entities.EntityItemLarge;
 import com.recursive_pineapple.matter_manipulator.common.items.MMItems;
 import com.recursive_pineapple.matter_manipulator.common.networking.Messages;
-import com.recursive_pineapple.matter_manipulator.common.recipes.ManipulatorRecipes;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.server.BlockStateCommand;
 
@@ -34,7 +33,6 @@ public class CommonProxy {
     }
 
     public void postInit(FMLPostInitializationEvent event) {
-        ManipulatorRecipes.addRecipes();
         BlockPropertyRegistry.init();
     }
 
