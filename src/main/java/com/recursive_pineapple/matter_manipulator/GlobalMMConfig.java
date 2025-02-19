@@ -7,7 +7,7 @@ import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
 public class GlobalMMConfig {
 
-    @Config(modid = Names.MATTER_MANIPULATOR, category = "Interaction")
+    @Config(modid = Names.MATTER_MANIPULATOR, category = "interaction")
     public static class InteractionConfig {
 
         @Config.Comment("Clear the paste region when the copy or cut regions are marked")
@@ -21,7 +21,7 @@ public class GlobalMMConfig {
         public static boolean resetTransform;
     }
 
-    @Config(modid = Names.MATTER_MANIPULATOR, category = "Rendering")
+    @Config(modid = Names.MATTER_MANIPULATOR, category = "rendering")
     public static class RenderingConfig {
 
         @Config.Comment("Controls how many blocks are shown in the preview. Client only.")
@@ -45,12 +45,28 @@ public class GlobalMMConfig {
         public static boolean hintsOnTopAir;
     }
 
-    @Config(modid = Names.MATTER_MANIPULATOR, category = "Debug")
+    @Config(modid = Names.MATTER_MANIPULATOR, category = "debug")
     public static class DebugConfig {
 
         @Config.DefaultBoolean(false)
         @Config.Name("Enable Debug Logging")
         public static boolean debug;
+    }
+
+    @Config(modid = Names.MATTER_MANIPULATOR, category = "building")
+    public static class BuildingConfig {
+
+        @Config.Comment("Empty ME Output Hatches/Busses when they're removed. Server only.")
+        @Config.DefaultBoolean(true)
+        @Config.Name("Empty ME Outputs")
+        public static boolean meEmptying;
+
+        @Config.Comment("High values may cause world desync and lag. Server only. Requires restart.")
+        @Config.DefaultInt(256)
+        @Config.RangeInt(min = 1)
+        @Config.Name("MK3 Block Place Speed")
+        @Config.RequiresMcRestart
+        public static int mk3BlocksPerPlace;
     }
 
     public static boolean DEVENV = false;
@@ -60,6 +76,7 @@ public class GlobalMMConfig {
             ConfigurationManager.registerConfig(InteractionConfig.class);
             ConfigurationManager.registerConfig(RenderingConfig.class);
             ConfigurationManager.registerConfig(DebugConfig.class);
+            ConfigurationManager.registerConfig(BuildingConfig.class);
         } catch (ConfigException e) {
             throw new RuntimeException(e);
         }

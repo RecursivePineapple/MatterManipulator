@@ -151,6 +151,8 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
             customName.setCustomName(mAECustomName);
         }
 
+        boolean success = true;
+
         // add/remove/update ae parts and cables
         if (te instanceof IPartHost partHost && mAEParts != null) {
             for (ForgeDirection dir : AEAnalysisResult.ALL_DIRECTIONS) {
@@ -189,19 +191,25 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
                             continue;
                         }
 
-                        if (!installPart(ctx, partHost, dir, expected, false)) { return false; }
+                        if (!installPart(ctx, partHost, dir, expected, false)) {
+                            success = false;
+                            continue;
+                        }
                     }
                 }
 
                 if (expected != null) {
-                    if (!expected.updatePart(ctx, partHost, dir)) { return false; }
+                    if (!expected.updatePart(ctx, partHost, dir)) {
+                        success = false;
+                        continue;
+                    }
                 }
 
                 Platform.notifyBlocksOfNeighbors(te.getWorldObj(), te.xCoord, te.yCoord, te.zCoord);
             }
         }
 
-        return true;
+        return success;
     }
 
     private void removePart(IBlockApplyContext context, IPartHost partHost, ForgeDirection side, boolean simulate) {

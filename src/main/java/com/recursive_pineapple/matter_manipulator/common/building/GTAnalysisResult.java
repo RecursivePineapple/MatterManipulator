@@ -40,6 +40,7 @@ import com.google.gson.JsonElement;
 import com.gtnewhorizon.structurelib.alignment.IAlignment;
 import com.gtnewhorizon.structurelib.alignment.IAlignmentProvider;
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
+import com.gtnewhorizon.structurelib.alignment.enumerable.Flip;
 import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
@@ -301,11 +302,18 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
 
                 if (mGTFacing != null && alignment != null) {
 
-                    if (alignment.isNewExtendedFacingValid(mGTFacing)) {
-                        gte.setFrontFacing(mGTFacing.getDirection());
-                        alignment.toolSetExtendedFacing(mGTFacing);
+                    ExtendedFacing facing = mGTFacing;
+
+                    // maintenance hatches can be rotated but not flipped
+                    if (!alignment.isNewExtendedFacingValid(facing)) {
+                        facing = ExtendedFacing.of(mGTFacing.getDirection(), mGTFacing.getRotation(), Flip.NONE);
+                    }
+
+                    if (alignment.isNewExtendedFacingValid(facing)) {
+                        gte.setFrontFacing(facing.getDirection());
+                        alignment.toolSetExtendedFacing(facing);
                     } else {
-                        ctx.error("Could not set direction to '" + mGTFacing.getLocalizedName() + "'");
+                        ctx.error("Could not set direction to '" + facing.getLocalizedName() + "'");
                     }
                 }
             } else {
