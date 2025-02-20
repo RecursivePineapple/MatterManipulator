@@ -45,9 +45,7 @@ import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 
-import gtPlusPlus.xmod.gregtech.api.enums.GregtechItemList;
 import tectech.thing.metaTileEntity.hatch.MTEHatchDynamoTunnel;
 import tectech.thing.metaTileEntity.hatch.MTEHatchEnergyTunnel;
 import tectech.thing.metaTileEntity.multi.base.TTMultiblockBase;
@@ -176,12 +174,7 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
                 mGTGhostCircuit = 0;
             } else if (circuit.getItem() == ItemList.Circuit_Integrated.getItem()) {
                 mGTGhostCircuit = (byte) Items.feather.getDamage(circuit);
-            } else if (Mods.GTPlusPlus.isModLoaded()) {
-                if (circuit.getItem() == GregtechItemList.Circuit_BioRecipeSelector.getItem()) {
-                    mGTGhostCircuit = (byte) (Items.feather.getDamage(circuit) + 24);
-                } else if (circuit.getItem() == GregtechItemList.Circuit_T3RecipeSelector.getItem()) {
-                    mGTGhostCircuit = (byte) (Items.feather.getDamage(circuit) + 48);
-                }
+
             }
         }
 
@@ -360,11 +353,7 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
             if (mte instanceof IConfigurationCircuitSupport ghostCircuit && ghostCircuit.allowSelectCircuit()) {
                 ItemStack circuit = null;
 
-                if (mGTGhostCircuit > 48) {
-                    circuit = GregtechItemList.Circuit_T3RecipeSelector.getWithDamage(0, mGTGhostCircuit - 48);
-                } else if (mGTGhostCircuit > 24) {
-                    circuit = GregtechItemList.Circuit_BioRecipeSelector.getWithDamage(0, mGTGhostCircuit - 24);
-                } else if (mGTGhostCircuit > 0) {
+                if (mGTGhostCircuit > 0) {
                     circuit = ItemList.Circuit_Integrated.getWithDamage(0, mGTGhostCircuit);
                 }
 
