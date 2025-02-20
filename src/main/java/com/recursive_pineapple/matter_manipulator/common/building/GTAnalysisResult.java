@@ -13,7 +13,6 @@ import net.minecraft.tileentity.TileEntity;
 
 import net.minecraftforge.common.util.ForgeDirection;
 
-import com.gtnewhorizon.structurelib.alignment.enumerable.Flip;
 import gregtech.api.enums.ItemList;
 import gregtech.api.enums.VoidingMode;
 import gregtech.api.interfaces.IConfigurationCircuitSupport;
@@ -38,6 +37,7 @@ import com.google.gson.JsonElement;
 import com.gtnewhorizon.structurelib.alignment.IAlignment;
 import com.gtnewhorizon.structurelib.alignment.IAlignmentProvider;
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
+import com.gtnewhorizon.structurelib.alignment.enumerable.Flip;
 import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;

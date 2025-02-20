@@ -90,14 +90,10 @@ public class MMInventory implements IPseudoInventory {
 
             // if we aren't allowed to partially consume items, make sure everything was consumed
             if ((flags & CONSUME_PARTIAL) == 0) {
-                if (simulated.stream().anyMatch(s -> s.getStackSize() > 0)) {
-                    return BooleanObjectImmutablePair.of(false, null);
-                }
+                if (simulated.stream().anyMatch(s -> s.getStackSize() > 0)) { return BooleanObjectImmutablePair.of(false, null); }
             }
 
-            if ((flags & CONSUME_SIMULATED) != 0) {
-                return BooleanObjectImmutablePair.of(true, merge(extracted));
-            }
+            if ((flags & CONSUME_SIMULATED) != 0) { return BooleanObjectImmutablePair.of(true, merge(extracted)); }
 
             visitedGrids.clear();
 

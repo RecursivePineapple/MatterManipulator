@@ -2,7 +2,6 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
@@ -26,7 +25,6 @@ import appeng.parts.automation.UpgradeInventory;
 import appeng.parts.p2p.PartP2PTunnel;
 import appeng.parts.p2p.PartP2PTunnelNormal;
 
-import com.gtnewhorizon.gtnhlib.util.map.ItemStackMap;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 
