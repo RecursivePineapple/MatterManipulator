@@ -32,6 +32,7 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.IntFunction;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -159,6 +160,8 @@ public class MMUtils {
     public static final String UNDERLINE = EnumChatFormatting.UNDERLINE.toString();
     public static final String ITALIC = EnumChatFormatting.ITALIC.toString();
     public static final String RESET = EnumChatFormatting.RESET.toString();
+
+    public static final Pattern FORMATTING_CODE_PATTERN = Pattern.compile("(?i)§[0-9A-FK-OR]");
 
     private MMUtils() {}
 
@@ -409,6 +412,10 @@ public class MMUtils {
         if (aPlayer instanceof EntityPlayerMP && aChatMessage != null) {
             aPlayer.addChatComponentMessage(new ChatComponentText(aChatMessage));
         }
+    }
+
+    public static String stripFormat(String text) {
+        return FORMATTING_CODE_PATTERN.matcher(text).replaceAll("");
     }
 
     private static DecimalFormat getDecimalFormat() {

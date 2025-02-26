@@ -1,7 +1,5 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
-import static gregtech.api.util.GTUtility.sendChatToPlayer;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -260,12 +258,12 @@ public class BlockAnalyzer {
 
         @Override
         public void warn(String message) {
-            sendChatToPlayer(player, String.format("§cWarning at block %d, %d, %d: %s§r", x, y, z, message));
+            MMUtils.sendWarningToPlayer(player, String.format("Warning at block %d, %d, %d: %s", x, y, z, message));
         }
 
         @Override
         public void error(String message) {
-            sendChatToPlayer(player, String.format("§cError at block %d, %d, %d: %s§r", x, y, z, message));
+            MMUtils.sendErrorToPlayer(player, String.format("Error at block %d, %d, %d: %s", x, y, z, message));
         }
     }
 

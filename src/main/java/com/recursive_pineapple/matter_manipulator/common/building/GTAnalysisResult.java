@@ -564,14 +564,20 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
         }
 
         byte transformedConns = 0;
+        byte transformedStrongOutput = 0;
 
         for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
             if ((mConnections & dir.flag) != 0) {
                 transformedConns |= transform.apply(dir).flag;
             }
+
+            if ((mStrongRedstone & dir.flag) != 0) {
+                transformedStrongOutput |= transform.apply(dir).flag;
+            }
         }
 
         mConnections = transformedConns;
+        mStrongRedstone = transformedStrongOutput;
     }
 
     @Override
