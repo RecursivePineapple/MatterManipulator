@@ -2,6 +2,7 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 
 import net.minecraft.item.ItemStack;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -17,7 +18,13 @@ public interface IItemProvider {
      * @param consume When false, no items will be extracted and the item will be provided as normal.
      * @return The item, or null if the pseudo inventory didn't have the required items.
      */
-    public @Nullable ItemStack getStack(IPseudoInventory inv, boolean consume);
+    @Contract("_,false->!null")
+    @Nullable
+    ItemStack getStack(IPseudoInventory inv, boolean consume);
 
-    public IItemProvider clone();
+    default String describe() {
+        return getStack(null, false).getDisplayName();
+    }
+
+    IItemProvider clone();
 }

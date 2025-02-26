@@ -13,6 +13,7 @@ import net.minecraftforge.common.util.ForgeDirection;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.interfaces.tileentity.IHasInventory;
+import gregtech.api.metatileentity.implementations.MTEBasicBatteryBuffer;
 import gregtech.api.metatileentity.implementations.MTEMultiBlockBase;
 import gregtech.common.tileentities.machines.MTEHatchOutputBusME;
 import gregtech.common.tileentities.machines.MTEHatchOutputME;
@@ -42,6 +43,7 @@ public enum InventoryAdapter {
                 if (imte instanceof MTEHatchOutputME) return true;
                 if (imte instanceof MTEHatchRack) return true;
                 if (imte instanceof MTEMultiBlockBase) return true;
+                if (imte instanceof MTEBasicBatteryBuffer) return true;
             }
 
             return false;

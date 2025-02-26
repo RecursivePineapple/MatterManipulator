@@ -44,8 +44,7 @@ public class PatternItemProvider implements IItemProvider {
 
     @Override
     public @Nullable ItemStack getStack(IPseudoInventory inv, boolean consume) {
-        ItemStack stack = PATTERN.maybeStack(1)
-            .get();
+        ItemStack stack = PATTERN.maybeStack(1).get();
 
         stack.stackSize = amount == null ? 1 : amount;
         stack.setTagCompound(pattern != null ? (NBTTagCompound) pattern.copy() : null);
@@ -58,6 +57,11 @@ public class PatternItemProvider implements IItemProvider {
         }
 
         return stack;
+    }
+
+    @Override
+    public String describe() {
+        return BLANK_PATTERN.maybeStack(1).get().getDisplayName();
     }
 
     @Override

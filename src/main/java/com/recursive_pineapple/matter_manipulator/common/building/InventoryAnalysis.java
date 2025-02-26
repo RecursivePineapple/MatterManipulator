@@ -8,6 +8,7 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
+import com.recursive_pineapple.matter_manipulator.common.building.providers.BatteryItemProvider;
 import com.recursive_pineapple.matter_manipulator.common.utils.InventoryAdapter;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
@@ -61,6 +62,10 @@ public class InventoryAnalysis {
             if (pattern != null) return pattern;
         }
 
+        IItemProvider battery = BatteryItemProvider.fromStack(stack);
+
+        if (battery != null) return battery;
+
         return fuzzy ? new PortableItemStack(stack) : PortableItemStack.withNBT(stack);
     }
 
@@ -100,7 +105,7 @@ public class InventoryAnalysis {
                 ItemStack stack = inv.getStackInSlot(slot);
                 if (stack != null) {
                     if (!adapter.canExtract(inv, slot)) {
-                        context.warn("Could not extract item in slot " + slot + ": " + stack.getDisplayName());
+                        context.warn("Could not extract item in slot " + slot + ": " + MMUtils.stripFormat(stack.getDisplayName()));
                         continue;
                     }
 
@@ -114,14 +119,14 @@ public class InventoryAnalysis {
 
                 if (target != null) {
                     if (!adapter.canInsert(inv, slot, target.getStack(null, false))) {
-                        context.warn("Invalid item for slot " + slot + ": " + target.toString());
+                        context.warn("Invalid item for slot " + slot + ": " + MMUtils.stripFormat(target.describe()));
                         continue;
                     }
 
                     ItemStack toInsert = target.getStack(context, consume);
 
                     if (toInsert == null) {
-                        context.warn("Could not gather item for inventory: " + target.toString());
+                        context.warn("Could not gather item for inventory: " + MMUtils.stripFormat(target.describe()));
                         success = false;
                     } else {
                         if (!simulate) {
