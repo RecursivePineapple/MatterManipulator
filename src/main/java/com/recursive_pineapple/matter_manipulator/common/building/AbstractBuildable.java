@@ -31,7 +31,6 @@ import gregtech.api.interfaces.tileentity.ICoverable;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.interfaces.tileentity.IRedstoneEmitter;
 import gregtech.api.util.GTUtility;
-import gregtech.common.covers.CoverInfo;
 import gregtech.common.tileentities.machines.MTEHatchOutputBusME;
 import gregtech.common.tileentities.machines.MTEHatchOutputME;
 import gregtech.common.tileentities.storage.MTEDigitalChestBase;
@@ -245,10 +244,8 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
     protected void removeCovers(TileEntity te) {
         if (te instanceof ICoverable coverable) {
             for (ForgeDirection side : ForgeDirection.VALID_DIRECTIONS) {
-                CoverInfo info = MMUtils.getActualCover(coverable, side);
-                if (info != null) {
-                    givePlayerItems(info.getDrop());
-                    coverable.setCoverIDAtSide(side, 0);
+                if (coverable.hasCoverAtSide(side)) {
+                    givePlayerItems(coverable.detachCover(side));
                 }
             }
         }
