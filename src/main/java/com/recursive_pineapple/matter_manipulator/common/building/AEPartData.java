@@ -153,14 +153,16 @@ public class AEPartData {
         if (part instanceof PartP2PTunnel<?> tunnel) {
             tunnel.output = mP2POutput;
 
-            try {
-                final P2PCache p2p = tunnel.getProxy().getP2P();
+            if (tunnel.getFrequency() != mP2PFreq) {
+                try {
+                    final P2PCache p2p = tunnel.getProxy().getP2P();
 
-                // calls setFrequency
-                p2p.updateFreq(tunnel, mP2PFreq);
-            } catch (final GridAccessException e) {
-                // not on a grid yet, so we just set the frequency directly
-                tunnel.setFrequency(mP2PFreq);
+                    // calls setFrequency
+                    p2p.updateFreq(tunnel, mP2PFreq);
+                } catch (final GridAccessException e) {
+                    // not on a grid yet, so we just set the frequency directly
+                    tunnel.setFrequency(mP2PFreq);
+                }
             }
 
             tunnel.onTunnelConfigChange();
