@@ -2,19 +2,19 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
-import java.util.Optional;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
 
 import net.minecraftforge.common.util.ForgeDirection;
 
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-import gregtech.api.covers.CoverRegistry;
 import gregtech.api.interfaces.tileentity.ICoverable;
 import gregtech.api.util.ISerializableObject;
 import gregtech.common.covers.Cover;
 import gregtech.common.covers.CoverBehaviorBase;
+
+import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+
 import lombok.SneakyThrows;
 
 /**
@@ -38,8 +38,11 @@ public class CoverData {
         return cover.toStack();
     }
 
-    private static final MethodHandle COVER_LOAD_FROM_NBT = MMUtils.exposeMethod(CoverBehaviorBase.class,
-        MethodType.methodType(ISerializableObject.class, NBTBase.class), "loadFromNbt");
+    private static final MethodHandle COVER_LOAD_FROM_NBT = MMUtils.exposeMethod(
+        CoverBehaviorBase.class,
+        MethodType.methodType(ISerializableObject.class, NBTBase.class),
+        "loadFromNbt"
+    );
 
     @SneakyThrows
     public ISerializableObject getCoverData(Cover cover) {

@@ -26,7 +26,6 @@ import gregtech.api.interfaces.metatileentity.IFluidLockable;
 import gregtech.api.interfaces.metatileentity.IItemLockable;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
-import gregtech.api.metatileentity.CoverableTileEntity;
 import gregtech.api.metatileentity.implementations.MTEBasicMachine;
 import gregtech.api.metatileentity.implementations.MTEHatchInputBus;
 import gregtech.api.metatileentity.implementations.MTEHatchOutput;
@@ -253,7 +252,8 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
         }
     }
 
-    private static final MethodHandle SET_TICK_RATE_ADDITION = MMUtils.exposeMethod(Cover.class, MethodType.methodType(void.class, int.class), "setTickRateAddition");
+    private static final MethodHandle SET_TICK_RATE_ADDITION = MMUtils
+        .exposeMethod(Cover.class, MethodType.methodType(void.class, int.class), "setTickRateAddition");
 
     @SneakyThrows
     private static void setTickRateAddition(Cover cover, int value) {
