@@ -2,6 +2,8 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.nullIfUnknown;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodType;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -13,6 +15,7 @@ import net.minecraft.tileentity.TileEntity;
 
 import net.minecraftforge.common.util.ForgeDirection;
 
+import gregtech.api.covers.CoverRegistry;
 import gregtech.api.enums.ItemList;
 import gregtech.api.enums.VoidingMode;
 import gregtech.api.interfaces.IConfigurationCircuitSupport;
@@ -28,8 +31,7 @@ import gregtech.api.metatileentity.implementations.MTEBasicMachine;
 import gregtech.api.metatileentity.implementations.MTEHatchInputBus;
 import gregtech.api.metatileentity.implementations.MTEHatchOutput;
 import gregtech.api.metatileentity.implementations.MTEMultiBlockBase;
-import gregtech.api.objects.GTItemStack;
-import gregtech.common.covers.CoverInfo;
+import gregtech.common.covers.Cover;
 import gregtech.common.tileentities.machines.MTEHatchOutputBusME;
 import gregtech.common.tileentities.machines.MTEHatchOutputME;
 
@@ -46,6 +48,7 @@ import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 
+import lombok.SneakyThrows;
 import tectech.thing.metaTileEntity.hatch.MTEHatchDynamoTunnel;
 import tectech.thing.metaTileEntity.hatch.MTEHatchEnergyTunnel;
 import tectech.thing.metaTileEntity.multi.base.TTMultiblockBase;
@@ -148,8 +151,8 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
 
         // check each side for covers
         for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
-            if (igte.getCoverIDAtSide(dir) != 0) {
-                covers[dir.ordinal()] = CoverData.fromInfo(MMUtils.getActualCover(igte, dir));
+            if (igte.hasCoverAtSide(dir)) {
+                covers[dir.ordinal()] = CoverData.fromMachine(igte, dir);
                 hasCover = true;
 
                 if (igte.getRedstoneOutputStrength(dir)) {
@@ -250,6 +253,13 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
         }
     }
 
+    private static final MethodHandle SET_TICK_RATE_ADDITION = MMUtils.exposeMethod(Cover.class, MethodType.methodType(void.class, int.class), "setTickRateAddition");
+
+    @SneakyThrows
+    private static void setTickRateAddition(Cover cover, int value) {
+        SET_TICK_RATE_ADDITION.invokeExact(cover, value);
+    }
+
     @Override
     public boolean apply(IBlockApplyContext ctx) {
         TileEntity te = ctx.getTileEntity();
@@ -317,17 +327,17 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
             // install/remove/update the covers
             for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
                 CoverData expected = mCovers == null ? null : mCovers[dir.ordinal()];
-                CoverInfo actual = MMUtils.getActualCover(gte, dir);
+                Cover actual = gte.getCoverAtSide(dir);
 
                 if (actual == null && expected != null) {
                     installCover(ctx, gte, dir, expected);
                 } else if (actual != null && expected == null) {
                     removeCover(ctx, gte, dir);
                 } else if (actual != null && expected != null) {
-                    if (!ItemStack.areItemStacksEqual(expected.getCover(), actual.getDrop())) {
+                    if (!ItemStack.areItemStacksEqual(expected.getCoverStack(), gte.getCoverItemAtSide(dir))) {
                         removeCover(ctx, gte, dir);
                         installCover(ctx, gte, dir, expected);
-                    } else if (!Objects.equals(actual.getCoverData(), expected.getCoverData())) {
+                    } else if (!Objects.equals(actual.getCoverData(), expected.getCoverData(actual))) {
                         updateCover(ctx, gte, dir, expected);
                     }
                 }
@@ -335,10 +345,10 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
                 // set the redstone strength
                 gte.setRedstoneOutputStrength(dir, (mStrongRedstone & dir.flag) != 0);
                 if (expected != null) {
-                    actual = MMUtils.getActualCover(gte, dir);
+                    actual = gte.getCoverAtSide(dir);
 
                     if (actual != null) {
-                        actual.setTickRateAddition(expected.tickRateAddition == null ? 0 : expected.tickRateAddition);
+                        setTickRateAddition(actual, expected.tickRateAddition == null ? 0 : expected.tickRateAddition);
                     }
                 }
             }
@@ -452,24 +462,13 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
     }
 
     private void removeCover(IBlockApplyContext context, IGregTechTileEntity gte, ForgeDirection side) {
-        CoverInfo actual = MMUtils.getActualCover(gte, side);
-
-        if (actual != null) {
-            context.givePlayerItems(actual.getDrop());
-
-            actual.onCoverRemoval(true);
-            actual.onDropped();
-            gte.setCoverIDAtSide(side, 0);
-
-            if (gte instanceof CoverableTileEntity te) {
-                te.clearCoverInfoAtSide(side);
-                te.setOutputRedstoneSignal(side, (byte) 0);
-            }
+        if (gte.hasCoverAtSide(side)) {
+            context.givePlayerItems(gte.detachCover(side));
         }
     }
 
     private void installCover(IBlockApplyContext context, IGregTechTileEntity gte, ForgeDirection side, CoverData cover) {
-        ItemStack stack = cover.getCover();
+        ItemStack stack = cover.getCoverStack();
 
         if (!canPlace(gte, side, cover)) {
             context.error("Was not allowed to put cover on " + side.name().toLowerCase() + "side: " + stack.getDisplayName());
@@ -481,8 +480,11 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
             return;
         }
 
-        gte.attachCover(context.getRealPlayer(), stack, side);
-        gte.setCoverDataAtSide(side, cover.getCoverBehaviour().allowsCopyPasteTool() ? cover.getCoverData() : null);
+        CoverRegistry.getCoverPlacer(stack).placeCover(context.getRealPlayer(), stack, gte, side);
+
+        if (gte.getCoverAtSide(side).allowsCopyPasteTool()) {
+            gte.setCoverDataAtSide(side, cover.getCoverData(gte.getCoverAtSide(side)));
+        }
     }
 
     private void updateCover(
@@ -491,10 +493,10 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
         ForgeDirection side,
         CoverData target
     ) {
-        CoverInfo info = MMUtils.getActualCover(gte, side);
-        if (info != null && ItemStack.areItemStacksEqual(info.getDrop(), target.getCover())) {
-            if (info.allowsCopyPasteTool()) {
-                info.setCoverData(target.getCoverData());
+        if (gte.hasCoverAtSide(side) && ItemStack.areItemStacksEqual(gte.getCoverItemAtSide(side), target.getCoverStack())) {
+            Cover cover = gte.getCoverAtSide(side);
+            if (cover.allowsCopyPasteTool()) {
+                cover.setCoverData(target.getCoverData(cover));
             }
         }
     }
@@ -506,16 +508,16 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
         if (te instanceof IGregTechTileEntity gte) {
             for (ForgeDirection side : ForgeDirection.VALID_DIRECTIONS) {
                 CoverData target = mCovers == null ? null : mCovers[side.ordinal()];
-                CoverInfo actual = MMUtils.getActualCover(gte, side);
+                Cover actual = gte.getCoverAtSide(side);
 
-                if (actual != null && (target == null || ItemStack.areItemStacksEqual(actual.getDrop(), target.getCover()))) {
-                    context.givePlayerItems(actual.getDrop());
+                if (actual != null && (target == null || ItemStack.areItemStacksEqual(gte.getCoverItemAtSide(side), target.getCoverStack()))) {
+                    context.givePlayerItems(gte.getCoverItemAtSide(side));
                     actual = null;
                 }
 
                 if (actual == null && target != null) {
                     if (canPlace(gte, side, target)) {
-                        context.tryConsumeItems(target.getCover());
+                        context.tryConsumeItems(target.getCoverStack());
                     }
                 }
             }
@@ -530,7 +532,7 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
             CoverData target = mCovers == null ? null : mCovers[side.ordinal()];
 
             if (target != null) {
-                context.tryConsumeItems(target.getCover());
+                context.tryConsumeItems(target.getCoverStack());
             }
         }
 
@@ -538,10 +540,9 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
     }
 
     private boolean canPlace(IGregTechTileEntity gte, ForgeDirection side, CoverData cover) {
-        ItemStack stack = cover.getCover();
+        ItemStack stack = cover.getCoverStack();
 
-        if (!cover.getCoverBehaviour().isCoverPlaceable(side, stack, gte)) return false;
-        if (!gte.getMetaTileEntity().allowCoverOnSide(side, new GTItemStack(stack))) return false;
+        if (!gte.getMetaTileEntity().allowCoverOnSide(side, stack)) return false;
 
         return true;
     }
