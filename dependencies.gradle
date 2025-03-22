@@ -76,6 +76,9 @@ dependencies {
     implementation("org.ow2.asm:asm:${asmVersion}")
     implementation("org.ow2.asm:asm-tree:${asmVersion}")
 
+    compileOnly('org.projectlombok:lombok:1.18.34')
+    annotationProcessor('org.projectlombok:lombok:1.18.34')
+
     testImplementation(platform('org.junit:junit-bom:5.9.2'))
     testImplementation('org.junit.jupiter:junit-jupiter')
 }
