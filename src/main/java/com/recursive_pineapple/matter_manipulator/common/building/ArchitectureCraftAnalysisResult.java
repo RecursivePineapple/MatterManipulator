@@ -153,6 +153,11 @@ public class ArchitectureCraftAnalysisResult implements ITileAnalysisIntegration
     }
 
     @Override
+    public void migrate() {
+
+    }
+
+    @Override
     public ArchitectureCraftAnalysisResult clone() {
         ArchitectureCraftAnalysisResult dup = new ArchitectureCraftAnalysisResult();
 

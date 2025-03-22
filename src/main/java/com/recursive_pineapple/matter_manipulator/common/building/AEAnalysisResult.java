@@ -384,6 +384,11 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
     }
 
     @Override
+    public void migrate() {
+
+    }
+
+    @Override
     public AEAnalysisResult clone() {
         AEAnalysisResult dup = new AEAnalysisResult();
 

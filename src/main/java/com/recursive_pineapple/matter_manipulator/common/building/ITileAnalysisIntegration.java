@@ -9,17 +9,19 @@ import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Trans
 
 public interface ITileAnalysisIntegration {
 
-    public boolean apply(IBlockApplyContext ctx);
+    boolean apply(IBlockApplyContext ctx);
 
-    public boolean getRequiredItemsForExistingBlock(IBlockApplyContext context);
+    boolean getRequiredItemsForExistingBlock(IBlockApplyContext context);
 
-    public boolean getRequiredItemsForNewBlock(IBlockApplyContext context);
+    boolean getRequiredItemsForNewBlock(IBlockApplyContext context);
 
-    public void getItemTag(NBTTagCompound tag);
+    void getItemTag(NBTTagCompound tag);
 
-    public void getItemDetails(List<String> details);
+    void getItemDetails(List<String> details);
 
-    public void transform(Transform transform);
+    void transform(Transform transform);
 
-    public ITileAnalysisIntegration clone();
+    ITileAnalysisIntegration clone();
+
+    void migrate();
 }
