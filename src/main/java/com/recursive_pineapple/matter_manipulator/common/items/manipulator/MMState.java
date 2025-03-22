@@ -375,8 +375,6 @@ public class MMState {
                 if (world.isAirBlock(x, y, z)) continue;
             }
 
-            if (existing == null) existing = new BlockSpec();
-
             BlockSpec.fromBlock(existing, world, x, y, z);
 
             if (existing.shouldBeSkipped()) continue;
@@ -404,6 +402,7 @@ public class MMState {
             PendingBlock rep = block.instantiate(world, x, y, z);
 
             rep.analyze(world.getTileEntity(x, y, z), PendingBlock.ANALYZE_ALL);
+            rep.migrate();
 
             if (tier.hasCap(ItemMatterManipulator.ALLOW_CABLES)) {
                 if (AppliedEnergistics2.isModLoaded() && MMUtils.isAECable(replacement)) {

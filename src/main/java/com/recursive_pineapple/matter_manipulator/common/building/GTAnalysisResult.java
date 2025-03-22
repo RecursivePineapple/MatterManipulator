@@ -581,6 +581,13 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
     }
 
     @Override
+    public void migrate() {
+        mGTMode = 0;
+        mTTParams = null;
+        mAmperes = 0;
+    }
+
+    @Override
     public GTAnalysisResult clone() {
         GTAnalysisResult dup = new GTAnalysisResult();
 

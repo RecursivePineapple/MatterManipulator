@@ -434,6 +434,15 @@ public class PendingBlock extends Location {
         return this;
     }
 
+    public PendingBlock migrate() {
+        if (gt != null) gt.migrate();
+        if (ae != null) ae.migrate();
+        if (arch != null) arch.migrate();
+        if (mp != null) mp.migrate();
+
+        return this;
+    }
+
     public static boolean areEquivalent(PendingBlock a, PendingBlock b) {
         ItemStack sa = a.getStack();
         ItemStack sb = b.getStack();

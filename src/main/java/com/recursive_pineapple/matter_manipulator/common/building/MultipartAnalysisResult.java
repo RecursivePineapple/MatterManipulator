@@ -70,6 +70,11 @@ public class MultipartAnalysisResult implements ITileAnalysisIntegration {
     }
 
     @Override
+    public void migrate() {
+
+    }
+
+    @Override
     public MultipartAnalysisResult clone() {
         MultipartAnalysisResult dup = new MultipartAnalysisResult();
 
