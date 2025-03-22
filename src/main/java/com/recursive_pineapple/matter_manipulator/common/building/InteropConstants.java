@@ -9,6 +9,7 @@ import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
 import bartworks.common.loaders.FluidLoader;
+import goodgenerator.loader.Loaders;
 import tectech.thing.casing.TTCasingsContainer;
 
 /**
@@ -31,6 +32,7 @@ public enum InteropConstants {
         if (block == TTCasingsContainer.eyeOfHarmonyRenderBlock) return true;
         if (block == TTCasingsContainer.forgeOfGodsRenderBlock) return true;
         if (block == FluidLoader.bioFluidBlock) return true;
+        if (block == Loaders.antimatterRenderBlock) return true;
 
         return false;
     }

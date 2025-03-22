@@ -14,6 +14,8 @@ import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.interfaces.tileentity.IHasInventory;
 import gregtech.api.metatileentity.implementations.MTEBasicBatteryBuffer;
+import gregtech.api.metatileentity.implementations.MTEHatchInputBus;
+import gregtech.api.metatileentity.implementations.MTEHatchOutputBus;
 import gregtech.api.metatileentity.implementations.MTEMultiBlockBase;
 import gregtech.common.tileentities.machines.MTEHatchOutputBusME;
 import gregtech.common.tileentities.machines.MTEHatchOutputME;
@@ -47,6 +49,55 @@ public enum InventoryAdapter {
             }
 
             return false;
+        }
+    },
+
+    GTNoop {
+
+        @Override
+        public boolean canHandle(IInventory inv) {
+            return GregTech.isModLoaded() && canHandleImpl(inv);
+        }
+
+        @Optional(Names.GREG_TECH)
+        private boolean canHandleImpl(IInventory inv) {
+            if (inv instanceof IGregTechTileEntity igte) {
+                IMetaTileEntity imte = igte.getMetaTileEntity();
+
+                if (imte.getClass() == MTEHatchOutputBus.class) return true;
+                if (imte.getClass() == MTEHatchInputBus.class) return true;
+            }
+
+            return false;
+        }
+
+        @Override
+        @Optional(Names.GREG_TECH)
+        public boolean isValidSlot(IInventory inv, int slot) {
+            return false;
+        }
+
+        @Override
+        @Optional(Names.GREG_TECH)
+        public boolean canExtract(IInventory inv, int slot) {
+            return false;
+        }
+
+        @Override
+        @Optional(Names.GREG_TECH)
+        public boolean canInsert(IInventory inv, int slot, ItemStack stack) {
+            return false;
+        }
+
+        @Override
+        @Optional(Names.GREG_TECH)
+        public boolean insert(IInventory inv, int slot, ItemStack stack) {
+            return false;
+        }
+
+        @Override
+        public ItemStack extract(IInventory inv, int slot) {
+            return null;
         }
     },
 

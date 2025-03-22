@@ -78,7 +78,7 @@ public class AECellItemProvider implements IItemProvider {
         );
 
         if (consume) {
-            var result = inv.tryConsumeItems(MMUtils.mapToList(items, BigItemStack::new), IPseudoInventory.CONSUME_FUZZY);
+            var result = inv.tryConsumeItems(MMUtils.mapToList(items, BigItemStack::create), IPseudoInventory.CONSUME_FUZZY);
 
             if (!result.leftBoolean()) return null;
 
