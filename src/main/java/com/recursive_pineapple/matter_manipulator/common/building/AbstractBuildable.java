@@ -74,6 +74,14 @@ import it.unimi.dsi.fastutil.Pair;
  */
 public abstract class AbstractBuildable extends MMInventory implements IBuildable {
 
+    private static final double[] SQUARE_ROOTS = new double[1000];
+
+    static {
+        for (int i = 0; i < SQUARE_ROOTS.length; i++) {
+            SQUARE_ROOTS[i] = 1 + Math.sqrt((double) i);
+        }
+    }
+
     public AbstractBuildable(EntityPlayer player, MMState state, ManipulatorTier tier) {
         super(player, state, tier);
     }
@@ -81,7 +89,12 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
     protected static final double EU_PER_BLOCK = 128.0, TE_PENALTY = 16.0, EU_DISTANCE_EXP = 1.25;
 
     public boolean tryConsumePower(ItemStack stack, World world, int x, int y, int z, ImmutableBlockSpec spec) {
-        double euUsage = EU_PER_BLOCK * spec.getBlock().getBlockHardness(world, x, y, z);
+        int hardness = (int) spec.getBlock().getBlockHardness(world, x, y, z);
+
+        if (hardness < 0) hardness = 0;
+        if (hardness > 999) hardness = 999;
+
+        double euUsage = EU_PER_BLOCK * SQUARE_ROOTS[hardness];
 
         Block block = spec.getBlock();
         if (block.hasTileEntity(spec.getBlockMeta())) {
@@ -92,7 +105,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
     }
 
     public boolean tryConsumePower(ItemStack stack, double x, double y, double z, double euUsage) {
-        if (player.capabilities.isCreativeMode) { return true; }
+        if (player.capabilities.isCreativeMode) return true;
 
         euUsage *= Math.pow(player.getDistance(x, y, z), EU_DISTANCE_EXP);
 
