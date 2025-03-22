@@ -10,6 +10,7 @@ import net.minecraft.client.particle.EntityFX;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
@@ -172,9 +173,7 @@ public class MMRenderer {
         needsHintDraw = false;
         needsAnalysis = false;
 
-        // reset the hints when this item just drew and the player isn't holding it anymore
-        StructureLibAPI.startHinting(player.worldObj);
-        StructureLibAPI.endHinting(player.worldObj);
+        RenderHints.reset();
 
         AboveHotbarHUD.renderTextAboveHotbar("", 0, false, false);
     }
@@ -325,13 +324,13 @@ public class MMRenderer {
 
             needsHintDraw = needsHintDraw ||
                 needsAnalysis ||
-                (!Objects.equals(lastPlayerPosition, playerLocation) && manipulator.tier.maxRange != -1);
+                (lastPlayerPosition.distanceTo(playerLocation) > 2 && manipulator.tier.maxRange != -1);
 
             if (needsAnalysis) {
                 lastAnalysisMS = now;
                 lastAnalyzedConfig = state.config;
                 analysisCache = state.getPendingBlocks(manipulator.tier, player.getEntityWorld());
-                analysisCache.removeIf(b -> b == null);
+                analysisCache.removeIf(Objects::isNull);
                 analysisCache.sort(Comparator.comparingInt((PendingBlock b) -> b.renderOrder));
                 needsAnalysis = false;
 
@@ -446,21 +445,31 @@ public class MMRenderer {
                     MathHelper.floor_double(player.posZ)
                 );
 
-                boolean needsAnalysis = (System.currentTimeMillis() - lastAnalysisMS) >= ANALYSIS_INTERVAL_MS ||
+                long now = System.currentTimeMillis();
+
+                needsAnalysis = needsAnalysis ||
+                    (now - lastAnalysisMS) >= ANALYSIS_INTERVAL_MS ||
                     lastDrawer != manipulator ||
                     !Objects.equals(lastAnalyzedConfig, state.config);
 
-                boolean needsHintDraw = needsAnalysis || !Objects.equals(lastPlayerPosition, playerLocation);
+                needsHintDraw = needsHintDraw ||
+                    needsAnalysis ||
+                    (lastPlayerPosition.distanceTo(playerLocation) > 2 && manipulator.tier.maxRange != -1);
 
                 if (needsAnalysis) {
-                    lastAnalysisMS = System.currentTimeMillis();
+                    lastAnalysisMS = now;
                     lastAnalyzedConfig = state.config;
                     analysisCache = state.getPendingBlocks(manipulator.tier, player.getEntityWorld());
+                    analysisCache.removeIf(Objects::isNull);
+                    analysisCache.sort(Comparator.comparingInt((PendingBlock b) -> b.renderOrder));
+                    needsAnalysis = false;
                 }
 
                 if (needsHintDraw) {
                     lastPlayerPosition = playerLocation;
                     lastDrawer = manipulator;
+                    needsHintDraw = false;
+
                     drawHints(event, state, player, playerLocation, manipulator.tier.maxRange);
                 }
             }
@@ -504,8 +513,6 @@ public class MMRenderer {
         Location playerLocation,
         int maxRange
     ) {
-        StructureLibAPI.startHinting(player.worldObj);
-
         int buildable = maxRange * maxRange;
 
         int i = 0;
@@ -516,6 +523,9 @@ public class MMRenderer {
         LongOpenHashSet warnings = MMRenderer.warnings == null ? null : new LongOpenHashSet(MMRenderer.warnings);
 
         World world = player.worldObj;
+
+        RenderHints.reset();
+        RenderHints.setDrawOnTop(RenderingConfig.hintsOnTop || state.config.placeMode == PlaceMode.EXCHANGING);
 
         for (PendingBlock pendingBlock : analysisCache) {
             if (!pendingBlock.isInWorld(world)) continue;
@@ -537,36 +547,37 @@ public class MMRenderer {
 
             if (++i > RenderingConfig.maxHints) break;
 
+            long packed = CoordinatePacker.pack(pendingBlock.x, pendingBlock.y, pendingBlock.z);
+
+            short[] tint = WHITE;
+
+            if (warnings != null && warnings.remove(packed)) {
+                tint = WARNING;
+            }
+
+            if (errors != null && errors.remove(packed)) {
+                tint = ERROR;
+            }
+
             if (pendingBlock.spec.isAir()) {
-                StructureLibAPI.hintParticle(
-                    world,
+                RenderHints.addHint(
                     pendingBlock.x,
                     pendingBlock.y,
                     pendingBlock.z,
                     StructureLibAPI.getBlockHint(),
-                    StructureLibAPI.HINT_BLOCK_META_ERROR
+                    StructureLibAPI.HINT_BLOCK_META_ERROR,
+                    tint
                 );
             } else {
-                StructureLibAPI.hintParticle(
-                    world,
+                RenderHints.addHint(
                     pendingBlock.x,
                     pendingBlock.y,
                     pendingBlock.z,
                     block,
-                    pendingBlock.spec.getBlockMeta()
+                    pendingBlock.spec.getBlockMeta(),
+                    tint
                 );
             }
-
-            markHintDrawthrough(
-                world,
-                player,
-                pendingBlock.x,
-                pendingBlock.y,
-                pendingBlock.z,
-                errors,
-                warnings,
-                RenderingConfig.hintsOnTop || state.config.placeMode == PlaceMode.EXCHANGING || (RenderingConfig.hintsOnTopAir && pendingBlock.spec.isAir())
-            );
         }
 
         if (warnings != null) {
@@ -575,13 +586,7 @@ public class MMRenderer {
                 int y = CoordinatePacker.unpackY(packed);
                 int z = CoordinatePacker.unpackZ(packed);
 
-                StructureLibAPI.hintParticle(world, x, y, z, StructureLibAPI.getBlockHint(), StructureLibAPI.HINT_BLOCK_META_AIR);
-
-                if (RenderingConfig.hintsOnTop || state.config.placeMode == PlaceMode.EXCHANGING) {
-                    StructureLibAPI.markHintParticleError(player, world, x, y, z);
-                }
-
-                StructureLibAPI.updateHintParticleTint(player, world, x, y, z, WARNING);
+                RenderHints.addHint(x, y, z, StructureLibAPI.getBlockHint(), StructureLibAPI.HINT_BLOCK_META_AIR, WARNING);
             }
         }
 
@@ -591,21 +596,13 @@ public class MMRenderer {
                 int y = CoordinatePacker.unpackY(packed);
                 int z = CoordinatePacker.unpackZ(packed);
 
-                StructureLibAPI.hintParticle(world, x, y, z, StructureLibAPI.getBlockHint(), StructureLibAPI.HINT_BLOCK_META_AIR);
-
-                if (RenderingConfig.hintsOnTop || state.config.placeMode == PlaceMode.EXCHANGING) {
-                    StructureLibAPI.markHintParticleError(player, world, x, y, z);
-                }
-
-                StructureLibAPI.updateHintParticleTint(player, world, x, y, z, ERROR);
+                RenderHints.addHint(x, y, z, StructureLibAPI.getBlockHint(), StructureLibAPI.HINT_BLOCK_META_AIR, ERROR);
             }
         }
-
-        StructureLibAPI.endHinting(player.worldObj);
     }
 
     private static final short[] WHITE = {
-        255, 255, 255, 255
+        229, 242, 255, 255
     };
     private static final short[] WARNING = {
         255, 170, 0, 255
@@ -613,35 +610,6 @@ public class MMRenderer {
     private static final short[] ERROR = {
         255, 85, 85, 255
     };
-
-    private static void markHintDrawthrough(
-        World world,
-        EntityPlayer player,
-        int x,
-        int y,
-        int z,
-        LongOpenHashSet errors,
-        LongOpenHashSet warnings,
-        boolean drawOnTop
-    ) {
-        long packed = CoordinatePacker.pack(x, y, z);
-
-        short[] colour = WHITE;
-
-        if (warnings != null && warnings.remove(packed)) {
-            colour = WARNING;
-        }
-
-        if (errors != null && errors.remove(packed)) {
-            colour = ERROR;
-        }
-
-        if (drawOnTop) {
-            StructureLibAPI.markHintParticleError(player, world, x, y, z);
-        }
-
-        StructureLibAPI.updateHintParticleTint(player, world, x, y, z, colour);
-    }
 
     private static Vector3d getVecForDir(ForgeDirection dir) {
         return new Vector3d(dir.offsetX, dir.offsetY, dir.offsetZ);
