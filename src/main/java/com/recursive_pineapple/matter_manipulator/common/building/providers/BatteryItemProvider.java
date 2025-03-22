@@ -48,7 +48,7 @@ public class BatteryItemProvider implements IItemProvider {
 
         if (!consume) return stack;
 
-        var result = inv.tryConsumeItems(Arrays.asList(new BigItemStack(stack)), IPseudoInventory.CONSUME_FUZZY);
+        var result = inv.tryConsumeItems(Arrays.asList(BigItemStack.create(stack)), IPseudoInventory.CONSUME_FUZZY);
 
         if (!result.leftBoolean()) return null;
 

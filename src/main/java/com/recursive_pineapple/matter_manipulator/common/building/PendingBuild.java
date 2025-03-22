@@ -239,8 +239,7 @@ public class PendingBuild extends AbstractBuildable {
         if (!first.isFree()) {
             total = toPlace.size() * perBlock.stackSize;
 
-            List<BigItemStack> extractedStacks = tryConsumeItems(Arrays.asList(new BigItemStack(perBlock).setStackSize(total)), CONSUME_PARTIAL)
-                .right();
+            List<BigItemStack> extractedStacks = tryConsumeItems(Arrays.asList(BigItemStack.create(perBlock).setStackSize(total)), CONSUME_PARTIAL).right();
 
             extracted = extractedStacks.isEmpty() ? null : extractedStacks.get(0);
 

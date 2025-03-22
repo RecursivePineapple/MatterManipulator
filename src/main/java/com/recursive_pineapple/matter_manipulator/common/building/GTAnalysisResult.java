@@ -509,9 +509,10 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
             for (ForgeDirection side : ForgeDirection.VALID_DIRECTIONS) {
                 CoverData target = mCovers == null ? null : mCovers[side.ordinal()];
                 Cover actual = gte.getCoverAtSide(side);
+                ItemStack actualItem = gte.getCoverItemAtSide(side);
 
-                if (actual != null && (target == null || ItemStack.areItemStacksEqual(gte.getCoverItemAtSide(side), target.getCoverStack()))) {
-                    context.givePlayerItems(gte.getCoverItemAtSide(side));
+                if (actual != null && (target == null || !ItemStack.areItemStacksEqual(actualItem, target.getCoverStack()))) {
+                    context.givePlayerItems(actualItem);
                     actual = null;
                 }
 

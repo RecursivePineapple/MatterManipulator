@@ -27,13 +27,13 @@ public class BigFluidStack {
 
     public BigFluidStack() {}
 
-    public BigFluidStack(FluidStack stack) {
+    private BigFluidStack(FluidStack stack) {
         this.fluid = stack.getFluid();
         this.amount = stack.amount;
         this.tag = MMUtils.copy(stack.tag);
     }
 
-    public BigFluidStack(FluidId id, long amount) {
+    private BigFluidStack(FluidId id, long amount) {
         this(id.getFluidStack());
         setStackSize(amount);
     }
@@ -57,11 +57,23 @@ public class BigFluidStack {
         return Objects.requireNonNull(AEFluidStack.create(getFluidStack())).setStackSize(amount);
     }
 
+    public static BigFluidStack create(FluidStack stack) {
+        if (stack == null) return null;
+
+        return new BigFluidStack(stack);
+    }
+
+    public static BigFluidStack create(FluidId id, long amount) {
+        if (id == null) return null;
+
+        return new BigFluidStack(id, amount);
+    }
+
     @Method(modid = Names.APPLIED_ENERGISTICS2)
     public static BigFluidStack create(IAEFluidStack stack) {
         if (stack == null) return null;
 
-        return new BigFluidStack(stack.getFluidStack()).setStackSize(stack.getStackSize());
+        return create(stack.getFluidStack()).setStackSize(stack.getStackSize());
     }
 
     public FluidStack remove(int amount) {

@@ -50,7 +50,7 @@ public class PatternItemProvider implements IItemProvider {
         stack.setTagCompound(pattern != null ? (NBTTagCompound) pattern.copy() : null);
 
         if (consume) {
-            if (!inv.tryConsumeItems(Arrays.asList(new BigItemStack(stack)), IPseudoInventory.CONSUME_REAL_ONLY).firstBoolean()) {
+            if (!inv.tryConsumeItems(Arrays.asList(BigItemStack.create(stack)), IPseudoInventory.CONSUME_REAL_ONLY).firstBoolean()) {
                 ItemStack toConsume = BLANK_PATTERN.maybeStack(amount == null ? 1 : amount).get();
                 if (!inv.tryConsumeItems(toConsume)) return null;
             }

@@ -187,7 +187,7 @@ public class MMInventory implements IPseudoInventory {
         }
 
         for (var entry : pendingItems.object2LongEntrySet()) {
-            BigItemStack stack = new BigItemStack(entry.getKey(), entry.getLongValue());
+            BigItemStack stack = BigItemStack.create(entry.getKey(), entry.getLongValue());
 
             if (hasME) {
                 injectItemsIntoAE(stack);
@@ -211,7 +211,7 @@ public class MMInventory implements IPseudoInventory {
         pendingItems.clear();
 
         for (var entry : pendingFluids.object2LongEntrySet()) {
-            BigFluidStack stack = new BigFluidStack(entry.getKey(), entry.getLongValue());
+            BigFluidStack stack = BigFluidStack.create(entry.getKey(), entry.getLongValue());
 
             if (hasME) {
                 injectFluidsIntoAE(stack);
@@ -478,7 +478,7 @@ public class MMInventory implements IPseudoInventory {
                 }
 
                 if (slot.stackSize == 111) {
-                    extractedItems.add(new BigItemStack(slot).setStackSize(req.getStackSize()));
+                    extractedItems.add(BigItemStack.create(slot).setStackSize(req.getStackSize()));
                     req.setStackSize(0);
                     continue;
                 }
@@ -486,7 +486,7 @@ public class MMInventory implements IPseudoInventory {
                 int toRemove = Math.min(slot.stackSize, reqStack.stackSize);
 
                 req.decStackSize(toRemove);
-                extractedItems.add(new BigItemStack(slot).setStackSize(toRemove));
+                extractedItems.add(BigItemStack.create(slot).setStackSize(toRemove));
 
                 if (!simulate) {
                     slot.stackSize -= toRemove;
