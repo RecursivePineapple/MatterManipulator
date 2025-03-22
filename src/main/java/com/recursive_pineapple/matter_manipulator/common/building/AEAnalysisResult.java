@@ -171,7 +171,7 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
                     // change the part into the proper version
                     if (actualItem != null && (expectedItem == null || !Objects.equals(actualItem, expectedItem))) {
                         if (expectedStack != null) {
-                            var result = ctx.tryConsumeItems(Arrays.asList(new BigItemStack(expectedStack)), IPseudoInventory.CONSUME_SIMULATED);
+                            var result = ctx.tryConsumeItems(Arrays.asList(BigItemStack.create(expectedStack)), IPseudoInventory.CONSUME_SIMULATED);
 
                             if (!result.leftBoolean()) {
                                 ctx.warn("Could not extract item: " + expectedStack.getDisplayName());

@@ -150,25 +150,25 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
             32,
             16, 20,
             3,
-            1_000_000d,
+            1_000_000L,
             ALLOW_GEOMETRY),
         Tier1(
             64,
             32, 10,
             5,
-            100_000_000d,
+            100_000_000L,
             ALLOW_GEOMETRY | CONNECTS_TO_AE | ALLOW_REMOVING | ALLOW_EXCHANGING | ALLOW_CONFIGURING | ALLOW_CABLES),
         Tier2(
             128,
             64, 5,
             6,
-            1_000_000_000d,
+            1_000_000_000L,
             ALLOW_GEOMETRY | CONNECTS_TO_AE | ALLOW_REMOVING | ALLOW_EXCHANGING | ALLOW_CONFIGURING | ALLOW_CABLES | ALLOW_COPYING | ALLOW_MOVING),
         Tier3(
             -1,
             GlobalMMConfig.BuildingConfig.mk3BlocksPerPlace, 5,
             7,
-            10_000_000_000d,
+            10_000_000_000L,
             ALLOW_GEOMETRY | CONNECTS_TO_AE | ALLOW_REMOVING | ALLOW_EXCHANGING | ALLOW_CONFIGURING | ALLOW_CABLES | ALLOW_COPYING | ALLOW_MOVING | CONNECTS_TO_UPLINK);
         // spotless:on
 
@@ -176,7 +176,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
         public final int maxRange;
         public final int placeSpeed, placeTicks;
         public final int voltageTier;
-        public final double maxCharge;
+        public final long maxCharge;
         public final int capabilities;
 
         private ManipulatorTier(
@@ -184,7 +184,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
             int placeSpeed,
             int placeTicks,
             int voltageTier,
-            double maxCharge,
+            long maxCharge,
             int capabilities
         ) {
             this.maxRange = maxRange;
@@ -553,7 +553,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
             EnumChatFormatting.AQUA
                 + I18n.format(
                     "mm.tooltip.voltage",
-                    formatNumbers(MathHelper.floor_double_long(state.charge)),
+                    formatNumbers(MMUtils.clamp(Math.round(state.charge), 0, tier.maxCharge)),
                     formatNumbers(tier.maxCharge),
                     formatNumbers(V[tier.voltageTier]))
                 + EnumChatFormatting.GRAY);

@@ -50,18 +50,18 @@ public interface IPseudoInventory {
      * @return True when the items were successfully consumed.
      */
     public default boolean tryConsumeItems(ItemStack... items) {
-        return tryConsumeItems(MMUtils.mapToList(items, BigItemStack::new), 0).leftBoolean();
+        return tryConsumeItems(MMUtils.mapToList(items, BigItemStack::create), 0).leftBoolean();
     }
 
     public void givePlayerItems(List<BigItemStack> items);
 
     public default void givePlayerItems(ItemStack... items) {
-        givePlayerItems(MMUtils.mapToList(items, BigItemStack::new));
+        givePlayerItems(MMUtils.mapToList(items, BigItemStack::create));
     }
 
     public void givePlayerFluids(List<BigFluidStack> fluids);
 
     public default void givePlayerFluids(FluidStack... fluids) {
-        givePlayerFluids(MMUtils.mapToList(fluids, BigFluidStack::new));
+        givePlayerFluids(MMUtils.mapToList(fluids, BigFluidStack::create));
     }
 }

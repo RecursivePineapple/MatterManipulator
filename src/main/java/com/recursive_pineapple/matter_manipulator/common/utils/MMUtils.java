@@ -169,6 +169,10 @@ public class MMUtils {
         return MathHelper.clamp_int(val, lo, hi);
     }
 
+    public static long clamp(long val, long lo, long hi) {
+        return val < lo ? lo : val > hi ? hi : val;
+    }
+
     public static int min(int first, int... rest) {
         for (int i = 0; i < rest.length; i++) {
             int l = rest[i];
@@ -819,7 +823,7 @@ public class MMUtils {
 
         List<BigItemStack> toInstallBig = toInstall.subList(0, Math.min(toInstall.size(), (int) installable))
             .stream()
-            .map(BigItemStack::new)
+            .map(BigItemStack::create)
             .collect(Collectors.toList());
 
         var result = src.tryConsumeItems(toInstallBig, IPseudoInventory.CONSUME_PARTIAL);
@@ -1268,7 +1272,7 @@ public class MMUtils {
 
         List<BigItemStack> requiredItems = mapToList(
             itemAnalysis.requiredItems.entrySet(),
-            e -> new BigItemStack(e.getKey(), e.getValue())
+            e -> BigItemStack.create(e.getKey(), e.getValue())
         );
 
         MMInventory inv = new MMInventory(player, state, manipulator.tier);

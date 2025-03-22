@@ -27,14 +27,14 @@ public class BigItemStack {
 
     public BigItemStack() {}
 
-    public BigItemStack(ItemStack stack) {
+    private BigItemStack(ItemStack stack) {
         this.item = stack.getItem();
         this.stackSize = stack.stackSize;
         this.meta = Items.feather.getDamage(stack);
         this.tag = stack.getTagCompound();
     }
 
-    public BigItemStack(ItemId id, long amount) {
+    private BigItemStack(ItemId id, long amount) {
         this(id.getItemStack());
         setStackSize(amount);
     }
@@ -58,11 +58,23 @@ public class BigItemStack {
         return Objects.requireNonNull(AEItemStack.create(getItemStack())).setStackSize(stackSize);
     }
 
+    public static BigItemStack create(ItemStack stack) {
+        if (stack == null) return null;
+
+        return new BigItemStack(stack);
+    }
+
+    public static BigItemStack create(ItemId id, long amount) {
+        if (id == null) return null;
+
+        return new BigItemStack(id, amount);
+    }
+
     @Method(modid = Names.APPLIED_ENERGISTICS2)
     public static BigItemStack create(IAEItemStack stack) {
         if (stack == null) return null;
 
-        return new BigItemStack(stack.getItemStack()).setStackSize(stack.getStackSize());
+        return create(stack.getItemStack()).setStackSize(stack.getStackSize());
     }
 
     public ItemStack remove(int stackSize) {
