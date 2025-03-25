@@ -37,9 +37,10 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.util.glu.GLU;
 
+import cpw.mods.fml.relauncher.Side;
 import lombok.Setter;
 
-@EventBusSubscriber
+@EventBusSubscriber(side = Side.CLIENT)
 public class RenderHints {
 
     private static final int BYTES_PER_HINT = DefaultVertexFormat.POSITION_TEXTURE_COLOR.getVertexSize() * 4 * 6;
