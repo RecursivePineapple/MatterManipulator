@@ -23,6 +23,7 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.world.WorldEvent;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.relauncher.Side;
 
 import com.gtnewhorizon.gtnhlib.client.renderer.TessellatorManager;
 import com.gtnewhorizon.gtnhlib.client.renderer.quad.QuadView;
@@ -37,7 +38,6 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.util.glu.GLU;
 
-import cpw.mods.fml.relauncher.Side;
 import lombok.Setter;
 
 @EventBusSubscriber(side = Side.CLIENT)
