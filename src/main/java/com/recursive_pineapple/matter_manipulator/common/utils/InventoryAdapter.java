@@ -62,7 +62,11 @@ public enum InventoryAdapter {
         @Optional(Names.GREG_TECH)
         private boolean canHandleImpl(IInventory inv) {
             if (inv instanceof IGregTechTileEntity igte) {
+                if (igte.isDead()) return false;
+
                 IMetaTileEntity imte = igte.getMetaTileEntity();
+
+                if (imte == null) return false;
 
                 if (imte.getClass() == MTEHatchOutputBus.class) return true;
                 if (imte.getClass() == MTEHatchInputBus.class) return true;
