@@ -176,7 +176,8 @@ public class MTEMMUplinkMEHatch extends MTEHatch implements IGridProxyable, IPow
         EntityPlayer aPlayer,
         float aX,
         float aY,
-        float aZ
+        float aZ,
+        ItemStack aTool
     ) {
         additionalConnection = !additionalConnection;
         updateValidGridProxySides();
