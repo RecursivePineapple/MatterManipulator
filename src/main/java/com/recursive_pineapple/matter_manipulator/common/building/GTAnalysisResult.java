@@ -329,28 +329,21 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
                 CoverData expected = mCovers == null ? null : mCovers[dir.ordinal()];
                 Cover actual = gte.getCoverAtSide(dir);
 
-                if (actual == null && expected != null) {
+                if (actual == CoverRegistry.NO_COVER && expected != null) {
                     installCover(ctx, gte, dir, expected);
-                } else if (actual != null && expected == null) {
+                } else if (actual != CoverRegistry.NO_COVER && expected == null) {
                     removeCover(ctx, gte, dir);
-                } else if (actual != null && expected != null) {
+                } else if (actual != CoverRegistry.NO_COVER) {
                     if (!ItemStack.areItemStacksEqual(expected.getCoverStack(), gte.getCoverItemAtSide(dir))) {
                         removeCover(ctx, gte, dir);
                         installCover(ctx, gte, dir, expected);
-                    } else if (!Objects.equals(actual.getCoverData(), expected.getCoverData(actual))) {
+                    } else if (!Objects.equals(actual.writeToNBT(new NBTTagCompound()), expected.coverData)) {
                         updateCover(ctx, gte, dir, expected);
                     }
                 }
 
                 // set the redstone strength
                 gte.setRedstoneOutputStrength(dir, (mStrongRedstone & dir.flag) != 0);
-                if (expected != null) {
-                    actual = gte.getCoverAtSide(dir);
-
-                    if (actual != null) {
-                        setTickRateAddition(actual, expected.tickRateAddition == null ? 0 : expected.tickRateAddition);
-                    }
-                }
             }
 
             // set the custom name
@@ -483,7 +476,11 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
         CoverRegistry.getCoverPlacer(stack).placeCover(context.getRealPlayer(), stack, gte, side);
 
         if (gte.getCoverAtSide(side).allowsCopyPasteTool()) {
-            gte.setCoverDataAtSide(side, cover.getCoverData(gte.getCoverAtSide(side)));
+            gte.updateAttachedCover(
+                cover.coverID,
+                side,
+                cover.coverData
+            );
         }
     }
 
@@ -496,7 +493,11 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
         if (gte.hasCoverAtSide(side) && ItemStack.areItemStacksEqual(gte.getCoverItemAtSide(side), target.getCoverStack())) {
             Cover cover = gte.getCoverAtSide(side);
             if (cover.allowsCopyPasteTool()) {
-                cover.setCoverData(target.getCoverData(cover));
+                gte.updateAttachedCover(
+                    target.coverID,
+                    cover.getSide(),
+                    target.coverData
+                );
             }
         }
     }
@@ -511,7 +512,7 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
                 Cover actual = gte.getCoverAtSide(side);
                 ItemStack actualItem = gte.getCoverItemAtSide(side);
 
-                if (actual != null && (target == null || !ItemStack.areItemStacksEqual(actualItem, target.getCoverStack()))) {
+                if (actual != CoverRegistry.NO_COVER && (target == null || !ItemStack.areItemStacksEqual(actualItem, target.getCoverStack()))) {
                     context.givePlayerItems(actualItem);
                     actual = null;
                 }

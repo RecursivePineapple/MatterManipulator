@@ -1,21 +1,12 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodType;
-
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTTagCompound;
 
 import net.minecraftforge.common.util.ForgeDirection;
 
 import gregtech.api.interfaces.tileentity.ICoverable;
-import gregtech.api.util.ISerializableObject;
 import gregtech.common.covers.Cover;
-import gregtech.common.covers.CoverBehaviorBase;
-
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-
-import lombok.SneakyThrows;
 
 /**
  * Contains all GT cover analysis data.
@@ -23,30 +14,19 @@ import lombok.SneakyThrows;
 public class CoverData {
 
     public PortableItemStack cover;
-    public NBTBase coverData;
-    public Integer tickRateAddition;
+    public int coverID;
+    public NBTTagCompound coverData;
 
     public CoverData() {}
 
-    public CoverData(PortableItemStack cover, NBTBase coverData, int tickRateAddition) {
+    public CoverData(PortableItemStack cover, int coverID, NBTTagCompound coverData) {
         this.cover = cover;
+        this.coverID = coverID;
         this.coverData = coverData;
-        this.tickRateAddition = tickRateAddition == 0 ? null : tickRateAddition;
     }
 
     public ItemStack getCoverStack() {
         return cover.toStack();
-    }
-
-    private static final MethodHandle COVER_LOAD_FROM_NBT = MMUtils.exposeMethod(
-        CoverBehaviorBase.class,
-        MethodType.methodType(ISerializableObject.class, NBTBase.class),
-        "loadFromNbt"
-    );
-
-    @SneakyThrows
-    public ISerializableObject getCoverData(Cover cover) {
-        return (ISerializableObject) COVER_LOAD_FROM_NBT.invokeExact((CoverBehaviorBase<?>) cover, coverData);
     }
 
     @Override
@@ -54,8 +34,8 @@ public class CoverData {
         CoverData dup = new CoverData();
 
         dup.cover = cover.clone();
-        dup.coverData = coverData.copy();
-        dup.tickRateAddition = tickRateAddition;
+        dup.coverID = coverID;
+        dup.coverData = (NBTTagCompound) coverData.copy();
 
         return dup;
     }
@@ -72,8 +52,8 @@ public class CoverData {
 
         return new CoverData(
             PortableItemStack.withNBT(coverable.getCoverItemAtSide(dir)),
-            cover.getCoverData().saveDataToNBT(),
-            cover.getTickRateAddition()
+            cover.getCoverID(),
+            cover.writeToNBT(new NBTTagCompound())
         );
     }
 
@@ -82,8 +62,8 @@ public class CoverData {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((cover == null) ? 0 : cover.hashCode());
+        result = prime * result + coverID;
         result = prime * result + ((coverData == null) ? 0 : coverData.hashCode());
-        result = prime * result + ((tickRateAddition == null) ? 0 : tickRateAddition.hashCode());
         return result;
     }
 
@@ -96,12 +76,10 @@ public class CoverData {
         if (cover == null) {
             if (other.cover != null) return false;
         } else if (!cover.equals(other.cover)) return false;
+        if (other.coverID != coverID) return false;
         if (coverData == null) {
             if (other.coverData != null) return false;
         } else if (!coverData.equals(other.coverData)) return false;
-        if (tickRateAddition == null) {
-            if (other.tickRateAddition != null) return false;
-        } else if (!tickRateAddition.equals(other.tickRateAddition)) return false;
         return true;
     }
 
