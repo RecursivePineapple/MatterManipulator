@@ -8,25 +8,25 @@ import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 
 public interface IntegerProperty extends BlockProperty<Integer> {
 
-    public default Integer getValue(World world, int x, int y, int z) {
+    default Integer getValue(World world, int x, int y, int z) {
         return getInt(world, x, y, z);
     }
 
-    public default void setValue(World world, int x, int y, int z, Integer value) {
-        setInt(world, x, y, z, value.intValue());
+    default void setValue(World world, int x, int y, int z, Integer value) {
+        setInt(world, x, y, z, value);
     }
 
     @Override
-    default Integer parse(String text) throws Exception {
+    default Integer parse(String text) {
         return Integer.parseInt(text);
     }
 
-    public int getInt(World world, int x, int y, int z);
+    int getInt(World world, int x, int y, int z);
 
-    public void setInt(World world, int x, int y, int z, int value);
+    void setInt(World world, int x, int y, int z, int value);
 
-    public default BlockProperty<String> map(List<String> values) {
-        return new BlockProperty<String>() {
+    default BlockProperty<String> map(List<String> values) {
+        return new BlockProperty<>() {
 
             @Override
             public String getName() {
@@ -44,13 +44,13 @@ public interface IntegerProperty extends BlockProperty<Integer> {
             }
 
             @Override
-            public String parse(String text) throws Exception {
+            public String parse(String text) {
                 return text;
             }
         };
     }
 
-    public static IntegerProperty meta(String name, int mask, int shift) {
+    static IntegerProperty meta(String name, int mask, int shift) {
         return new IntegerProperty() {
 
             @Override

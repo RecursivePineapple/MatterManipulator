@@ -24,9 +24,13 @@ public interface DirectionBlockProperty extends BlockProperty<ForgeDirection> {
         return value.name().toLowerCase();
     }
 
-    public static abstract class AbstractDirectionBlockProperty implements DirectionBlockProperty {
+    abstract class AbstractDirectionBlockProperty implements DirectionBlockProperty {
 
-        private String name = "facing";
+        private String name;
+
+        public AbstractDirectionBlockProperty(String name) {
+            this.name = name;
+        }
 
         @Override
         public DirectionBlockProperty setName(String name) {
@@ -38,22 +42,22 @@ public interface DirectionBlockProperty extends BlockProperty<ForgeDirection> {
         public String getName() {
             return name;
         }
-
-        public AbstractDirectionBlockProperty(String name) {
-            this.name = name;
-        }
     }
 
-    public static DirectionBlockProperty facing() {
+    static DirectionBlockProperty facing() {
         return new AbstractDirectionBlockProperty("facing") {
 
             @Override
             public ForgeDirection getValue(World world, int x, int y, int z) {
-                return MMUtils.getIndexSafe(ForgeDirection.VALID_DIRECTIONS, world.getBlockMetadata(x, y, z));
+                ForgeDirection dir = MMUtils.getIndexSafe(ForgeDirection.VALID_DIRECTIONS, world.getBlockMetadata(x, y, z));
+
+                return dir == null ? UNKNOWN : dir;
             }
 
             @Override
             public void setValue(World world, int x, int y, int z, ForgeDirection value) {
+                if (value == UNKNOWN) return;
+
                 world.setBlockMetadataWithNotify(x, y, z, value.ordinal(), 2);
             }
         };
