@@ -55,91 +55,97 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 public class BlockPropertyRegistry {
 
+    public static final Object2ObjectArrayMap<String, BlockProperty<?>> EMPTY_O2O_MAP = new Object2ObjectArrayMap<>();
+
     private BlockPropertyRegistry() {}
 
     public static final Object2ObjectOpenHashMap<Block, Object2ObjectArrayMap<String, BlockProperty<?>>> SPECIFIC_BLOCK_PROPERTIES = new Object2ObjectOpenHashMap<>();
     public static final Object2ObjectOpenHashMap<Class<?>, Object2ObjectArrayMap<String, BlockProperty<?>>> BLOCK_IFACE_PROPERTIES = new Object2ObjectOpenHashMap<>();
     public static final Object2ObjectOpenHashMap<Class<?>, Object2ObjectArrayMap<String, BlockProperty<?>>> TILE_IFACE_PROPERTIES = new Object2ObjectOpenHashMap<>();
 
-    public static final Object2ObjectOpenHashMap<Class<?>, Object2ObjectArrayMap<String, BlockProperty<?>>> CACHED_PROPERTIES = new Object2ObjectOpenHashMap<>();
+    public static final Object2ObjectOpenHashMap<Class<? extends Block>, Object2ObjectArrayMap<String, BlockProperty<?>>> CACHED_BLOCK_PROPS = new Object2ObjectOpenHashMap<>();
+    public static final Object2ObjectOpenHashMap<Class<? extends TileEntity>, Object2ObjectArrayMap<String, BlockProperty<?>>> CACHED_TILE_PROPS = new Object2ObjectOpenHashMap<>();
 
     public static void registerProperty(Block block, BlockProperty<?> property) {
-        SPECIFIC_BLOCK_PROPERTIES.computeIfAbsent(block, x -> new Object2ObjectArrayMap<>()).put(property.getName(), property);
+        SPECIFIC_BLOCK_PROPERTIES.computeIfAbsent(block, x -> EMPTY_O2O_MAP).put(property.getName(), property);
     }
 
     public static void registerProperty(Collection<Block> blocks, BlockProperty<?> property) {
         for (Block block : blocks) {
-            SPECIFIC_BLOCK_PROPERTIES.computeIfAbsent(block, x -> new Object2ObjectArrayMap<>()).put(property.getName(), property);
+            SPECIFIC_BLOCK_PROPERTIES.computeIfAbsent(block, x -> EMPTY_O2O_MAP).put(property.getName(), property);
         }
     }
 
     public static void registerBlockInterfaceProperty(Class<?> iface, BlockProperty<?> property) {
-        BLOCK_IFACE_PROPERTIES.computeIfAbsent(iface, x -> new Object2ObjectArrayMap<>()).put(property.getName(), property);
+        BLOCK_IFACE_PROPERTIES.computeIfAbsent(iface, x -> EMPTY_O2O_MAP).put(property.getName(), property);
     }
 
     public static void registerTileEntityInterfaceProperty(Class<?> iface, BlockProperty<?> property) {
-        TILE_IFACE_PROPERTIES.computeIfAbsent(iface, x -> new Object2ObjectArrayMap<>()).put(property.getName(), property);
+        TILE_IFACE_PROPERTIES.computeIfAbsent(iface, x -> EMPTY_O2O_MAP).put(property.getName(), property);
     }
 
-    private static Map<String, BlockProperty<?>> cacheBlockProperties(Block block) {
-        Class<?> clazz = block.getClass();
+    private static Map<String, BlockProperty<?>> getUnfilteredBlockProperties(Class<? extends Block> clazz) {
 
-        Object2ObjectArrayMap<String, BlockProperty<?>> cache = new Object2ObjectArrayMap<>();
-        CACHED_PROPERTIES.put(clazz, cache);
+        Map<String, BlockProperty<?>> props = CACHED_BLOCK_PROPS.get(clazz);
 
-        var props = SPECIFIC_BLOCK_PROPERTIES.get(block);
-        if (props != null) cache.putAll(props);
+        if (props != null) return props;
+
+        Object2ObjectArrayMap<String, BlockProperty<?>> cache = EMPTY_O2O_MAP;
 
         for (var e : BLOCK_IFACE_PROPERTIES.object2ObjectEntrySet()) {
             if (e.getKey().isAssignableFrom(clazz)) {
-                e.getValue().forEach((name, prop) -> {
-                    if (prop.appliesTo(block)) {
-                        cache.put(name, prop);
-                    }
-                });
+                cache.putAll(e.getValue());
             }
         }
+
+        CACHED_BLOCK_PROPS.put(clazz, cache);
 
         return cache;
     }
 
-    private static Map<String, BlockProperty<?>> cacheTileProperties(TileEntity tile) {
-        Class<?> clazz = tile.getClass();
+    private static Map<String, BlockProperty<?>> getUnfilteredTileProperties(Class<? extends TileEntity> clazz) {
 
-        Object2ObjectArrayMap<String, BlockProperty<?>> cache = new Object2ObjectArrayMap<>();
-        CACHED_PROPERTIES.put(clazz, cache);
+        Map<String, BlockProperty<?>> props = CACHED_TILE_PROPS.get(clazz);
+
+        if (props != null) return props;
+
+        Object2ObjectArrayMap<String, BlockProperty<?>> cache = EMPTY_O2O_MAP;
 
         for (var e : TILE_IFACE_PROPERTIES.object2ObjectEntrySet()) {
             if (e.getKey().isAssignableFrom(clazz)) {
-                e.getValue().forEach((name, prop) -> {
-                    if (prop.appliesTo(tile)) {
-                        cache.put(name, prop);
-                    }
-                });
+                cache.putAll(e.getValue());
             }
         }
+
+        CACHED_TILE_PROPS.put(clazz, cache);
 
         return cache;
     }
 
     public static void getProperties(World world, int x, int y, int z, Map<String, BlockProperty<?>> properties) {
+        properties.clear();
+
         Block block = world.getBlock(x, y, z);
 
-        Map<String, BlockProperty<?>> props = CACHED_PROPERTIES.get(block.getClass());
+        properties.putAll(SPECIFIC_BLOCK_PROPERTIES.getOrDefault(block, EMPTY_O2O_MAP));
 
-        if (props == null) props = cacheBlockProperties(block);
-
-        properties.putAll(props);
+        addPropertiesFiltered(properties, getUnfilteredBlockProperties(block.getClass()), block);
 
         if (block.hasTileEntity(world.getBlockMetadata(x, y, z))) {
             TileEntity tile = world.getTileEntity(x, y, z);
 
             if (tile != null) {
-                props = CACHED_PROPERTIES.get(tile.getClass());
+                addPropertiesFiltered(properties, getUnfilteredTileProperties(tile.getClass()), tile);
+            }
+        }
+    }
 
-                if (props == null) props = cacheTileProperties(tile);
+    private static void addPropertiesFiltered(Map<String, BlockProperty<?>> dest, Map<String, BlockProperty<?>> src, Object filter) {
+        if (src == null) return;
 
-                properties.putAll(props);
+        for (var e : src.entrySet()) {
+            if (filter == null || e.getValue().appliesTo(filter)) {
+                dest.put(e.getKey(), e.getValue());
             }
         }
     }
@@ -147,23 +153,20 @@ public class BlockPropertyRegistry {
     public static BlockProperty<?> getProperty(World world, int x, int y, int z, String name) {
         Block block = world.getBlock(x, y, z);
 
-        Map<String, BlockProperty<?>> props = CACHED_PROPERTIES.get(block.getClass());
+        BlockProperty<?> prop;
 
-        if (props == null) props = cacheBlockProperties(block);
+        prop = SPECIFIC_BLOCK_PROPERTIES.get(block).get(name);
+        if (prop != null && prop.appliesTo(block)) return prop;
 
-        BlockProperty<?> prop = props.get(name);
-        if (prop != null) return prop;
+        prop = getUnfilteredBlockProperties(block.getClass()).get(name);
+        if (prop != null && prop.appliesTo(block)) return prop;
 
         if (block.hasTileEntity(world.getBlockMetadata(x, y, z))) {
             TileEntity tile = world.getTileEntity(x, y, z);
 
             if (tile != null) {
-                props = CACHED_PROPERTIES.get(tile.getClass());
-
-                if (props == null) props = cacheTileProperties(tile);
-
-                prop = props.get(name);
-                if (prop != null) return prop;
+                prop = getUnfilteredTileProperties(tile.getClass()).get(name);
+                if (prop != null && prop.appliesTo(tile)) return prop;
             }
         }
 
@@ -428,7 +431,7 @@ public class BlockPropertyRegistry {
         registerProperty(Blocks.wall_sign, DirectionBlockProperty.facing());
         registerProperty(
             Blocks.standing_sign,
-            new IntegerProperty() {
+            new FloatProperty() {
 
                 @Override
                 public String getName() {
@@ -436,13 +439,13 @@ public class BlockPropertyRegistry {
                 }
 
                 @Override
-                public int getInt(World world, int x, int y, int z) {
-                    return world.getBlockMetadata(x, y, z) * 360 / 16;
+                public float getFloat(World world, int x, int y, int z) {
+                    return world.getBlockMetadata(x, y, z) * 360f / 16f;
                 }
 
                 @Override
-                public void setInt(World world, int x, int y, int z, int value) {
-                    int meta = value * 16 / 360;
+                public void setFloat(World world, int x, int y, int z, float value) {
+                    int meta = (Math.round(value * 16f / 360f) % 16 + 16) % 16;
 
                     world.setBlockMetadataWithNotify(x, y, z, meta, 2);
                 }
