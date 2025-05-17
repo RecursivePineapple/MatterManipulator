@@ -58,8 +58,8 @@ dependencies {
     compileOnly("com.github.GTNewHorizons:waila:1.8.4:dev") { transitive = false }
     compileOnly("com.github.GTNewHorizons:FloodLights:1.5.3:dev") { transitive = false }
 
-    compileOnly deobf("https://www.immibis.com/minecraft/series1/i-understand-the-license-has-probably-changed/immibis-microblocks-59.1.2.jar", "immibis-microblocks-59.1.2")
-    compileOnly deobf("https://www.immibis.com/minecraft/series1/i-understand-the-license-has-probably-changed/immibis-core-59.1.4.jar", "immibis-core-59.1.4")
+    compileOnly rfg.deobf("maven.modrinth:immibis-microblocks:59.1.2")
+    compileOnly rfg.deobf("maven.modrinth:immibis-core:59.1.4")
 
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:ArchitectureCraft:1.10.2")
     runtimeOnlyNonPublishable('com.github.GTNewHorizons:Angelica:1.0.0-beta42:dev')
