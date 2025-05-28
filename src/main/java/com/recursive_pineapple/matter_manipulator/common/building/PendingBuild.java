@@ -52,11 +52,11 @@ import it.unimi.dsi.fastutil.longs.LongList;
  */
 public class PendingBuild extends AbstractBuildable {
 
-    private Deque<PendingBlock> pendingBlocks;
-    private HashSet<Long> visited = new HashSet<>();
+    private final Deque<PendingBlock> pendingBlocks;
+    private final HashSet<Long> visited = new HashSet<>();
 
-    private LongList errors = new LongArrayList();
-    private LongList warnings = new LongArrayList();
+    private final LongList errors = new LongArrayList();
+    private final LongList warnings = new LongArrayList();
 
     public PendingBuild(
         EntityPlayer player,
@@ -86,7 +86,7 @@ public class PendingBuild extends AbstractBuildable {
         BlockSpec pooled = new BlockSpec();
 
         // check every pending block that's left
-        while (toPlace.size() < tier.placeSpeed && pendingBlocks.size() > 0) {
+        while (toPlace.size() < tier.placeSpeed && !pendingBlocks.isEmpty()) {
             PendingBlock next = pendingBlocks.getFirst();
 
             int x = next.x, y = next.y, z = next.z;
@@ -239,7 +239,7 @@ public class PendingBuild extends AbstractBuildable {
 
         // if the block we're placing isn't free (ae cable busses) we need to consume it
         if (!first.isFree()) {
-            total = toPlace.size() * perBlock.stackSize;
+            total = toPlace.size() * (long) perBlock.stackSize;
 
             List<BigItemStack> extractedStacks = tryConsumeItems(Arrays.asList(BigItemStack.create(perBlock).setStackSize(total)), CONSUME_PARTIAL).right();
 

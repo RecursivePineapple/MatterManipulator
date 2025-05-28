@@ -9,6 +9,8 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import net.minecraft.block.Block;
@@ -32,13 +34,27 @@ import net.minecraft.block.BlockStairs;
 import net.minecraft.block.BlockTorch;
 import net.minecraft.block.BlockTrapDoor;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntitySign;
 import net.minecraft.tileentity.TileEntitySkull;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
 import net.minecraftforge.common.util.ForgeDirection;
 
+import gregtech.api.GregTechAPI;
+import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
+import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
+import gregtech.common.blocks.ItemMachines;
+import gregtech.common.tileentities.machines.MTEHatchOutputBusME;
+import gregtech.common.tileentities.machines.MTEHatchOutputME;
+
+import appeng.util.ReadableNumberConverter;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.compat.BooleanProperty.FlagBooleanProperty;
 import com.recursive_pineapple.matter_manipulator.common.compat.DirectionBlockProperty.AbstractDirectionBlockProperty;
@@ -52,36 +68,39 @@ import gcewing.architecture.common.tile.TileArchitecture;
 import ic2.api.tile.IWrenchable;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
+import lombok.SneakyThrows;
 
 public class BlockPropertyRegistry {
 
-    public static final Object2ObjectArrayMap<String, BlockProperty<?>> EMPTY_O2O_MAP = new Object2ObjectArrayMap<>();
+    public static final Map<String, BlockProperty<?>> EMPTY_O2O_MAP = Collections.emptyMap();
 
     private BlockPropertyRegistry() {}
 
-    public static final Object2ObjectOpenHashMap<Block, Object2ObjectArrayMap<String, BlockProperty<?>>> SPECIFIC_BLOCK_PROPERTIES = new Object2ObjectOpenHashMap<>();
-    public static final Object2ObjectOpenHashMap<Class<?>, Object2ObjectArrayMap<String, BlockProperty<?>>> BLOCK_IFACE_PROPERTIES = new Object2ObjectOpenHashMap<>();
-    public static final Object2ObjectOpenHashMap<Class<?>, Object2ObjectArrayMap<String, BlockProperty<?>>> TILE_IFACE_PROPERTIES = new Object2ObjectOpenHashMap<>();
+    public static final Object2ObjectOpenHashMap<Block, Map<String, BlockProperty<?>>> SPECIFIC_BLOCK_PROPERTIES = new Object2ObjectOpenHashMap<>();
+    public static final Object2ObjectOpenHashMap<Class<?>, Map<String, BlockProperty<?>>> BLOCK_IFACE_PROPERTIES = new Object2ObjectOpenHashMap<>();
+    public static final Object2ObjectOpenHashMap<Class<?>, Map<String, BlockProperty<?>>> TILE_IFACE_PROPERTIES = new Object2ObjectOpenHashMap<>();
 
-    public static final Object2ObjectOpenHashMap<Class<? extends Block>, Object2ObjectArrayMap<String, BlockProperty<?>>> CACHED_BLOCK_PROPS = new Object2ObjectOpenHashMap<>();
-    public static final Object2ObjectOpenHashMap<Class<? extends TileEntity>, Object2ObjectArrayMap<String, BlockProperty<?>>> CACHED_TILE_PROPS = new Object2ObjectOpenHashMap<>();
+    public static final Object2ObjectOpenHashMap<Class<? extends Block>, Map<String, BlockProperty<?>>> CACHED_BLOCK_PROPS = new Object2ObjectOpenHashMap<>();
+    public static final Object2ObjectOpenHashMap<Class<? extends TileEntity>, Map<String, BlockProperty<?>>> CACHED_TILE_PROPS = new Object2ObjectOpenHashMap<>();
 
     public static void registerProperty(Block block, BlockProperty<?> property) {
-        SPECIFIC_BLOCK_PROPERTIES.computeIfAbsent(block, x -> EMPTY_O2O_MAP).put(property.getName(), property);
+        SPECIFIC_BLOCK_PROPERTIES.computeIfAbsent(block, x -> new Object2ObjectArrayMap<>()).put(property.getName(), property);
     }
 
     public static void registerProperty(Collection<Block> blocks, BlockProperty<?> property) {
         for (Block block : blocks) {
-            SPECIFIC_BLOCK_PROPERTIES.computeIfAbsent(block, x -> EMPTY_O2O_MAP).put(property.getName(), property);
+            registerProperty(block, property);
         }
     }
 
     public static void registerBlockInterfaceProperty(Class<?> iface, BlockProperty<?> property) {
-        BLOCK_IFACE_PROPERTIES.computeIfAbsent(iface, x -> EMPTY_O2O_MAP).put(property.getName(), property);
+        BLOCK_IFACE_PROPERTIES.computeIfAbsent(iface, x -> new Object2ObjectArrayMap<>()).put(property.getName(), property);
     }
 
     public static void registerTileEntityInterfaceProperty(Class<?> iface, BlockProperty<?> property) {
-        TILE_IFACE_PROPERTIES.computeIfAbsent(iface, x -> EMPTY_O2O_MAP).put(property.getName(), property);
+        TILE_IFACE_PROPERTIES.computeIfAbsent(iface, x -> new Object2ObjectArrayMap<>()).put(property.getName(), property);
     }
 
     private static Map<String, BlockProperty<?>> getUnfilteredBlockProperties(Class<? extends Block> clazz) {
@@ -90,13 +109,15 @@ public class BlockPropertyRegistry {
 
         if (props != null) return props;
 
-        Object2ObjectArrayMap<String, BlockProperty<?>> cache = EMPTY_O2O_MAP;
+        Map<String, BlockProperty<?>> cache = new Object2ObjectArrayMap<>();
 
         for (var e : BLOCK_IFACE_PROPERTIES.object2ObjectEntrySet()) {
             if (e.getKey().isAssignableFrom(clazz)) {
                 cache.putAll(e.getValue());
             }
         }
+
+        cache = cache.isEmpty() ? EMPTY_O2O_MAP : Collections.unmodifiableMap(cache);
 
         CACHED_BLOCK_PROPS.put(clazz, cache);
 
@@ -109,13 +130,15 @@ public class BlockPropertyRegistry {
 
         if (props != null) return props;
 
-        Object2ObjectArrayMap<String, BlockProperty<?>> cache = EMPTY_O2O_MAP;
+        Map<String, BlockProperty<?>> cache = new Object2ObjectArrayMap<>();
 
         for (var e : TILE_IFACE_PROPERTIES.object2ObjectEntrySet()) {
             if (e.getKey().isAssignableFrom(clazz)) {
                 cache.putAll(e.getValue());
             }
         }
+
+        cache = cache.isEmpty() ? EMPTY_O2O_MAP : Collections.unmodifiableMap(cache);
 
         CACHED_TILE_PROPS.put(clazz, cache);
 
@@ -127,7 +150,8 @@ public class BlockPropertyRegistry {
 
         Block block = world.getBlock(x, y, z);
 
-        properties.putAll(SPECIFIC_BLOCK_PROPERTIES.getOrDefault(block, EMPTY_O2O_MAP));
+        Map<String, BlockProperty<?>> props = SPECIFIC_BLOCK_PROPERTIES.get(block);
+        if (props != null) properties.putAll(props);
 
         addPropertiesFiltered(properties, getUnfilteredBlockProperties(block.getClass()), block);
 
@@ -150,27 +174,72 @@ public class BlockPropertyRegistry {
         }
     }
 
-    public static BlockProperty<?> getProperty(World world, int x, int y, int z, String name) {
-        Block block = world.getBlock(x, y, z);
+    public static final Map<Block, List<IntrinsicProperty>> INTRINSIC_PROPERTIES = new Reference2ObjectArrayMap<>();
 
-        BlockProperty<?> prop;
+    public static void registerIntrinsicProperty(Block block, IntrinsicProperty property) {
+        List<IntrinsicProperty> m = INTRINSIC_PROPERTIES.computeIfAbsent(block, x -> new ObjectArrayList<>());
 
-        prop = SPECIFIC_BLOCK_PROPERTIES.get(block).get(name);
-        if (prop != null && prop.appliesTo(block)) return prop;
+        m.add(property);
+    }
 
-        prop = getUnfilteredBlockProperties(block.getClass()).get(name);
-        if (prop != null && prop.appliesTo(block)) return prop;
+    public static void getIntrinsicProperties(IBlockAccess world, int x, int y, int z, Collection<IntrinsicProperty> props) {
+        props.clear();
 
-        if (block.hasTileEntity(world.getBlockMetadata(x, y, z))) {
-            TileEntity tile = world.getTileEntity(x, y, z);
+        List<IntrinsicProperty> unfiltered = INTRINSIC_PROPERTIES.get(world.getBlock(x, y, z));
 
-            if (tile != null) {
-                prop = getUnfilteredTileProperties(tile.getClass()).get(name);
-                if (prop != null && prop.appliesTo(tile)) return prop;
+        if (unfiltered != null) {
+            for (IntrinsicProperty prop : unfiltered) {
+                if (prop.hasValue(world, x, y, z)) props.add(prop);
             }
         }
+    }
 
-        return null;
+    public static void getIntrinsicProperties(IBlockAccess world, int x, int y, int z, Map<String, IntrinsicProperty> props) {
+        props.clear();
+
+        List<IntrinsicProperty> unfiltered = INTRINSIC_PROPERTIES.get(world.getBlock(x, y, z));
+
+        if (unfiltered != null) {
+            for (IntrinsicProperty prop : unfiltered) {
+                if (prop.hasValue(world, x, y, z)) props.put(prop.getName(), prop);
+            }
+        }
+    }
+
+    public static void getIntrinsicProperties(ItemStack stack, Collection<IntrinsicProperty> props) {
+        props.clear();
+
+        if (stack == null) return;
+
+        Block block = MMUtils.getBlockFromItem(stack.getItem(), stack.itemDamage);
+
+        if (block == null) return;
+
+        List<IntrinsicProperty> unfiltered = INTRINSIC_PROPERTIES.get(block);
+
+        if (unfiltered != null) {
+            for (IntrinsicProperty prop : unfiltered) {
+                if (prop.hasValue(stack)) props.add(prop);
+            }
+        }
+    }
+
+    public static void getIntrinsicProperties(ItemStack stack, Map<String, IntrinsicProperty> props) {
+        props.clear();
+
+        if (stack == null) return;
+
+        Block block = MMUtils.getBlockFromItem(stack.getItem(), stack.itemDamage);
+
+        if (block == null) return;
+
+        List<IntrinsicProperty> unfiltered = INTRINSIC_PROPERTIES.get(block);
+
+        if (unfiltered != null) {
+            for (IntrinsicProperty prop : unfiltered) {
+                if (prop.hasValue(stack)) props.put(prop.getName(), prop);
+            }
+        }
     }
 
     public static void init() {
@@ -180,6 +249,7 @@ public class BlockPropertyRegistry {
         if (Mods.IndustrialCraft2.isModLoaded()) initIC2();
         if (Mods.ArchitectureCraft.isModLoaded()) initArch();
         if (Mods.FloodLights.isModLoaded()) initFloodLights();
+        if (Mods.GregTech.isModLoaded()) initGT5u();
     }
 
     // #region Vanilla
@@ -977,71 +1047,213 @@ public class BlockPropertyRegistry {
 
     // #endregion
 
+    // #region GT5u
+
+    @Optional(Names.GREG_TECH)
+    private static void initGT5u() {
+        registerIntrinsicProperty(GregTechAPI.sBlockMachines, new MEHatchCapacityProperty<>(MTEHatchOutputBusME.class));
+        registerIntrinsicProperty(GregTechAPI.sBlockMachines, new MEHatchCapacityProperty<>(MTEHatchOutputME.class));
+    }
+
+    // #endregion
+
+    @SneakyThrows
     public static DirectionBlockProperty methodIntDirectionTile(Class<?> clazz, String getterName, String setterName) {
-        try {
-            Method getter = clazz.getDeclaredMethod(getterName);
-            Method setter = clazz.getDeclaredMethod(setterName, int.class);
+        Method getter = clazz.getDeclaredMethod(getterName);
+        Method setter = clazz.getDeclaredMethod(setterName, int.class);
 
-            final MethodHandles.Lookup lookup = MethodHandles.lookup();
-            MethodHandle getterHandle = lookup.unreflect(getter);
-            MethodHandle setterHandle = lookup.unreflect(setter);
+        final MethodHandles.Lookup lookup = MethodHandles.lookup();
+        MethodHandle getterHandle = lookup.unreflect(getter);
+        MethodHandle setterHandle = lookup.unreflect(setter);
 
-            interface Getter {
+        interface Getter {
 
-                public int get(Object tile);
-            }
-
-            interface Setter {
-
-                public void set(Object tile, int side);
-            }
-
-            Getter getterFn = (Getter) LambdaMetafactory
-                .metafactory(
-                    lookup,
-                    "get",
-                    MethodType.methodType(Getter.class),
-                    MethodType.methodType(int.class, Object.class),
-                    getterHandle,
-                    getterHandle.type()
-                )
-                .getTarget()
-                .invokeExact();
-            Setter setterFn = (Setter) LambdaMetafactory
-                .metafactory(
-                    lookup,
-                    "set",
-                    MethodType.methodType(Setter.class),
-                    MethodType.methodType(void.class, Object.class, int.class),
-                    setterHandle,
-                    setterHandle.type()
-                )
-                .getTarget()
-                .invokeExact();
-
-            return new AbstractDirectionBlockProperty("facing") {
-
-                @Override
-                public ForgeDirection getValue(World world, int x, int y, int z) {
-                    TileEntity tile = world.getTileEntity(x, y, z);
-
-                    return ForgeDirection.getOrientation(getterFn.get(tile));
-                }
-
-                @Override
-                public void setValue(World world, int x, int y, int z, ForgeDirection value) {
-                    TileEntity tile = world.getTileEntity(x, y, z);
-
-                    setterFn.set(tile, value.ordinal());
-
-                    tile.markDirty();
-                    world.markBlockForUpdate(x, y, z);
-                }
-            };
-        } catch (Throwable t) {
-            t.printStackTrace();
+            int get(Object tile);
         }
 
-        return null;
+        interface Setter {
+
+            void set(Object tile, int side);
+        }
+
+        Getter getterFn = (Getter) LambdaMetafactory
+            .metafactory(
+                lookup,
+                "get",
+                MethodType.methodType(Getter.class),
+                MethodType.methodType(int.class, Object.class),
+                getterHandle,
+                getterHandle.type()
+            )
+            .getTarget()
+            .invokeExact();
+        Setter setterFn = (Setter) LambdaMetafactory
+            .metafactory(
+                lookup,
+                "set",
+                MethodType.methodType(Setter.class),
+                MethodType.methodType(void.class, Object.class, int.class),
+                setterHandle,
+                setterHandle.type()
+            )
+            .getTarget()
+            .invokeExact();
+
+        return new AbstractDirectionBlockProperty("facing") {
+
+            @Override
+            public ForgeDirection getValue(World world, int x, int y, int z) {
+                TileEntity tile = world.getTileEntity(x, y, z);
+
+                return ForgeDirection.getOrientation(getterFn.get(tile));
+            }
+
+            @Override
+            public void setValue(World world, int x, int y, int z, ForgeDirection value) {
+                TileEntity tile = world.getTileEntity(x, y, z);
+
+                setterFn.set(tile, value.ordinal());
+
+                tile.markDirty();
+                world.markBlockForUpdate(x, y, z);
+            }
+        };
+    }
+
+    public static abstract class IntrinsicMTEProperty<MTE extends IMetaTileEntity> implements IntrinsicProperty {
+
+        public final Class<MTE> clazz;
+
+        public IntrinsicMTEProperty(Class<MTE> clazz) {
+            this.clazz = clazz;
+        }
+
+        @Override
+        public boolean hasValue(ItemStack stack) {
+            if (stack == null) return false;
+            if (!(stack.getItem() instanceof ItemMachines machines)) return false;
+
+            var mte = MMUtils.getIndexSafe(GregTechAPI.METATILEENTITIES, machines.getDamage(stack));
+
+            if (mte == null) return false;
+
+            return clazz.isAssignableFrom(mte.getClass());
+        }
+
+        @Override
+        public boolean hasValue(IBlockAccess world, int x, int y, int z) {
+            if (!(world.getTileEntity(x, y, z) instanceof IGregTechTileEntity igte)) return false;
+
+            IMetaTileEntity mte = igte.getMetaTileEntity();
+
+            if (mte == null || igte.isDead()) return false;
+
+            return clazz.isAssignableFrom(mte.getClass());
+        }
+
+        @Override
+        public JsonElement getValue(IBlockAccess world, int x, int y, int z) {
+            if (!(world.getTileEntity(x, y, z) instanceof IGregTechTileEntity igte)) return null;
+
+            IMetaTileEntity mte = igte.getMetaTileEntity();
+
+            if (mte == null || igte.isDead()) return null;
+            if (!clazz.isAssignableFrom(mte.getClass())) return null;
+
+            MTE casted = clazz.cast(mte);
+
+            return getValue(casted);
+        }
+
+        @Override
+        public void setValue(IBlockAccess world, int x, int y, int z, JsonElement value) {
+            if (!(world.getTileEntity(x, y, z) instanceof IGregTechTileEntity igte)) return;
+
+            IMetaTileEntity mte = igte.getMetaTileEntity();
+
+            if (mte == null || igte.isDead()) return;
+            if (!clazz.isAssignableFrom(mte.getClass())) return;
+
+            MTE casted = clazz.cast(mte);
+
+            setValue(casted, value);
+        }
+
+        public abstract JsonElement getValue(MTE mte);
+
+        public abstract void setValue(MTE mte, JsonElement value);
+
+        @Override
+        public JsonElement getValue(ItemStack stack) {
+            NBTTagCompound tag = stack.getTagCompound();
+
+            if (tag == null) return null;
+
+            return getValue(tag);
+        }
+
+        @Override
+        public void setValue(ItemStack stack, JsonElement value) {
+            NBTTagCompound tag = stack.getTagCompound();
+
+            if (tag == null) {
+                stack.setTagCompound(tag = new NBTTagCompound());
+            }
+
+            setValue(tag, value);
+        }
+
+        public abstract JsonElement getValue(NBTTagCompound itemTag);
+
+        public abstract void setValue(NBTTagCompound itemTag, JsonElement value);
+    }
+
+    private static class MEHatchCapacityProperty<MTE extends IMetaTileEntity> extends IntrinsicMTEProperty<MTE> {
+
+        public static final String KEY = "baseCapacity";
+        public static final int BASE_CAPACITY = 1600;
+
+        public MEHatchCapacityProperty(Class<MTE> clazz) {
+            super(clazz);
+        }
+
+        @Override
+        public String getName() {
+            return "capacity";
+        }
+
+        @Override
+        public JsonElement getValue(MTE mte) {
+            NBTTagCompound tag = new NBTTagCompound();
+            mte.setItemNBT(tag);
+            long capacity = tag.hasKey(KEY) ? tag.getLong(KEY) : BASE_CAPACITY;
+            return new JsonPrimitive(capacity);
+        }
+
+        @Override
+        public void setValue(MTE mte, JsonElement value) {
+            throw new UnsupportedOperationException("bus capacity is fixed and cannot be changed");
+        }
+
+        @Override
+        public JsonElement getValue(NBTTagCompound itemTag) {
+            long capacity = itemTag.hasKey(KEY) ? itemTag.getLong(KEY) : BASE_CAPACITY;
+            return new JsonPrimitive(capacity);
+        }
+
+        @Override
+        public void setValue(NBTTagCompound itemTag, JsonElement value) {
+            if (value.getAsLong() == BASE_CAPACITY) {
+                itemTag.removeTag(KEY);
+            } else {
+                itemTag.setLong(KEY, value.getAsLong());
+            }
+        }
+
+        @Override
+        public void getItemDetails(List<String> details, JsonElement value) {
+            ReadableNumberConverter nc = ReadableNumberConverter.INSTANCE;
+            details.add(String.format("cache capacity: %s", nc.toWideReadableForm(value.getAsLong())));
+        }
     }
 }

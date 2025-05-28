@@ -126,6 +126,8 @@ public class PendingBlock extends Location {
     private String getItemDetails() {
         List<String> details = new ArrayList<>(0);
 
+        spec.getItemDetails(details);
+
         for (var analysis : getIntegrations()) {
             analysis.getItemDetails(details);
         }

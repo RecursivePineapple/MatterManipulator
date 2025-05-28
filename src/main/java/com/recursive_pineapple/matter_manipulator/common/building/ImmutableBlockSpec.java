@@ -1,6 +1,7 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 
 import net.minecraft.block.Block;
@@ -16,44 +17,46 @@ import com.recursive_pineapple.matter_manipulator.common.utils.ItemId;
 
 public interface ImmutableBlockSpec extends ImmutableItemMeta {
 
-    public UniqueIdentifier getObjectId();
+    UniqueIdentifier getObjectId();
 
-    public Block getBlock();
+    Block getBlock();
 
-    public Item getItem();
+    Item getItem();
 
-    public ItemId getItemId();
+    ItemId getItemId();
 
-    public int getMeta();
+    int getMeta();
 
-    public int getBlockMeta();
+    int getBlockMeta();
 
-    public ItemStack getStack();
+    ItemStack getStack();
 
-    public PendingBlock instantiate(int worldId, int x, int y, int z);
+    PendingBlock instantiate(int worldId, int x, int y, int z);
 
-    public default PendingBlock instantiate(World world, int x, int y, int z) {
+    default PendingBlock instantiate(World world, int x, int y, int z) {
         return instantiate(world.provider.dimensionId, x, y, z);
     }
 
-    public String getProperty(CopyableProperty property);
+    String getProperty(CopyableProperty property);
 
-    public ImmutableBlockSpec withProperties(Map<CopyableProperty, String> properties);
+    ImmutableBlockSpec withProperties(Map<CopyableProperty, String> properties);
 
-    public default boolean isEquivalent(ImmutableBlockSpec other) {
+    default boolean isEquivalent(ImmutableBlockSpec other) {
         return ItemStack.areItemStacksEqual(getStack(), other.getStack());
     }
 
     /** Returns true when this contains air. BlockSpecs may be air if an invalid block was analyzed. */
-    public default boolean isAir() {
+    default boolean isAir() {
         return getObjectId() == null || getBlock() == null || getBlock() == Blocks.air;
     }
 
-    public default boolean shouldBeSkipped() {
+    default boolean shouldBeSkipped() {
         return InteropConstants.shouldBeSkipped(getBlock(), getBlockMeta());
     }
 
-    public static Comparator<ImmutableBlockSpec> getComparator() {
+    void getItemDetails(List<String> details);
+
+    static Comparator<ImmutableBlockSpec> getComparator() {
         Comparator<UniqueIdentifier> blockId = Comparator.nullsFirst(
             Comparator.comparing((UniqueIdentifier id) -> id.modId)
                 .thenComparing(id -> id.name)

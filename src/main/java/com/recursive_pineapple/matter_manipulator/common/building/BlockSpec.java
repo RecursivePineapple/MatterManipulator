@@ -3,20 +3,17 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.ArchitectureCraft;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Random;
 
 import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -27,9 +24,12 @@ import net.minecraft.world.World;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
 
+import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
+import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.common.compat.BlockProperty;
 import com.recursive_pineapple.matter_manipulator.common.compat.BlockPropertyRegistry;
+import com.recursive_pineapple.matter_manipulator.common.compat.IntrinsicProperty;
 import com.recursive_pineapple.matter_manipulator.common.utils.ItemId;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
@@ -61,6 +61,9 @@ public class BlockSpec implements ImmutableBlockSpec {
     @SerializedName("a")
     public ArchitectureCraftAnalysisResult arch;
 
+    @SerializedName("i")
+    public Map<String, JsonElement> intrinsicProperties;
+
     private transient Block block;
     private transient Optional<Item> item;
     private transient Optional<ItemId> itemId;
@@ -79,6 +82,7 @@ public class BlockSpec implements ImmutableBlockSpec {
         item = null;
         itemId = null;
         stack = null;
+        intrinsicProperties = null;
         if (ArchitectureCraft.isModLoaded()) arch = null;
 
         return this;
@@ -98,7 +102,19 @@ public class BlockSpec implements ImmutableBlockSpec {
         reset();
         this.isBlock = false;
         this.objectId = GameRegistry.findUniqueIdentifierFor(stack.getItem());
-        this.metadata = Items.feather.getDamage(stack);
+        this.metadata = stack.itemDamage;
+
+        List<IntrinsicProperty> props = new ArrayList<>();
+
+        BlockPropertyRegistry.getIntrinsicProperties(stack, props);
+
+        if (!props.isEmpty()) {
+            this.intrinsicProperties = new Object2ObjectOpenHashMap<>();
+
+            for (IntrinsicProperty prop : props) {
+                intrinsicProperties.put(prop.getName(), prop.getValue(stack));
+            }
+        }
 
         return this;
     }
@@ -199,15 +215,53 @@ public class BlockSpec implements ImmutableBlockSpec {
             }
 
             if (this.stack.isPresent()) {
+                ItemStack stack2 = this.stack.get();
+
                 NBTTagCompound tag = new NBTTagCompound();
+                stack2.setTagCompound(tag);
 
                 if (ArchitectureCraft.isModLoaded() && arch != null) arch.getItemTag(tag);
 
-                this.stack.get().setTagCompound(tag.hasNoTags() ? null : tag);
+                if (intrinsicProperties != null) {
+                    Map<String, IntrinsicProperty> props = new Object2ObjectOpenHashMap<>();
+                    BlockPropertyRegistry.getIntrinsicProperties(stack, props);
+
+                    for (var e : intrinsicProperties.entrySet()) {
+                        IntrinsicProperty prop = props.get(e.getKey());
+
+                        if (prop == null) {
+                            MMMod.LOG.warn(
+                                "Tried to set intrinsic property {} on an item, but the property is not registered to that item.\nValue={}\nItem={}",
+                                e.getKey(),
+                                e.getValue(),
+                                stack.getDisplayName(),
+                                new Exception()
+                            );
+                            continue;
+                        }
+
+                        prop.setValue(stack, e.getValue());
+                    }
+                }
+
+                if (stack2.getTagCompound().hasNoTags()) stack2.setTagCompound(null);
             }
         }
 
         return ItemStack.copyItemStack(this.stack.orElse(null));
+    }
+
+    public void getItemDetails(List<String> details) {
+        Map<String, IntrinsicProperty> props = new Object2ObjectOpenHashMap<>();
+        BlockPropertyRegistry.getIntrinsicProperties(getStack(), props);
+
+        for (var e : intrinsicProperties.entrySet()) {
+            IntrinsicProperty prop = props.get(e.getKey());
+
+            if (prop == null) continue;
+
+            prop.getItemDetails(details, e.getValue());
+        }
     }
 
     @Override
@@ -258,6 +312,8 @@ public class BlockSpec implements ImmutableBlockSpec {
     private String getItemDetails() {
         List<String> details = new ArrayList<>(0);
 
+        getItemDetails(details);
+
         if (ArchitectureCraft.isModLoaded() && arch != null) arch.getItemDetails(details);
 
         return details.isEmpty() ? "" : String.format(" (%s)", String.join(", ", details));
@@ -268,39 +324,27 @@ public class BlockSpec implements ImmutableBlockSpec {
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + (isBlock ? 1231 : 1237);
-        result = prime * result + ((objectId == null) ? 0 : objectId.hashCode());
-        result = prime * result + metadata;
-        result = prime * result + ((properties == null) ? 0 : properties.hashCode());
-        if (ArchitectureCraft.isModLoaded()) {
-            result = prime * result + ((arch == null) ? 0 : arch.hashCode());
-        }
-        return result;
+    public final boolean equals(Object o) {
+        if (!(o instanceof BlockSpec blockSpec)) return false;
+
+        return isBlock == blockSpec.isBlock && metadata == blockSpec.metadata &&
+            getBlock() == blockSpec.getBlock() &&
+            Objects.equals(objectId, blockSpec.objectId) &&
+            Objects.equals(properties, blockSpec.properties) &&
+            Objects.equals(arch, blockSpec.arch) &&
+            Objects.equals(intrinsicProperties, blockSpec.intrinsicProperties);
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
-        BlockSpec other = (BlockSpec) obj;
-        if (isBlock != other.isBlock) return false;
-        if (objectId == null) {
-            if (other.objectId != null) return false;
-        } else if (!objectId.equals(other.objectId)) return false;
-        if (metadata != other.metadata) return false;
-        if (properties == null) {
-            if (other.properties != null) return false;
-        } else if (!properties.equals(other.properties)) return false;
-        if (ArchitectureCraft.isModLoaded()) {
-            if (arch == null) {
-                if (other.arch != null) return false;
-            } else if (!arch.equals(other.arch)) return false;
-        }
-        return true;
+    public int hashCode() {
+        int result = Boolean.hashCode(isBlock);
+        result = 31 * result + objectId.hashCode();
+        result = 31 * result + metadata;
+        result = 31 * result + Objects.hashCode(properties);
+        result = 31 * result + Objects.hashCode(arch);
+        result = 31 * result + Objects.hashCode(intrinsicProperties);
+        result = 31 * result + getBlock().hashCode();
+        return result;
     }
 
     @Override
@@ -322,22 +366,6 @@ public class BlockSpec implements ImmutableBlockSpec {
             + ", stack="
             + stack
             + "]";
-    }
-
-    public static boolean contains(Collection<BlockSpec> specs, BlockSpec spec) {
-        for (BlockSpec candidate : specs) {
-            if (candidate != null && candidate.equals(spec)) return true;
-        }
-
-        return false;
-    }
-
-    public static boolean contains(Collection<BlockSpec> specs, ItemStack stack) {
-        for (BlockSpec candidate : specs) {
-            if (candidate != null && candidate.matches(stack)) return true;
-        }
-
-        return false;
     }
 
     public static BlockSpec fromPickBlock(World world, EntityPlayer player, MovingObjectPosition hit) {
@@ -395,6 +423,17 @@ public class BlockSpec implements ImmutableBlockSpec {
             if (!values.isEmpty()) spec.properties = values;
         }
 
+        List<IntrinsicProperty> intrinsicProperties = new ArrayList<>();
+        BlockPropertyRegistry.getIntrinsicProperties(world, x, y, z, intrinsicProperties);
+
+        if (!intrinsicProperties.isEmpty()) {
+            spec.intrinsicProperties = new Object2ObjectOpenHashMap<>();
+
+            for (IntrinsicProperty prop : intrinsicProperties) {
+                spec.intrinsicProperties.put(prop.getName(), prop.getValue(world, x, y, z));
+            }
+        }
+
         return spec;
     }
 
@@ -409,13 +448,5 @@ public class BlockSpec implements ImmutableBlockSpec {
         spec.stack = Optional.empty();
 
         return spec;
-    }
-
-    public static ImmutableBlockSpec choose(List<BlockSpec> specs, Random rng) {
-        if (specs == null || specs.isEmpty()) return AIR;
-
-        ImmutableBlockSpec spec = MMUtils.choose(specs, rng);
-
-        return spec == null ? AIR : spec;
     }
 }
