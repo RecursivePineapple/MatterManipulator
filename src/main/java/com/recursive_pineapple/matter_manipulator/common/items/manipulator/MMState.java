@@ -6,7 +6,9 @@ import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.Appli
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
+import java.util.Set;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
@@ -51,6 +53,7 @@ import com.recursive_pineapple.matter_manipulator.common.building.GTAnalysisResu
 import com.recursive_pineapple.matter_manipulator.common.building.ImmutableBlockSpec;
 import com.recursive_pineapple.matter_manipulator.common.building.PendingBlock;
 import com.recursive_pineapple.matter_manipulator.common.data.WeightedSpecList;
+import com.recursive_pineapple.matter_manipulator.common.items.MMUpgrades;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
 import com.recursive_pineapple.matter_manipulator.common.persist.NBTJsonAdapter;
 import com.recursive_pineapple.matter_manipulator.common.persist.StaticEnumJsonAdapter;
@@ -61,6 +64,8 @@ import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
 import org.joml.Vector3i;
+
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
 /**
  * The NBT state of a manipulator.
@@ -83,6 +88,8 @@ public class MMState {
 
     public Long encKey, uplinkAddress;
     public double charge;
+
+    public BitSet installedUpgrades = new BitSet();
 
     @Optional(Names.APPLIED_ENERGISTICS2)
     public transient TileSecurity securityTerminal;
@@ -969,6 +976,32 @@ public class MMState {
             case 2 -> new Vector3i(origin.x, origin.y, point.z);
             default -> throw new AssertionError();
         };
+    }
+
+    public boolean hasUpgrade(MMUpgrades upgrade) {
+        return upgrade != null && installedUpgrades.get(upgrade.bit);
+    }
+
+    public boolean installUpgrade(MMUpgrades upgrade) {
+        if (installedUpgrades.get(upgrade.bit)) return false;
+
+        installedUpgrades.set(upgrade.bit);
+
+        return true;
+    }
+
+    public boolean couldAcceptUpgrade(ManipulatorTier tier, MMUpgrades upgrade) {
+        return tier.allowedUpgrades.contains(upgrade) && !installedUpgrades.get(upgrade.bit);
+    }
+
+    public Set<MMUpgrades> getInstalledUpgrades() {
+        ObjectOpenHashSet<MMUpgrades> set = new ObjectOpenHashSet<>();
+
+        for (MMUpgrades upgrade : MMUpgrades.values()) {
+            if (hasUpgrade(upgrade)) set.add(upgrade);
+        }
+
+        return set;
     }
 
     public static enum Shape {

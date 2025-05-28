@@ -243,6 +243,11 @@ public class MMUtils {
         return v;
     }
 
+    public static long ceilLong(double d) {
+        long l = (long) d;
+        return d > l ? l + 1 : l;
+    }
+
     /**
      * Gets the standard vanilla hit result for a player.
      */

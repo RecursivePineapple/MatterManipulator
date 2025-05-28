@@ -3,10 +3,8 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
@@ -20,6 +18,7 @@ import net.minecraft.world.World;
 
 import net.minecraftforge.common.util.ForgeDirection;
 
+import com.gtnewhorizon.gtnhlib.util.CoordinatePacker;
 import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
 import com.recursive_pineapple.matter_manipulator.common.compat.BlockProperty;
@@ -32,6 +31,8 @@ import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
+
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 /**
  * This represents a block in the world.
@@ -303,7 +304,7 @@ public class PendingBlock extends Location {
 
         RefCell ref = new RefCell();
 
-        Map<String, BlockProperty<?>> properties = new HashMap<>();
+        Map<String, BlockProperty<?>> properties = new Object2ObjectOpenHashMap<>();
         BlockPropertyRegistry.getProperties(world, x, y, z, properties);
 
         for (CopyableProperty property : CopyableProperty.VALUES) {
@@ -393,7 +394,7 @@ public class PendingBlock extends Location {
             .thenComparing(b -> b.spec, ImmutableBlockSpec.getComparator())
             .thenComparingInt(b -> b.x >> 4)
             .thenComparingInt(b -> b.z >> 4)
-            .thenComparingInt(b -> Objects.hash(b.gt, b.ae, b.arch, b.mp, b.inventory));
+            .thenComparingLong(value -> CoordinatePacker.pack(value.x, value.y, value.z));
     }
 
     public static PendingBlock fromBlock(World world, int x, int y, int z) {

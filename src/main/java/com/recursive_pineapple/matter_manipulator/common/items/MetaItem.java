@@ -10,6 +10,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
+import net.minecraft.util.StatCollector;
 
 import cpw.mods.fml.common.Optional.Method;
 import cpw.mods.fml.common.registry.GameRegistry;
@@ -19,6 +20,8 @@ import cpw.mods.fml.relauncher.SideOnly;
 
 import gregtech.client.GTTooltipHandler;
 
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
+import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
@@ -44,6 +47,7 @@ public class MetaItem extends Item {
 
         for (IDMetaItem id : IDMetaItem.values()) {
             metaItems[id.ID] = id;
+            id.container.set(this, id.ID);
         }
     }
 
@@ -66,15 +70,36 @@ public class MetaItem extends Item {
     public void addInformation(ItemStack stack, EntityPlayer player, List<String> desc, boolean advancedTooltips) {
         super.addInformation(stack, player, desc, advancedTooltips);
 
+        int meta = getDamage(stack);
+
         if (Mods.GregTech.isModLoaded()) {
-            IDMetaItem metaItem = metaItems[getDamage(stack)];
+            IDMetaItem metaItem = MMUtils.getIndexSafe(metaItems, meta);
 
             String tooltip = metaItem != null ? getItemTier(metaItem) : null;
 
             if (tooltip != null) desc.add(tooltip);
         }
+
+        String descKey = "item." + name + "." + meta + ".desc";
+
+        if (StatCollector.canTranslate(descKey)) {
+            desc.add(StatCollector.translateToLocal(descKey));
+        }
+
+        MMUpgrades upgrade = MMUpgrades.UPGRADES_BY_META.get(meta);
+
+        if (upgrade != null) {
+            desc.add(StatCollector.translateToLocal("mm.upgrade.hint"));
+
+            for (ItemMatterManipulator.ManipulatorTier tier : ItemMatterManipulator.ManipulatorTier.values()) {
+                if (tier.allowedUpgrades.contains(upgrade)) {
+                    desc.add("- " + tier.container.stack.getDisplayName());
+                }
+            }
+        }
     }
 
+    @SuppressWarnings("DuplicateBranchesInSwitch")
     private static String getItemTier(IDMetaItem metaItem) {
         return switch (metaItem) {
             case PowerCore0 -> Tier.HV.tooltip.get();
@@ -113,7 +138,14 @@ public class MetaItem extends Item {
 
     @Override
     public IIcon getIconFromDamage(int meta) {
-        return meta < 0 || meta >= icons.length ? null : icons[meta];
+        return MMUtils.getIndexSafe(icons, meta);
+    }
+
+    @Override
+    public void getSubItems(Item self, CreativeTabs tab, List<ItemStack> subItems) {
+        for (IDMetaItem id : IDMetaItem.values()) {
+            subItems.add(new ItemStack(this, 1, id.ID));
+        }
     }
 
     private enum Tier {
@@ -137,7 +169,7 @@ public class MetaItem extends Item {
 
         public final Supplier<String> tooltip;
 
-        private Tier() {
+        Tier() {
             if (Mods.GregTech.isModLoaded()) {
                 tooltip = getForTier(name());
             } else {
@@ -150,13 +182,6 @@ public class MetaItem extends Item {
             var t = GTTooltipHandler.Tier.valueOf(tier);
 
             return ReflectionHelper.getPrivateValue(GTTooltipHandler.Tier.class, t, "tooltip");
-        }
-    }
-
-    @Override
-    public void getSubItems(Item self, CreativeTabs tab, List<ItemStack> subItems) {
-        for (IDMetaItem id : IDMetaItem.values()) {
-            subItems.add(new ItemStack(this, 1, id.ID));
         }
     }
 }

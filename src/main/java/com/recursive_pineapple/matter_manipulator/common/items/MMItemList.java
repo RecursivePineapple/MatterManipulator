@@ -41,6 +41,9 @@ public enum MMItemList {
     UplinkController,
     UplinkHatch,
 
+    UpgradeBlank,
+    UpgradePower,
+
     ;
 
     public ItemStack stack;

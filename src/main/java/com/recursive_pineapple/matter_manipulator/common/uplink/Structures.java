@@ -18,7 +18,7 @@ public class Structures {
             "         ",
             "  A   A  ",
             " AA   AA ",
-            " A     A ",
+            " AA   AA ",
             " AA   AA ",
             "  A   A  ",
             "         ",
@@ -45,13 +45,13 @@ public class Structures {
             "         "
         }, {
             "  A   A  ",
-            " A     A ",
+            " AA   AA ",
             "A D   D A",
             "A       A",
             "ABBE EBBA",
             "A       A",
             "A D   D A",
-            " A     A ",
+            " AA   AA ",
             "  A   A  "
         }, {
             "         ",
@@ -78,7 +78,7 @@ public class Structures {
             "         ",
             "  A   A  ",
             " AA   AA ",
-            " A     A ",
+            " AA   AA ",
             " AA   AA ",
             "  A   A  ",
             "         ",

@@ -4,10 +4,11 @@ import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.se
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendWarningToPlayer;
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
@@ -51,7 +52,7 @@ import it.unimi.dsi.fastutil.longs.LongList;
  */
 public class PendingBuild extends AbstractBuildable {
 
-    private LinkedList<PendingBlock> pendingBlocks;
+    private Deque<PendingBlock> pendingBlocks;
     private HashSet<Long> visited = new HashSet<>();
 
     private LongList errors = new LongArrayList();
@@ -61,15 +62,16 @@ public class PendingBuild extends AbstractBuildable {
         EntityPlayer player,
         MMState state,
         ManipulatorTier tier,
-        LinkedList<PendingBlock> pendingBlocks
+        List<PendingBlock> pendingBlocks
     ) {
         super(player, state, tier);
-        this.pendingBlocks = pendingBlocks;
+        this.pendingBlocks = new ArrayDeque<>(pendingBlocks);
     }
 
     @Override
     public void tryPlaceBlocks(ItemStack stack, EntityPlayer player) {
         resetWarnings();
+        refillPower(stack);
 
         List<PendingBlock> toPlace = new ArrayList<>(tier.placeSpeed);
 
