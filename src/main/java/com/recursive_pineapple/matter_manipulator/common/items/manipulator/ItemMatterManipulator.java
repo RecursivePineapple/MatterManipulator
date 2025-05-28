@@ -6,15 +6,16 @@ import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.RE
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.formatNumbers;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMValues.V;
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.AppliedEnergistics2;
-import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
 import static net.minecraftforge.common.util.ForgeDirection.EAST;
 import static net.minecraftforge.common.util.ForgeDirection.SOUTH;
 import static net.minecraftforge.common.util.ForgeDirection.UP;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
@@ -23,6 +24,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
@@ -34,6 +36,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 
 import net.minecraftforge.client.event.MouseEvent;
@@ -53,6 +56,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 
 import appeng.api.features.INetworkEncodable;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.MapMaker;
 import com.gtnewhorizons.modularui.api.UIInfos;
 import com.gtnewhorizons.modularui.api.drawable.AdaptableUITexture;
@@ -89,6 +93,8 @@ import com.recursive_pineapple.matter_manipulator.common.building.PendingBlock;
 import com.recursive_pineapple.matter_manipulator.common.building.PendingBuild;
 import com.recursive_pineapple.matter_manipulator.common.building.PendingMove;
 import com.recursive_pineapple.matter_manipulator.common.data.WeightedSpecList;
+import com.recursive_pineapple.matter_manipulator.common.items.MMItemList;
+import com.recursive_pineapple.matter_manipulator.common.items.MMUpgrades;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.BlockRemoveMode;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.BlockSelectMode;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.PendingAction;
@@ -103,6 +109,7 @@ import org.joml.Vector3i;
 
 import ic2.api.item.IElectricItemManager;
 import ic2.api.item.ISpecialElectricItem;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
 @InterfaceList({
     @Interface(modid = Names.APPLIED_ENERGISTICS2, iface = "appeng.api.features.INetworkEncodable", striprefs = true),
@@ -151,25 +158,37 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
             16, 20,
             3,
             1_000_000L,
-            ALLOW_GEOMETRY),
+            ALLOW_GEOMETRY,
+            ImmutableList.of(),
+            MMItemList.MK0
+        ),
         Tier1(
             64,
             32, 10,
             5,
             100_000_000L,
-            ALLOW_GEOMETRY | CONNECTS_TO_AE | ALLOW_REMOVING | ALLOW_EXCHANGING | ALLOW_CONFIGURING | ALLOW_CABLES),
+            ALLOW_GEOMETRY | CONNECTS_TO_AE | ALLOW_REMOVING | ALLOW_EXCHANGING | ALLOW_CONFIGURING | ALLOW_CABLES,
+            ImmutableList.of(),
+            MMItemList.MK1
+        ),
         Tier2(
             128,
             64, 5,
             6,
             1_000_000_000L,
-            ALLOW_GEOMETRY | CONNECTS_TO_AE | ALLOW_REMOVING | ALLOW_EXCHANGING | ALLOW_CONFIGURING | ALLOW_CABLES | ALLOW_COPYING | ALLOW_MOVING),
+            ALLOW_GEOMETRY | CONNECTS_TO_AE | ALLOW_REMOVING | ALLOW_EXCHANGING | ALLOW_CONFIGURING | ALLOW_CABLES | ALLOW_COPYING | ALLOW_MOVING,
+            ImmutableList.of(),
+            MMItemList.MK2
+        ),
         Tier3(
             -1,
             GlobalMMConfig.BuildingConfig.mk3BlocksPerPlace, 5,
             7,
             10_000_000_000L,
-            ALLOW_GEOMETRY | CONNECTS_TO_AE | ALLOW_REMOVING | ALLOW_EXCHANGING | ALLOW_CONFIGURING | ALLOW_CABLES | ALLOW_COPYING | ALLOW_MOVING | CONNECTS_TO_UPLINK);
+            ALLOW_GEOMETRY | CONNECTS_TO_AE | ALLOW_REMOVING | ALLOW_EXCHANGING | ALLOW_CONFIGURING | ALLOW_CABLES | ALLOW_COPYING | ALLOW_MOVING | CONNECTS_TO_UPLINK,
+            ImmutableList.copyOf(MMUpgrades.values()),
+            MMItemList.MK3
+        );
         // spotless:on
 
         public final int tier = ordinal();
@@ -178,14 +197,18 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
         public final int voltageTier;
         public final long maxCharge;
         public final int capabilities;
+        public final Set<MMUpgrades> allowedUpgrades;
+        public final MMItemList container;
 
-        private ManipulatorTier(
+        ManipulatorTier(
             int maxRange,
             int placeSpeed,
             int placeTicks,
             int voltageTier,
             long maxCharge,
-            int capabilities
+            int capabilities,
+            List<MMUpgrades> allowedUpgrades,
+            MMItemList container
         ) {
             this.maxRange = maxRange;
             this.placeSpeed = placeSpeed;
@@ -193,6 +216,8 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
             this.voltageTier = voltageTier;
             this.maxCharge = maxCharge;
             this.capabilities = capabilities;
+            this.allowedUpgrades = Collections.unmodifiableSet(new ObjectOpenHashSet<>(allowedUpgrades));
+            this.container = container;
         }
 
         public boolean hasCap(int cap) {
@@ -317,12 +342,36 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
 
     @Override
     public boolean showDurabilityBar(ItemStack stack) {
-        return !GregTech.isModLoaded();
+        return true;
     }
 
     @Override
     public double getDurabilityForDisplay(ItemStack stack) {
         return 1d - getCharge(stack) / tier.maxCharge;
+    }
+
+    public void refillPower(ItemStack stack, MMState state) {
+        if (!state.hasUpgrade(MMUpgrades.Power)) return;
+        if (!state.connectToUplink()) return;
+
+        ItemMatterManipulator manipulator = (ItemMatterManipulator) stack.getItem();
+
+        assert manipulator != null;
+
+        double toFill = manipulator.getMaxCharge(stack) - manipulator.getCharge(stack);
+
+        double drained = state.uplink.drainPower(toFill);
+
+        manipulator.charge(stack, drained, 0, true, false);
+    }
+
+    @Override
+    public void onUpdate(ItemStack stack, World worldIn, Entity entityIn, int p_77663_4_, boolean p_77663_5_) {
+        if (worldIn.getTotalWorldTime() % 100 == 0) {
+            MMState state = getState(stack);
+
+            refillPower(stack, state);
+        }
     }
 
     // #endregion
@@ -546,6 +595,17 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
                 addInfoLine(desc, "Coordinate B: %s", state.config.coordB);
 
                 addInfoLine(desc, "Cable: %s", state.config.cables);
+            }
+
+            List<MMUpgrades> upgrades = new ArrayList<>(state.getInstalledUpgrades());
+            upgrades.sort(Comparator.comparingInt(Enum::ordinal));
+
+            if (!upgrades.isEmpty()) {
+                desc.add(StatCollector.translateToLocal("mm.tooltip.installed_upgrades"));
+
+                for (MMUpgrades upgrade : upgrades) {
+                    desc.add("- " + upgrade.getStack().getDisplayName());
+                }
             }
         }
 
@@ -1053,7 +1113,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
 
         blocks.sort(PendingBlock.getComparator());
 
-        return new PendingBuild(player, state, tier, new LinkedList<>(blocks));
+        return new PendingBuild(player, state, tier, blocks);
     }
 
     private IBuildable getPendingMove(EntityPlayer player, ItemStack stack, MMState state) {

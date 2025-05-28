@@ -5,7 +5,6 @@ import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.Archi
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -35,6 +34,8 @@ import com.recursive_pineapple.matter_manipulator.common.utils.ItemId;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
+
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 public class BlockSpec implements ImmutableBlockSpec {
 
@@ -377,7 +378,7 @@ public class BlockSpec implements ImmutableBlockSpec {
             spec.arch = ArchitectureCraftAnalysisResult.analyze(world.getTileEntity(x, y, z));
         }
 
-        Map<String, BlockProperty<?>> properties = new HashMap<>();
+        Map<String, BlockProperty<?>> properties = new Object2ObjectOpenHashMap<>();
         BlockPropertyRegistry.getProperties(world, x, y, z, properties);
 
         if (!properties.isEmpty()) {

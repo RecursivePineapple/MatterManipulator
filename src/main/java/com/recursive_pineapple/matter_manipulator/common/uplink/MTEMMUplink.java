@@ -5,6 +5,7 @@ import static com.recursive_pineapple.matter_manipulator.common.structure.Casing
 import static com.recursive_pineapple.matter_manipulator.common.structure.Casings.RadiantNaquadahAlloyCasing;
 import static gregtech.api.enums.GTValues.AuthorPineapple;
 import static gregtech.api.enums.HatchElement.Energy;
+import static gregtech.api.enums.HatchElement.ExoticEnergy;
 import static gregtech.api.enums.HatchElement.InputHatch;
 import static gregtech.api.enums.HatchElement.Maintenance;
 
@@ -37,7 +38,8 @@ import gregtech.api.interfaces.IHatchElement;
 import gregtech.api.interfaces.ITexture;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
-import gregtech.api.metatileentity.implementations.MTEEnhancedMultiBlockBase;
+import gregtech.api.metatileentity.implementations.MTEExtendedPowerMultiBlockBase;
+import gregtech.api.metatileentity.implementations.MTEHatch;
 import gregtech.api.metatileentity.implementations.MTEHatchInput;
 import gregtech.api.recipe.RecipeMaps;
 import gregtech.api.recipe.check.CheckRecipeResult;
@@ -45,6 +47,7 @@ import gregtech.api.recipe.check.CheckRecipeResultRegistry;
 import gregtech.api.recipe.maps.FuelBackend;
 import gregtech.api.render.TextureFactory;
 import gregtech.api.util.GTRecipe;
+import gregtech.api.util.GTUtility;
 import gregtech.api.util.IGTHatchAdder;
 import gregtech.api.util.MultiblockTooltipBuilder;
 import gregtech.api.util.shutdown.ShutDownReason;
@@ -89,8 +92,9 @@ import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import it.unimi.dsi.fastutil.Pair;
 import mcp.mobius.waila.api.IWailaConfigHandler;
 import mcp.mobius.waila.api.IWailaDataAccessor;
+import tectech.thing.metaTileEntity.hatch.MTEHatchEnergyMulti;
 
-public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implements ISurvivalConstructable, IUplinkMulti, IStructureProvider<MTEMMUplink> {
+public class MTEMMUplink extends MTEExtendedPowerMultiBlockBase<MTEMMUplink> implements ISurvivalConstructable, IUplinkMulti, IStructureProvider<MTEMMUplink> {
 
     private static final long BASE_PLASMA_EU_COST = 131_072;
 
@@ -150,6 +154,7 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
             Arrays.asList(
                 InputHatch,
                 Energy,
+                ExoticEnergy,
                 Maintenance,
                 UplinkHatchAdder.Instance
             )
@@ -198,7 +203,7 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
         );
     }
 
-    private static enum UplinkHatchAdder implements IHatchElement<MTEMMUplink> {
+    private enum UplinkHatchAdder implements IHatchElement<MTEMMUplink> {
 
         Instance;
 
@@ -789,6 +794,32 @@ public class MTEMMUplink extends MTEEnhancedMultiBlockBase<MTEMMUplink> implemen
         if (hatch != null) {
             hatch.cancelAutoPlans(player);
         }
+    }
+
+    @Override
+    public double drainPower(double requested) {
+        double drained = 0;
+
+        for (MTEHatch hatch : GTUtility.filterValidMTEs(mExoticEnergyHatches)) {
+            if (!(hatch instanceof MTEHatchEnergyMulti exotic)) continue;
+
+            // always keep 5 seconds worth of eu in the hatch to keep the uplink from powerfailing
+            long toKeep = TierEU.RECIPE_ZPM * 20 * 5;
+
+            long extractable = exotic.getEUVar() - toKeep;
+
+            if (extractable <= 0) continue;
+
+            long remaining = MMUtils.ceilLong(requested - drained);
+            if (remaining <= 0) break;
+
+            extractable = Math.min(extractable, remaining);
+
+            exotic.setEUVar(exotic.getEUVar() - extractable);
+            drained += extractable;
+        }
+
+        return drained;
     }
 
     @Override

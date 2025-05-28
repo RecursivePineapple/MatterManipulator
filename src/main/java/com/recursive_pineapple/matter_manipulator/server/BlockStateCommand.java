@@ -1,8 +1,8 @@
 package com.recursive_pineapple.matter_manipulator.server;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
@@ -12,6 +12,8 @@ import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import com.recursive_pineapple.matter_manipulator.common.compat.BlockProperty;
 import com.recursive_pineapple.matter_manipulator.common.compat.BlockPropertyRegistry;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 public class BlockStateCommand extends CommandBase {
 
@@ -50,7 +52,7 @@ public class BlockStateCommand extends CommandBase {
             return;
         }
 
-        HashMap<String, BlockProperty<?>> properties = new HashMap<>();
+        Map<String, BlockProperty<?>> properties = new Object2ObjectOpenHashMap<>();
         BlockPropertyRegistry.getProperties(player.worldObj, hit.blockX, hit.blockY, hit.blockZ, properties);
 
         if ("get".equals(action)) {

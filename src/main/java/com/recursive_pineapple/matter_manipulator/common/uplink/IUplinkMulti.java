@@ -25,32 +25,32 @@ import it.unimi.dsi.fastutil.Pair;
 
 public interface IUplinkMulti {
 
-    public boolean isActive();
+    boolean isActive();
 
-    public Location getLocation();
+    Location getLocation();
 
-    public UplinkState getState();
+    UplinkState getState();
 
     @SideOnly(Side.CLIENT)
-    public void setState(UplinkState state);
+    void setState(UplinkState state);
 
     /**
      * See {@link IPseudoInventory#tryConsumeItems(List, int)}
      */
-    public Pair<UplinkStatus, List<BigItemStack>> tryConsumeItems(List<BigItemStack> requestedItems, boolean simulate, boolean fuzzy);
+    Pair<UplinkStatus, List<BigItemStack>> tryConsumeItems(List<BigItemStack> requestedItems, boolean simulate, boolean fuzzy);
 
     /**
      * See {@link IPseudoInventory#givePlayerItems(ItemStack...)}
      */
-    public UplinkStatus tryGivePlayerItems(List<BigItemStack> items);
+    UplinkStatus tryGivePlayerItems(List<BigItemStack> items);
 
     /**
      * See {@link IPseudoInventory#givePlayerFluids(FluidStack...)}
      */
-    public UplinkStatus tryGivePlayerFluids(List<BigFluidStack> fluids);
+    UplinkStatus tryGivePlayerFluids(List<BigFluidStack> fluids);
 
     @Optional(Names.APPLIED_ENERGISTICS2)
-    public IStorageGrid getStorageGrid();
+    IStorageGrid getStorageGrid();
 
     /**
      * Submits a new plan to the ME hatch.
@@ -58,25 +58,33 @@ public interface IUplinkMulti {
      * @param details Some extra details for the plan
      * @param autocraft When true, the plan will be automatically crafted
      */
-    public void submitPlan(EntityPlayer submitter, String details, List<BigItemStack> requiredItems, boolean autocraft);
+    void submitPlan(EntityPlayer submitter, String details, List<BigItemStack> requiredItems, boolean autocraft);
 
     /**
      * Clears any manual plans
      */
-    public void clearManualPlans(EntityPlayer player);
+    void clearManualPlans(EntityPlayer player);
 
     /**
      * Clears and auto plans and cancels their jobs
      */
-    public void cancelAutoPlans(EntityPlayer player);
+    void cancelAutoPlans(EntityPlayer player);
+
+    /**
+     * Drains power from the uplink
+     *
+     * @param requested The wanted amount of power
+     * @return The amount of power actually drained
+     */
+    double drainPower(double requested);
 
     /**
      * A weak-valued map containing all active uplinks
      */
-    public static final Map<Long, IUplinkMulti> UPLINKS = new MapMaker().weakValues()
+    Map<Long, IUplinkMulti> UPLINKS = new MapMaker().weakValues()
         .makeMap();
 
-    public static IUplinkMulti getUplink(long address) {
+    static IUplinkMulti getUplink(long address) {
         return UPLINKS.get(address);
     }
 }

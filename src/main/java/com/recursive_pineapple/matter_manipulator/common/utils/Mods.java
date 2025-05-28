@@ -73,7 +73,7 @@ public enum Mods {
 
     public final String ID;
     public final String resourceDomain;
-    private Boolean modLoaded;
+    private boolean checkedMod, modLoaded;
 
     Mods(String ID) {
         this.ID = ID;
@@ -81,8 +81,9 @@ public enum Mods {
     }
 
     public boolean isModLoaded() {
-        if (this.modLoaded == null) {
+        if (!checkedMod) {
             this.modLoaded = Loader.isModLoaded(ID);
+            checkedMod = true;
         }
         return this.modLoaded;
     }

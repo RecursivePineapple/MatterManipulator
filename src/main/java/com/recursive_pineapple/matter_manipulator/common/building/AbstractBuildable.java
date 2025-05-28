@@ -78,7 +78,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
 
     static {
         for (int i = 0; i < SQUARE_ROOTS.length; i++) {
-            SQUARE_ROOTS[i] = 1 + Math.sqrt((double) i);
+            SQUARE_ROOTS[i] = 1 + Math.sqrt(i);
         }
     }
 
@@ -110,6 +110,14 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         euUsage *= Math.pow(player.getDistance(x, y, z), EU_DISTANCE_EXP);
 
         return ((ItemMatterManipulator) stack.getItem()).use(stack, euUsage, player);
+    }
+
+    public void refillPower(ItemStack stack) {
+        ItemMatterManipulator manipulator = (ItemMatterManipulator) stack.getItem();
+
+        assert manipulator != null;
+
+        manipulator.refillPower(stack, state);
     }
 
     private static final LazyBlock WIRELESS_CONNECTOR = new LazyBlock(Mods.AE2Stuff, "Wireless");
