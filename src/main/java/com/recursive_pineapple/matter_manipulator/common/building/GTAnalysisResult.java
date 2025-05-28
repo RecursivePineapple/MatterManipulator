@@ -31,11 +31,8 @@ import gregtech.api.metatileentity.implementations.MTEHatchInputBus;
 import gregtech.api.metatileentity.implementations.MTEHatchOutput;
 import gregtech.api.metatileentity.implementations.MTEMultiBlockBase;
 import gregtech.common.covers.Cover;
-import gregtech.common.tileentities.machines.MTEHatchOutputBusME;
-import gregtech.common.tileentities.machines.MTEHatchOutputME;
 
 import appeng.helpers.ICustomNameObject;
-import appeng.util.ReadableNumberConverter;
 
 import com.google.gson.JsonElement;
 import com.gtnewhorizon.structurelib.alignment.IAlignment;
@@ -67,7 +64,6 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
     public String mGTFluidLock = null;
     public int mGTMode = 0;
     public JsonElement mGTData = null;
-    public long mGTMEBusCapacity = 0;
     public double[] mTTParams = null;
     public int mAmperes = 0;
 
@@ -227,12 +223,6 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
                 // Probably an NPE, but we're catching Throwable just to be safe
                 MMMod.LOG.error("Could not copy IDataCopyable's data", t);
             }
-        }
-
-        if (mte instanceof MTEHatchOutputME || mte instanceof MTEHatchOutputBusME) {
-            NBTTagCompound tag = new NBTTagCompound();
-            mte.setItemNBT(tag);
-            mGTMEBusCapacity = tag.getLong("baseCapacity");
         }
 
         if (mte instanceof TTMultiblockBase tt && tt.parametrization.hasInputs()) {
@@ -551,17 +541,12 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
 
     @Override
     public void getItemTag(NBTTagCompound tag) {
-        if (mGTMEBusCapacity != 0) {
-            tag.setLong("baseCapacity", mGTMEBusCapacity);
-        }
+
     }
 
     @Override
     public void getItemDetails(List<String> details) {
-        if (mGTMEBusCapacity != 0) {
-            ReadableNumberConverter nc = ReadableNumberConverter.INSTANCE;
-            details.add(String.format("cache capacity: %s", nc.toWideReadableForm(mGTMEBusCapacity)));
-        }
+
     }
 
     @Override
@@ -623,7 +608,6 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
         dup.mGTFluidLock = mGTFluidLock;
         dup.mGTMode = mGTMode;
         dup.mGTData = mGTData == null ? null : MMUtils.toJsonObject(MMUtils.toNbt(mGTData));
-        dup.mGTMEBusCapacity = mGTMEBusCapacity;
         dup.mTTParams = mTTParams == null ? null : mTTParams.clone();
 
         return dup;
@@ -647,7 +631,6 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
         result = prime * result + ((mGTFluidLock == null) ? 0 : mGTFluidLock.hashCode());
         result = prime * result + mGTMode;
         result = prime * result + ((mGTData == null) ? 0 : mGTData.hashCode());
-        result = prime * result + (int) (mGTMEBusCapacity ^ (mGTMEBusCapacity >>> 32));
         result = prime * result + Arrays.hashCode(mTTParams);
         return result;
     }
@@ -680,7 +663,6 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
         if (mGTData == null) {
             if (other.mGTData != null) return false;
         } else if (!mGTData.equals(other.mGTData)) return false;
-        if (mGTMEBusCapacity != other.mGTMEBusCapacity) return false;
         if (!Arrays.equals(mTTParams, other.mTTParams)) return false;
         return true;
     }

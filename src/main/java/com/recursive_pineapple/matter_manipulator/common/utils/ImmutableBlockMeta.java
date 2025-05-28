@@ -9,19 +9,19 @@ import com.recursive_pineapple.matter_manipulator.common.building.BlockSpec;
 
 public interface ImmutableBlockMeta {
 
-    public Block getBlock();
+    Block getBlock();
 
-    public int getMeta();
+    int getMeta();
 
-    public default BlockSpec asSpec() {
+    default BlockSpec asSpec() {
         return new BlockSpec().setObject(getBlock(), getMeta());
     }
 
-    public default Item getItem() {
+    default Item getItem() {
         return Item.getItemFromBlock(getBlock());
     }
 
-    public default boolean matches(Block block, int meta) {
+    default boolean matches(Block block, int meta) {
         return getBlock() == block && (getMeta() == meta || getMeta() == W || meta == W);
     }
 }
