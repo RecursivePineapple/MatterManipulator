@@ -2,12 +2,17 @@ package com.recursive_pineapple.matter_manipulator.common.items;
 
 import net.minecraft.item.ItemStack;
 
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
+
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 public enum MMUpgrades {
 
-    Power(IDMetaItem.UpgradePower, 0),
+    PowerP2P(IDMetaItem.UpgradePowerP2P, 0, 0),
+    Mining(IDMetaItem.UpgradePrototypeMining, 1, ItemMatterManipulator.ALLOW_REMOVING),
+    Speed(IDMetaItem.UpgradeSpeed, 2, 0),
+    PowerEff(IDMetaItem.UpgradePowerEff, 3, 0),
     //
     ;
 
@@ -23,10 +28,12 @@ public enum MMUpgrades {
 
     public final int id;
     public final int bit;
+    public final int providesCaps;
 
-    MMUpgrades(IDMetaItem id, int bit) {
+    MMUpgrades(IDMetaItem id, int bit, int providesCaps) {
         this.id = id.ID;
         this.bit = bit;
+        this.providesCaps = providesCaps;
     }
 
     public ItemStack getStack() {

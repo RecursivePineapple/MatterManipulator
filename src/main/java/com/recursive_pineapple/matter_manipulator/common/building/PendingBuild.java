@@ -173,7 +173,7 @@ public class PendingBuild extends AbstractBuildable {
 
             // if there's an existing block then remove it if possible
             if (!existing.getBlock().isAir(world, x, y, z)) {
-                if (!tier.hasCap(ItemMatterManipulator.ALLOW_REMOVING)) {
+                if (!state.hasCap(ItemMatterManipulator.ALLOW_REMOVING)) {
                     pendingBlocks.removeFirst();
                     continue;
                 }
@@ -403,7 +403,7 @@ public class PendingBuild extends AbstractBuildable {
 
     private boolean supportsConfiguring() {
         // self-explanatory
-        if (tier.hasCap(ItemMatterManipulator.ALLOW_CONFIGURING)) return true;
+        if (state.hasCap(ItemMatterManipulator.ALLOW_CONFIGURING)) return true;
 
         // lower tiers support cables, but not copying
         // since exchanging or placing cables requires configuring, we need to return true for these two

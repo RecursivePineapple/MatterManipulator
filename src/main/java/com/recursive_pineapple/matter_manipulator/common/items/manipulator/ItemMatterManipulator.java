@@ -150,16 +150,16 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
 
     public static final int ALL_MODES = ALLOW_GEOMETRY | ALLOW_COPYING | ALLOW_EXCHANGING | ALLOW_MOVING | ALLOW_CABLES;
 
-    public static enum ManipulatorTier {
+    public enum ManipulatorTier {
 
         // spotless:off
         Tier0(
             32,
             16, 20,
             3,
-            1_000_000L,
+            10_000_000L,
             ALLOW_GEOMETRY,
-            ImmutableList.of(),
+            ImmutableList.of(MMUpgrades.Mining, MMUpgrades.Speed, MMUpgrades.PowerEff),
             MMItemList.MK0
         ),
         Tier1(
@@ -168,7 +168,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
             5,
             100_000_000L,
             ALLOW_GEOMETRY | CONNECTS_TO_AE | ALLOW_REMOVING | ALLOW_EXCHANGING | ALLOW_CONFIGURING | ALLOW_CABLES,
-            ImmutableList.of(),
+            ImmutableList.of(MMUpgrades.Speed, MMUpgrades.PowerEff),
             MMItemList.MK1
         ),
         Tier2(
@@ -177,7 +177,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
             6,
             1_000_000_000L,
             ALLOW_GEOMETRY | CONNECTS_TO_AE | ALLOW_REMOVING | ALLOW_EXCHANGING | ALLOW_CONFIGURING | ALLOW_CABLES | ALLOW_COPYING | ALLOW_MOVING,
-            ImmutableList.of(),
+            ImmutableList.of(MMUpgrades.Speed, MMUpgrades.PowerEff),
             MMItemList.MK2
         ),
         Tier3(
@@ -186,7 +186,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
             7,
             10_000_000_000L,
             ALLOW_GEOMETRY | CONNECTS_TO_AE | ALLOW_REMOVING | ALLOW_EXCHANGING | ALLOW_CONFIGURING | ALLOW_CABLES | ALLOW_COPYING | ALLOW_MOVING | CONNECTS_TO_UPLINK,
-            ImmutableList.copyOf(MMUpgrades.values()),
+            ImmutableList.of(MMUpgrades.PowerEff, MMUpgrades.PowerP2P),
             MMItemList.MK3
         );
         // spotless:on
@@ -218,10 +218,6 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
             this.capabilities = capabilities;
             this.allowedUpgrades = Collections.unmodifiableSet(new ObjectOpenHashSet<>(allowedUpgrades));
             this.container = container;
-        }
-
-        public boolean hasCap(int cap) {
-            return (capabilities & cap) == cap;
         }
     }
 
@@ -351,7 +347,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
     }
 
     public void refillPower(ItemStack stack, MMState state) {
-        if (!state.hasUpgrade(MMUpgrades.Power)) return;
+        if (!state.hasUpgrade(MMUpgrades.PowerP2P)) return;
         if (!state.connectToUplink()) return;
 
         ItemMatterManipulator manipulator = (ItemMatterManipulator) stack.getItem();
@@ -396,7 +392,11 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
     }
 
     public static MMState getState(ItemStack itemStack) {
-        return MMState.load(getOrCreateNbtData(itemStack));
+        MMState state = MMState.load(getOrCreateNbtData(itemStack));
+
+        state.manipulator = (ItemMatterManipulator) itemStack.getItem();
+
+        return state;
     }
 
     public static void setState(ItemStack itemStack, MMState state) {
@@ -463,7 +463,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
         if (!GuiScreen.isShiftKeyDown()) {
             desc.add("Hold shift for more information.");
         } else {
-            if (tier.hasCap(CONNECTS_TO_AE) || tier.hasCap(CONNECTS_TO_UPLINK)) {
+            if (state.hasCap(CONNECTS_TO_AE) || state.hasCap(CONNECTS_TO_UPLINK)) {
                 long time = System.currentTimeMillis();
 
                 if ((time - lastTooltipQueryMS) > 1000) {
@@ -485,7 +485,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
                 }
             }
 
-            if (tier.hasCap(CONNECTS_TO_AE)) {
+            if (state.hasCap(CONNECTS_TO_AE)) {
                 if (state.encKey != null) {
                     if (ttAEWorks) {
                         desc.add("Has an ME connection. (Can interact currently)");
@@ -497,7 +497,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
                 }
             }
 
-            if (tier.hasCap(CONNECTS_TO_UPLINK)) {
+            if (state.hasCap(CONNECTS_TO_UPLINK)) {
                 if (state.uplinkAddress != null) {
                     if (ttUplinkWorks) {
                         desc.add("Has an Uplink connection. (Can interact currently)");
@@ -537,7 +537,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
                 });
             }
 
-            if (tier.hasCap(ALLOW_REMOVING)) {
+            if (state.hasCap(ALLOW_REMOVING)) {
                 addInfoLine(desc, "Removing: %s", switch (state.config.removeMode) {
                     case ALL -> "All blocks";
                     case REPLACEABLE -> "Replaceable blocks";
@@ -907,7 +907,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
 
         BlockSpec block = BlockSpec.fromPickBlock(player.worldObj, player, hit);
 
-        if (hit != null) checkForAECables(block, world, hit.blockX, hit.blockY, hit.blockZ);
+        if (hit != null) checkForAECables(state, block, world, hit.blockX, hit.blockY, hit.blockZ);
 
         state.config.replaceWith = new WeightedSpecList();
         state.config.replaceWith.add(block);
@@ -931,7 +931,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
 
         BlockSpec block = BlockSpec.fromPickBlock(player.worldObj, player, hit);
 
-        if (hit != null) checkForAECables(block, world, hit.blockX, hit.blockY, hit.blockZ);
+        if (hit != null) checkForAECables(state, block, world, hit.blockX, hit.blockY, hit.blockZ);
 
         if (state.config.replaceWhitelist == null) {
             state.config.replaceWhitelist = new WeightedSpecList();
@@ -951,7 +951,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
     private void onExchangeSetWhitelist(World world, EntityPlayer player, ItemStack stack, MMState state, MovingObjectPosition hit) {
         BlockSpec block = BlockSpec.fromPickBlock(player.worldObj, player, hit);
 
-        if (hit != null) checkForAECables(block, world, hit.blockX, hit.blockY, hit.blockZ);
+        if (hit != null) checkForAECables(state, block, world, hit.blockX, hit.blockY, hit.blockZ);
 
         state.config.replaceWhitelist = new WeightedSpecList();
         state.config.replaceWhitelist.add(block);
@@ -986,8 +986,8 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
         );
     }
 
-    private void checkForAECables(BlockSpec spec, World world, int x, int y, int z) {
-        if (tier.hasCap(ALLOW_CABLES) && AppliedEnergistics2.isModLoaded()) {
+    private void checkForAECables(MMState state, BlockSpec spec, World world, int x, int y, int z) {
+        if (state.hasCap(ALLOW_CABLES) && AppliedEnergistics2.isModLoaded()) {
             if (MMUtils.AE_BLOCK_CABLE.matches(spec)) {
                 MMUtils.getAECable(spec, world, x, y, z);
             }
@@ -1079,7 +1079,13 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
                 }
             }
 
-            if (ticksUsed >= 10 && (ticksUsed % tier.placeTicks) == 0) {
+            int placeTicks = tier.placeTicks;
+
+            if (state.hasUpgrade(MMUpgrades.Speed)) {
+                placeTicks = placeTicks / 2;
+            }
+
+            if (ticksUsed >= 10 && (ticksUsed % placeTicks) == 0) {
                 try {
                     IBuildable buildable = PENDING_BUILDS.get(player);
 
@@ -1122,9 +1128,9 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
 
     @Override
     public String getEncryptionKey(ItemStack item) {
-        if (tier.hasCap(CONNECTS_TO_AE)) {
-            Long key = getState(item).encKey;
-            return key != null ? Long.toHexString(key) : null;
+        MMState state = getState(item);
+        if (state.hasCap(CONNECTS_TO_AE)) {
+            return state.encKey != null ? Long.toHexString(state.encKey) : null;
         } else {
             return null;
         }
@@ -1134,7 +1140,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
     public void setEncryptionKey(ItemStack item, String encKey, String name) {
         MMState state = getState(item);
 
-        if (tier.hasCap(CONNECTS_TO_AE)) {
+        if (state.hasCap(CONNECTS_TO_AE)) {
             try {
                 state.encKey = Long.parseLong(encKey);
             } catch (NumberFormatException e) {
@@ -1148,9 +1154,9 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
     }
 
     public void setUplinkAddress(ItemStack stack, Long address) {
-        if (tier.hasCap(CONNECTS_TO_UPLINK)) {
-            MMState state = getState(stack);
+        MMState state = getState(stack);
 
+        if (state.hasCap(CONNECTS_TO_UPLINK)) {
             state.uplinkAddress = address;
 
             setState(stack, state);
@@ -1180,7 +1186,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
         return new RadialMenuBuilder(buildContext)
             .innerIcon(new ItemStack(this))
             .pipe(builder -> {
-                addCommonOptions(builder, buildContext, heldStack);
+                addCommonOptions(builder, initialState);
             })
             .pipe(builder -> {
                 switch (initialState.config.placeMode) {
@@ -1193,13 +1199,14 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
             });
     }
 
-    private void addCommonOptions(RadialMenuBuilder builder, UIBuildContext buildContext, ItemStack heldStack) {
-        builder.branch()
+    private void addCommonOptions(RadialMenuBuilder builder, MMState state) {
+        builder
+            .branch()
                 .label("Set Mode")
                 .hidden(tier == ManipulatorTier.Tier0)
                 .branch()
                     .label("Set Remove Mode")
-                    .hidden(!tier.hasCap(ALLOW_REMOVING))
+                    .hidden(!state.hasCap(ALLOW_REMOVING))
                     .option()
                         .label("Remove None")
                         .onClicked(() -> {
@@ -1227,30 +1234,52 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
                 .done()
                 .option()
                     .label("Moving")
-                    .hidden(!tier.hasCap(ALLOW_MOVING))
+                    .hidden(!state.hasCap(ALLOW_MOVING))
                     .onClicked(() -> {
                         Messages.SetPlaceMode.sendToServer(PlaceMode.MOVING);
                     })
                 .done()
                 .option()
                     .label("Copying")
-                    .hidden(!tier.hasCap(ALLOW_COPYING))
+                    .hidden(!state.hasCap(ALLOW_COPYING))
                     .onClicked(() -> {
                         Messages.SetPlaceMode.sendToServer(PlaceMode.COPYING);
                     })
                 .done()
                 .option()
                     .label("Exchanging")
-                    .hidden(!tier.hasCap(ALLOW_EXCHANGING))
+                    .hidden(!state.hasCap(ALLOW_EXCHANGING))
                     .onClicked(() -> {
                         Messages.SetPlaceMode.sendToServer(PlaceMode.EXCHANGING);
                     })
                 .done()
                 .option()
                     .label("Cables")
-                    .hidden(!tier.hasCap(ALLOW_CABLES))
+                    .hidden(!state.hasCap(ALLOW_CABLES))
                     .onClicked(() -> {
                         Messages.SetPlaceMode.sendToServer(PlaceMode.CABLES);
+                    })
+                .done()
+            .done()
+            .branch()
+                .label("Set Remove Mode")
+                .hidden(tier != ManipulatorTier.Tier0 || !state.hasCap(ALLOW_REMOVING))
+                .option()
+                    .label("Remove None")
+                    .onClicked(() -> {
+                        Messages.SetRemoveMode.sendToServer(BlockRemoveMode.NONE);
+                    })
+                .done()
+                .option()
+                    .label("Remove Replaceable")
+                    .onClicked(() -> {
+                        Messages.SetRemoveMode.sendToServer(BlockRemoveMode.REPLACEABLE);
+                    })
+                .done()
+                .option()
+                    .label("Remove All")
+                    .onClicked(() -> {
+                        Messages.SetRemoveMode.sendToServer(BlockRemoveMode.ALL);
                     })
                 .done()
             .done();

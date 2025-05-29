@@ -50,6 +50,7 @@ import appeng.parts.AEBasePart;
 
 import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.BuildingConfig;
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
+import com.recursive_pineapple.matter_manipulator.common.items.MMUpgrades;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
@@ -108,6 +109,10 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         if (player.capabilities.isCreativeMode) return true;
 
         euUsage *= Math.pow(player.getDistance(x, y, z), EU_DISTANCE_EXP);
+
+        if (state.hasUpgrade(MMUpgrades.PowerEff)) {
+            euUsage *= 0.5;
+        }
 
         return ((ItemMatterManipulator) stack.getItem()).use(stack, euUsage, player);
     }

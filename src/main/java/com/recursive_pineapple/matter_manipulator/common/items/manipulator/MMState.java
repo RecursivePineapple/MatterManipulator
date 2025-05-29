@@ -90,6 +90,9 @@ public class MMState {
     public double charge;
 
     public BitSet installedUpgrades = new BitSet();
+    public int upgradeProvidedCapabilities;
+
+    public transient ItemMatterManipulator manipulator;
 
     @Optional(Names.APPLIED_ENERGISTICS2)
     public transient TileSecurity securityTerminal;
@@ -113,6 +116,7 @@ public class MMState {
         if (state.config == null) state.config = new MMConfig();
 
         state.migrate();
+        state.onLoad();
 
         return state;
     }
@@ -142,6 +146,12 @@ public class MMState {
 
     private void migrate() {
 
+    }
+
+    private void onLoad() {
+        for (MMUpgrades upgrade : getInstalledUpgrades()) {
+            upgradeProvidedCapabilities |= upgrade.providesCaps;
+        }
     }
 
     /**
@@ -253,6 +263,10 @@ public class MMState {
 
     public boolean hasUplinkConnection() {
         return uplink != null;
+    }
+
+    public boolean hasCap(int cap) {
+        return (manipulator.tier.capabilities & cap) == cap || (upgradeProvidedCapabilities & cap) == cap;
     }
 
     public Transform getTransform() {
@@ -400,7 +414,7 @@ public class MMState {
             ImmutableBlockSpec replacement = config.replaceWith.get(rng);
             ImmutableBlockSpec block = replacement;
 
-            if (tier.hasCap(ItemMatterManipulator.ALLOW_CABLES)) {
+            if (hasCap(ItemMatterManipulator.ALLOW_CABLES)) {
                 if (AppliedEnergistics2.isModLoaded() && MMUtils.isAECable(replacement)) {
                     block = MMUtils.AE_BLOCK_CABLE.get().asSpec();
                 }
@@ -411,7 +425,7 @@ public class MMState {
             rep.analyze(world.getTileEntity(x, y, z), PendingBlock.ANALYZE_ALL);
             rep.migrate();
 
-            if (tier.hasCap(ItemMatterManipulator.ALLOW_CABLES)) {
+            if (hasCap(ItemMatterManipulator.ALLOW_CABLES)) {
                 if (AppliedEnergistics2.isModLoaded() && MMUtils.isAECable(replacement)) {
                     placingAECable(rep, replacement);
                 }
