@@ -73,7 +73,7 @@ public enum Messages {
             case CABLES -> ItemMatterManipulator.ALLOW_CABLES;
         };
 
-        if (manipulator.tier.hasCap(requiredBit)) {
+        if (state.hasCap(requiredBit)) {
             state.config.placeMode = value;
         }
     }))),
@@ -275,12 +275,12 @@ public enum Messages {
 
             ItemStack stack = player.openContainer.getSlot(packet.value).getStack();
 
-            if (stack != null && stack.getItem() instanceof ItemMatterManipulator manipulator) {
+            if (stack != null && stack.getItem() instanceof ItemMatterManipulator) {
                 MMState state = ItemMatterManipulator.getState(stack);
 
                 int result = 0;
 
-                if (manipulator.tier.hasCap(ItemMatterManipulator.CONNECTS_TO_AE) && AppliedEnergistics2.isModLoaded()) {
+                if (state.hasCap(ItemMatterManipulator.CONNECTS_TO_AE) && AppliedEnergistics2.isModLoaded()) {
                     if (state.connectToMESystem()) {
                         if (state.canInteractWithAE(player)) {
                             result |= MMUtils.TOOLTIP_AE_WORKS;
@@ -288,7 +288,7 @@ public enum Messages {
                     }
                 }
 
-                if (manipulator.tier.hasCap(ItemMatterManipulator.CONNECTS_TO_UPLINK) && GregTech.isModLoaded()) {
+                if (state.hasCap(ItemMatterManipulator.CONNECTS_TO_UPLINK) && GregTech.isModLoaded()) {
                     if (state.uplinkAddress != null) {
                         if (state.connectToUplink()) {
                             result |= MMUtils.TOOLTIP_UPLINK_WORKS;

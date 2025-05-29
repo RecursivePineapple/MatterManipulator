@@ -27,7 +27,10 @@ public enum IDMetaItem {
     AEDownlink(21, MMItemList.AEDownlink),
     QuantumDownlink(22, MMItemList.QuantumDownlink),
     UpgradeBlank(23, MMItemList.UpgradeBlank),
-    UpgradePower(24, MMItemList.UpgradePower),
+    UpgradePowerP2P(24, MMItemList.UpgradePowerP2P),
+    UpgradePrototypeMining(25, MMItemList.UpgradePrototypeMining),
+    UpgradeSpeed(26, MMItemList.UpgradeSpeed),
+    UpgradePowerEff(27, MMItemList.UpgradePowerEff),
     //
     ;
 

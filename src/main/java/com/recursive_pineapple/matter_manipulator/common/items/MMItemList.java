@@ -42,7 +42,10 @@ public enum MMItemList {
     UplinkHatch,
 
     UpgradeBlank,
-    UpgradePower,
+    UpgradePowerP2P,
+    UpgradePrototypeMining,
+    UpgradeSpeed,
+    UpgradePowerEff,
 
     ;
 

@@ -81,10 +81,10 @@ public class MMInventory implements IPseudoInventory {
             // the first pass is simulated to make sure the requested items can be provided
             consumeItemsFromPending(simulated, extracted, flags | CONSUME_SIMULATED);
             consumeItemsFromPlayer(simulated, extracted, flags | CONSUME_SIMULATED);
-            if (tier.hasCap(ItemMatterManipulator.CONNECTS_TO_AE) && Mods.AppliedEnergistics2.isModLoaded()) {
+            if (state.hasCap(ItemMatterManipulator.CONNECTS_TO_AE) && Mods.AppliedEnergistics2.isModLoaded()) {
                 consumeItemsFromAE(simulated, extracted, flags | CONSUME_SIMULATED);
             }
-            if (tier.hasCap(ItemMatterManipulator.CONNECTS_TO_UPLINK) && Mods.GregTech.isModLoaded()) {
+            if (state.hasCap(ItemMatterManipulator.CONNECTS_TO_UPLINK) && Mods.GregTech.isModLoaded()) {
                 consumeItemsFromUplink(simulated, extracted, flags | CONSUME_SIMULATED);
             }
 
@@ -102,10 +102,10 @@ public class MMInventory implements IPseudoInventory {
 
             consumeItemsFromPending(simulated, extracted, flags);
             consumeItemsFromPlayer(simulated, extracted, flags);
-            if (tier.hasCap(ItemMatterManipulator.CONNECTS_TO_AE) && Mods.AppliedEnergistics2.isModLoaded()) {
+            if (state.hasCap(ItemMatterManipulator.CONNECTS_TO_AE) && Mods.AppliedEnergistics2.isModLoaded()) {
                 consumeItemsFromAE(simulated, extracted, flags);
             }
-            if (tier.hasCap(ItemMatterManipulator.CONNECTS_TO_UPLINK) && Mods.GregTech.isModLoaded()) {
+            if (state.hasCap(ItemMatterManipulator.CONNECTS_TO_UPLINK) && Mods.GregTech.isModLoaded()) {
                 consumeItemsFromUplink(simulated, extracted, flags);
             }
 
@@ -170,7 +170,7 @@ public class MMInventory implements IPseudoInventory {
 
         boolean hasME = false;
 
-        if (tier.hasCap(ItemMatterManipulator.CONNECTS_TO_AE) && AppliedEnergistics2.isModLoaded()) {
+        if (state.hasCap(ItemMatterManipulator.CONNECTS_TO_AE) && AppliedEnergistics2.isModLoaded()) {
             if (state.encKey != null && !state.hasMEConnection()) {
                 state.connectToMESystem();
             }
@@ -179,7 +179,7 @@ public class MMInventory implements IPseudoInventory {
 
         boolean hasUplink = false;
 
-        if (tier.hasCap(ItemMatterManipulator.CONNECTS_TO_UPLINK) && GregTech.isModLoaded()) {
+        if (state.hasCap(ItemMatterManipulator.CONNECTS_TO_UPLINK) && GregTech.isModLoaded()) {
             if (state.uplinkAddress != null && !state.hasUplinkConnection()) {
                 state.connectToUplink();
             }

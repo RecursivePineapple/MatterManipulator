@@ -64,9 +64,7 @@ public class RadialMenu extends Widget implements Interactable {
         double currentAngle = 0;
 
         // lay out the options
-        for (int i = 0; i < options.size(); i++) {
-            RadialMenuOption option = options.get(i);
-
+        for (RadialMenuOption option : options) {
             if (option.isHidden) {
                 option.startTheta = 0;
                 option.endTheta = 0;
@@ -80,13 +78,24 @@ public class RadialMenu extends Widget implements Interactable {
             option.endTheta = currentAngle;
         }
 
+        RadialMenuOption firstShown = null;
+
+        for (RadialMenuOption option : options) {
+            if (!option.isHidden) {
+                firstShown = option;
+                break;
+            }
+        }
+
         // shift the options by half the width of the first option, to make it look better
-        if (!options.isEmpty()) {
-            double offset = Math.abs(options.get(0).startTheta - options.get(0).endTheta) / 2;
+        if (firstShown != null) {
+            double offset = Math.abs(firstShown.startTheta - firstShown.endTheta) / 2;
 
             for (RadialMenuOption option : options) {
-                option.startTheta -= offset;
-                option.endTheta -= offset;
+                if (!option.isHidden) {
+                    option.startTheta -= offset;
+                    option.endTheta -= offset;
+                }
             }
         }
 
@@ -95,7 +104,7 @@ public class RadialMenu extends Widget implements Interactable {
 
         GlStateManager.pushMatrix();
 
-        GlStateManager.translate(pos.getX() + size.width / 2, pos.getY() + size.height / 2, 0);
+        GlStateManager.translate(pos.getX() + size.width / 2f, pos.getY() + size.height / 2f, 0);
 
         if (innerIcon != null) {
             innerIcon.draw(0, 0, 0, 0, partialTicks);
@@ -104,7 +113,7 @@ public class RadialMenu extends Widget implements Interactable {
         int dim = Math.min(size.width, size.height);
 
         // convert from screen space into a centered square w/ bounds [-1, 1] space
-        GlStateManager.scale(dim / 2, dim / 2, 1);
+        GlStateManager.scale(dim / 2f, dim / 2f, 1);
 
         Vector2d mouse = getMousePosition();
         double mouseRadius = mouse.x;
@@ -229,8 +238,8 @@ public class RadialMenu extends Widget implements Interactable {
             .getMousePos().y - pos.getY();
 
         // spotless:off
-        mx = map(mx, size.width / 2 - dim / 2, size.width / 2 + dim / 2, -1, 1);
-        my = map(my, size.height / 2 - dim / 2, size.height / 2 + dim / 2, -1, 1);
+        mx = map(mx, size.width / 2f - dim / 2f, size.width / 2f + dim / 2f, -1, 1);
+        my = map(my, size.height / 2f - dim / 2f, size.height / 2f + dim / 2f, -1, 1);
         // spotless:on
 
         double mouseRadius = Math.sqrt(mx * mx + my * my);
@@ -247,8 +256,8 @@ public class RadialMenu extends Widget implements Interactable {
         int dim = Math.min(size.width, size.height);
 
         // spotless:off
-        int x = (int) map(Math.cos(theta) * radius, -1, 1, size.width / 2 - dim / 2, size.width / 2 + dim / 2);
-        int y = (int) map(Math.sin(theta) * radius, -1, 1, size.height / 2 - dim / 2, size.height / 2 + dim / 2);
+        int x = (int) map(Math.cos(theta) * radius, -1, 1, size.width / 2f - dim / 2f, size.width / 2f + dim / 2f);
+        int y = (int) map(Math.sin(theta) * radius, -1, 1, size.height / 2f - dim / 2f, size.height / 2f + dim / 2f);
         // spotless:on
 
         List<String> lines = renderer.listFormattedStringToWidth(text, wrapWidth);
