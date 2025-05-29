@@ -77,21 +77,17 @@ public class InventoryAnalysis {
      * @return True when the inventory was successfully updated
      */
     public boolean apply(IBlockApplyContext context, IInventory inv, boolean consume, boolean simulate) {
+        return apply(context, inv, InventoryAdapter.findAdapter(inv), consume, simulate);
+    }
+
+    private boolean apply(IBlockApplyContext context, IInventory inv, InventoryAdapter adapter, boolean consume, boolean simulate) {
+        if (!adapter.validate(context, inv)) return false;
+
         if (inv.getSizeInventory() != mItems.length) {
             context.warn("Inventory was the wrong size (expected " + mItems.length + ", was " + inv.getSizeInventory() + ")");
             return false;
         }
 
-        InventoryAdapter adapter = InventoryAdapter.findAdapter(inv);
-
-        if (adapter != null) {
-            return apply(context, inv, adapter, consume, simulate);
-        } else {
-            return false;
-        }
-    }
-
-    public boolean apply(IBlockApplyContext context, IInventory inv, InventoryAdapter adapter, boolean consume, boolean simulate) {
         boolean didSomething = false;
         boolean success = true;
 

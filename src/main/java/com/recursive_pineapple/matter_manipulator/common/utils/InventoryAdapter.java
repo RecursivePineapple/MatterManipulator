@@ -2,8 +2,6 @@ package com.recursive_pineapple.matter_manipulator.common.utils;
 
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
 
-import javax.annotation.Nullable;
-
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
@@ -21,13 +19,51 @@ import gregtech.common.tileentities.machines.MTEHatchOutputBusME;
 import gregtech.common.tileentities.machines.MTEHatchOutputME;
 
 import com.google.common.collect.ImmutableList;
-import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
+import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
 import tectech.thing.metaTileEntity.hatch.MTEHatchRack;
 
 public enum InventoryAdapter {
+
+    QCRack {
+
+        @Override
+        public boolean canHandle(IInventory inv) {
+            return GregTech.isModLoaded() && canHandleImpl(inv);
+        }
+
+        @Override
+        @Optional(Names.GREG_TECH)
+        public boolean validate(BlockAnalyzer.IBlockApplyContext context, IInventory inv) {
+            IGregTechTileEntity igte = (IGregTechTileEntity) inv;
+            MTEHatchRack rack = (MTEHatchRack) igte.getMetaTileEntity();
+
+            if (rack.heat > 2000) {
+                context.error("QC Rack is too hot to extract or insert items");
+                return false;
+            }
+
+            if (igte.isActive()) {
+                context.error("Cannot extract or insert items from/into QC Rack while QC is on");
+                return false;
+            }
+
+            return true;
+        }
+
+        @Optional(Names.GREG_TECH)
+        private boolean canHandleImpl(IInventory inv) {
+            if (inv instanceof IGregTechTileEntity igte) {
+                IMetaTileEntity imte = igte.getMetaTileEntity();
+
+                if (imte instanceof MTEHatchRack) return true;
+            }
+
+            return false;
+        }
+    },
 
     GTUnrestricted {
 
@@ -43,7 +79,6 @@ public enum InventoryAdapter {
 
                 if (imte instanceof MTEHatchOutputBusME) return true;
                 if (imte instanceof MTEHatchOutputME) return true;
-                if (imte instanceof MTEHatchRack) return true;
                 if (imte instanceof MTEMultiBlockBase) return true;
                 if (imte instanceof MTEBasicBatteryBuffer) return true;
             }
@@ -167,6 +202,10 @@ public enum InventoryAdapter {
         return inv != null;
     }
 
+    public boolean validate(BlockAnalyzer.IBlockApplyContext context, IInventory inv) {
+        return true;
+    }
+
     public boolean isValidSlot(IInventory inv, int slot) {
         return slot >= 0 && slot < inv.getSizeInventory();
     }
@@ -196,13 +235,11 @@ public enum InventoryAdapter {
         return true;
     }
 
-    public static @Nullable InventoryAdapter findAdapter(IInventory inv) {
+    public static InventoryAdapter findAdapter(IInventory inv) {
         for (InventoryAdapter adapter : ADAPTERS) {
             if (adapter.canHandle(inv)) return adapter;
         }
 
-        MMMod.LOG.error("could not apply inventory: no adapters support " + inv);
-
-        return null;
+        throw new IllegalStateException();
     }
 }

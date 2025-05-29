@@ -62,6 +62,7 @@ public class BlockSpec implements ImmutableBlockSpec {
     public ArchitectureCraftAnalysisResult arch;
 
     @SerializedName("i")
+    @Nullable
     public Map<String, JsonElement> intrinsicProperties;
 
     private transient Block block;
@@ -255,12 +256,14 @@ public class BlockSpec implements ImmutableBlockSpec {
         Map<String, IntrinsicProperty> props = new Object2ObjectOpenHashMap<>();
         BlockPropertyRegistry.getIntrinsicProperties(getStack(), props);
 
-        for (var e : intrinsicProperties.entrySet()) {
-            IntrinsicProperty prop = props.get(e.getKey());
+        if (intrinsicProperties != null) {
+            for (var e : intrinsicProperties.entrySet()) {
+                IntrinsicProperty prop = props.get(e.getKey());
 
-            if (prop == null) continue;
+                if (prop == null) continue;
 
-            prop.getItemDetails(details, e.getValue());
+                prop.getItemDetails(details, e.getValue());
+            }
         }
     }
 
