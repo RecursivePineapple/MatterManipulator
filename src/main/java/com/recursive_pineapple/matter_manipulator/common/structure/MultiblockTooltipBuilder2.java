@@ -99,7 +99,6 @@ public class MultiblockTooltipBuilder2<MTE extends MTEEnhancedMultiBlockBase<?> 
                         addEnergyHatch(info, dots);
                         break;
                     case ExoticEnergy:
-                        addDynamoHatch(info, dots);
                         addEnergyHatch(info, dots);
                         hasMultiampHatches = true;
                         break;

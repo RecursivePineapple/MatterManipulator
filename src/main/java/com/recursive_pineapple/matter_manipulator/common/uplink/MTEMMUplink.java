@@ -251,7 +251,7 @@ public class MTEMMUplink extends MTEExtendedPowerMultiBlockBase<MTEMMUplink> imp
             .addInfo("Interdimensional and infinite range uplink for matter manipulators.")
             .addInfo("Allows manipulators to convert plans into AE patterns.")
             .addInfo("Connects directly to an ME system via a " + EnumChatFormatting.GOLD + hatch + EnumChatFormatting.GRAY + ".")
-            .addInfo(" ")
+            .addSeparator()
             .addInfo("Consumes 1A ZPM while active.")
             .addInfo("Must be fed with plasma via an input hatch.")
             .addInfo("Transfers to/from the manipulator cost " + String.format("%,d", BASE_PLASMA_EU_COST) + " EU in plasma per item or per bucket.")
