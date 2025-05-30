@@ -1,8 +1,8 @@
 package com.recursive_pineapple.matter_manipulator.common.uplink;
 
-import static com.recursive_pineapple.matter_manipulator.common.structure.Casings.AdvancedIridiumPlatedMachineCasing;
-import static com.recursive_pineapple.matter_manipulator.common.structure.Casings.MatterGenerationCoil;
-import static com.recursive_pineapple.matter_manipulator.common.structure.Casings.RadiantNaquadahAlloyCasing;
+import static com.recursive_pineapple.matter_manipulator.common.structure.MMCasings.AdvancedIridiumPlatedMachineCasing;
+import static com.recursive_pineapple.matter_manipulator.common.structure.MMCasings.MatterGenerationCoil;
+import static com.recursive_pineapple.matter_manipulator.common.structure.MMCasings.RadiantNaquadahAlloyCasing;
 import static gregtech.api.enums.GTValues.AuthorPineapple;
 import static gregtech.api.enums.HatchElement.Energy;
 import static gregtech.api.enums.HatchElement.ExoticEnergy;
@@ -11,6 +11,7 @@ import static gregtech.api.enums.HatchElement.Maintenance;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
@@ -32,6 +33,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 import gregtech.api.enums.Materials;
+import gregtech.api.enums.StructureError;
 import gregtech.api.enums.Textures.BlockIcons.CustomIcon;
 import gregtech.api.enums.TierEU;
 import gregtech.api.interfaces.IHatchElement;
@@ -46,6 +48,11 @@ import gregtech.api.recipe.check.CheckRecipeResult;
 import gregtech.api.recipe.check.CheckRecipeResultRegistry;
 import gregtech.api.recipe.maps.FuelBackend;
 import gregtech.api.render.TextureFactory;
+import gregtech.api.structure.IStructureInstance;
+import gregtech.api.structure.IStructureProvider;
+import gregtech.api.structure.StructureWrapper;
+import gregtech.api.structure.StructureWrapperInstanceInfo;
+import gregtech.api.structure.StructureWrapperTooltipBuilder;
 import gregtech.api.util.GTRecipe;
 import gregtech.api.util.GTUtility;
 import gregtech.api.util.IGTHatchAdder;
@@ -69,21 +76,12 @@ import com.google.common.collect.ImmutableList;
 import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable;
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
-import com.gtnewhorizons.modularui.api.math.Alignment;
-import com.gtnewhorizons.modularui.common.widget.DynamicPositionedColumn;
-import com.gtnewhorizons.modularui.common.widget.FakeSyncWidget;
-import com.gtnewhorizons.modularui.common.widget.SlotWidget;
-import com.gtnewhorizons.modularui.common.widget.TextWidget;
 import com.recursive_pineapple.matter_manipulator.common.building.IPseudoInventory;
 import com.recursive_pineapple.matter_manipulator.common.items.MMItemList;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
 import com.recursive_pineapple.matter_manipulator.common.networking.Messages;
 import com.recursive_pineapple.matter_manipulator.common.structure.CasingGTFrames;
-import com.recursive_pineapple.matter_manipulator.common.structure.IStructureProvider;
-import com.recursive_pineapple.matter_manipulator.common.structure.MultiblockTooltipBuilder2;
-import com.recursive_pineapple.matter_manipulator.common.structure.StructureWrapper;
-import com.recursive_pineapple.matter_manipulator.common.structure.StructureWrapperInstanceInfo;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigFluidStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
@@ -101,7 +99,7 @@ public class MTEMMUplink extends MTEExtendedPowerMultiBlockBase<MTEMMUplink> imp
     private long pendingPlasmaEU = 0;
     private long address = 0;
 
-    private ArrayList<MTEMMUplinkMEHatch> uplinkHatches = new ArrayList<>();
+    private final ArrayList<MTEMMUplinkMEHatch> uplinkHatches = new ArrayList<>();
 
     protected final StructureWrapper<MTEMMUplink> structure;
     protected final StructureWrapperInstanceInfo<MTEMMUplink> structureInstanceInfo;
@@ -140,25 +138,14 @@ public class MTEMMUplink extends MTEExtendedPowerMultiBlockBase<MTEMMUplink> imp
     }
 
     @Override
-    public StructureWrapperInstanceInfo<MTEMMUplink> getWrapperInstanceInfo() {
+    public IStructureInstance<MTEMMUplink> getStructureInstance() {
         return structureInstanceInfo;
     }
 
     @Override
     public IStructureDefinition<MTEMMUplink> compile(String[][] definition) {
-        structure.addCasingWithHatches(
-            'A',
-            AdvancedIridiumPlatedMachineCasing,
-            1,
-            8,
-            Arrays.asList(
-                InputHatch,
-                Energy,
-                ExoticEnergy,
-                Maintenance,
-                UplinkHatchAdder.Instance
-            )
-        );
+        structure.addCasing('A', AdvancedIridiumPlatedMachineCasing)
+            .withHatches(1, 16, Arrays.asList(InputHatch, Energy, ExoticEnergy, Maintenance, UplinkHatchAdder.INSTANCE));
         structure.addCasing('B', NAQ_ALLOY_FRAMES);
         structure.addCasing('C', TRINIUM_FRAMES);
         structure.addCasing('D', MatterGenerationCoil);
@@ -174,38 +161,37 @@ public class MTEMMUplink extends MTEExtendedPowerMultiBlockBase<MTEMMUplink> imp
 
     @Override
     public void construct(ItemStack stackSize, boolean hintsOnly) {
-        structureInstanceInfo.construct(this, stackSize, hintsOnly);
+        structure.construct(this, stackSize, hintsOnly);
     }
 
     @Override
     public int survivalConstruct(ItemStack stackSize, int elementBudget, ISurvivalBuildEnvironment env) {
-        return structureInstanceInfo.survivalConstruct(this, stackSize, elementBudget, env);
+        return structure.survivalConstruct(this, stackSize, elementBudget, env);
     }
 
     @Override
     public boolean checkMachine(IGregTechTileEntity iGregTechTileEntity, ItemStack itemStack) {
-        return structureInstanceInfo.checkStructure(this);
+        return structure.checkStructure(this);
     }
 
     @Override
-    protected void drawTexts(DynamicPositionedColumn screenElements, SlotWidget inventorySlot) {
-        super.drawTexts(screenElements, inventorySlot);
+    protected void validateStructure(Collection<StructureError> errors, NBTTagCompound context) {
+        super.validateStructure(errors, context);
 
-        screenElements.widgets(
-            new FakeSyncWidget.BooleanSyncer(
-                () -> structureInstanceInfo.hasErrors,
-                value -> structureInstanceInfo.hasErrors = value
-            ),
-            TextWidget.dynamicString(() -> structureInstanceInfo.getErrors())
-                .setTextAlignment(Alignment.CenterLeft)
-                .setMaxWidth(179)
-                .setEnabled(structureInstanceInfo.hasErrors)
-        );
+        structureInstanceInfo.validate(errors, context);
+    }
+
+    @Override
+    protected void localizeStructureErrors(Collection<StructureError> errors, NBTTagCompound context,
+        List<String> lines) {
+        super.localizeStructureErrors(errors, context, lines);
+
+        structureInstanceInfo.localizeStructureErrors(errors, context, lines);
     }
 
     private enum UplinkHatchAdder implements IHatchElement<MTEMMUplink> {
 
-        Instance;
+        INSTANCE;
 
         @Override
         public List<? extends Class<? extends IMetaTileEntity>> mteClasses() {
@@ -243,7 +229,7 @@ public class MTEMMUplink extends MTEExtendedPowerMultiBlockBase<MTEMMUplink> imp
 
     @Override
     protected MultiblockTooltipBuilder createTooltip() {
-        MultiblockTooltipBuilder2<MTEMMUplink> tt = new MultiblockTooltipBuilder2<>(structure);
+        StructureWrapperTooltipBuilder<MTEMMUplink> tt = new StructureWrapperTooltipBuilder<>(structure);
 
         String hatch = MMItemList.UplinkHatch.get(1).getDisplayName();
 
@@ -259,7 +245,7 @@ public class MTEMMUplink extends MTEExtendedPowerMultiBlockBase<MTEMMUplink> imp
 
         tt.beginStructureBlock();
         tt.addController("Front Center");
-        tt.addHatchNameOverride(UplinkHatchAdder.Instance, hatch);
+        tt.addHatchNameOverride(UplinkHatchAdder.INSTANCE, hatch);
         tt.addAllCasingInfo(
             Arrays.asList(
                 AdvancedIridiumPlatedMachineCasing,
@@ -267,7 +253,8 @@ public class MTEMMUplink extends MTEExtendedPowerMultiBlockBase<MTEMMUplink> imp
                 TRINIUM_FRAMES,
                 NAQ_ALLOY_FRAMES,
                 RadiantNaquadahAlloyCasing
-            )
+            ),
+            null
         );
 
         tt.toolTipFinisher(EnumChatFormatting.WHITE, 0, AuthorPineapple);
@@ -333,7 +320,7 @@ public class MTEMMUplink extends MTEExtendedPowerMultiBlockBase<MTEMMUplink> imp
             }
         }
 
-        return textures.toArray(new ITexture[textures.size()]);
+        return textures.toArray(new ITexture[0]);
     }
 
     @SideOnly(Side.CLIENT)

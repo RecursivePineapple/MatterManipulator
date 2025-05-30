@@ -7,7 +7,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import net.minecraft.block.Block;
 
+import org.jetbrains.annotations.NotNull;
+
 import gregtech.api.GregTechAPI;
+import gregtech.api.casing.ICasing;
 import gregtech.api.enums.Materials;
 
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
@@ -23,18 +26,23 @@ public class CasingGTFrames implements ICasing {
     }
 
     @Override
-    public Block getBlock() {
+    public @NotNull Block getBlock() {
         return GregTechAPI.sBlockFrames;
     }
 
     @Override
-    public int getMeta() {
+    public int getBlockMeta() {
         return material.mMetaItemSubID;
     }
 
     @Override
-    public <T> IStructureElement<T> asElement() {
+    public <T> IStructureElement<T> asElement(CasingElementContext<T> context) {
         return ofFrame(material);
+    }
+
+    @Override
+    public boolean isTiered() {
+        return false;
     }
 
     @Override
