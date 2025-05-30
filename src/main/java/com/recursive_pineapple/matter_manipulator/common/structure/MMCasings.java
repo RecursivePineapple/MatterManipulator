@@ -4,13 +4,16 @@ import java.util.function.Supplier;
 
 import net.minecraft.block.Block;
 
+import org.jetbrains.annotations.NotNull;
+
 import gregtech.api.GregTechAPI;
 
+import gregtech.api.casing.ICasing;
 import gtPlusPlus.core.block.ModBlocks;
 import tectech.thing.casing.BlockGTCasingsTT;
 import tectech.thing.casing.TTCasingsContainer;
 
-public enum Casings implements ICasing {
+public enum MMCasings implements ICasing {
 
     ChemicallyInertMachineCasing(() -> GregTechAPI.sBlockCasings8, 0, 176),
     PTFEPipeCasing(() -> GregTechAPI.sBlockCasings8, 1, 176),
@@ -69,20 +72,25 @@ public enum Casings implements ICasing {
     public final int meta;
     public final int textureOffset;
 
-    private Casings(Supplier<Block> blockGetter, int meta, int textureOffset) {
+    MMCasings(Supplier<Block> blockGetter, int meta, int textureOffset) {
         this.blockGetter = blockGetter;
         this.meta = meta;
         this.textureOffset = textureOffset;
     }
 
     @Override
-    public Block getBlock() {
+    public @NotNull Block getBlock() {
         return blockGetter.get();
     }
 
     @Override
-    public int getMeta() {
+    public int getBlockMeta() {
         return meta;
+    }
+
+    @Override
+    public boolean isTiered() {
+        return false;
     }
 
     @Override
