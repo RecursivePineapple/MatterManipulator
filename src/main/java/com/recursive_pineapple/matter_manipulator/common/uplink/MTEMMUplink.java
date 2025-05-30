@@ -182,8 +182,11 @@ public class MTEMMUplink extends MTEExtendedPowerMultiBlockBase<MTEMMUplink> imp
     }
 
     @Override
-    protected void localizeStructureErrors(Collection<StructureError> errors, NBTTagCompound context,
-        List<String> lines) {
+    protected void localizeStructureErrors(
+        Collection<StructureError> errors,
+        NBTTagCompound context,
+        List<String> lines
+    ) {
         super.localizeStructureErrors(errors, context, lines);
 
         structureInstanceInfo.localizeStructureErrors(errors, context, lines);

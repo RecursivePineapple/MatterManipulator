@@ -7,13 +7,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import net.minecraft.block.Block;
 
-import org.jetbrains.annotations.NotNull;
-
 import gregtech.api.GregTechAPI;
 import gregtech.api.casing.ICasing;
 import gregtech.api.enums.Materials;
 
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
+
+import org.jetbrains.annotations.NotNull;
 
 public class CasingGTFrames implements ICasing {
 

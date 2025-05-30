@@ -4,11 +4,11 @@ import java.util.function.Supplier;
 
 import net.minecraft.block.Block;
 
+import gregtech.api.GregTechAPI;
+import gregtech.api.casing.ICasing;
+
 import org.jetbrains.annotations.NotNull;
 
-import gregtech.api.GregTechAPI;
-
-import gregtech.api.casing.ICasing;
 import gtPlusPlus.core.block.ModBlocks;
 import tectech.thing.casing.BlockGTCasingsTT;
 import tectech.thing.casing.TTCasingsContainer;
