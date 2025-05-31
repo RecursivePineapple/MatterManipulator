@@ -72,14 +72,6 @@ public class MetaItem extends Item {
 
         int meta = getDamage(stack);
 
-        if (Mods.GregTech.isModLoaded()) {
-            IDMetaItem metaItem = MMUtils.getIndexSafe(metaItems, meta);
-
-            String tooltip = metaItem != null ? getItemTier(metaItem) : null;
-
-            if (tooltip != null) desc.add(tooltip);
-        }
-
         String descKey = "item." + name + "." + meta + ".desc";
 
         if (StatCollector.canTranslate(descKey)) {
@@ -96,6 +88,14 @@ public class MetaItem extends Item {
                     desc.add("- " + tier.container.stack.getDisplayName());
                 }
             }
+        }
+
+        if (Mods.GregTech.isModLoaded()) {
+            IDMetaItem metaItem = MMUtils.getIndexSafe(metaItems, meta);
+
+            String tooltip = metaItem != null ? getItemTier(metaItem) : null;
+
+            if (tooltip != null) desc.add(tooltip);
         }
     }
 
@@ -124,6 +124,11 @@ public class MetaItem extends Item {
             case Lens3 -> Tier.ZPM.tooltip.get();
             case AEDownlink -> Tier.IV.tooltip.get();
             case QuantumDownlink -> Tier.ZPM.tooltip.get();
+            case UpgradeBlank -> Tier.EV.tooltip.get();
+            case UpgradePowerP2P -> Tier.UHV.tooltip.get();
+            case UpgradePrototypeMining -> Tier.EV.tooltip.get();
+            case UpgradeSpeed -> Tier.EV.tooltip.get();
+            case UpgradePowerEff -> Tier.EV.tooltip.get();
             default -> null;
         };
     }
