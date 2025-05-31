@@ -125,6 +125,15 @@ public class MMState {
         return (NBTTagCompound) MMUtils.toNbt(GSON.toJsonTree(this));
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
+    public MMState clone() {
+        MMState copy = load(save());
+
+        copy.manipulator = this.manipulator;
+
+        return copy;
+    }
+
     private static void migrateJson(JsonObject obj) {
         int version = obj.has("jv") ? obj.get("jv").getAsInt() : 0;
 

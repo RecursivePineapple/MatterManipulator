@@ -1240,11 +1240,6 @@ public class MMUtils {
     /**
      * The logic for creating a plan.
      * This really belongs in {@link Messages}, but I put it here so that it's hotswappable.
-     *
-     * @param player
-     * @param state
-     * @param manipulator
-     * @param flags
      */
     public static void createPlanImpl(
         EntityPlayer player,
@@ -1252,8 +1247,7 @@ public class MMUtils {
         ItemMatterManipulator manipulator,
         int flags
     ) {
-        // deep copy
-        state = MMState.load(state.save());
+        state = state.clone();
 
         if (!Location.areCompatible(state.config.coordA, state.config.coordB)) {
             sendErrorToPlayer(player, "Must have copy region marked.");
