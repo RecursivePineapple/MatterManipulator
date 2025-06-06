@@ -23,10 +23,12 @@ public class InteropConstants {
     private InteropConstants() {}
 
     private static final LazyBlock BRIGHT_AIR = new LazyBlock(Mods.GalacticraftCore, "tile.brightAir", OreDictionary.WILDCARD_VALUE);
+    private static final LazyBlock ARCANE_LAMP_LIGHT = new LazyBlock(Mods.Thaumcraft, "blockAiry", 2);
 
     public static boolean shouldBeSkipped(Block block, int meta) {
         if (Mods.GregTech.isModLoaded() && shouldBeSkippedGT(block)) return true;
         if (BRIGHT_AIR.matches(block, meta)) return true;
+        if (ARCANE_LAMP_LIGHT.matches(block, meta)) return true;
 
         return false;
     }

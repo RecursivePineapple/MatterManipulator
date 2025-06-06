@@ -7,6 +7,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.profiler.Profiler;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.WorldSettings;
@@ -118,6 +119,13 @@ public class ProxiedWorld extends World {
         if (aX == airX && aY == airY && aZ == airZ) return 0;
 
         return world.getBlockMetadata(aX, aY, aZ);
+    }
+
+    @Override
+    public TileEntity getTileEntity(int aX, int aY, int aZ) {
+        if (aX == airX && aY == airY && aZ == airZ) return null;
+
+        return world.getTileEntity(aX, aY, aZ);
     }
 
     @Override
