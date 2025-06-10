@@ -99,7 +99,6 @@ public class UpdateRecipeNEIHandler extends ShapelessRecipeHandler {
 
     private ItemStack modifyMM(ItemStack mm, MMUpgrades toInstall) {
         mm = mm.copy();
-        mm.setStackDisplayName("Upgraded " + mm.getDisplayName());
 
         MMState state = ItemMatterManipulator.getState(mm);
 
