@@ -1,6 +1,7 @@
 package com.recursive_pineapple.matter_manipulator.common.compat;
 
 import static net.minecraftforge.common.util.ForgeDirection.*;
+import static net.minecraftforge.oredict.OreDictionary.WILDCARD_VALUE;
 
 import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandle;
@@ -56,11 +57,14 @@ import appeng.util.ReadableNumberConverter;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
+import com.recursive_pineapple.matter_manipulator.common.building.InteropConstants;
 import com.recursive_pineapple.matter_manipulator.common.compat.BooleanProperty.FlagBooleanProperty;
 import com.recursive_pineapple.matter_manipulator.common.compat.DirectionBlockProperty.AbstractDirectionBlockProperty;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
+
+import net.bdew.ae2stuff.machines.wireless.TileWireless;
 
 import de.keridos.floodlights.tileentity.TileEntityMetaFloodlight;
 import de.keridos.floodlights.tileentity.TileEntitySmallFloodlight;
@@ -250,6 +254,7 @@ public class BlockPropertyRegistry {
         if (Mods.ArchitectureCraft.isModLoaded()) initArch();
         if (Mods.FloodLights.isModLoaded()) initFloodLights();
         if (Mods.GregTech.isModLoaded()) initGT5u();
+        if (Mods.AE2Stuff.isModLoaded()) initAE2Stuff();
     }
 
     // #region Vanilla
@@ -1055,6 +1060,11 @@ public class BlockPropertyRegistry {
         registerIntrinsicProperty(GregTechAPI.sBlockMachines, new MEHatchCapacityProperty<>(MTEHatchOutputME.class));
     }
 
+    @Optional(Names.AE2STUFF)
+    private static void initAE2Stuff() {
+        registerIntrinsicProperty(InteropConstants.WIRELESS_CONNECTOR.get().getBlock(), new WirelessHubProperty());
+    }
+
     // #endregion
 
     @SneakyThrows
@@ -1254,6 +1264,46 @@ public class BlockPropertyRegistry {
         public void getItemDetails(List<String> details, JsonElement value) {
             ReadableNumberConverter nc = ReadableNumberConverter.INSTANCE;
             details.add(String.format("cache capacity: %s", nc.toWideReadableForm(value.getAsLong())));
+        }
+    }
+
+    private static class WirelessHubProperty implements IntrinsicProperty {
+
+        @Override
+        public String getName() {
+            return "isHub";
+        }
+
+        @Override
+        public boolean hasValue(ItemStack stack) {
+            return InteropConstants.WIRELESS_CONNECTOR.matches(MMUtils.getBlockFromItem(stack.getItem(), stack.itemDamage), WILDCARD_VALUE);
+        }
+
+        @Override
+        public boolean hasValue(IBlockAccess world, int x, int y, int z) {
+            return world.getTileEntity(x, y, z) instanceof TileWireless;
+        }
+
+        @Override
+        public JsonElement getValue(ItemStack stack) {
+            return new JsonPrimitive(stack.itemDamage >= 17);
+        }
+
+        @Override
+        public JsonElement getValue(IBlockAccess world, int x, int y, int z) {
+            TileWireless te = (TileWireless) world.getTileEntity(x, y, z);
+
+            return new JsonPrimitive(te.isHub());
+        }
+
+        @Override
+        public void setValue(ItemStack stack, JsonElement value) {
+            stack.itemDamage = (stack.itemDamage % 17) + (value.getAsBoolean() ? 17 : 0);
+        }
+
+        @Override
+        public void setValue(IBlockAccess world, int x, int y, int z, JsonElement value) {
+            throw new UnsupportedOperationException("hub status is fixed and cannot be changed");
         }
     }
 }

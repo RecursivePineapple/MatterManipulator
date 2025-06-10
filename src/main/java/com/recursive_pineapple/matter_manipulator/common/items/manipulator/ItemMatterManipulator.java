@@ -89,6 +89,7 @@ import com.recursive_pineapple.matter_manipulator.client.gui.DirectionDrawable;
 import com.recursive_pineapple.matter_manipulator.client.gui.RadialMenuBuilder;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockSpec;
 import com.recursive_pineapple.matter_manipulator.common.building.IBuildable;
+import com.recursive_pineapple.matter_manipulator.common.building.InteropConstants;
 import com.recursive_pineapple.matter_manipulator.common.building.PendingBlock;
 import com.recursive_pineapple.matter_manipulator.common.building.PendingBuild;
 import com.recursive_pineapple.matter_manipulator.common.building.PendingMove;
@@ -988,7 +989,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
 
     private void checkForAECables(MMState state, BlockSpec spec, World world, int x, int y, int z) {
         if (state.hasCap(ALLOW_CABLES) && AppliedEnergistics2.isModLoaded()) {
-            if (MMUtils.AE_BLOCK_CABLE.matches(spec)) {
+            if (InteropConstants.AE_BLOCK_CABLE.matches(spec)) {
                 MMUtils.getAECable(spec, world, x, y, z);
             }
         }

@@ -51,6 +51,7 @@ import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.
 import com.recursive_pineapple.matter_manipulator.common.building.BlockSpec;
 import com.recursive_pineapple.matter_manipulator.common.building.GTAnalysisResult;
 import com.recursive_pineapple.matter_manipulator.common.building.ImmutableBlockSpec;
+import com.recursive_pineapple.matter_manipulator.common.building.InteropConstants;
 import com.recursive_pineapple.matter_manipulator.common.building.PendingBlock;
 import com.recursive_pineapple.matter_manipulator.common.data.WeightedSpecList;
 import com.recursive_pineapple.matter_manipulator.common.items.MMUpgrades;
@@ -353,7 +354,7 @@ public class MMState {
                             t.apply(d);
 
                             for (PendingBlock original : base) {
-                                PendingBlock dup = original.clone(false);
+                                PendingBlock dup = original.clone();
                                 dup.x += d.x;
                                 dup.y += d.y;
                                 dup.z += d.z;
@@ -407,8 +408,6 @@ public class MMState {
 
             BlockSpec.fromBlock(existing, world, x, y, z);
 
-            if (existing.shouldBeSkipped()) continue;
-
             if (!replacingAir) {
                 if (existing.isAir()) continue;
             }
@@ -425,7 +424,7 @@ public class MMState {
 
             if (hasCap(ItemMatterManipulator.ALLOW_CABLES)) {
                 if (AppliedEnergistics2.isModLoaded() && MMUtils.isAECable(replacement)) {
-                    block = MMUtils.AE_BLOCK_CABLE.get().asSpec();
+                    block = InteropConstants.AE_BLOCK_CABLE.get().asSpec();
                 }
             }
 
@@ -474,7 +473,7 @@ public class MMState {
             for (Vector3i voxel : getLineVoxels(a.x, a.y, a.z, b.x, b.y, b.z)) {
                 if (AppliedEnergistics2.isModLoaded()) {
                     if (MMUtils.getAECable(pooled, world, voxel.x, voxel.y, voxel.z)) {
-                        PendingBlock pendingBlock = MMUtils.AE_BLOCK_CABLE.get().asSpec().instantiate(world, voxel.x, voxel.y, voxel.z);
+                        PendingBlock pendingBlock = InteropConstants.AE_BLOCK_CABLE.get().asSpec().instantiate(world, voxel.x, voxel.y, voxel.z);
 
                         pendingBlock.analyze(world.getTileEntity(voxel.x, voxel.y, voxel.z), PendingBlock.ANALYZE_ALL);
 
@@ -557,7 +556,7 @@ public class MMState {
 
                     AEAnalysisResult ae;
 
-                    if (MMUtils.AE_BLOCK_CABLE.matches(world.getBlock(x, y, z), 0)) {
+                    if (InteropConstants.AE_BLOCK_CABLE.matches(world.getBlock(x, y, z), 0)) {
                         ae = AEAnalysisResult.analyze(world.getTileEntity(voxel.x, voxel.y, voxel.z));
                         ae.mAEParts[ForgeDirection.UNKNOWN.ordinal()] = new AEPartData(cable);
                     } else {

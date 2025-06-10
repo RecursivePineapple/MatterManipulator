@@ -1,6 +1,9 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.material.MaterialLiquid;
+import net.minecraft.block.material.MaterialTransparent;
+import net.minecraft.init.Blocks;
 
 import net.minecraftforge.oredict.OreDictionary;
 
@@ -22,19 +25,41 @@ public class InteropConstants {
 
     private InteropConstants() {}
 
-    private static final LazyBlock BRIGHT_AIR = new LazyBlock(Mods.GalacticraftCore, "tile.brightAir", OreDictionary.WILDCARD_VALUE);
-    private static final LazyBlock ARCANE_LAMP_LIGHT = new LazyBlock(Mods.Thaumcraft, "blockAiry", 2);
+    public static final LazyBlock BRIGHT_AIR = new LazyBlock(Mods.GalacticraftCore, "tile.brightAir", OreDictionary.WILDCARD_VALUE);
+    public static final LazyBlock ARCANE_LAMP_LIGHT = new LazyBlock(Mods.Thaumcraft, "blockAiry", 2);
+    public static final LazyBlock WIRELESS_CONNECTOR = new LazyBlock(Mods.AE2Stuff, "Wireless");
+    public static final LazyBlock AE_BLOCK_CABLE = new LazyBlock(Mods.AppliedEnergistics2, "tile.BlockCableBus");
+    public static final LazyBlock FMP_BLOCK = new LazyBlock(Mods.ForgeMultipart, "block");
 
-    public static boolean shouldBeSkipped(Block block, int meta) {
-        if (Mods.GregTech.isModLoaded() && shouldBeSkippedGT(block)) return true;
+    public static boolean isAir(Block block, int meta) {
+        if (block.getMaterial() instanceof MaterialTransparent) return true;
+
+        return false;
+    }
+
+    public static boolean skipWhenCopying(Block block, int meta) {
+        if (block.getMaterial() instanceof MaterialLiquid) return true;
+
+        if (Mods.GregTech.isModLoaded() && isGTRenderer(block)) return true;
+        if (FMP_BLOCK.matches(block, meta)) return true;
         if (BRIGHT_AIR.matches(block, meta)) return true;
         if (ARCANE_LAMP_LIGHT.matches(block, meta)) return true;
 
         return false;
     }
 
+    public static boolean shouldDropItem(Block block, int meta) {
+        if (Mods.GregTech.isModLoaded() && isGTRenderer(block)) return false;
+
+        // Don't check for MaterialTransparent because it could include things like nitor
+        if (BRIGHT_AIR.matches(block, meta)) return false;
+        if (ARCANE_LAMP_LIGHT.matches(block, meta)) return false;
+
+        return true;
+    }
+
     @Optional(Names.GREG_TECH)
-    private static boolean shouldBeSkippedGT(Block block) {
+    private static boolean isGTRenderer(Block block) {
         if (block == GregTechAPI.sDroneRender) return true;
         if (block == GregTechAPI.sWormholeRender) return true;
         if (block == GregTechAPI.sBlackholeRender) return true;
@@ -42,6 +67,15 @@ public class InteropConstants {
         if (block == TTCasingsContainer.forgeOfGodsRenderBlock) return true;
         if (block == FluidLoader.bioFluidBlock) return true;
         if (block == Loaders.antimatterRenderBlock) return true;
+
+        return false;
+    }
+
+    public static boolean isFree(Block block, int metadata) {
+        if (block == Blocks.air) return true;
+
+        if (FMP_BLOCK.matches(block, metadata)) return true;
+        if (AE_BLOCK_CABLE.matches(block, metadata)) return true;
 
         return false;
     }

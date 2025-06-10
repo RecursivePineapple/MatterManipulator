@@ -391,8 +391,8 @@ public class BlockSpec implements ImmutableBlockSpec {
         @Nullable
         Item item = MMUtils.getItemFromBlock(block, blockMeta);
 
-        if (!MMUtils.isFree(block, blockMeta)) {
-            if (item == null) { return new BlockSpec().setObject(Blocks.air, 0); }
+        if (!InteropConstants.isFree(block, blockMeta)) {
+            if (item == null) return BlockSpec.air();
 
             if (block != Blocks.wall_sign && block != Blocks.standing_sign) {
                 block = MMUtils.getBlockFromItem(item, item.getMetadata(blockMeta));

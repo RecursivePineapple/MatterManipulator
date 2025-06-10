@@ -124,11 +124,6 @@ public class PendingBuild extends AbstractBuildable {
 
             PendingBlock existing = PendingBlock.fromBlock(world, x, y, z);
 
-            if (existing.shouldBeSkipped()) {
-                pendingBlocks.removeFirst();
-                continue;
-            }
-
             if (next.spec.isAir() && existing.getBlock().isAir(world, x, y, z)) {
                 pendingBlocks.removeFirst();
                 continue;
@@ -500,8 +495,8 @@ public class PendingBuild extends AbstractBuildable {
                 if (blockName == null) {
                     BlockSpec spec = BlockSpec.fromBlock(null, player.worldObj, pendingBlock.x, pendingBlock.y, pendingBlock.z);
 
-                    if (MMUtils.AE_BLOCK_CABLE.matches(spec)) {
-                        blockName = MMUtils.AE_BLOCK_CABLE.get().asSpec().getDisplayName();
+                    if (InteropConstants.AE_BLOCK_CABLE.matches(spec)) {
+                        blockName = InteropConstants.AE_BLOCK_CABLE.get().asSpec().getDisplayName();
                     } else {
                         blockName = spec.getDisplayName();
                     }
@@ -533,8 +528,8 @@ public class PendingBuild extends AbstractBuildable {
 
                 BlockSpec spec = BlockSpec.fromBlock(null, player.worldObj, pendingBlock.x, pendingBlock.y, pendingBlock.z);
 
-                if (MMUtils.AE_BLOCK_CABLE.matches(spec)) {
-                    blockName = MMUtils.AE_BLOCK_CABLE.get().asSpec().getDisplayName();
+                if (InteropConstants.AE_BLOCK_CABLE.matches(spec)) {
+                    blockName = InteropConstants.AE_BLOCK_CABLE.get().asSpec().getDisplayName();
                 } else {
                     blockName = spec.getDisplayName();
                 }

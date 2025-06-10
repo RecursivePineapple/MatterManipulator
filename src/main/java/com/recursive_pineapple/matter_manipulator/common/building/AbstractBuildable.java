@@ -58,7 +58,6 @@ import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMSta
 import com.recursive_pineapple.matter_manipulator.common.networking.SoundResource;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigFluidStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
-import com.recursive_pineapple.matter_manipulator.common.utils.LazyBlock;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
@@ -125,28 +124,33 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         manipulator.refillPower(stack, state);
     }
 
-    private static final LazyBlock WIRELESS_CONNECTOR = new LazyBlock(Mods.AE2Stuff, "Wireless");
-
     /**
      * Removes a block and stores its items in this object. Items & fluids must delivered by calling
      * {@link #actuallyGivePlayerStuff()} or they will be deleted.
      */
     protected void removeBlock(World world, int x, int y, int z, ImmutableBlockSpec existing) {
-        boolean isOre = false;
+        Block block = existing.getBlock();
+        int meta = existing.getBlockMeta();
 
-        if (GregTech.isModLoaded() && GTUtility.isOre(existing.getBlock(), existing.getBlockMeta())) {
-            isOre = true;
-        } else {
-            for (int id : OreDictionary.getOreIDs(existing.getStack())) {
-                if (OreDictionary.getOreName(id).startsWith("ore")) {
-                    isOre = true;
-                    break;
+        boolean voidDrops = !existing.shouldDropItem();
+
+        if (!voidDrops) {
+            if (GregTech.isModLoaded() && GTUtility.isOre(existing.getBlock(), existing.getBlockMeta())) {
+                voidDrops = true;
+            } else {
+                for (int id : OreDictionary.getOreIDs(existing.getStack())) {
+                    if (OreDictionary.getOreName(id).startsWith("ore")) {
+                        voidDrops = true;
+                        break;
+                    }
                 }
             }
         }
 
-        if (isOre) {
+        if (voidDrops) {
+            BlockCaptureDrops.captureDrops(block);
             world.setBlockToAir(x, y, z);
+            BlockCaptureDrops.stopCapturingDrops(block);
             return;
         }
 
@@ -165,10 +169,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         if (gt) resetGTMachine(te);
         if (eio) resetConduitBundle(te);
 
-        Block block = existing.getBlock();
-        int meta = existing.getBlockMeta();
-
-        if (WIRELESS_CONNECTOR.matches(block, meta)) resetTileColour(te);
+        if (InteropConstants.WIRELESS_CONNECTOR.matches(block, meta)) resetTileColour(te);
 
         if (block instanceof IFluidBlock fluidBlock && fluidBlock.canDrain(world, x, y, z)) {
             givePlayerFluids(fluidBlock.drain(world, x, y, z, true));

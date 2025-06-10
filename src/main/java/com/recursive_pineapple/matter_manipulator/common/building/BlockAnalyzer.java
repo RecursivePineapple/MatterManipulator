@@ -48,7 +48,7 @@ public class BlockAnalyzer {
         for (Vector3i voxel : MMUtils.getBlocksInBB(a, deltas)) {
             BlockSpec spec = BlockSpec.fromBlock(null, world, voxel.x, voxel.y, voxel.z);
 
-            if (spec.shouldBeSkipped()) {
+            if (spec.skipWhenCopying()) {
                 continue;
             }
 
