@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 
 import net.minecraft.block.Block;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
@@ -47,11 +46,19 @@ public interface ImmutableBlockSpec extends ImmutableItemMeta {
 
     /** Returns true when this contains air. BlockSpecs may be air if an invalid block was analyzed. */
     default boolean isAir() {
-        return getObjectId() == null || getBlock() == null || getBlock() == Blocks.air;
+        return getObjectId() == null || getBlock() == null || InteropConstants.isAir(getBlock(), getBlockMeta());
     }
 
-    default boolean shouldBeSkipped() {
-        return InteropConstants.shouldBeSkipped(getBlock(), getBlockMeta());
+    default boolean skipWhenCopying() {
+        return InteropConstants.skipWhenCopying(getBlock(), getBlockMeta());
+    }
+
+    default boolean shouldDropItem() {
+        return InteropConstants.shouldDropItem(getBlock(), getBlockMeta());
+    }
+
+    default boolean isFree() {
+        return InteropConstants.isFree(getBlock(), getBlockMeta());
     }
 
     void getItemDetails(List<String> details);

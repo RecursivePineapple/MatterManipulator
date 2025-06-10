@@ -8,7 +8,6 @@ import net.minecraft.world.World;
 
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 
 import codechicken.lib.vec.BlockCoord;
 import codechicken.microblock.Microblock;
@@ -33,7 +32,7 @@ public class MultipartAnalysisResult implements ITileAnalysisIntegration {
         int y = ctx.getY();
         int z = ctx.getZ();
 
-        if (!MMUtils.FMP_BLOCK.matches(world.getBlock(x, y, z), 0)) return false;
+        if (!InteropConstants.FMP_BLOCK.matches(world.getBlock(x, y, z), 0)) return false;
 
         BlockCoord coord = new BlockCoord(x, y, z);
 

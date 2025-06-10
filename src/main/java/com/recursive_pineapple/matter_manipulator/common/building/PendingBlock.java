@@ -26,7 +26,6 @@ import com.recursive_pineapple.matter_manipulator.common.compat.BlockPropertyReg
 import com.recursive_pineapple.matter_manipulator.common.compat.Orientation;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 
 import org.jetbrains.annotations.NotNull;
@@ -195,15 +194,11 @@ public class PendingBlock extends Location {
         return getStack().getDisplayName() + getItemDetails();
     }
 
-    public boolean shouldBeSkipped() {
-        return spec.shouldBeSkipped();
-    }
-
     public boolean isFree() {
-        return MMUtils.isFree(spec.getBlock(), spec.getBlockMeta());
+        return spec.isFree();
     }
 
-    public PendingBlock clone(boolean shallow) {
+    public PendingBlock clone() {
         PendingBlock dup = new PendingBlock();
 
         dup.worldId = worldId;
