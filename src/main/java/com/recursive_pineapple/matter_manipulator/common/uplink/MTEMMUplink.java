@@ -260,7 +260,7 @@ public class MTEMMUplink extends MTEExtendedPowerMultiBlockBase<MTEMMUplink> imp
             null
         );
 
-        tt.toolTipFinisher(EnumChatFormatting.WHITE, 0, AuthorPineapple);
+        tt.toolTipFinisher(AuthorPineapple);
 
         return tt;
     }
