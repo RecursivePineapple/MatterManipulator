@@ -334,7 +334,7 @@ public class BlockSpec implements ImmutableBlockSpec {
             getBlock() == blockSpec.getBlock() &&
             Objects.equals(objectId, blockSpec.objectId) &&
             Objects.equals(properties, blockSpec.properties) &&
-            Objects.equals(arch, blockSpec.arch) &&
+            (!Mods.ArchitectureCraft.isModLoaded() || Objects.equals(arch, blockSpec.arch)) &&
             Objects.equals(intrinsicProperties, blockSpec.intrinsicProperties);
     }
 
@@ -344,7 +344,9 @@ public class BlockSpec implements ImmutableBlockSpec {
         result = 31 * result + objectId.hashCode();
         result = 31 * result + metadata;
         result = 31 * result + Objects.hashCode(properties);
-        result = 31 * result + Objects.hashCode(arch);
+        if (Mods.ArchitectureCraft.isModLoaded()) {
+            result = 31 * result + Objects.hashCode(arch);
+        }
         result = 31 * result + Objects.hashCode(intrinsicProperties);
         result = 31 * result + getBlock().hashCode();
         return result;
