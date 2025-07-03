@@ -1203,59 +1203,59 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
     private void addCommonOptions(RadialMenuBuilder builder, MMState state) {
         builder
             .branch()
-                .label("Set Mode")
+                .label(StatCollector.translateToLocal("mm.gui.set_mode"))
                 .hidden(tier == ManipulatorTier.Tier0)
                 .branch()
-                    .label("Set Remove Mode")
+                    .label(StatCollector.translateToLocal("mm.gui.set_remove_mode"))
                     .hidden(!state.hasCap(ALLOW_REMOVING))
                     .option()
-                        .label("Remove None")
+                        .label(StatCollector.translateToLocal("mm.gui.remove_none"))
                         .onClicked(() -> {
                             Messages.SetRemoveMode.sendToServer(BlockRemoveMode.NONE);
                         })
                     .done()
                     .option()
-                        .label("Remove Replaceable")
+                        .label(StatCollector.translateToLocal("mm.gui.remove_replaceable"))
                         .onClicked(() -> {
                             Messages.SetRemoveMode.sendToServer(BlockRemoveMode.REPLACEABLE);
                         })
                     .done()
                     .option()
-                        .label("Remove All")
+                        .label(StatCollector.translateToLocal("mm.gui.remove_all"))
                         .onClicked(() -> {
                             Messages.SetRemoveMode.sendToServer(BlockRemoveMode.ALL);
                         })
                     .done()
                 .done()
                 .option()
-                    .label("Geometry")
+                    .label(StatCollector.translateToLocal("mm.gui.geometry"))
                     .onClicked(() -> {
                         Messages.SetPlaceMode.sendToServer(PlaceMode.GEOMETRY);
                     })
                 .done()
                 .option()
-                    .label("Moving")
+                    .label(StatCollector.translateToLocal("mm.gui.moving"))
                     .hidden(!state.hasCap(ALLOW_MOVING))
                     .onClicked(() -> {
                         Messages.SetPlaceMode.sendToServer(PlaceMode.MOVING);
                     })
                 .done()
                 .option()
-                    .label("Copying")
+                    .label(StatCollector.translateToLocal("mm.gui.copying"))
                     .hidden(!state.hasCap(ALLOW_COPYING))
                     .onClicked(() -> {
                         Messages.SetPlaceMode.sendToServer(PlaceMode.COPYING);
                     })
                 .done()
                 .option()
-                    .label("Exchanging")
+                    .label(StatCollector.translateToLocal("mm.gui.exchanging"))
                     .hidden(!state.hasCap(ALLOW_EXCHANGING))
                     .onClicked(() -> {
                         Messages.SetPlaceMode.sendToServer(PlaceMode.EXCHANGING);
                     })
                 .done()
                 .option()
-                    .label("Cables")
+                    .label(StatCollector.translateToLocal("mm.gui.cables"))
                     .hidden(!state.hasCap(ALLOW_CABLES))
                     .onClicked(() -> {
                         Messages.SetPlaceMode.sendToServer(PlaceMode.CABLES);
@@ -1263,22 +1263,22 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
                 .done()
             .done()
             .branch()
-                .label("Set Remove Mode")
+                .label(StatCollector.translateToLocal("mm.gui.set_remove_mode"))
                 .hidden(tier != ManipulatorTier.Tier0 || !state.hasCap(ALLOW_REMOVING))
                 .option()
-                    .label("Remove None")
+                    .label(StatCollector.translateToLocal("mm.gui.remove_none"))
                     .onClicked(() -> {
                         Messages.SetRemoveMode.sendToServer(BlockRemoveMode.NONE);
                     })
                 .done()
                 .option()
-                    .label("Remove Replaceable")
+                    .label(StatCollector.translateToLocal("mm.gui.remove_replaceable"))
                     .onClicked(() -> {
                         Messages.SetRemoveMode.sendToServer(BlockRemoveMode.REPLACEABLE);
                     })
                 .done()
                 .option()
-                    .label("Remove All")
+                    .label(StatCollector.translateToLocal("mm.gui.remove_all"))
                     .onClicked(() -> {
                         Messages.SetRemoveMode.sendToServer(BlockRemoveMode.ALL);
                     })
@@ -1289,98 +1289,98 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
     private void addGeometryOptions(RadialMenuBuilder builder, UIBuildContext buildContext, ItemStack heldStack, MMState state) {
         builder
             .branch()
-                .label("Select Blocks")
+                .label(StatCollector.translateToLocal("mm.gui.select_blocks"))
                 .option()
-                    .label("Set Corners")
+                    .label(StatCollector.translateToLocal("mm.gui.set_corners"))
                     .onClicked(() -> {
                         Messages.SetBlockSelectMode.sendToServer(BlockSelectMode.CORNERS);
                         Messages.SetPendingAction.sendToServer(PendingAction.GEOM_SELECTING_BLOCK);
                     })
                 .done()
                 .option()
-                    .label("Set Edges")
+                    .label(StatCollector.translateToLocal("mm.gui.set_edges"))
                     .onClicked(() -> {
                         Messages.SetBlockSelectMode.sendToServer(BlockSelectMode.EDGES);
                         Messages.SetPendingAction.sendToServer(PendingAction.GEOM_SELECTING_BLOCK);
                     })
                 .done()
                 .option()
-                    .label("Set Faces")
+                    .label(StatCollector.translateToLocal("mm.gui.set_faces"))
                     .onClicked(() -> {
                         Messages.SetBlockSelectMode.sendToServer(BlockSelectMode.FACES);
                         Messages.SetPendingAction.sendToServer(PendingAction.GEOM_SELECTING_BLOCK);
                     })
                 .done()
                 .option()
-                    .label("Set Volumes")
+                    .label(StatCollector.translateToLocal("mm.gui.set_volumes"))
                     .onClicked(() -> {
                         Messages.SetBlockSelectMode.sendToServer(BlockSelectMode.VOLUMES);
                         Messages.SetPendingAction.sendToServer(PendingAction.GEOM_SELECTING_BLOCK);
                     })
                 .done()
                 .option()
-                    .label("Set All")
+                    .label(StatCollector.translateToLocal("mm.gui.set_all"))
                     .onClicked(() -> {
                         Messages.SetBlockSelectMode.sendToServer(BlockSelectMode.ALL);
                         Messages.SetPendingAction.sendToServer(PendingAction.GEOM_SELECTING_BLOCK);
                     })
                 .done()
                 .option()
-                    .label("Clear All")
+                    .label(StatCollector.translateToLocal("mm.gui.clear_all"))
                     .onClicked(() -> {
                         Messages.ClearBlocks.sendToServer();
                     })
                 .done()
             .done()
             .branch()
-                .label("Set Shape")
+                .label(StatCollector.translateToLocal("mm.gui.set_shape"))
                 .option()
-                    .label("Line")
+                    .label(StatCollector.translateToLocal("mm.gui.line"))
                     .onClicked(() -> {
                         Messages.SetShape.sendToServer(Shape.LINE);
                     })
                 .done()
                 .option()
-                    .label("Cube")
+                    .label(StatCollector.translateToLocal("mm.gui.cube"))
                     .onClicked(() -> {
                         Messages.SetShape.sendToServer(Shape.CUBE);
                     })
                 .done()
                 .option()
-                    .label("Sphere")
+                    .label(StatCollector.translateToLocal("mm.gui.sphere"))
                     .onClicked(() -> {
                         Messages.SetShape.sendToServer(Shape.SPHERE);
                     })
                 .done()
                 .option()
-                    .label("Cylinder")
+                    .label(StatCollector.translateToLocal("mm.gui.cylinder"))
                     .onClicked(() -> {
                         Messages.SetShape.sendToServer(Shape.CYLINDER);
                     })
                 .done()
             .done()
             .branch()
-                .label("Move Coords")
+                .label(StatCollector.translateToLocal("mm.gui.move_coords"))
                 .option()
-                    .label("Move Coord A")
+                    .label(StatCollector.translateToLocal("mm.gui.move_coord_a"))
                     .onClicked(() -> {
                         Messages.MoveA.sendToServer();
                     })
                 .done()
                 .option()
-                    .label("Move All")
+                    .label(StatCollector.translateToLocal("mm.gui.move_all"))
                     .onClicked(() -> {
                         Messages.MoveAll.sendToServer();
                     })
                 .done()
                 .option()
-                    .label("Move Coord B")
+                    .label(StatCollector.translateToLocal("mm.gui.move_coord_b"))
                     .onClicked(() -> {
                         Messages.MoveB.sendToServer();
                     })
                 .done()
                 .option()
-                    .label("Move Here")
+                    .label(StatCollector.translateToLocal("mm.gui.move_here"))
                     .onClicked(() -> {
                         Messages.MoveHere.sendToServer();
                     })
@@ -1391,67 +1391,67 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
     private void addCopyingOptions(RadialMenuBuilder builder, UIBuildContext buildContext, ItemStack heldStack, MMState initialState) {
         builder
             .option()
-                .label("Mark Copy")
+                .label(StatCollector.translateToLocal("mm.gui.mark_copy"))
                 .onClicked(() -> {
                     Messages.MarkCopy.sendToServer();
                 })
             .done()
             .branch()
-                .label("Edit Stack")
+                .label(StatCollector.translateToLocal("mm.gui.edit_stack"))
                 .option()
-                    .label("Reset")
+                    .label(StatCollector.translateToLocal("mm.gui.reset"))
                     .onClicked(() -> {
                         Messages.ResetArray.sendToServer();
                     })
                 .done()
                 .option()
-                    .label("Mark")
+                    .label(StatCollector.translateToLocal("mm.gui.mark"))
                     .onClicked(() -> {
                         Messages.SetPendingAction.sendToServer(PendingAction.MARK_ARRAY);
                     })
                 .done()
             .done()
             .branch()
-                .label("Planning")
+                .label(StatCollector.translateToLocal("mm.gui.planning"))
                 .option()
-                    .label("Cancel Auto Plans")
+                    .label(StatCollector.translateToLocal("mm.gui.cancel_auto_plans"))
                     .onClicked(() -> {
                         Messages.CancelAutoPlans.sendToServer();
                     })
                 .done()
                 .option()
-                    .label("Plan (All, Auto)")
+                    .label(StatCollector.translateToLocal("mm.gui.plan_all,_auto"))
                     .onClicked(() -> {
                         Messages.GetRequiredItems.sendToServer(MMUtils.PLAN_ALL | MMUtils.PLAN_AUTO_SUBMIT);
                     })
                 .done()
                 .option()
-                    .label("Plan (All, Manual)")
+                    .label(StatCollector.translateToLocal("mm.gui.plan_all,_manual"))
                     .onClicked(() -> {
                         Messages.GetRequiredItems.sendToServer(MMUtils.PLAN_ALL);
                     })
                 .done()
                 .option()
-                    .label("Clear Manual Plans")
+                    .label(StatCollector.translateToLocal("mm.gui.clear_manual_plans"))
                     .onClicked(() -> {
                         Messages.ClearManualPlans.sendToServer();
                     })
                 .done()
                 .option()
-                    .label("Plan (Missing, Manual)")
+                    .label(StatCollector.translateToLocal("mm.gui.plan_missing,_manual"))
                     .onClicked(() -> {
                         Messages.GetRequiredItems.sendToServer(0);
                     })
                 .done()
                 .option()
-                    .label("Plan (Missing, Auto)")
+                    .label(StatCollector.translateToLocal("mm.gui.plan_missing,_auto"))
                     .onClicked(() -> {
                         Messages.GetRequiredItems.sendToServer(MMUtils.PLAN_AUTO_SUBMIT);
                     })
                 .done()
             .done()
             .option()
-                .label("Edit Transform")
+                .label(StatCollector.translateToLocal("mm.gui.edit_transform"))
                 .onClicked((menu, option, mouseButton, doubleClicked) -> {
                     UIBuildContext buildContext2 = new UIBuildContext(buildContext.getPlayer());
                     ModularWindow window = createTransformWindow(buildContext2, heldStack, initialState);
@@ -1461,7 +1461,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
                 })
             .done()
             .option()
-                .label("Mark Paste")
+                .label(StatCollector.translateToLocal("mm.gui.mark_paste"))
                 .onClicked(() -> {
                     Messages.MarkPaste.sendToServer();
                 })
@@ -1480,13 +1480,13 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
     private void addMovingOptions(RadialMenuBuilder builder, UIBuildContext buildContext, ItemStack heldStack) {
         builder
             .option()
-                .label("Mark Cut")
+                .label(StatCollector.translateToLocal("mm.gui.mark_cut"))
                 .onClicked(() -> {
                     Messages.MarkCut.sendToServer();
                 })
             .done()
             .option()
-                .label("Mark Paste")
+                .label(StatCollector.translateToLocal("mm.gui.mark_paste"))
                 .onClicked(() -> {
                     Messages.MarkPaste.sendToServer();
                 })
@@ -1496,54 +1496,54 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
     private void addExchangingOptions(RadialMenuBuilder builder, UIBuildContext buildContext, ItemStack heldStack) {
         builder
             .branch()
-                .label("Edit Replace Whitelist")
+                .label(StatCollector.translateToLocal("mm.gui.edit_replace_whitelist"))
                 .option()
-                    .label("Clear")
+                    .label(StatCollector.translateToLocal("mm.gui.clear"))
                     .onClicked(() -> {
                         Messages.ClearWhitelist.sendToServer();
                     })
                 .done()
                 .option()
-                    .label("Add Block")
+                    .label(StatCollector.translateToLocal("mm.gui.add_block"))
                     .onClicked(() -> {
                         Messages.SetPendingAction.sendToServer(PendingAction.EXCH_ADD_REPLACE);
                     })
                 .done()
                 .option()
-                    .label("Set Block")
+                    .label(StatCollector.translateToLocal("mm.gui.set_block"))
                     .onClicked(() -> {
                         Messages.SetPendingAction.sendToServer(PendingAction.EXCH_SET_REPLACE);
                     })
                 .done()
             .done()
             .option()
-                .label("Set Block To Replace With")
+                .label(StatCollector.translateToLocal("mm.gui.set_block_to_replace_with"))
                 .onClicked(() -> {
                     Messages.SetPendingAction.sendToServer(PendingAction.EXCH_SET_TARGET);
                 })
             .done()
             .branch()
-                .label("Move Coords")
+                .label(StatCollector.translateToLocal("mm.gui.move_coords"))
                 .option()
-                    .label("Move Coord A")
+                    .label(StatCollector.translateToLocal("mm.gui.move_coord_a"))
                     .onClicked(() -> {
                         Messages.MoveA.sendToServer();
                     })
                 .done()
                 .option()
-                    .label("Move All")
+                    .label(StatCollector.translateToLocal("mm.gui.move_all"))
                     .onClicked(() -> {
                         Messages.MoveAll.sendToServer();
                     })
                 .done()
                 .option()
-                    .label("Move Coord B")
+                    .label(StatCollector.translateToLocal("mm.gui.move_coord_b"))
                     .onClicked(() -> {
                         Messages.MoveB.sendToServer();
                     })
                 .done()
                 .option()
-                    .label("Move Here")
+                    .label(StatCollector.translateToLocal("mm.gui.move_here"))
                     .onClicked(() -> {
                         Messages.MoveHere.sendToServer();
                     })
@@ -1554,33 +1554,33 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
     private void addCableOptions(RadialMenuBuilder builder, UIBuildContext buildContext, ItemStack heldStack) {
         builder
             .option()
-                .label("Set Cable")
+                .label(StatCollector.translateToLocal("mm.gui.set_cable"))
                 .onClicked(() -> {
                     Messages.SetPendingAction.sendToServer(PendingAction.PICK_CABLE);
                 })
             .done()
             .branch()
-                .label("Move Coords")
+                .label(StatCollector.translateToLocal("mm.gui.move_coords"))
                 .option()
-                    .label("Move Coord A")
+                    .label(StatCollector.translateToLocal("mm.gui.move_coord_a"))
                     .onClicked(() -> {
                         Messages.MoveA.sendToServer();
                     })
                 .done()
                 .option()
-                    .label("Move All")
+                    .label(StatCollector.translateToLocal("mm.gui.move_all"))
                     .onClicked(() -> {
                         Messages.MoveAll.sendToServer();
                     })
                 .done()
                 .option()
-                    .label("Move Coord B")
+                    .label(StatCollector.translateToLocal("mm.gui.move_coord_b"))
                     .onClicked(() -> {
                         Messages.MoveB.sendToServer();
                     })
                 .done()
                 .option()
-                    .label("Move Here")
+                    .label(StatCollector.translateToLocal("mm.gui.move_here"))
                     .onClicked(() -> {
                         Messages.MoveHere.sendToServer();
                     })
