@@ -1420,13 +1420,13 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
                     })
                 .done()
                 .option()
-                    .label(StatCollector.translateToLocal("mm.gui.plan_all,_auto"))
+                    .label(StatCollector.translateToLocal("mm.gui.plan_all_auto"))
                     .onClicked(() -> {
                         Messages.GetRequiredItems.sendToServer(MMUtils.PLAN_ALL | MMUtils.PLAN_AUTO_SUBMIT);
                     })
                 .done()
                 .option()
-                    .label(StatCollector.translateToLocal("mm.gui.plan_all,_manual"))
+                    .label(StatCollector.translateToLocal("mm.gui.plan_all_manual"))
                     .onClicked(() -> {
                         Messages.GetRequiredItems.sendToServer(MMUtils.PLAN_ALL);
                     })
@@ -1438,13 +1438,13 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
                     })
                 .done()
                 .option()
-                    .label(StatCollector.translateToLocal("mm.gui.plan_missing,_manual"))
+                    .label(StatCollector.translateToLocal("mm.gui.plan_missing_manual"))
                     .onClicked(() -> {
                         Messages.GetRequiredItems.sendToServer(0);
                     })
                 .done()
                 .option()
-                    .label(StatCollector.translateToLocal("mm.gui.plan_missing,_auto"))
+                    .label(StatCollector.translateToLocal("mm.gui.plan_missing_auto"))
                     .onClicked(() -> {
                         Messages.GetRequiredItems.sendToServer(MMUtils.PLAN_AUTO_SUBMIT);
                     })
