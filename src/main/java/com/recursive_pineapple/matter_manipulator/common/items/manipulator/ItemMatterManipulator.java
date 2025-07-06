@@ -4,6 +4,8 @@ import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.BL
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.GREEN;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.RED;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.formatNumbers;
+import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendInfoToPlayer;
+import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendErrorToPlayer;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMValues.V;
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.AppliedEnergistics2;
 import static net.minecraftforge.common.util.ForgeDirection.EAST;
@@ -886,14 +888,14 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
         }
 
         if (add) {
-            MMUtils.sendInfoToPlayer(
+            sendInfoToPlayer(
                 player,
-                String.format("Added %s to %s", block.getDisplayName(), what)
+                StatCollector.translateToLocalFormatted("mm.info.added", block.getDisplayName(), what)
             );
         } else {
-            MMUtils.sendInfoToPlayer(
+            sendInfoToPlayer(
                 player,
-                String.format("Set %s to: %s", what, block.getDisplayName())
+                StatCollector.translateToLocalFormatted("mm.info.set", what, block.getDisplayName())
             );
         }
     }
@@ -913,10 +915,10 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
         state.config.replaceWith = new WeightedSpecList();
         state.config.replaceWith.add(block);
 
-        MMUtils.sendInfoToPlayer(
+        sendInfoToPlayer(
             player,
-            String.format(
-                "Set block to replace with to: %s",
+            StatCollector.translateToLocalFormatted(
+                "mm.info.set_block_to_replace_with",
                 block.getDisplayName()
             )
         );
@@ -940,10 +942,10 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
 
         state.config.replaceWhitelist.add(block);
 
-        MMUtils.sendInfoToPlayer(
+        sendInfoToPlayer(
             player,
-            String.format(
-                "Added block to exchange whitelist: %s",
+            StatCollector.translateToLocalFormatted(
+                "mm.info.added_block_to_exchange_whitelist",
                 block.getDisplayName()
             )
         );
@@ -957,10 +959,10 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
         state.config.replaceWhitelist = new WeightedSpecList();
         state.config.replaceWhitelist.add(block);
 
-        MMUtils.sendInfoToPlayer(
+        sendInfoToPlayer(
             player,
-            String.format(
-                "Set exchange whitelist to only contain: %s",
+            StatCollector.translateToLocalFormatted(
+                "mm.info.set_exchange_whitelist_to_only_contain",
                 block.getDisplayName()
             )
         );
@@ -981,9 +983,9 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
 
         state.config.cables = cable.isAir() ? null : cable;
 
-        MMUtils.sendInfoToPlayer(
+        sendInfoToPlayer(
             player,
-            String.format("Set cables to: %s", cable.getDisplayName())
+            StatCollector.translateToLocalFormatted("mm.info.set_cable", cable.getDisplayName())
         );
     }
 
@@ -999,13 +1001,13 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
         Vector3i lookingAt = MMUtils.getLookingAtLocation(player);
 
         if (!Location.areCompatible(state.config.coordA, state.config.coordB)) {
-            MMUtils.sendErrorToPlayer(player, "Cannot mark array: copy region is invalid");
+            sendErrorToPlayer(player, StatCollector.translateToLocal("mm.info.error.cannot_mark_copy"));
             state.config.arraySpan = null;
             return;
         }
 
         if (state.config.coordC == null || !state.config.coordC.isInWorld(world)) {
-            MMUtils.sendErrorToPlayer(player, "Cannot mark array: paste coordinate is invalid");
+            sendErrorToPlayer(player, StatCollector.translateToLocal("mm.info.error.cannot_mark_paste"));
             state.config.arraySpan = null;
             return;
         }
@@ -1093,7 +1095,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
                     if (buildable != null) buildable.tryPlaceBlocks(stack, player);
                 } catch (Throwable t) {
                     MMMod.LOG.error("Could not place blocks", t);
-                    MMUtils.sendErrorToPlayer(
+                    sendErrorToPlayer(
                         player,
                         "Could not place blocks due to a crash. Check the logs for more info."
                     );

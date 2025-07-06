@@ -2,7 +2,10 @@ package com.recursive_pineapple.matter_manipulator.common.uplink;
 
 import static gregtech.api.enums.Textures.BlockIcons.OVERLAY_ME_INPUT_FLUID_HATCH;
 import static gregtech.api.enums.Textures.BlockIcons.OVERLAY_ME_INPUT_FLUID_HATCH_ACTIVE;
+import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendErrorToPlayer;
+import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendInfoToPlayer;
 
+import java.lang.Thread.State;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.Iterator;
@@ -20,7 +23,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
-
+import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import gregtech.GTMod;
@@ -153,7 +156,10 @@ public class MTEMMUplinkMEHatch extends MTEHatch implements IGridProxyable, IPow
             if (!request.poll()) {
                 EntityPlayer player = MMUtils.getPlayerById(request.requester);
                 if (player != null) {
-                    MMUtils.sendErrorToPlayer(player, "Craft for plan " + request.requestName + " failed.");
+                    sendErrorToPlayer(player, StatCollector.translateToLocalFormatted(
+                        "mm.info.error.craft_failed",
+                        request.requestName
+                        ));
                 }
                 iter.remove();
                 onRequestsChanged();
@@ -438,7 +444,10 @@ public class MTEMMUplinkMEHatch extends MTEHatch implements IGridProxyable, IPow
 
                     EntityPlayer player = MMUtils.getPlayerById(request.requester);
                     if (player != null) {
-                        MMUtils.sendInfoToPlayer(player, "'" + request.requestName + "' has finished");
+                        sendInfoToPlayer(player, StatCollector.translateToLocalFormatted(
+                            "mm.info.craft_finished",
+                            request.requestName
+                        ));
                     }
                 }
 
@@ -536,7 +545,7 @@ public class MTEMMUplinkMEHatch extends MTEHatch implements IGridProxyable, IPow
 
         onRequestsChanged();
 
-        MMUtils.sendInfoToPlayer(aPlayer, "Cleared all plans and cancelled pending craft jobs.");
+        sendInfoToPlayer(aPlayer, StatCollector.translateToLocal("mm.info.cleared_all_plans_and_pending_jobs"));
     }
 
     public void clearManualPlans(EntityPlayer player) {
@@ -549,7 +558,7 @@ public class MTEMMUplinkMEHatch extends MTEHatch implements IGridProxyable, IPow
 
         onRequestsChanged();
 
-        MMUtils.sendInfoToPlayer(player, "Cleared your manual plans.");
+        sendInfoToPlayer(player, StatCollector.translateToLocal("mm.info.cleared_your_manual_plans"));
     }
 
     public void cancelAutoPlans(EntityPlayer player) {
@@ -575,7 +584,7 @@ public class MTEMMUplinkMEHatch extends MTEHatch implements IGridProxyable, IPow
 
         onRequestsChanged();
 
-        MMUtils.sendInfoToPlayer(player, "Cleared your auto plans and cancelled their crafting jobs.");
+        sendInfoToPlayer(player, StatCollector.translateToLocal("mm.info.cleared_your_plans_and_craft"));
     }
 
     private void onRequestsChanged() {
@@ -732,7 +741,8 @@ public class MTEMMUplinkMEHatch extends MTEHatch implements IGridProxyable, IPow
                     EntityPlayer player = MMUtils.getPlayerById(requester);
 
                     if (player != null) {
-                        MMUtils.sendInfoToPlayer(player, "Submitted job for plan '" + requestName + "'.");
+                        sendInfoToPlayer(player, StatCollector.translateToLocalFormatted("mm.info.submitted_job", 
+                        requestName));
                     }
                 }
             } catch (final InterruptedException | ExecutionException e) {

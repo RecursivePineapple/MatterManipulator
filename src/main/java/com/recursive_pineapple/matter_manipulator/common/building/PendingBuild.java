@@ -2,6 +2,7 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendInfoToPlayer;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendWarningToPlayer;
+import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendErrorToPlayer;
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
 
 import java.util.ArrayDeque;
@@ -20,6 +21,7 @@ import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
+import net.minecraft.util.StatCollector;
 
 import net.minecraftforge.common.util.ForgeDirection;
 
@@ -174,7 +176,7 @@ public class PendingBuild extends AbstractBuildable {
                 }
 
                 if (!tryConsumePower(stack, world, x, y, z, existing.spec)) {
-                    MMUtils.sendErrorToPlayer(player, "Matter Manipulator ran out of EU.");
+                    sendErrorToPlayer(player, StatCollector.translateToLocal("mm.info.error.out_of_eu"));
                     break;
                 }
             }
@@ -198,7 +200,7 @@ public class PendingBuild extends AbstractBuildable {
             }
 
             if (!tryConsumePower(stack, world, x, y, z, next.spec)) {
-                MMUtils.sendErrorToPlayer(player, "Matter Manipulator ran out of EU.");
+                sendErrorToPlayer(player, StatCollector.translateToLocal("mm.info.error.out_of_eu"));
                 break;
             }
 
@@ -216,9 +218,12 @@ public class PendingBuild extends AbstractBuildable {
         // check if we could place any blocks
         if (toPlace.isEmpty()) {
             if (!pendingBlocks.isEmpty()) {
-                MMUtils.sendErrorToPlayer(player, "Could not place " + pendingBlocks.size() + " remaining blocks.");
+                sendErrorToPlayer(
+                    player, 
+                    StatCollector.translateToLocalFormatted("mm.info.error.could_not_place",
+                    pendingBlocks.size()));
             } else {
-                MMUtils.sendInfoToPlayer(player, "Finished placing blocks.");
+                sendInfoToPlayer(player, StatCollector.translateToLocal("mm.info.finished_placing"));
             }
 
             actuallyGivePlayerStuff();
@@ -243,10 +248,8 @@ public class PendingBuild extends AbstractBuildable {
             if (extracted == null) {
                 sendWarningToPlayer(
                     player,
-                    String.format(
-                        "Could not find item, %d block%s will be skipped temporarily:",
-                        toPlace.size(),
-                        toPlace.size() > 1 ? "s" : ""
+                    StatCollector.translateToLocalFormatted("mm.info.warning.could_not_find", 
+                    toPlace.size()
                     )
                 );
                 sendWarningToPlayer(
@@ -344,11 +347,8 @@ public class PendingBuild extends AbstractBuildable {
         if (extracted != null && i < toPlace.size()) {
             sendWarningToPlayer(
                 player,
-                String.format(
-                    "Could not find item, %d block%s will be skipped temporarily:",
-                    toPlace.size() - i,
-                    toPlace.size() - i > 1 ? "s" : ""
-                )
+                StatCollector.translateToLocalFormatted("mm.info.warning.could_not_find", 
+                toPlace.size() - i)
             );
             sendWarningToPlayer(
                 player,
@@ -360,7 +360,12 @@ public class PendingBuild extends AbstractBuildable {
             );
         }
 
-        sendInfoToPlayer(player, "Placed " + i + " blocks (" + pendingBlocks.size() + " remaining)");
+        sendInfoToPlayer(
+            player, 
+            StatCollector.translateToLocalFormatted(            
+            "mm.info.placed_remaining",
+            i,
+            pendingBlocks.size()));
 
         if (extracted != null && extracted.stackSize >= perBlock.stackSize) {
             // extra stuff left over somehow
@@ -503,10 +508,10 @@ public class PendingBuild extends AbstractBuildable {
                 }
             }
 
-            MMUtils.sendWarningToPlayer(
+            sendWarningToPlayer(
                 player,
-                String.format(
-                    "Warning at block %d, %d, %d%s: %s",
+                StatCollector.translateToLocalFormatted(
+                    "mm.info.warning",
                     pendingBlock.x,
                     pendingBlock.y,
                     pendingBlock.z,
@@ -535,10 +540,10 @@ public class PendingBuild extends AbstractBuildable {
                 }
             }
 
-            MMUtils.sendErrorToPlayer(
+            sendErrorToPlayer(
                 player,
-                String.format(
-                    "Error at block %d, %d, %d%s: %s",
+                StatCollector.translateToLocalFormatted(
+                    "mm.info.error",
                     pendingBlock.x,
                     pendingBlock.y,
                     pendingBlock.z,
