@@ -1,7 +1,7 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
-import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendWarningToPlayer;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendErrorToPlayer;
+import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendWarningToPlayer;
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.AppliedEnergistics2;
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
 
@@ -17,6 +17,7 @@ import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.StatCollector;
+
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidContainerItem;
 
@@ -249,9 +250,12 @@ public class MMInventory implements IPseudoInventory {
         if (status != UplinkStatus.OK && !printedUplinkWarning) {
             printedUplinkWarning = true;
             sendErrorToPlayer(
-                player, 
-                StatCollector.translateToLocalFormatted("mm.info.error.could_not_push_items_to_uplink", 
-                status.toString()));
+                player,
+                StatCollector.translateToLocalFormatted(
+                    "mm.info.error.could_not_push_items_to_uplink",
+                    status.toString()
+                )
+            );
         }
     }
 
@@ -329,9 +333,12 @@ public class MMInventory implements IPseudoInventory {
         if (status != UplinkStatus.OK && !printedUplinkWarning) {
             printedUplinkWarning = true;
             sendErrorToPlayer(
-                player, 
-                StatCollector.translateToLocalFormatted("mm.info.error.could_not_push_fluids_to_uplink", 
-                status.toString()));
+                player,
+                StatCollector.translateToLocalFormatted(
+                    "mm.info.error.could_not_push_fluids_to_uplink",
+                    status.toString()
+                )
+            );
         }
     }
 
@@ -579,9 +586,12 @@ public class MMInventory implements IPseudoInventory {
             printedUplinkWarning = true;
             sendErrorToPlayer(
                 player,
-                StatCollector.translateToLocalFormatted("mm.info.error.could_not_request_items_from_uplink",
-                result.left()
-                    .toString()));
+                StatCollector.translateToLocalFormatted(
+                    "mm.info.error.could_not_request_items_from_uplink",
+                    result.left()
+                        .toString()
+                )
+            );
         }
 
         if (result.right() != null) extractedItems.addAll(result.right());

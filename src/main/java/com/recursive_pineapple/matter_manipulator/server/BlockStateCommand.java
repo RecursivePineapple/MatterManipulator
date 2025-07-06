@@ -10,8 +10,8 @@ import java.util.Map;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.StatCollector;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
+import net.minecraft.util.StatCollector;
 
 import com.recursive_pineapple.matter_manipulator.common.compat.BlockProperty;
 import com.recursive_pineapple.matter_manipulator.common.compat.BlockPropertyRegistry;
@@ -97,8 +97,13 @@ public class BlockStateCommand extends CommandBase {
             try {
                 prop.setValueFromText(player.worldObj, hit.blockX, hit.blockY, hit.blockZ, value);
             } catch (Exception e) {
-                sendErrorToPlayer(player, StatCollector.translateToLocalFormatted("mm.info.error.error_setting_property", 
-                e.getMessage()));
+                sendErrorToPlayer(
+                    player,
+                    StatCollector.translateToLocalFormatted(
+                        "mm.info.error.error_setting_property",
+                        e.getMessage()
+                    )
+                );
             }
 
             return;

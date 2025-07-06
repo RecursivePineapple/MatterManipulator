@@ -1,7 +1,7 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
-import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendInfoToPlayer;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendErrorToPlayer;
+import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendInfoToPlayer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,8 +12,8 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.world.World;
 import net.minecraft.util.StatCollector;
+import net.minecraft.world.World;
 
 import net.minecraftforge.common.MinecraftForge;
 
@@ -26,7 +26,6 @@ import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemM
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
 import com.recursive_pineapple.matter_manipulator.common.networking.SoundResource;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 import com.recursive_pineapple.matter_manipulator.mixin.BlockCaptureDrops;
@@ -74,10 +73,13 @@ public class PendingMove extends AbstractBuildable {
             // if either block is protected, ignore them completely and print a warning
             if (!isEditable(world, s.x, s.y, s.z) || !isEditable(world, d.x, d.y, d.z)) {
                 sendErrorToPlayer(
-                    player, 
-                    StatCollector.translateToLocalFormatted("mm.info.error.could_not_move_protected_block", 
-                    s.x, s.y, s.z, 
-                    source.getDisplayName()
+                    player,
+                    StatCollector.translateToLocalFormatted(
+                        "mm.info.error.could_not_move_protected_block",
+                        s.x,
+                        s.y,
+                        s.z,
+                        source.getDisplayName()
                     )
                 );
                 iter.remove();
@@ -94,9 +96,12 @@ public class PendingMove extends AbstractBuildable {
             if (source.getBlock().getBlockHardness(world, s.x, s.y, s.z) < 0) {
                 sendErrorToPlayer(
                     player,
-                    StatCollector.translateToLocalFormatted("mm.info.error.could_not_move_invulnerable_block", 
-                    s.x, s.y, s.z, 
-                    source.getDisplayName()
+                    StatCollector.translateToLocalFormatted(
+                        "mm.info.error.could_not_move_invulnerable_block",
+                        s.x,
+                        s.y,
+                        s.z,
+                        source.getDisplayName()
                     )
                 );
                 iter.remove();
@@ -117,9 +122,12 @@ public class PendingMove extends AbstractBuildable {
             if (!canPlace) {
                 sendErrorToPlayer(
                     player,
-                    StatCollector.translateToLocalFormatted("mm.info.error.could_not_move_blocked_block", 
-                    d.x, d.y, d.z, 
-                    source.getDisplayName()
+                    StatCollector.translateToLocalFormatted(
+                        "mm.info.error.could_not_move_blocked_block",
+                        d.x,
+                        d.y,
+                        d.z,
+                        source.getDisplayName()
                     )
                 );
                 iter.remove();
@@ -152,9 +160,12 @@ public class PendingMove extends AbstractBuildable {
             if (!swapBlocks(world, s, source, d, target)) {
                 sendErrorToPlayer(
                     player,
-                    StatCollector.translateToLocalFormatted("mm.info.error.could_not_move_block", 
-                    s.x, s.y, s.z, 
-                    source.getDisplayName()
+                    StatCollector.translateToLocalFormatted(
+                        "mm.info.error.could_not_move_block",
+                        s.x,
+                        s.y,
+                        s.z,
+                        source.getDisplayName()
                     )
                 );
             }
@@ -174,13 +185,17 @@ public class PendingMove extends AbstractBuildable {
         if (ops > 0) {
             sendInfoToPlayer(
                 player,
-                StatCollector.translateToLocalFormatted("mm.info.process_move", 
-                ops, 
-                moves.size()));
+                StatCollector.translateToLocalFormatted(
+                    "mm.info.process_move",
+                    ops,
+                    moves.size()
+                )
+            );
         } else {
             sendInfoToPlayer(
-                player, 
-                StatCollector.translateToLocal("mm.info.finished_move"));
+                player,
+                StatCollector.translateToLocal("mm.info.finished_move")
+            );
         }
     }
 

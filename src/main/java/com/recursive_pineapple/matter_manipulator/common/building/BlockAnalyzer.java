@@ -1,9 +1,8 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
-import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendWarningToPlayer;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendErrorToPlayer;
+import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendWarningToPlayer;
 
-import java.lang.Thread.State;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -12,8 +11,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.world.World;
 import net.minecraft.util.StatCollector;
+import net.minecraft.world.World;
 
 import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.DebugConfig;
 import com.recursive_pineapple.matter_manipulator.MMMod;
@@ -264,19 +263,29 @@ public class BlockAnalyzer {
         @Override
         public void warn(String message) {
             sendWarningToPlayer(
-                player, 
-                StatCollector.translateToLocalFormatted("mm.info.warning", 
-                x, y, z, 
-                message));
+                player,
+                StatCollector.translateToLocalFormatted(
+                    "mm.info.warning",
+                    x,
+                    y,
+                    z,
+                    message
+                )
+            );
         }
 
         @Override
         public void error(String message) {
             sendErrorToPlayer(
-                player, 
-                StatCollector.translateToLocalFormatted("mm.info.error", 
-                x, y, z, 
-                message));
+                player,
+                StatCollector.translateToLocalFormatted(
+                    "mm.info.error",
+                    x,
+                    y,
+                    z,
+                    message
+                )
+            );
         }
     }
 

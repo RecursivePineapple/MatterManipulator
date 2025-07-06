@@ -4,8 +4,8 @@ import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.BL
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.GREEN;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.RED;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.formatNumbers;
-import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendInfoToPlayer;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendErrorToPlayer;
+import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendInfoToPlayer;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMValues.V;
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.AppliedEnergistics2;
 import static net.minecraftforge.common.util.ForgeDirection.EAST;

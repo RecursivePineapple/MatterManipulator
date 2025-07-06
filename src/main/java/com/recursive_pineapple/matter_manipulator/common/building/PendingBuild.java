@@ -1,8 +1,8 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
+import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendErrorToPlayer;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendInfoToPlayer;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendWarningToPlayer;
-import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendErrorToPlayer;
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
 
 import java.util.ArrayDeque;
@@ -20,8 +20,8 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.world.World;
 import net.minecraft.util.StatCollector;
+import net.minecraft.world.World;
 
 import net.minecraftforge.common.util.ForgeDirection;
 
@@ -219,9 +219,12 @@ public class PendingBuild extends AbstractBuildable {
         if (toPlace.isEmpty()) {
             if (!pendingBlocks.isEmpty()) {
                 sendErrorToPlayer(
-                    player, 
-                    StatCollector.translateToLocalFormatted("mm.info.error.could_not_place",
-                    pendingBlocks.size()));
+                    player,
+                    StatCollector.translateToLocalFormatted(
+                        "mm.info.error.could_not_place",
+                        pendingBlocks.size()
+                    )
+                );
             } else {
                 sendInfoToPlayer(player, StatCollector.translateToLocal("mm.info.finished_placing"));
             }
@@ -248,8 +251,9 @@ public class PendingBuild extends AbstractBuildable {
             if (extracted == null) {
                 sendWarningToPlayer(
                     player,
-                    StatCollector.translateToLocalFormatted("mm.info.warning.could_not_find", 
-                    toPlace.size()
+                    StatCollector.translateToLocalFormatted(
+                        "mm.info.warning.could_not_find",
+                        toPlace.size()
                     )
                 );
                 sendWarningToPlayer(
@@ -347,8 +351,10 @@ public class PendingBuild extends AbstractBuildable {
         if (extracted != null && i < toPlace.size()) {
             sendWarningToPlayer(
                 player,
-                StatCollector.translateToLocalFormatted("mm.info.warning.could_not_find", 
-                toPlace.size() - i)
+                StatCollector.translateToLocalFormatted(
+                    "mm.info.warning.could_not_find",
+                    toPlace.size() - i
+                )
             );
             sendWarningToPlayer(
                 player,
@@ -361,11 +367,13 @@ public class PendingBuild extends AbstractBuildable {
         }
 
         sendInfoToPlayer(
-            player, 
-            StatCollector.translateToLocalFormatted(            
-            "mm.info.placed_remaining",
-            i,
-            pendingBlocks.size()));
+            player,
+            StatCollector.translateToLocalFormatted(
+                "mm.info.placed_remaining",
+                i,
+                pendingBlocks.size()
+            )
+        );
 
         if (extracted != null && extracted.stackSize >= perBlock.stackSize) {
             // extra stuff left over somehow

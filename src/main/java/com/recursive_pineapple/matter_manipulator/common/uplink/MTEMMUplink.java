@@ -759,8 +759,9 @@ public class MTEMMUplink extends MTEExtendedPowerMultiBlockBase<MTEMMUplink> imp
             MMUtils.sendInfoToPlayer(
                 submitter,
                 StatCollector.translateToLocalFormatted(
-                    "mm.info.new_virtual_me_pattern", 
-                    patternName)
+                    "mm.info.new_virtual_me_pattern",
+                    patternName
+                )
             );
         }
     }

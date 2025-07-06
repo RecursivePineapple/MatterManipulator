@@ -432,7 +432,8 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
             if (!printedProtectedBlockWarning) {
                 sendWarningToPlayer(
                     player,
-                    StatCollector.translateToLocal("mm.info.warning.protected_area"));
+                    StatCollector.translateToLocal("mm.info.warning.protected_area")
+                );
                 printedProtectedBlockWarning = true;
             }
 
