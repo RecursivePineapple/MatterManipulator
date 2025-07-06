@@ -1,5 +1,6 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
+import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendWarningToPlayer;
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
 
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 
 import net.minecraftforge.common.util.ForgeDirection;
@@ -428,9 +430,9 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         if (!world.canMineBlock(player, x, y, z) || MinecraftServer.getServer().isBlockProtected(world, x, y, z, player)) {
             // spotless:on
             if (!printedProtectedBlockWarning) {
-                MMUtils.sendWarningToPlayer(
+                sendWarningToPlayer(
                     player,
-                    "Tried to break/place a block in a protected area!"
+                    StatCollector.translateToLocal("mm.info.warning.protected_area")
                 );
                 printedProtectedBlockWarning = true;
             }

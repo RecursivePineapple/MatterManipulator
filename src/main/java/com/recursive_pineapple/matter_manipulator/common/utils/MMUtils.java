@@ -66,6 +66,7 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
+import net.minecraft.util.StatCollector;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
@@ -1251,7 +1252,7 @@ public class MMUtils {
         state = state.clone();
 
         if (!Location.areCompatible(state.config.coordA, state.config.coordB)) {
-            sendErrorToPlayer(player, "Must have copy region marked.");
+            sendErrorToPlayer(player, StatCollector.translateToLocal("mm.info.error.must_have_copy_region"));
             return;
         }
 
@@ -1261,7 +1262,7 @@ public class MMUtils {
             }
         } else {
             if (!Location.areCompatible(state.config.coordA, state.config.coordC)) {
-                sendErrorToPlayer(player, "Must have paste region marked to detect missing items.");
+                sendErrorToPlayer(player, StatCollector.translateToLocal("mm.info.error.must_have_paste_region"));
                 return;
             }
         }
@@ -1284,7 +1285,7 @@ public class MMUtils {
 
         List<BigItemStack> availableItems = extractResult.right() == null ? new ArrayList<>() : extractResult.right();
 
-        sendInfoToPlayer(player, "Required items:");
+        sendInfoToPlayer(player, StatCollector.translateToLocal("mm.info.required_items"));
 
         if (!requiredItems.isEmpty()) {
             requiredItems.stream()
@@ -1322,7 +1323,7 @@ public class MMUtils {
                 .sorted()
                 .forEach(message -> { sendInfoToPlayer(player, message); });
         } else {
-            sendInfoToPlayer(player, "None");
+            sendInfoToPlayer(player, StatCollector.translateToLocal("mm.info.none"));
         }
 
         if (!requiredItems.isEmpty()) {
@@ -1354,10 +1355,10 @@ public class MMUtils {
                         (flags & PLAN_AUTO_SUBMIT) != 0
                     );
                 } else {
-                    sendInfoToPlayer(player, "Not creating pattern because all required items are present.");
+                    sendInfoToPlayer(player, StatCollector.translateToLocal("mm.info.not_need_creating_pattern"));
                 }
             } else {
-                sendErrorToPlayer(player, "Manipulator not connected to an uplink: cannot create a fake pattern.");
+                sendErrorToPlayer(player, StatCollector.translateToLocal("mm.info.error.not_connected"));
             }
         }
     }

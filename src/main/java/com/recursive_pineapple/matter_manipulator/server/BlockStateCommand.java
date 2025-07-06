@@ -1,5 +1,8 @@
 package com.recursive_pineapple.matter_manipulator.server;
 
+import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendChatToPlayer;
+import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendErrorToPlayer;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -8,6 +11,7 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
+import net.minecraft.util.StatCollector;
 
 import com.recursive_pineapple.matter_manipulator.common.compat.BlockProperty;
 import com.recursive_pineapple.matter_manipulator.common.compat.BlockPropertyRegistry;
@@ -41,14 +45,14 @@ public class BlockStateCommand extends CommandBase {
         String value = MMUtils.getIndexSafe(args, 2);
 
         if (action == null || "set".equals(action) && name != null && value == null) {
-            MMUtils.sendErrorToPlayer(player, getCommandUsage(sender));
+            sendErrorToPlayer(player, getCommandUsage(sender));
             return;
         }
 
         var hit = MMUtils.getHitResult(player, true);
 
         if (hit == null || hit.typeOfHit != MovingObjectType.BLOCK) {
-            MMUtils.sendErrorToPlayer(player, "You must be looking at a block to use this command.");
+            sendErrorToPlayer(player, StatCollector.translateToLocal("mm.info.error.must_look_at_block"));
             return;
         }
 
@@ -60,20 +64,20 @@ public class BlockStateCommand extends CommandBase {
                 var prop = properties.get(name);
 
                 if (prop == null) {
-                    MMUtils.sendErrorToPlayer(player, "Property not found.");
+                    sendErrorToPlayer(player, StatCollector.translateToLocal("mm.info.error.property_not_found"));
                     return;
                 }
 
-                MMUtils.sendChatToPlayer(player, prop.getName() + ": " + prop.getValueAsString(player.worldObj, hit.blockX, hit.blockY, hit.blockZ));
+                sendChatToPlayer(player, prop.getName() + ": " + prop.getValueAsString(player.worldObj, hit.blockX, hit.blockY, hit.blockZ));
                 return;
             } else {
-                MMUtils.sendChatToPlayer(player, "Properties:");
+                sendChatToPlayer(player, StatCollector.translateToLocal("mm.info.properties"));
 
                 if (properties.isEmpty()) {
-                    MMUtils.sendChatToPlayer(player, "None");
+                    sendChatToPlayer(player, StatCollector.translateToLocal("mm.info.none"));
                 } else {
                     for (var e : properties.entrySet()) {
-                        MMUtils.sendChatToPlayer(
+                        sendChatToPlayer(
                             player,
                             e.getValue().getName() + ": " + e.getValue().getValueAsString(player.worldObj, hit.blockX, hit.blockY, hit.blockZ)
                         );
@@ -86,14 +90,20 @@ public class BlockStateCommand extends CommandBase {
             var prop = properties.get(name);
 
             if (prop == null) {
-                MMUtils.sendErrorToPlayer(player, "Property not found.");
+                sendErrorToPlayer(player, StatCollector.translateToLocal("mm.info.error.property_not_found"));
                 return;
             }
 
             try {
                 prop.setValueFromText(player.worldObj, hit.blockX, hit.blockY, hit.blockZ, value);
             } catch (Exception e) {
-                MMUtils.sendErrorToPlayer(player, "Error setting property: " + e.getMessage());
+                sendErrorToPlayer(
+                    player,
+                    StatCollector.translateToLocalFormatted(
+                        "mm.info.error.error_setting_property",
+                        e.getMessage()
+                    )
+                );
             }
 
             return;
