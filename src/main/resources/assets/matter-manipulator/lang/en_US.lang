@@ -142,6 +142,24 @@ mm.info.properties=Properties:
 mm.info.none=None
 mm.info.error.error_setting_property=Error setting property: 
 
+# Transform
+mm.transform.info=Flip: %s\nUp: %s\nForward: %s
+mm.transform.button.rotate_x-=Rotate X-
+mm.transform.button.rotate_x+=Rotate X+
+mm.transform.button.rotate_y-=Rotate Y-
+mm.transform.button.rotate_y+=Rotate Y+
+mm.transform.button.rotate_z-=Rotate Z-
+mm.transform.button.rotate_z+=Rotate Z+
+mm.transform.button.flip_x=Flip X
+mm.transform.button.flip_y=Flip Y
+mm.transform.button.flip_z=Flip Z
+mm.transform.button.reset=Reset
+mm.transform.header.copy=Copy
+mm.transform.header.copy_a=Copy (A)
+mm.transform.header.copy_b=Copy (B)
+mm.transform.header.paste=Paste
+mm.transform.header.stacking=Stacking
+
 # Keybindings
 key.mm=Matter Manipulator
 key.mm-ctrl=Control

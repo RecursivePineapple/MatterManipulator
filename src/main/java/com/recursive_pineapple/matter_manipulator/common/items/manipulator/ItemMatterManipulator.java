@@ -1621,61 +1621,60 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
                 if (t.flipY) flips.add("Y");
                 if (t.flipZ) flips.add("Z");
 
-                return String.format(
-                    "Flip: %s\nUp: %s\nForward: %s",
+                return StatCollector.translateToLocalFormatted("mm.transform.info",
                     flips.isEmpty() ? "None" : String.join(", ", flips),
                     MMUtils.getDirectionDisplayName(t.up),
-                    MMUtils.getDirectionDisplayName(t.forward));
+                    MMUtils.getDirectionDisplayName(t.forward)).replace("\\n", "\n");
             });
 
             Widget[] left = {
                 new Row().widgets(
-                    new VanillaButtonWidget().setDisplayString("Rotate X-")
+                    new VanillaButtonWidget().setDisplayString(StatCollector.translateToLocal("mm.transform.button.rotate_x-"))
                         .setOnClick((t, u) -> { Transform.sendRotate(EAST, false); })
                         .setSynced(false, false)
                         .setSize(62, 18),
                     padding(6, 6),
-                    new VanillaButtonWidget().setDisplayString("Rotate X+")
+                    new VanillaButtonWidget().setDisplayString(StatCollector.translateToLocal("mm.transform.button.rotate_x+"))
                         .setOnClick((t, u) -> { Transform.sendRotate(EAST, true); })
                         .setSynced(false, false)
                         .setSize(62, 18)),
                 padding(10, 10),
                 new Row().widgets(
-                    new VanillaButtonWidget().setDisplayString("Rotate Y-")
+                    new VanillaButtonWidget().setDisplayString(StatCollector.translateToLocal("mm.transform.button.rotate_y-"))
                         .setOnClick((t, u) -> { Transform.sendRotate(UP, false); })
                         .setSynced(false, false)
                         .setSize(62, 18),
                     padding(6, 6),
-                    new VanillaButtonWidget().setDisplayString("Rotate Y+")
+                    new VanillaButtonWidget().setDisplayString(StatCollector.translateToLocal("mm.transform.button.rotate_y+"))
                         .setOnClick((t, u) -> { Transform.sendRotate(UP, true); })
                         .setSynced(false, false)
                         .setSize(62, 18)),
                 padding(10, 10),
                 new Row().widgets(
-                    new VanillaButtonWidget().setDisplayString("Rotate Z-")
+                    new VanillaButtonWidget().setDisplayString(StatCollector.translateToLocal("mm.transform.button.rotate_z-"))
                         .setOnClick((t, u) -> { Transform.sendRotate(SOUTH, false); })
                         .setSynced(false, false)
                         .setSize(62, 18),
                     padding(6, 6),
-                    new VanillaButtonWidget().setDisplayString("Rotate Z+")
+                    new VanillaButtonWidget().setDisplayString(StatCollector.translateToLocal("mm.transform.button.rotate_z+"))
                         .setOnClick((t, u) -> { Transform.sendRotate(SOUTH, true); })
                         .setSynced(false, false)
                         .setSize(62, 18)),
                 padding(10, 10),
                 new Row().widgets(
-                    new VanillaButtonWidget().setDisplayString("Flip X")
+                    new VanillaButtonWidget().setDisplayString(StatCollector.translateToLocal("mm.transform.button.flip_x"))
                         .setOnClick(
                             (t, u) -> { Messages.ToggleTransformFlip.sendToServer(Transform.FLIP_X); })
                         .setSynced(false, false)
                         .setSize(40, 18),
                     padding(5, 5),
-                    new VanillaButtonWidget().setDisplayString("Flip Y")
+                    new VanillaButtonWidget().setDisplayString(StatCollector.translateToLocal("mm.transform.button.flip_y"))
                         .setOnClick(
                             (t, u) -> { Messages.ToggleTransformFlip.sendToServer(Transform.FLIP_Y); })
                         .setSynced(false, false)
                         .setSize(40, 18),
                     padding(5, 5),
-                    new VanillaButtonWidget().setDisplayString("Flip Z")
+                    new VanillaButtonWidget().setDisplayString(StatCollector.translateToLocal("mm.transform.button.flip_z"))
                         .setOnClick(
                             (t, u) -> { Messages.ToggleTransformFlip.sendToServer(Transform.FLIP_Z); })
                         .setSynced(false, false)
@@ -1704,7 +1703,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
                     padding(2, 2),
                     new Column()
                         .setAlignment(MainAxisAlignment.CENTER, CrossAxisAlignment.END)
-                        .widget(new VanillaButtonWidget().setDisplayString("Reset")
+                        .widget(new VanillaButtonWidget().setDisplayString(StatCollector.translateToLocal("mm.transform.button.reset"))
                             .setOnClick((t, u) -> { Messages.ResetTransform.sendToServer(); })
                             .setSynced(false, false)
                             .setSize(40, 18))
@@ -1712,7 +1711,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
             };
 
             Widget[] right = {
-                makeHeader("Copy"),
+                makeHeader(StatCollector.translateToLocal("mm.transform.header.copy")),
                 padding(2, 2),
                 makeCoordinateEditor(buildContext.getPlayer(), -1, 0),
                 padding(2, 2),
@@ -1720,7 +1719,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
                 padding(2, 2),
                 makeCoordinateEditor(buildContext.getPlayer(), -1, 2),
                 padding(2, 2),
-                makeHeader("Copy (A)"),
+                makeHeader(StatCollector.translateToLocal("mm.transform.header.copy_a")),
                 padding(2, 2),
                 makeCoordinateEditor(buildContext.getPlayer(), 0, 0),
                 padding(2, 2),
@@ -1728,7 +1727,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
                 padding(2, 2),
                 makeCoordinateEditor(buildContext.getPlayer(), 0, 2),
                 padding(10, 2),
-                makeHeader("Copy (B)"),
+                makeHeader(StatCollector.translateToLocal("mm.transform.header.copy_b")),
                 padding(2, 2),
                 makeCoordinateEditor(buildContext.getPlayer(), 1, 0),
                 padding(2, 2),
@@ -1736,7 +1735,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
                 padding(2, 2),
                 makeCoordinateEditor(buildContext.getPlayer(), 1, 2),
                 padding(10, 2),
-                makeHeader("Paste"),
+                makeHeader(StatCollector.translateToLocal("mm.transform.header.paste")),
                 padding(2, 2),
                 makeCoordinateEditor(buildContext.getPlayer(), 2, 0),
                 padding(2, 2),
@@ -1744,7 +1743,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
                 padding(2, 2),
                 makeCoordinateEditor(buildContext.getPlayer(), 2, 2),
                 padding(10, 2),
-                makeHeader("Stacking"),
+                makeHeader(StatCollector.translateToLocal("mm.transform.header.stacking")),
                 padding(2, 2),
                 makeCoordinateEditor(buildContext.getPlayer(), 3, 0),
                 padding(2, 2),
