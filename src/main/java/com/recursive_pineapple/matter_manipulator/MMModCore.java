@@ -7,6 +7,7 @@ import java.util.Set;
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 
 import com.gtnewhorizon.gtnhmixins.IEarlyMixinLoader;
+import com.gtnewhorizon.gtnhmixins.builders.IMixins;
 import com.recursive_pineapple.matter_manipulator.mixin.Mixin;
 
 @IFMLLoadingPlugin.MCVersion("1.7.10")
@@ -46,6 +47,6 @@ public class MMModCore implements IFMLLoadingPlugin, IEarlyMixinLoader {
 
     @Override
     public List<String> getMixins(Set<String> loadedCoreMods) {
-        return Mixin.getEarlyMixins(loadedCoreMods);
+        return IMixins.getEarlyMixins(Mixin.class, loadedCoreMods);
     }
 }
