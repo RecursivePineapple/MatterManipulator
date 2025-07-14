@@ -51,6 +51,8 @@ import lombok.SneakyThrows;
 import tectech.thing.metaTileEntity.hatch.MTEHatchDynamoTunnel;
 import tectech.thing.metaTileEntity.hatch.MTEHatchEnergyTunnel;
 import tectech.thing.metaTileEntity.multi.base.TTMultiblockBase;
+import tectech.thing.metaTileEntity.pipe.MTEPipeData;
+import tectech.thing.metaTileEntity.pipe.MTEPipeLaser;
 
 public class GTAnalysisResult implements ITileAnalysisIntegration {
 
@@ -72,6 +74,7 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
     public byte mFluidPipeRestriction = 0;
 
     private static int counter = 0;
+    private static final short GT_MACHINE_ENABLED = (short) (0b1 << counter++);
     private static final short GT_BASIC_IO_PUSH_ITEMS = (short) (0b1 << counter++);
     private static final short GT_BASIC_IO_PUSH_FLUIDS = (short) (0b1 << counter++);
     private static final short GT_BASIC_IO_DISABLE_FILTER = (short) (0b1 << counter++);
@@ -107,19 +110,17 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
         // save the colour
         if (igte.getColorization() != -1) mGTColour = igte.getColorization();
 
+        if (igte.isAllowedToWork()) mGTFlags |= GT_MACHINE_ENABLED;
+
         // if the machine is a singleblock, store its data
         if (mte instanceof MTEBasicMachine basicMachine) {
             mGTMainFacing = basicMachine.mMainFacing;
 
-            byte flags = 0;
-
-            if (basicMachine.mItemTransfer) flags |= GT_BASIC_IO_PUSH_ITEMS;
-            if (basicMachine.mFluidTransfer) flags |= GT_BASIC_IO_PUSH_FLUIDS;
-            if (basicMachine.mDisableFilter) flags |= GT_BASIC_IO_DISABLE_FILTER;
-            if (basicMachine.mDisableMultiStack) flags |= GT_BASIC_IO_DISABLE_MULTISTACK;
-            if (basicMachine.mAllowInputFromOutputSide) flags |= GT_BASIC_IO_INPUT_FROM_OUTPUT_SIDE;
-
-            if (flags != 0) mGTFlags = flags;
+            if (basicMachine.mItemTransfer) mGTFlags |= GT_BASIC_IO_PUSH_ITEMS;
+            if (basicMachine.mFluidTransfer) mGTFlags |= GT_BASIC_IO_PUSH_FLUIDS;
+            if (basicMachine.mDisableFilter) mGTFlags |= GT_BASIC_IO_DISABLE_FILTER;
+            if (basicMachine.mDisableMultiStack) mGTFlags |= GT_BASIC_IO_DISABLE_MULTISTACK;
+            if (basicMachine.mAllowInputFromOutputSide) mGTFlags |= GT_BASIC_IO_INPUT_FROM_OUTPUT_SIDE;
         }
 
         // if the machine is a pipe/cable/etc, store its connections
@@ -297,10 +298,16 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
 
             gte.setColorization(mGTColour);
 
+            if ((mGTFlags & GT_MACHINE_ENABLED) != 0) {
+                gte.enableWorking();
+            } else {
+                gte.disableWorking();
+            }
+
             if (mte instanceof MTEBasicMachine basicMachine) {
                 if (mGTMainFacing != null) {
                     basicMachine.setMainFacing(mGTMainFacing);
-                    // stop MTEBasicMachine.doDisplayThings from overwriting the setFrontFacing call when the block is
+                    // Stop MTEBasicMachine.doDisplayThings from overwriting the setFrontFacing call when the block is
                     // newly placed
                     basicMachine.mHasBeenUpdated = true;
                 }
@@ -630,21 +637,9 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
             mCovers = coversOut;
         }
 
-        byte transformedConns = 0;
-        byte transformedStrongOutput = 0;
-
-        for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
-            if ((mConnections & dir.flag) != 0) {
-                transformedConns |= transform.apply(dir).flag;
-            }
-
-            if ((mStrongRedstone & dir.flag) != 0) {
-                transformedStrongOutput |= transform.apply(dir).flag;
-            }
-        }
-
-        mConnections = transformedConns;
-        mStrongRedstone = transformedStrongOutput;
+        mConnections = transform.applyBits(mConnections);
+        mStrongRedstone = transform.applyBits(mStrongRedstone);
+        mFluidPipeRestriction = transform.applyBits(mFluidPipeRestriction);
     }
 
     @Override
