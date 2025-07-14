@@ -46,6 +46,7 @@ import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Trans
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 
 import bartworks.common.tileentities.multis.MTECircuitAssemblyLine;
+import gtnhlanth.common.beamline.MTEBeamlinePipe;
 import lombok.SneakyThrows;
 import tectech.thing.metaTileEntity.hatch.MTEHatchDynamoTunnel;
 import tectech.thing.metaTileEntity.hatch.MTEHatchEnergyTunnel;
@@ -122,7 +123,7 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
         }
 
         // if the machine is a pipe/cable/etc, store its connections
-        if (mte instanceof IConnectable connectable) {
+        if (mte instanceof IConnectable connectable && shouldMutateConnections(connectable)) {
             byte con = 0;
 
             for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
@@ -312,7 +313,7 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
             }
 
             // only (dis)connect sides that need to be updated
-            if (mte instanceof IConnectable connectable) {
+            if (mte instanceof IConnectable connectable && shouldMutateConnections(connectable)) {
                 for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
                     boolean shouldBeConnected = (mConnections & dir.flag) != 0;
                     if (connectable.isConnectedAtSide(dir) != shouldBeConnected) {
@@ -486,6 +487,14 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
             if (mte instanceof IMEConnectable me) {
                 me.setConnectsToAllSides((mGTFlags & GT_ME_CONNECT_ALL_SIDES) != 0);
             }
+
+            if (mte instanceof MTEPipeLaser laserPipe) {
+                laserPipe.updateNeighboringNetworks();
+            }
+
+            if (mte instanceof MTEPipeData dataPipe) {
+                dataPipe.updateNeighboringNetworks();
+            }
         }
 
         return true;
@@ -537,6 +546,14 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
                 );
             }
         }
+    }
+
+    private boolean shouldMutateConnections(IConnectable conn) {
+        if (conn instanceof MTEPipeLaser) return true;
+        if (conn instanceof MTEPipeData) return true;
+        if (conn instanceof MTEBeamlinePipe) return true;
+
+        return false;
     }
 
     @Override
