@@ -27,6 +27,7 @@ import gregtech.api.interfaces.metatileentity.IItemLockable;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.metatileentity.implementations.MTEBasicMachine;
+import gregtech.api.metatileentity.implementations.MTEFluidPipe;
 import gregtech.api.metatileentity.implementations.MTEHatchInputBus;
 import gregtech.api.metatileentity.implementations.MTEHatchOutput;
 import gregtech.api.metatileentity.implementations.MTEMultiBlockBase;
@@ -66,6 +67,7 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
     public JsonElement mGTData = null;
     public double[] mTTParams = null;
     public int mAmperes = 0;
+    public byte mFluidPipeRestriction = 0;
 
     private static int counter = 0;
     private static final short GT_BASIC_IO_PUSH_ITEMS = (short) (0b1 << counter++);
@@ -129,6 +131,10 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
             }
 
             mConnections = con;
+        }
+
+        if (mte instanceof MTEFluidPipe fluidPipe) {
+            mFluidPipeRestriction = fluidPipe.mDisableInput;
         }
 
         // if the machine is alignable (basically everything) store its facing directly or extended alignment
@@ -286,6 +292,10 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
                         }
                     }
                 }
+            }
+
+            if (mte instanceof MTEFluidPipe fluidPipe) {
+                fluidPipe.mDisableInput = mFluidPipeRestriction;
             }
 
             // set the machine's facing and alignment
