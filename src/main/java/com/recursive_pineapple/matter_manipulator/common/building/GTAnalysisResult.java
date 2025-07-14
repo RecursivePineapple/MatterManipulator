@@ -3,7 +3,6 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.nullIfUnknown;
 
 import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodType;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -32,6 +31,7 @@ import gregtech.api.metatileentity.implementations.MTEHatchInputBus;
 import gregtech.api.metatileentity.implementations.MTEHatchOutput;
 import gregtech.api.metatileentity.implementations.MTEMultiBlockBase;
 import gregtech.common.covers.Cover;
+import gregtech.common.tileentities.machines.multi.MTEIntegratedOreFactory;
 
 import appeng.helpers.ICustomNameObject;
 
@@ -45,6 +45,7 @@ import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 
+import bartworks.common.tileentities.multis.MTECircuitAssemblyLine;
 import lombok.SneakyThrows;
 import tectech.thing.metaTileEntity.hatch.MTEHatchDynamoTunnel;
 import tectech.thing.metaTileEntity.hatch.MTEHatchEnergyTunnel;
@@ -205,7 +206,13 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
 
         // check if the machine is a multi and store its settings
         if (mte instanceof MTEMultiBlockBase multi) {
+            if (multi instanceof MTECircuitAssemblyLine cal) {
+                mGTMode = getCALMode(cal);
+            } else if (multi instanceof MTEIntegratedOreFactory iof) {
+                mGTMode = getIOFMode(iof);
+            } else {
             mGTMode = multi.machineMode;
+            }
 
             if (multi.getVoidingMode().protectFluid) mGTFlags |= GT_MULTI_PROTECT_FLUIDS;
             if (multi.getVoidingMode().protectItem) mGTFlags |= GT_MULTI_PROTECT_ITEMS;
@@ -248,12 +255,36 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
         }
     }
 
-    private static final MethodHandle SET_TICK_RATE_ADDITION = MMUtils
-        .exposeMethod(Cover.class, MethodType.methodType(void.class, int.class), "setTickRateAddition");
+    private static final MethodHandle GET_CAL_MODE = MMUtils
+        .exposeFieldGetter(MTECircuitAssemblyLine.class, "mode");
 
     @SneakyThrows
-    private static void setTickRateAddition(Cover cover, int value) {
-        SET_TICK_RATE_ADDITION.invokeExact(cover, value);
+    private static int getCALMode(MTECircuitAssemblyLine cal) {
+        return (int) GET_CAL_MODE.invokeExact(cal);
+    }
+
+    private static final MethodHandle SET_CAL_MODE = MMUtils
+        .exposeFieldSetter(MTECircuitAssemblyLine.class, "mode");
+
+    @SneakyThrows
+    private static void setCALMode(MTECircuitAssemblyLine cal, int mode) {
+        SET_CAL_MODE.invokeExact(cal, mode);
+    }
+
+    private static final MethodHandle GET_IOF_MODE = MMUtils
+        .exposeFieldGetter(MTEIntegratedOreFactory.class, "sMode");
+
+    @SneakyThrows
+    private static int getIOFMode(MTEIntegratedOreFactory cal) {
+        return (int) GET_IOF_MODE.invokeExact(cal);
+    }
+
+    private static final MethodHandle SET_IOF_MODE = MMUtils
+        .exposeFieldSetter(MTEIntegratedOreFactory.class, "sMode");
+
+    @SneakyThrows
+    private static void setIOFMode(MTEIntegratedOreFactory cal, int mode) {
+        SET_IOF_MODE.invokeExact(cal, mode);
     }
 
     @Override
@@ -389,7 +420,13 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
 
             // set the various multi options
             if (mte instanceof MTEMultiBlockBase multi) {
+                if (mte instanceof MTECircuitAssemblyLine cal) {
+                    setCALMode(cal, mGTMode);
+                } else if (mte instanceof MTEIntegratedOreFactory iof) {
+                    setIOFMode(iof, mGTMode);
+                } else {
                 multi.machineMode = mGTMode;
+                }
 
                 if (multi.supportsVoidProtection()) {
                     boolean protectFluids = (mGTFlags & GT_MULTI_PROTECT_FLUIDS) != 0;

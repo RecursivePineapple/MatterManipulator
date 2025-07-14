@@ -1380,6 +1380,17 @@ public class MMUtils {
         }
     }
 
+    public static MethodHandle exposeFieldSetter(Class<?> clazz, String... names) {
+        try {
+            Field field = ReflectionHelper.findField(clazz, names);
+            field.setAccessible(true);
+            return MethodHandles.lookup()
+                .unreflectSetter(field);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("Could not make field setter for " + clazz.getName() + ":" + names[0], e);
+        }
+    }
+
     public static <T, R> Function<T, R> exposeFieldGetterLambda(Class<? super T> clazz, String... names) {
         final MethodHandle method = exposeFieldGetter(clazz, names);
 
