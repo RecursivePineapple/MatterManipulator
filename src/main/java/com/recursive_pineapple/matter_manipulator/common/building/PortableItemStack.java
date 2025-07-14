@@ -10,6 +10,7 @@ import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
 
 import com.google.gson.annotations.SerializedName;
+import com.recursive_pineapple.matter_manipulator.common.building.providers.IItemProvider;
 
 /**
  * An item stack that can be moved between worlds without id shifting.
