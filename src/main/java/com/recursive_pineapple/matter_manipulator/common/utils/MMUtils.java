@@ -833,9 +833,12 @@ public class MMUtils {
             .map(BigItemStack::create)
             .collect(Collectors.toList());
 
+        List<BigItemStack> extracted;
+
+        if (consume) {
         var result = src.tryConsumeItems(toInstallBig, IPseudoInventory.CONSUME_PARTIAL);
 
-        List<BigItemStack> extracted = result.right();
+            extracted = result.right();
 
         for (BigItemStack wanted : toInstallBig) {
             for (BigItemStack found : extracted) {
@@ -852,6 +855,9 @@ public class MMUtils {
                     success = false;
                 }
             }
+            }
+        } else {
+            extracted = mapToList(toInstallBig, BigItemStack::copy);
         }
 
         if (!simulate) {
