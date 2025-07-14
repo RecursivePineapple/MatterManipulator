@@ -211,7 +211,7 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
             } else if (multi instanceof MTEIntegratedOreFactory iof) {
                 mGTMode = getIOFMode(iof);
             } else {
-            mGTMode = multi.machineMode;
+                mGTMode = multi.machineMode;
             }
 
             if (multi.getVoidingMode().protectFluid) mGTFlags |= GT_MULTI_PROTECT_FLUIDS;
@@ -425,7 +425,7 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
                 } else if (mte instanceof MTEIntegratedOreFactory iof) {
                     setIOFMode(iof, mGTMode);
                 } else {
-                multi.machineMode = mGTMode;
+                    multi.machineMode = mGTMode;
                 }
 
                 if (multi.supportsVoidProtection()) {

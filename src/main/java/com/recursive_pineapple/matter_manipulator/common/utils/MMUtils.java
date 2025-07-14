@@ -836,25 +836,25 @@ public class MMUtils {
         List<BigItemStack> extracted;
 
         if (consume) {
-        var result = src.tryConsumeItems(toInstallBig, IPseudoInventory.CONSUME_PARTIAL);
+            var result = src.tryConsumeItems(toInstallBig, IPseudoInventory.CONSUME_PARTIAL);
 
             extracted = result.right();
 
-        for (BigItemStack wanted : toInstallBig) {
-            for (BigItemStack found : extracted) {
-                if (!found.isSameType(wanted)) continue;
-
-                wanted.stackSize -= found.stackSize;
-            }
-        }
-
-        if (src instanceof IBlockApplyContext ctx) {
             for (BigItemStack wanted : toInstallBig) {
-                if (wanted.stackSize > 0) {
-                    ctx.warn("Could not find upgrade: " + wanted.getItemStack().getDisplayName() + " x " + wanted.stackSize);
-                    success = false;
+                for (BigItemStack found : extracted) {
+                    if (!found.isSameType(wanted)) continue;
+
+                    wanted.stackSize -= found.stackSize;
                 }
             }
+
+            if (src instanceof IBlockApplyContext ctx) {
+                for (BigItemStack wanted : toInstallBig) {
+                    if (wanted.stackSize > 0) {
+                        ctx.warn("Could not find upgrade: " + wanted.getItemStack().getDisplayName() + " x " + wanted.stackSize);
+                        success = false;
+                    }
+                }
             }
         } else {
             extracted = mapToList(toInstallBig, BigItemStack::copy);
