@@ -23,6 +23,7 @@ import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
+import gtPlusPlus.xmod.gregtech.api.metatileentity.implementations.MTEHatchTurbine;
 import tectech.thing.metaTileEntity.hatch.MTEHatchRack;
 
 public enum InventoryAdapter {
@@ -81,6 +82,7 @@ public enum InventoryAdapter {
                 if (imte instanceof MTEHatchOutputME) return true;
                 if (imte instanceof MTEMultiBlockBase) return true;
                 if (imte instanceof MTEBasicBatteryBuffer) return true;
+                if (imte instanceof MTEHatchTurbine) return true;
             }
 
             return false;

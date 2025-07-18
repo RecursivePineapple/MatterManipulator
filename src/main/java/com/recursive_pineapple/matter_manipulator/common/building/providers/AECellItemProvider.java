@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.common.building;
+package com.recursive_pineapple.matter_manipulator.common.building.providers;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,6 +13,8 @@ import appeng.api.definitions.IItemDefinition;
 import appeng.api.storage.ICellWorkbenchItem;
 import appeng.parts.automation.UpgradeInventory;
 
+import com.recursive_pineapple.matter_manipulator.common.building.IPseudoInventory;
+import com.recursive_pineapple.matter_manipulator.common.building.PortableItemStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 

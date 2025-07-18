@@ -7,6 +7,7 @@ import java.util.Map;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 
 import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
@@ -64,11 +65,30 @@ public interface ImmutableBlockSpec extends ImmutableItemMeta {
     void getItemDetails(List<String> details);
 
     static Comparator<ImmutableBlockSpec> getComparator() {
-        Comparator<UniqueIdentifier> blockId = Comparator.nullsFirst(
-            Comparator.comparing((UniqueIdentifier id) -> id.modId)
-                .thenComparing(id -> id.name)
-        );
+        return Comparator.comparing(ImmutableBlockSpec::getStack, (a, b) -> {
+            if (a == null && b != null) return -1;
+            if (a != null && b == null) return 1;
+            if (a == null && b == null) return 0;
 
-        return Comparator.nullsFirst(Comparator.comparing(ImmutableBlockSpec::getObjectId, blockId)).thenComparingInt(ImmutableBlockSpec::getMeta);
+            assert a.getItem() != null;
+            assert b.getItem() != null;
+
+            int result;
+
+            result = String.CASE_INSENSITIVE_ORDER.compare(a.getItem().delegate.name(), b.getItem().delegate.name());
+            if (result != 0) return result;
+
+            result = Integer.compare(a.itemDamage, b.itemDamage);
+            if (result != 0) return result;
+
+            NBTTagCompound ta = a.getTagCompound();
+            NBTTagCompound tb = b.getTagCompound();
+
+            if (ta == null && tb != null) return -1;
+            if (ta != null && tb == null) return 1;
+            if (ta == null && tb == null) return 0;
+
+            return Integer.compare(ta.hashCode(), tb.hashCode());
+        });
     }
 }

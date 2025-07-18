@@ -66,6 +66,7 @@ import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
 import net.bdew.ae2stuff.machines.wireless.TileWireless;
 
+import bartworks.common.tileentities.multis.MTECircuitAssemblyLine;
 import de.keridos.floodlights.tileentity.TileEntityMetaFloodlight;
 import de.keridos.floodlights.tileentity.TileEntitySmallFloodlight;
 import gcewing.architecture.common.tile.TileArchitecture;
@@ -1058,7 +1059,12 @@ public class BlockPropertyRegistry {
     private static void initGT5u() {
         registerIntrinsicProperty(GregTechAPI.sBlockMachines, new MEHatchCapacityProperty<>(MTEHatchOutputBusME.class));
         registerIntrinsicProperty(GregTechAPI.sBlockMachines, new MEHatchCapacityProperty<>(MTEHatchOutputME.class));
+        registerIntrinsicProperty(GregTechAPI.sBlockMachines, new CALImprintProperty());
     }
+
+    // #endregion
+
+    // #region AE2 Stuff
 
     @Optional(Names.AE2STUFF)
     private static void initAE2Stuff() {
@@ -1211,6 +1217,10 @@ public class BlockPropertyRegistry {
             }
 
             setValue(tag, value);
+
+            if (tag.hasNoTags()) {
+                stack.setTagCompound(null);
+            }
         }
 
         public abstract JsonElement getValue(NBTTagCompound itemTag);
@@ -1263,7 +1273,7 @@ public class BlockPropertyRegistry {
         @Override
         public void getItemDetails(List<String> details, JsonElement value) {
             ReadableNumberConverter nc = ReadableNumberConverter.INSTANCE;
-            details.add(String.format("cache capacity: %s", nc.toWideReadableForm(value.getAsLong())));
+            details.add(String.format("Cache Capacity: %s", nc.toWideReadableForm(value.getAsLong())));
         }
     }
 
@@ -1304,6 +1314,66 @@ public class BlockPropertyRegistry {
         @Override
         public void setValue(IBlockAccess world, int x, int y, int z, JsonElement value) {
             throw new UnsupportedOperationException("hub status is fixed and cannot be changed");
+        }
+    }
+
+    private static class CALImprintProperty extends IntrinsicMTEProperty<MTECircuitAssemblyLine> {
+
+        private static final MethodHandle GET_CAL_TYPE = MMUtils.exposeFieldGetter(MTECircuitAssemblyLine.class, "type");
+
+        @SneakyThrows
+        public static NBTTagCompound getCALType(MTECircuitAssemblyLine cal) {
+            return (NBTTagCompound) GET_CAL_TYPE.invokeExact(cal);
+        }
+
+        public CALImprintProperty() {
+            super(MTECircuitAssemblyLine.class);
+        }
+
+        @Override
+        public String getName() {
+            return "imprint";
+        }
+
+        @Override
+        public JsonElement getValue(MTECircuitAssemblyLine mte) {
+            NBTTagCompound imprint = getCALType(mte);
+
+            if (imprint == null) return null;
+
+            return MMUtils.toJsonObjectExact(imprint);
+        }
+
+        @Override
+        public void setValue(MTECircuitAssemblyLine mte, JsonElement value) {
+            throw new UnsupportedOperationException("imprint is fixed and cannot be changed");
+        }
+
+        @Override
+        public JsonElement getValue(NBTTagCompound itemTag) {
+            if (itemTag == null || !itemTag.hasKey(MTECircuitAssemblyLine.IMPRINT_KEY)) return null;
+
+            return MMUtils.toJsonObjectExact(itemTag.getCompoundTag(MTECircuitAssemblyLine.IMPRINT_KEY));
+        }
+
+        @Override
+        public void setValue(NBTTagCompound itemTag, JsonElement value) {
+            if (value == null) {
+                itemTag.removeTag(MTECircuitAssemblyLine.IMPRINT_KEY);
+            } else {
+                itemTag.setTag(MTECircuitAssemblyLine.IMPRINT_KEY, MMUtils.toNbtExact(value));
+            }
+        }
+
+        @Override
+        public void getItemDetails(List<String> details, JsonElement value) {
+            ItemStack stack = null;
+
+            if (value != null) {
+                stack = ItemStack.loadItemStackFromNBT((NBTTagCompound) MMUtils.toNbtExact(value));
+            }
+
+            details.add(String.format("Imprint: %s", stack == null ? "None" : stack.getDisplayName()));
         }
     }
 }

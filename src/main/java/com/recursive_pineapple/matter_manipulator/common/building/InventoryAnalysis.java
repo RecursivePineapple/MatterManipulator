@@ -8,7 +8,10 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
+import com.recursive_pineapple.matter_manipulator.common.building.providers.AECellItemProvider;
 import com.recursive_pineapple.matter_manipulator.common.building.providers.BatteryItemProvider;
+import com.recursive_pineapple.matter_manipulator.common.building.providers.IItemProvider;
+import com.recursive_pineapple.matter_manipulator.common.building.providers.PatternItemProvider;
 import com.recursive_pineapple.matter_manipulator.common.utils.InventoryAdapter;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
@@ -53,17 +56,14 @@ public class InventoryAnalysis {
         if (Mods.AppliedEnergistics2.isModLoaded()) {
             if (!fuzzy) {
                 IItemProvider cell = AECellItemProvider.fromWorkbenchItem(stack);
-
                 if (cell != null) return cell;
             }
 
             IItemProvider pattern = PatternItemProvider.fromPattern(stack);
-
             if (pattern != null) return pattern;
         }
 
         IItemProvider battery = BatteryItemProvider.fromStack(stack);
-
         if (battery != null) return battery;
 
         return fuzzy ? new PortableItemStack(stack) : PortableItemStack.withNBT(stack);

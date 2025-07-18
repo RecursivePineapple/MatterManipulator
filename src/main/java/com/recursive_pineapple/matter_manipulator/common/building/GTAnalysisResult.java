@@ -3,7 +3,6 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.nullIfUnknown;
 
 import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodType;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -27,10 +26,12 @@ import gregtech.api.interfaces.metatileentity.IItemLockable;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.metatileentity.implementations.MTEBasicMachine;
+import gregtech.api.metatileentity.implementations.MTEFluidPipe;
 import gregtech.api.metatileentity.implementations.MTEHatchInputBus;
 import gregtech.api.metatileentity.implementations.MTEHatchOutput;
 import gregtech.api.metatileentity.implementations.MTEMultiBlockBase;
 import gregtech.common.covers.Cover;
+import gregtech.common.tileentities.machines.multi.MTEIntegratedOreFactory;
 
 import appeng.helpers.ICustomNameObject;
 
@@ -44,10 +45,14 @@ import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 
+import bartworks.common.tileentities.multis.MTECircuitAssemblyLine;
+import gtnhlanth.common.beamline.MTEBeamlinePipe;
 import lombok.SneakyThrows;
 import tectech.thing.metaTileEntity.hatch.MTEHatchDynamoTunnel;
 import tectech.thing.metaTileEntity.hatch.MTEHatchEnergyTunnel;
 import tectech.thing.metaTileEntity.multi.base.TTMultiblockBase;
+import tectech.thing.metaTileEntity.pipe.MTEPipeData;
+import tectech.thing.metaTileEntity.pipe.MTEPipeLaser;
 
 public class GTAnalysisResult implements ITileAnalysisIntegration {
 
@@ -66,8 +71,10 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
     public JsonElement mGTData = null;
     public double[] mTTParams = null;
     public int mAmperes = 0;
+    public byte mFluidPipeRestriction = 0;
 
     private static int counter = 0;
+    private static final short GT_MACHINE_ENABLED = (short) (0b1 << counter++);
     private static final short GT_BASIC_IO_PUSH_ITEMS = (short) (0b1 << counter++);
     private static final short GT_BASIC_IO_PUSH_FLUIDS = (short) (0b1 << counter++);
     private static final short GT_BASIC_IO_DISABLE_FILTER = (short) (0b1 << counter++);
@@ -103,23 +110,21 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
         // save the colour
         if (igte.getColorization() != -1) mGTColour = igte.getColorization();
 
+        if (igte.isAllowedToWork()) mGTFlags |= GT_MACHINE_ENABLED;
+
         // if the machine is a singleblock, store its data
         if (mte instanceof MTEBasicMachine basicMachine) {
             mGTMainFacing = basicMachine.mMainFacing;
 
-            byte flags = 0;
-
-            if (basicMachine.mItemTransfer) flags |= GT_BASIC_IO_PUSH_ITEMS;
-            if (basicMachine.mFluidTransfer) flags |= GT_BASIC_IO_PUSH_FLUIDS;
-            if (basicMachine.mDisableFilter) flags |= GT_BASIC_IO_DISABLE_FILTER;
-            if (basicMachine.mDisableMultiStack) flags |= GT_BASIC_IO_DISABLE_MULTISTACK;
-            if (basicMachine.mAllowInputFromOutputSide) flags |= GT_BASIC_IO_INPUT_FROM_OUTPUT_SIDE;
-
-            if (flags != 0) mGTFlags = flags;
+            if (basicMachine.mItemTransfer) mGTFlags |= GT_BASIC_IO_PUSH_ITEMS;
+            if (basicMachine.mFluidTransfer) mGTFlags |= GT_BASIC_IO_PUSH_FLUIDS;
+            if (basicMachine.mDisableFilter) mGTFlags |= GT_BASIC_IO_DISABLE_FILTER;
+            if (basicMachine.mDisableMultiStack) mGTFlags |= GT_BASIC_IO_DISABLE_MULTISTACK;
+            if (basicMachine.mAllowInputFromOutputSide) mGTFlags |= GT_BASIC_IO_INPUT_FROM_OUTPUT_SIDE;
         }
 
         // if the machine is a pipe/cable/etc, store its connections
-        if (mte instanceof IConnectable connectable) {
+        if (mte instanceof IConnectable connectable && shouldMutateConnections(connectable)) {
             byte con = 0;
 
             for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
@@ -129,6 +134,10 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
             }
 
             mConnections = con;
+        }
+
+        if (mte instanceof MTEFluidPipe fluidPipe) {
+            mFluidPipeRestriction = fluidPipe.mDisableInput;
         }
 
         // if the machine is alignable (basically everything) store its facing directly or extended alignment
@@ -199,7 +208,13 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
 
         // check if the machine is a multi and store its settings
         if (mte instanceof MTEMultiBlockBase multi) {
-            mGTMode = multi.machineMode;
+            if (multi instanceof MTECircuitAssemblyLine cal) {
+                mGTMode = getCALMode(cal);
+            } else if (multi instanceof MTEIntegratedOreFactory iof) {
+                mGTMode = getIOFMode(iof);
+            } else {
+                mGTMode = multi.machineMode;
+            }
 
             if (multi.getVoidingMode().protectFluid) mGTFlags |= GT_MULTI_PROTECT_FLUIDS;
             if (multi.getVoidingMode().protectItem) mGTFlags |= GT_MULTI_PROTECT_ITEMS;
@@ -242,12 +257,36 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
         }
     }
 
-    private static final MethodHandle SET_TICK_RATE_ADDITION = MMUtils
-        .exposeMethod(Cover.class, MethodType.methodType(void.class, int.class), "setTickRateAddition");
+    private static final MethodHandle GET_CAL_MODE = MMUtils
+        .exposeFieldGetter(MTECircuitAssemblyLine.class, "mode");
 
     @SneakyThrows
-    private static void setTickRateAddition(Cover cover, int value) {
-        SET_TICK_RATE_ADDITION.invokeExact(cover, value);
+    private static int getCALMode(MTECircuitAssemblyLine cal) {
+        return (int) GET_CAL_MODE.invokeExact(cal);
+    }
+
+    private static final MethodHandle SET_CAL_MODE = MMUtils
+        .exposeFieldSetter(MTECircuitAssemblyLine.class, "mode");
+
+    @SneakyThrows
+    private static void setCALMode(MTECircuitAssemblyLine cal, int mode) {
+        SET_CAL_MODE.invokeExact(cal, mode);
+    }
+
+    private static final MethodHandle GET_IOF_MODE = MMUtils
+        .exposeFieldGetter(MTEIntegratedOreFactory.class, "sMode");
+
+    @SneakyThrows
+    private static int getIOFMode(MTEIntegratedOreFactory cal) {
+        return (int) GET_IOF_MODE.invokeExact(cal);
+    }
+
+    private static final MethodHandle SET_IOF_MODE = MMUtils
+        .exposeFieldSetter(MTEIntegratedOreFactory.class, "sMode");
+
+    @SneakyThrows
+    private static void setIOFMode(MTEIntegratedOreFactory cal, int mode) {
+        SET_IOF_MODE.invokeExact(cal, mode);
     }
 
     @Override
@@ -259,10 +298,16 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
 
             gte.setColorization(mGTColour);
 
+            if ((mGTFlags & GT_MACHINE_ENABLED) != 0) {
+                gte.enableWorking();
+            } else {
+                gte.disableWorking();
+            }
+
             if (mte instanceof MTEBasicMachine basicMachine) {
                 if (mGTMainFacing != null) {
                     basicMachine.setMainFacing(mGTMainFacing);
-                    // stop MTEBasicMachine.doDisplayThings from overwriting the setFrontFacing call when the block is
+                    // Stop MTEBasicMachine.doDisplayThings from overwriting the setFrontFacing call when the block is
                     // newly placed
                     basicMachine.mHasBeenUpdated = true;
                 }
@@ -275,7 +320,7 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
             }
 
             // only (dis)connect sides that need to be updated
-            if (mte instanceof IConnectable connectable) {
+            if (mte instanceof IConnectable connectable && shouldMutateConnections(connectable)) {
                 for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
                     boolean shouldBeConnected = (mConnections & dir.flag) != 0;
                     if (connectable.isConnectedAtSide(dir) != shouldBeConnected) {
@@ -286,6 +331,10 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
                         }
                     }
                 }
+            }
+
+            if (mte instanceof MTEFluidPipe fluidPipe) {
+                fluidPipe.mDisableInput = mFluidPipeRestriction;
             }
 
             // set the machine's facing and alignment
@@ -379,7 +428,13 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
 
             // set the various multi options
             if (mte instanceof MTEMultiBlockBase multi) {
-                multi.machineMode = mGTMode;
+                if (mte instanceof MTECircuitAssemblyLine cal) {
+                    setCALMode(cal, mGTMode);
+                } else if (mte instanceof MTEIntegratedOreFactory iof) {
+                    setIOFMode(iof, mGTMode);
+                } else {
+                    multi.machineMode = mGTMode;
+                }
 
                 if (multi.supportsVoidProtection()) {
                     boolean protectFluids = (mGTFlags & GT_MULTI_PROTECT_FLUIDS) != 0;
@@ -439,6 +494,14 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
             if (mte instanceof IMEConnectable me) {
                 me.setConnectsToAllSides((mGTFlags & GT_ME_CONNECT_ALL_SIDES) != 0);
             }
+
+            if (mte instanceof MTEPipeLaser laserPipe) {
+                laserPipe.updateNeighboringNetworks();
+            }
+
+            if (mte instanceof MTEPipeData dataPipe) {
+                dataPipe.updateNeighboringNetworks();
+            }
         }
 
         return true;
@@ -490,6 +553,14 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
                 );
             }
         }
+    }
+
+    private boolean shouldMutateConnections(IConnectable conn) {
+        if (conn instanceof MTEPipeLaser) return true;
+        if (conn instanceof MTEPipeData) return true;
+        if (conn instanceof MTEBeamlinePipe) return true;
+
+        return false;
     }
 
     @Override
@@ -566,21 +637,9 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
             mCovers = coversOut;
         }
 
-        byte transformedConns = 0;
-        byte transformedStrongOutput = 0;
-
-        for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
-            if ((mConnections & dir.flag) != 0) {
-                transformedConns |= transform.apply(dir).flag;
-            }
-
-            if ((mStrongRedstone & dir.flag) != 0) {
-                transformedStrongOutput |= transform.apply(dir).flag;
-            }
-        }
-
-        mConnections = transformedConns;
-        mStrongRedstone = transformedStrongOutput;
+        mConnections = transform.applyBits(mConnections);
+        mStrongRedstone = transform.applyBits(mStrongRedstone);
+        mFluidPipeRestriction = transform.applyBits(mFluidPipeRestriction);
     }
 
     @Override

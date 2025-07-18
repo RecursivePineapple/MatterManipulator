@@ -833,25 +833,31 @@ public class MMUtils {
             .map(BigItemStack::create)
             .collect(Collectors.toList());
 
-        var result = src.tryConsumeItems(toInstallBig, IPseudoInventory.CONSUME_PARTIAL);
+        List<BigItemStack> extracted;
 
-        List<BigItemStack> extracted = result.right();
+        if (consume) {
+            var result = src.tryConsumeItems(toInstallBig, IPseudoInventory.CONSUME_PARTIAL);
 
-        for (BigItemStack wanted : toInstallBig) {
-            for (BigItemStack found : extracted) {
-                if (!found.isSameType(wanted)) continue;
+            extracted = result.right();
 
-                wanted.stackSize -= found.stackSize;
-            }
-        }
-
-        if (src instanceof IBlockApplyContext ctx) {
             for (BigItemStack wanted : toInstallBig) {
-                if (wanted.stackSize > 0) {
-                    ctx.warn("Could not find upgrade: " + wanted.getItemStack().getDisplayName() + " x " + wanted.stackSize);
-                    success = false;
+                for (BigItemStack found : extracted) {
+                    if (!found.isSameType(wanted)) continue;
+
+                    wanted.stackSize -= found.stackSize;
                 }
             }
+
+            if (src instanceof IBlockApplyContext ctx) {
+                for (BigItemStack wanted : toInstallBig) {
+                    if (wanted.stackSize > 0) {
+                        ctx.warn("Could not find upgrade: " + wanted.getItemStack().getDisplayName() + " x " + wanted.stackSize);
+                        success = false;
+                    }
+                }
+            }
+        } else {
+            extracted = mapToList(toInstallBig, BigItemStack::copy);
         }
 
         if (!simulate) {
@@ -1371,6 +1377,17 @@ public class MMUtils {
                 .unreflectGetter(field);
         } catch (IllegalAccessException e) {
             throw new RuntimeException("Could not make field getter for " + clazz.getName() + ":" + names[0], e);
+        }
+    }
+
+    public static MethodHandle exposeFieldSetter(Class<?> clazz, String... names) {
+        try {
+            Field field = ReflectionHelper.findField(clazz, names);
+            field.setAccessible(true);
+            return MethodHandles.lookup()
+                .unreflectSetter(field);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("Could not make field setter for " + clazz.getName() + ":" + names[0], e);
         }
     }
 

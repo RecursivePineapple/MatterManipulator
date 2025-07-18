@@ -67,6 +67,22 @@ public class Transform {
         return vprime(v(dir).mulTransposeDirection(getRotation()));
     }
 
+    public byte applyBits(int bitmask) {
+        if (bitmask == 0) return 0;
+
+        int out = 0;
+
+        ForgeDirection[] validDirections = ForgeDirection.VALID_DIRECTIONS;
+        for (int i = 0, validDirectionsLength = validDirections.length; i < validDirectionsLength; i++) {
+            ForgeDirection dir = validDirections[i];
+            if ((bitmask & dir.flag) != 0) {
+                out |= apply(dir).flag;
+            }
+        }
+
+        return (byte) out;
+    }
+
     public Vector3i apply(Vector3i v) {
         Vector3f v2 = new Vector3f(v).mulTransposeDirection(getRotation());
 
