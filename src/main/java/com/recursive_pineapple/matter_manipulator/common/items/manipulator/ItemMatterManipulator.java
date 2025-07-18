@@ -133,11 +133,12 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
 
         this.tier = tier;
 
+        EventHandler handler = new EventHandler();
         GameRegistry.registerItem(this, name);
-        MinecraftForge.EVENT_BUS.register(this);
+        MinecraftForge.EVENT_BUS.register(handler);
         FMLCommonHandler.instance()
             .bus()
-            .register(this);
+            .register(handler);
     }
 
     private static int counter = 0;
@@ -404,33 +405,6 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
 
     public static void setState(ItemStack itemStack, MMState state) {
         itemStack.setTagCompound(state.save());
-    }
-
-    /**
-     * This is used to prevent the client's held manipulator from wiggling around each time power is drawn.
-     */
-    @SubscribeEvent
-    @SideOnly(Side.CLIENT)
-    public void stopClientClearUsing(PlayerTickEvent event) {
-        // spotless:off
-        boolean isHandValid = event.player.getItemInUse() != null && event.player.getItemInUse().getItem() == this;
-        boolean isCurrentItemValid = event.player.inventory.getCurrentItem() != null && event.player.inventory.getCurrentItem().getItem() == this;
-        // spotless:on
-
-        if (isHandValid && isCurrentItemValid) {
-            NBTTagCompound inInventory = event.player.inventory.getCurrentItem()
-                .getTagCompound();
-            NBTTagCompound using = (NBTTagCompound) event.player.getItemInUse()
-                .getTagCompound()
-                .copy();
-
-            // we don't want to stop using the item if only the charge changes
-            using.setDouble("charge", inInventory.getDouble("charge"));
-
-            if (inInventory.equals(using)) {
-                event.player.setItemInUse(event.player.inventory.getCurrentItem(), event.player.getItemInUseCount());
-            }
-        }
     }
 
     public static NBTTagCompound getOrCreateNbtData(ItemStack itemStack) {
@@ -793,31 +767,6 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
         return false;
     }
 
-    /**
-     * Used for detecting middle mouse button clicks.
-     */
-    @SubscribeEvent
-    @SideOnly(Side.CLIENT)
-    public void onMouseEvent(MouseEvent event) {
-        final EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-
-        if (player == null || player.isDead) { return; }
-
-        final ItemStack heldItem = player.getHeldItem();
-        if (heldItem == null) { return; }
-
-        if (event.button == 2 /* MMB */ && event.buttonstate && heldItem.getItem() == this) {
-            event.setCanceled(true);
-
-            // call onMMBPressed on the client and the server
-            MMState state = getState(heldItem);
-            onMMBPressed(player, heldItem, state);
-            setState(heldItem, state);
-
-            Messages.MMBPressed.sendToServer();
-        }
-    }
-
     public void onMMBPressed(EntityPlayer player, ItemStack stack, MMState state) {
         if (state.config.placeMode == PlaceMode.GEOMETRY) {
             onPickBlock(player.getEntityWorld(), player, stack, state, MMUtils.getHitResult(player, true));
@@ -1045,18 +994,6 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
     @Override
     public void onPlayerStoppedUsing(ItemStack stack, World world, EntityPlayer player, int itemUseCount) {
         stopBuildable(player);
-    }
-
-    @SubscribeEvent
-    public void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
-        stopBuildable(event.player);
-    }
-
-    @SubscribeEvent
-    public void onPlayerKilled(LivingDeathEvent event) {
-        if (event.entity instanceof EntityPlayer player) {
-            stopBuildable(player);
-        }
     }
 
     @Override
@@ -2030,4 +1967,70 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
     // spotless:on
 
     // #endregion
+    public class EventHandler {
+
+        /**
+         * This is used to prevent the client's held manipulator from wiggling around each time power is drawn.
+         */
+        @SubscribeEvent
+        @SideOnly(Side.CLIENT)
+        public void stopClientClearUsing(PlayerTickEvent event) {
+            // spotless:off
+            boolean isHandValid = event.player.getItemInUse() != null && event.player.getItemInUse().getItem() == ItemMatterManipulator.this;
+            boolean isCurrentItemValid = event.player.inventory.getCurrentItem() != null && event.player.inventory.getCurrentItem().getItem() == ItemMatterManipulator.this;
+            // spotless:on
+
+            if (isHandValid && isCurrentItemValid) {
+                NBTTagCompound inInventory = event.player.inventory.getCurrentItem()
+                    .getTagCompound();
+                NBTTagCompound using = (NBTTagCompound) event.player.getItemInUse()
+                    .getTagCompound()
+                    .copy();
+
+                // we don't want to stop using the item if only the charge changes
+                using.setDouble("charge", inInventory.getDouble("charge"));
+
+                if (inInventory.equals(using)) {
+                    event.player.setItemInUse(event.player.inventory.getCurrentItem(), event.player.getItemInUseCount());
+                }
+            }
+        }
+
+        /**
+         * Used for detecting middle mouse button clicks.
+         */
+        @SubscribeEvent
+        @SideOnly(Side.CLIENT)
+        public void onMouseEvent(MouseEvent event) {
+            final EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+
+            if (player == null || player.isDead) { return; }
+
+            final ItemStack heldItem = player.getHeldItem();
+            if (heldItem == null) { return; }
+
+            if (event.button == 2 /* MMB */ && event.buttonstate && heldItem.getItem() == ItemMatterManipulator.this) {
+                event.setCanceled(true);
+
+                // call onMMBPressed on the client and the server
+                MMState state = getState(heldItem);
+                onMMBPressed(player, heldItem, state);
+                setState(heldItem, state);
+
+                Messages.MMBPressed.sendToServer();
+            }
+        }
+
+        @SubscribeEvent
+        public void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
+            stopBuildable(event.player);
+        }
+
+        @SubscribeEvent
+        public void onPlayerKilled(LivingDeathEvent event) {
+            if (event.entity instanceof EntityPlayer player) {
+                stopBuildable(player);
+            }
+        }
+    }
 }
