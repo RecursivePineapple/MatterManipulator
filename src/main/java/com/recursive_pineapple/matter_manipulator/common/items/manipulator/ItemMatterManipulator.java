@@ -1967,7 +1967,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
     // spotless:on
 
     // #endregion
-    class EventHandler {
+    public class EventHandler {
 
         /**
          * This is used to prevent the client's held manipulator from wiggling around each time power is drawn.
