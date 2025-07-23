@@ -74,7 +74,9 @@ public class ArchitectureCraftAnalysisResult implements ITileAnalysisIntegration
 
         if (te instanceof TileShape tileShape) {
             removeCladding(context, tileShape, true);
-            if (!addCladding(context, tileShape, true)) { return false; }
+            if (cladding != null) {
+                if (!addCladding(context, tileShape, true)) return false;
+            }
 
             return true;
         }
