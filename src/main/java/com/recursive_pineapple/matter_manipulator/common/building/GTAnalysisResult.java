@@ -556,11 +556,11 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
     }
 
     private boolean shouldMutateConnections(IConnectable conn) {
-        if (conn instanceof MTEPipeLaser) return true;
-        if (conn instanceof MTEPipeData) return true;
-        if (conn instanceof MTEBeamlinePipe) return true;
+        if (conn instanceof MTEPipeLaser) return false;
+        if (conn instanceof MTEPipeData) return false;
+        if (conn instanceof MTEBeamlinePipe) return false;
 
-        return false;
+        return true;
     }
 
     @Override
