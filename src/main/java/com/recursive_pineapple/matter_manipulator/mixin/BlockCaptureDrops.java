@@ -5,19 +5,32 @@ import java.util.List;
 
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
+import net.minecraft.world.World;
 
 public interface BlockCaptureDrops {
 
-    public void captureDrops();
+    void captureDrops();
 
-    public List<ItemStack> stopCapturingDrops();
+    List<ItemStack> stopCapturingDrops();
 
-    public static void captureDrops(Block block) {
+    static void captureDrops(Block block) {
         if (block instanceof BlockCaptureDrops drops) drops.captureDrops();
     }
 
-    public static List<ItemStack> stopCapturingDrops(Block block) {
+    static List<ItemStack> stopCapturingDrops(Block block) {
         if (block instanceof BlockCaptureDrops drops) {
+            return drops.stopCapturingDrops();
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    static void captureDrops(World world) {
+        if (world instanceof BlockCaptureDrops drops) drops.captureDrops();
+    }
+
+    static List<ItemStack> stopCapturingDrops(World world) {
+        if (world instanceof BlockCaptureDrops drops) {
             return drops.stopCapturingDrops();
         } else {
             return Collections.emptyList();

@@ -151,8 +151,10 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
 
         if (voidDrops) {
             BlockCaptureDrops.captureDrops(block);
+            BlockCaptureDrops.captureDrops(world);
             world.setBlockToAir(x, y, z);
             BlockCaptureDrops.stopCapturingDrops(block);
+            BlockCaptureDrops.stopCapturingDrops(world);
             return;
         }
 
@@ -194,10 +196,12 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         }
 
         BlockCaptureDrops.captureDrops(block);
+        BlockCaptureDrops.captureDrops(world);
 
         world.setBlockToAir(x, y, z);
 
         givePlayerItems(BlockCaptureDrops.stopCapturingDrops(block).toArray(new ItemStack[0]));
+        givePlayerItems(BlockCaptureDrops.stopCapturingDrops(world).toArray(new ItemStack[0]));
     }
 
     @Optional({

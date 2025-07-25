@@ -285,21 +285,13 @@ public class PendingMove extends AbstractBuildable {
         }
 
         // CLEAR TILES
-        if (blockD != null) {
-            TileEntity tileToSet = blockD.createTileEntity(worldD, metaD);
-
-            worldD.setTileEntity(dx, dy, dz, tileToSet);
-        }
-
-        if (blockS != null) {
-            TileEntity tileToSet = blockS.createTileEntity(worldS, metaS);
-
-            worldS.setTileEntity(sx, sy, sz, tileToSet);
-        }
+        worldD.setTileEntity(dx, dy, dz, blockD.createTileEntity(worldD, metaD));
+        worldS.setTileEntity(sx, sy, sz, blockS.createTileEntity(worldS, metaS));
 
         // TILES CLEARED
         BlockCaptureDrops.captureDrops(blockS);
         BlockCaptureDrops.captureDrops(blockD);
+        BlockCaptureDrops.captureDrops(world);
 
         worldD.setBlock(dx, dy, dz, blockS, metaS, 3);
 
@@ -318,6 +310,7 @@ public class PendingMove extends AbstractBuildable {
         // delete any items that were dropped
         BlockCaptureDrops.stopCapturingDrops(blockS);
         BlockCaptureDrops.stopCapturingDrops(blockD);
+        BlockCaptureDrops.stopCapturingDrops(world);
 
         if (tileEntityD != null) {
             TileEntity newTileEntityF = TileEntity.createAndLoadEntity(tagD);
