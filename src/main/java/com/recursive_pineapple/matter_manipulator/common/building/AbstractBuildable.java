@@ -152,6 +152,8 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         if (voidDrops) {
             BlockCaptureDrops.captureDrops(block);
             BlockCaptureDrops.captureDrops(world);
+            // Because GT uses this to call MTE.onRemoval() :doom:
+            block.getDrops(world, x, y, z, meta, 0);
             world.setBlockToAir(x, y, z);
             BlockCaptureDrops.stopCapturingDrops(block);
             BlockCaptureDrops.stopCapturingDrops(world);

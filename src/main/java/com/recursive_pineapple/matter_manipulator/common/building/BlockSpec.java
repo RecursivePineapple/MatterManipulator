@@ -21,6 +21,8 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import net.minecraft.world.World;
 
+import org.jetbrains.annotations.NotNull;
+
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
 
@@ -239,8 +241,7 @@ public class BlockSpec implements ImmutableBlockSpec {
         }
 
         ItemStack out = ItemStack.copyItemStack(this.stack.orElse(null));
-        assert out != null;
-        out.stackSize *= amount;
+        if (out != null) out.stackSize *= amount;
         return out;
     }
 

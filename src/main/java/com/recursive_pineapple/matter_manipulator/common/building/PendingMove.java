@@ -17,6 +17,7 @@ import net.minecraft.world.World;
 
 import net.minecraftforge.common.MinecraftForge;
 
+import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.interfaces.tileentity.IIC2Enet;
 import gregtech.api.metatileentity.BaseMetaTileEntity;
@@ -32,6 +33,8 @@ import com.recursive_pineapple.matter_manipulator.mixin.BlockCaptureDrops;
 
 import WayofTime.alchemicalWizardry.api.event.TeleposeEvent;
 import it.unimi.dsi.fastutil.Pair;
+import tectech.thing.metaTileEntity.pipe.MTEPipeData;
+import tectech.thing.metaTileEntity.pipe.MTEPipeLaser;
 
 /**
  * Handles all moving logic.
@@ -285,6 +288,11 @@ public class PendingMove extends AbstractBuildable {
         }
 
         // CLEAR TILES
+
+        // Because GT uses this to call MTE.onRemoval() :doom:
+        blockS.getDrops(world, sx, sy, sz, metaS, 0);
+        blockD.getDrops(world, dx, dy, dz, metaD, 0);
+
         worldD.setTileEntity(dx, dy, dz, blockD.createTileEntity(worldD, metaD));
         worldS.setTileEntity(sx, sy, sz, blockS.createTileEntity(worldS, metaS));
 
@@ -331,8 +339,20 @@ public class PendingMove extends AbstractBuildable {
 
     @Optional(Names.GREG_TECH)
     private static void updateGTIfNeeded(TileEntity te) {
-        if (te instanceof IGregTechTileEntity igte && igte.getMetaTileEntity() instanceof BaseMetaTileEntity bmte) {
-            bmte.setCableUpdateDelay(100);
+        if (te instanceof IGregTechTileEntity igte) {
+            if (igte instanceof BaseMetaTileEntity bmte) {
+                bmte.setCableUpdateDelay(100);
+            }
+
+            IMetaTileEntity imte = igte.getMetaTileEntity();
+
+            if (imte instanceof MTEPipeLaser laserPipe) {
+                laserPipe.updateNeighboringNetworks();
+            }
+
+            if (imte instanceof MTEPipeData dataPipe) {
+                dataPipe.updateNeighboringNetworks();
+            }
         }
 
         if (te instanceof IIC2Enet enet) {
@@ -356,7 +376,6 @@ public class PendingMove extends AbstractBuildable {
             spec2.getBlock(),
             spec2.getBlockMeta()
         );
-        if (MinecraftForge.EVENT_BUS.post(evt)) return false;
-        return true;
+        return !MinecraftForge.EVENT_BUS.post(evt);
     }
 }
