@@ -1438,7 +1438,7 @@ public class MMUtils {
         } else if (item instanceof ItemReed specialPlacing) {
             block = specialPlacing.field_150935_a;
         } else if (AppliedEnergistics2.isModLoaded() && isAECable(item, metadata)) {
-            block = InteropConstants.AE_BLOCK_CABLE.get().getBlock();
+            block = InteropConstants.AE_BLOCK_CABLE.getBlock();
         } else {
             block = Block.getBlockFromItem(item);
         }
@@ -1449,7 +1449,7 @@ public class MMUtils {
     @Optional(Names.GREG_TECH)
     public static boolean isGTMachine(ImmutableBlockSpec spec) {
         if (spec.getBlock() instanceof BlockMachines) {
-            if (getIndexSafe(GregTechAPI.METATILEENTITIES, spec.getMeta()) != null) { return true; }
+            if (getIndexSafe(GregTechAPI.METATILEENTITIES, spec.getItemMeta()) != null) { return true; }
         }
 
         return false;
@@ -1458,7 +1458,7 @@ public class MMUtils {
     @Optional(Names.GREG_TECH)
     public static boolean isGTCable(ImmutableBlockSpec spec) {
         if (spec.getBlock() instanceof BlockMachines) {
-            if (getIndexSafe(GregTechAPI.METATILEENTITIES, spec.getMeta()) instanceof IConnectable) { return true; }
+            if (getIndexSafe(GregTechAPI.METATILEENTITIES, spec.getItemMeta()) instanceof IConnectable) { return true; }
         }
 
         return false;
@@ -1468,7 +1468,7 @@ public class MMUtils {
     public static boolean isAECable(ImmutableBlockSpec spec) {
         if (spec == null) return false;
 
-        return isAECable(spec.getItem(), spec.getMeta());
+        return isAECable(spec.getItem(), spec.getItemMeta());
     }
 
     @Optional(Names.APPLIED_ENERGISTICS2)

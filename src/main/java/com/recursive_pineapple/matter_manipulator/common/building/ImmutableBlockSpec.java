@@ -10,26 +10,19 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 
+import org.jetbrains.annotations.NotNull;
+
+import com.gtnewhorizon.gtnhlib.util.data.ImmutableBlockMeta;
+import com.gtnewhorizon.gtnhlib.util.data.ImmutableItemMeta;
 import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
 
-import com.recursive_pineapple.matter_manipulator.common.utils.ImmutableItemMeta;
-import com.recursive_pineapple.matter_manipulator.common.utils.ItemId;
-
-public interface ImmutableBlockSpec extends ImmutableItemMeta {
+public interface ImmutableBlockSpec extends ImmutableItemMeta, ImmutableBlockMeta {
 
     UniqueIdentifier getObjectId();
 
-    Block getBlock();
+    @NotNull Block getBlock();
 
-    Item getItem();
-
-    ItemId getItemId();
-
-    int getMeta();
-
-    int getBlockMeta();
-
-    ItemStack getStack();
+    @NotNull Item getItem();
 
     PendingBlock instantiate(int worldId, int x, int y, int z);
 
@@ -42,7 +35,7 @@ public interface ImmutableBlockSpec extends ImmutableItemMeta {
     ImmutableBlockSpec withProperties(Map<CopyableProperty, String> properties);
 
     default boolean isEquivalent(ImmutableBlockSpec other) {
-        return ItemStack.areItemStacksEqual(getStack(), other.getStack());
+        return ItemStack.areItemStacksEqual(toStack(1), other.toStack(1));
     }
 
     /** Returns true when this contains air. BlockSpecs may be air if an invalid block was analyzed. */
@@ -65,7 +58,7 @@ public interface ImmutableBlockSpec extends ImmutableItemMeta {
     void getItemDetails(List<String> details);
 
     static Comparator<ImmutableBlockSpec> getComparator() {
-        return Comparator.comparing(ImmutableBlockSpec::getStack, (a, b) -> {
+        return Comparator.comparing(s -> s.toStack(1), (a, b) -> {
             if (a == null && b != null) return -1;
             if (a != null && b == null) return 1;
             if (a == null && b == null) return 0;
@@ -90,5 +83,9 @@ public interface ImmutableBlockSpec extends ImmutableItemMeta {
 
             return Integer.compare(ta.hashCode(), tb.hashCode());
         });
+    }
+
+    static BlockSpec fromBlockMeta(ImmutableBlockMeta bm) {
+        return new BlockSpec().setObject(bm.getBlock(), bm.getBlockMeta());
     }
 }

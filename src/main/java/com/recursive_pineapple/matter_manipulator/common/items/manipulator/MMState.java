@@ -424,7 +424,7 @@ public class MMState {
 
             if (hasCap(ItemMatterManipulator.ALLOW_CABLES)) {
                 if (AppliedEnergistics2.isModLoaded() && MMUtils.isAECable(replacement)) {
-                    block = InteropConstants.AE_BLOCK_CABLE.get().asSpec();
+                    block = InteropConstants.AE_BLOCK_CABLE.toSpec();
                 }
             }
 
@@ -453,7 +453,7 @@ public class MMState {
 
         if (ae.mAEParts == null) ae.mAEParts = new AEPartData[7];
 
-        ae.mAEParts[ForgeDirection.UNKNOWN.ordinal()] = new AEPartData(((IPartItem) cable.getItem()).createPartFromItemStack(cable.getStack()));
+        ae.mAEParts[ForgeDirection.UNKNOWN.ordinal()] = new AEPartData(((IPartItem) cable.getItem()).createPartFromItemStack(cable.toStack(1)));
     }
 
     private List<PendingBlock> getCableBlocks(World world) {
@@ -473,7 +473,7 @@ public class MMState {
             for (Vector3i voxel : getLineVoxels(a.x, a.y, a.z, b.x, b.y, b.z)) {
                 if (AppliedEnergistics2.isModLoaded()) {
                     if (MMUtils.getAECable(pooled, world, voxel.x, voxel.y, voxel.z)) {
-                        PendingBlock pendingBlock = InteropConstants.AE_BLOCK_CABLE.get().asSpec().instantiate(world, voxel.x, voxel.y, voxel.z);
+                        PendingBlock pendingBlock = InteropConstants.AE_BLOCK_CABLE.toSpec().instantiate(world, voxel.x, voxel.y, voxel.z);
 
                         pendingBlock.analyze(world.getTileEntity(voxel.x, voxel.y, voxel.z), PendingBlock.ANALYZE_ALL);
 
@@ -550,7 +550,7 @@ public class MMState {
     @Optional(Names.APPLIED_ENERGISTICS2)
     private void getAECables(Vector3i a, Vector3i b, List<PendingBlock> out, Block block, World world, ImmutableBlockSpec cableSpec) {
         if (cableSpec.getItem() instanceof IPartItem partItem) {
-            if (partItem.createPartFromItemStack(cableSpec.getStack()) instanceof IPartCable cable) {
+            if (partItem.createPartFromItemStack(cableSpec.toStack(1)) instanceof IPartCable cable) {
                 for (Vector3i voxel : getLineVoxels(a.x, a.y, a.z, b.x, b.y, b.z)) {
                     int x = voxel.x, y = voxel.y, z = voxel.z;
 

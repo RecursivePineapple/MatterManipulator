@@ -7,10 +7,13 @@ import net.minecraft.init.Blocks;
 
 import net.minecraftforge.oredict.OreDictionary;
 
+import com.gtnewhorizon.gtnhlib.util.data.LazyItem;
+import com.recursive_pineapple.matter_manipulator.common.utils.LazyBlockSpec;
+import com.recursive_pineapple.matter_manipulator.common.utils.MMValues;
 import gregtech.api.GregTechAPI;
 
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
-import com.recursive_pineapple.matter_manipulator.common.utils.LazyBlock;
+import com.gtnewhorizon.gtnhlib.util.data.LazyBlock;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
@@ -28,7 +31,7 @@ public class InteropConstants {
     public static final LazyBlock BRIGHT_AIR = new LazyBlock(Mods.GalacticraftCore, "tile.brightAir", OreDictionary.WILDCARD_VALUE);
     public static final LazyBlock ARCANE_LAMP_LIGHT = new LazyBlock(Mods.Thaumcraft, "blockAiry", 2);
     public static final LazyBlock WIRELESS_CONNECTOR = new LazyBlock(Mods.AE2Stuff, "Wireless");
-    public static final LazyBlock AE_BLOCK_CABLE = new LazyBlock(Mods.AppliedEnergistics2, "tile.BlockCableBus");
+    public static final LazyBlockSpec AE_BLOCK_CABLE = LazyBlockSpec.ofBlock(Mods.AppliedEnergistics2, "tile.BlockCableBus", 0);
     public static final LazyBlock FMP_BLOCK = new LazyBlock(Mods.ForgeMultipart, "block");
 
     public static boolean isAir(Block block, int meta) {

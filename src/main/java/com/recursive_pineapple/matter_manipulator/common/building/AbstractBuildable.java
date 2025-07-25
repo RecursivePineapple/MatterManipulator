@@ -140,7 +140,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
             if (GregTech.isModLoaded() && GTUtility.isOre(existing.getBlock(), existing.getBlockMeta())) {
                 voidDrops = true;
             } else {
-                for (int id : OreDictionary.getOreIDs(existing.getStack())) {
+                for (int id : OreDictionary.getOreIDs(existing.toStack(1))) {
                     if (OreDictionary.getOreName(id).startsWith("ore")) {
                         voidDrops = true;
                         break;
