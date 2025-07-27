@@ -28,6 +28,7 @@ import net.minecraftforge.fluids.IFluidBlock;
 import net.minecraftforge.fluids.IFluidHandler;
 import net.minecraftforge.oredict.OreDictionary;
 
+import appeng.api.parts.IFacadePart;
 import gregtech.api.interfaces.tileentity.IColoredTileEntity;
 import gregtech.api.interfaces.tileentity.ICoverable;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
@@ -352,6 +353,14 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
                     if (!drops.isEmpty()) {
                         givePlayerItems(drops.toArray(new ItemStack[drops.size()]));
                     }
+                }
+
+                IFacadePart facadePart = host.getFacadeContainer()
+                    .getFacade(dir);
+
+                if (facadePart != null) {
+                    host.getFacadeContainer().removeFacade(host, dir);
+                    givePlayerItems(facadePart.getItemStack());
                 }
             }
         }

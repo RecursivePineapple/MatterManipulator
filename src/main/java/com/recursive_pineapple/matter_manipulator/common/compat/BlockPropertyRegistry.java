@@ -1274,17 +1274,7 @@ public class BlockPropertyRegistry {
 
         @Override
         public void setValue(ItemStack stack, JsonElement value) {
-            NBTTagCompound tag = stack.getTagCompound();
-
-            if (tag == null) {
-                stack.setTagCompound(tag = new NBTTagCompound());
-            }
-
-            setValue(tag, value);
-
-            if (tag.hasNoTags()) {
-                stack.setTagCompound(null);
-            }
+            setValue(stack.getTagCompound(), value);
         }
 
         public abstract JsonElement getValue(NBTTagCompound itemTag);
@@ -1594,10 +1584,6 @@ public class BlockPropertyRegistry {
             } else {
                 if (stack.hasTagCompound()) {
                     stack.getTagCompound().removeTag("owner");
-
-                    if (stack.getTagCompound().hasNoTags()) {
-                        stack.setTagCompound(null);
-                    }
                 }
             }
         }

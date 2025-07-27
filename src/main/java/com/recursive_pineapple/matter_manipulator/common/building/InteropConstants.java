@@ -7,6 +7,7 @@ import net.minecraft.init.Blocks;
 
 import net.minecraftforge.oredict.OreDictionary;
 
+import com.recursive_pineapple.matter_manipulator.common.utils.MMValues;
 import gregtech.api.GregTechAPI;
 
 import com.gtnewhorizon.gtnhlib.util.data.LazyBlock;
@@ -31,6 +32,7 @@ public class InteropConstants {
     public static final LazyBlock WIRELESS_CONNECTOR = new LazyBlock(Mods.AE2Stuff, "Wireless");
     public static final LazyBlockSpec AE_BLOCK_CABLE = LazyBlockSpec.ofBlock(Mods.AppliedEnergistics2, "tile.BlockCableBus", 0);
     public static final LazyBlock FMP_BLOCK = new LazyBlock(Mods.ForgeMultipart, "block");
+    public static final LazyBlockSpec ENDER_STORAGE = LazyBlockSpec.ofBlock(Mods.EnderStorage, "enderChest", MMValues.W);
 
     public static boolean isAir(Block block, int meta) {
         if (block.getMaterial() instanceof MaterialTransparent) return true;
