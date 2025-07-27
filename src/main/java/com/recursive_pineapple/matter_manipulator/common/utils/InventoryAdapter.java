@@ -1,7 +1,5 @@
 package com.recursive_pineapple.matter_manipulator.common.utils;
 
-import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
-
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;

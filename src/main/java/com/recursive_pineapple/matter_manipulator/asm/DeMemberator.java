@@ -3,40 +3,27 @@ package com.recursive_pineapple.matter_manipulator.asm;
 import static com.recursive_pineapple.matter_manipulator.asm.ASMUtils.*;
 import static com.recursive_pineapple.matter_manipulator.asm.ASMUtils.InsnPredicate;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
-import java.util.function.Supplier;
 
 import net.minecraft.launchwrapper.IClassTransformer;
 
 import com.gtnewhorizon.gtnhlib.asm.ClassConstantPoolParser;
-import com.gtnewhorizon.gtnhlib.client.model.Variant;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import lombok.SneakyThrows;
 
 import org.apache.commons.lang3.mutable.MutableObject;
-import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.FieldNode;
-import org.objectweb.asm.tree.IntInsnNode;
-import org.objectweb.asm.tree.LabelNode;
-import org.objectweb.asm.tree.LdcInsnNode;
-import org.objectweb.asm.tree.LineNumberNode;
-import org.objectweb.asm.tree.LocalVariableNode;
-import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TypeInsnNode;
-import org.objectweb.asm.tree.VarInsnNode;
+
+import lombok.SneakyThrows;
 
 /**
  * Removes members
@@ -99,7 +86,8 @@ public class DeMemberator implements IClassTransformer {
                     MutableObject<AbstractInsnNode> afterLDC = new MutableObject<>();
 
                     // Remove the variant's implicit subclass, if it has one
-                    boolean success = findInsns(clinit,
+                    boolean success = findInsns(
+                        clinit,
                         new InsnPredicate[] {
                             isNew(null),
                             isBasic(Opcodes.DUP),
@@ -120,28 +108,33 @@ public class DeMemberator implements IClassTransformer {
                             afterLDC.setValue(last);
                             // The end is exclusive, and it points to whatever comes next after the above insn matchers
                             ASMUtils.removeInsns(clinit, first, last);
-                        });
+                        }
+                    );
 
+                    // spotless:off
                     if (!success) {
                         throw new IllegalStateException("Could not find NEW insn for enum variant "
                             + variant.name
                             + " in "
                             + name);
                     }
+                    // spotless:on
 
                     // Find the insn after this variant's PUTSTATIC
                     @SuppressWarnings("DataFlowIssue")
                     AbstractInsnNode end = findInsn(
                         clinit,
                         afterLDC.getValue(),
-                        isPutStatic(null, null, null)).getNext();
+                        isPutStatic(null, null, null)
+                    ).getNext();
 
                     // Remove the remaining insns in the variant's init (post LDC, up to PUTSTATIC)
                     // This should include whatever extra insns are required to call the ctor
                     ASMUtils.removeInsns(
                         clinit,
                         afterLDC.getValue(),
-                        end);
+                        end
+                    );
 
                     InsnPredicate lineNumber = isLineNumber(null);
                     InsnPredicate isNew = isNew(null);
@@ -167,7 +160,7 @@ public class DeMemberator implements IClassTransformer {
                         Integer value = getLoadedInt(cursor);
 
                         if (value != null) {
-                            //noinspection DataFlowIssue
+                            // noinspection DataFlowIssue
                             clinit.instructions.set(cursor, getIntConstInsn(value - 1));
                         }
                     }
@@ -181,12 +174,14 @@ public class DeMemberator implements IClassTransformer {
                         isBasic(Opcodes.AASTORE)
                     );
 
+                    // spotless:off
                     if (!success) {
                         throw new IllegalStateException("Could not remove insns from $values() for enum variant "
                             + variant.name
                             + " in "
                             + name);
                     }
+                    // spotless:on
                 }
 
                 // Find the array length load insn
@@ -194,7 +189,7 @@ public class DeMemberator implements IClassTransformer {
                 AbstractInsnNode lenNode = findInsn($values, $values.instructions.getFirst(), isLoadInt(null));
 
                 // Set its new length
-                //noinspection DataFlowIssue
+                // noinspection DataFlowIssue
                 $values.instructions.set(lenNode, getIntConstInsn(getLoadedInt(lenNode) - removedEnumVariants.size()));
 
                 // Fix the variant indices in $values()

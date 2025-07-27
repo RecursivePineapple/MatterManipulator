@@ -13,7 +13,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockAnvil;
@@ -47,11 +46,6 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.ForgeDirection;
 
-import codechicken.enderstorage.api.EnderStorageManager;
-import codechicken.enderstorage.common.TileFrequencyOwner;
-import codechicken.enderstorage.storage.item.TileEnderChest;
-import codechicken.enderstorage.storage.liquid.TileEnderTank;
-import com.google.gson.JsonNull;
 import gregtech.api.GregTechAPI;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
@@ -62,6 +56,7 @@ import gregtech.common.tileentities.machines.MTEHatchOutputME;
 import appeng.util.ReadableNumberConverter;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonPrimitive;
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.building.InteropConstants;
@@ -74,6 +69,9 @@ import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 import net.bdew.ae2stuff.machines.wireless.TileWireless;
 
 import bartworks.common.tileentities.multis.MTECircuitAssemblyLine;
+import codechicken.enderstorage.common.TileFrequencyOwner;
+import codechicken.enderstorage.storage.item.TileEnderChest;
+import codechicken.enderstorage.storage.liquid.TileEnderTank;
 import de.keridos.floodlights.tileentity.TileEntityMetaFloodlight;
 import de.keridos.floodlights.tileentity.TileEntitySmallFloodlight;
 import gcewing.architecture.common.tile.TileArchitecture;
@@ -1090,7 +1088,8 @@ public class BlockPropertyRegistry {
         registerIntrinsicProperty(InteropConstants.ENDER_STORAGE.getBlock(), new EnderStoragePrivateProperty());
 
         registerProperty(
-            InteropConstants.ENDER_STORAGE.getBlock(), new DirectionBlockProperty() {
+            InteropConstants.ENDER_STORAGE.getBlock(),
+            new DirectionBlockProperty() {
 
                 private static final ForgeDirection[] VALUES = {
                     SOUTH, WEST, NORTH, EAST
@@ -1105,13 +1104,9 @@ public class BlockPropertyRegistry {
                 public ForgeDirection getValue(World world, int x, int y, int z) {
                     TileEntity te = world.getTileEntity(x, y, z);
 
-                    if (te instanceof TileEnderTank tank) {
-                        return VALUES[tank.rotation];
-                    }
+                    if (te instanceof TileEnderTank tank) return VALUES[tank.rotation];
 
-                    if (te instanceof TileEnderChest chest) {
-                        return VALUES[chest.rotation];
-                    }
+                    if (te instanceof TileEnderChest chest) return VALUES[chest.rotation];
 
                     return UNKNOWN;
                 }
@@ -1136,7 +1131,8 @@ public class BlockPropertyRegistry {
                         }
                     }
                 }
-            });
+            }
+        );
     }
 
     // #endregion

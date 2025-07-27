@@ -4,8 +4,9 @@ import java.util.Locale;
 
 import net.minecraft.util.ResourceLocation;
 
-import com.gtnewhorizon.gtnhlib.util.data.IMod;
 import cpw.mods.fml.common.Loader;
+
+import com.gtnewhorizon.gtnhlib.util.data.IMod;
 
 public enum Mods implements IMod {
 

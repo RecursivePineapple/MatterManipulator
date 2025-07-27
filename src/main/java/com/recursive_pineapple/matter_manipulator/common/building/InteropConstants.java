@@ -7,13 +7,11 @@ import net.minecraft.init.Blocks;
 
 import net.minecraftforge.oredict.OreDictionary;
 
-import com.gtnewhorizon.gtnhlib.util.data.LazyItem;
-import com.recursive_pineapple.matter_manipulator.common.utils.LazyBlockSpec;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMValues;
 import gregtech.api.GregTechAPI;
 
-import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.gtnewhorizon.gtnhlib.util.data.LazyBlock;
+import com.recursive_pineapple.matter_manipulator.asm.Optional;
+import com.recursive_pineapple.matter_manipulator.common.utils.LazyBlockSpec;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 

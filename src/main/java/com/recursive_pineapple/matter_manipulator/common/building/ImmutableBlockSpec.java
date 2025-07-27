@@ -10,19 +10,22 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 
-import org.jetbrains.annotations.NotNull;
+import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
 
 import com.gtnewhorizon.gtnhlib.util.data.ImmutableBlockMeta;
 import com.gtnewhorizon.gtnhlib.util.data.ImmutableItemMeta;
-import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
+
+import org.jetbrains.annotations.NotNull;
 
 public interface ImmutableBlockSpec extends ImmutableItemMeta, ImmutableBlockMeta {
 
     UniqueIdentifier getObjectId();
 
-    @NotNull Block getBlock();
+    @NotNull
+    Block getBlock();
 
-    @NotNull Item getItem();
+    @NotNull
+    Item getItem();
 
     PendingBlock instantiate(int worldId, int x, int y, int z);
 

@@ -7,7 +7,6 @@ import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 
-import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
@@ -144,7 +143,7 @@ public class ASMUtils {
     public static <T extends AbstractInsnNode> T findInsn(MethodNode method, AbstractInsnNode start, InsnPredicate matcher) {
         for (; start != null; start = start.getNext()) {
             if (matcher.test(method, start)) {
-                //noinspection unchecked
+                // noinspection unchecked
                 return (T) start;
             }
         }
@@ -282,9 +281,7 @@ public class ASMUtils {
             };
         }
 
-        if (insn instanceof IntInsnNode intNode && intNode.getOpcode() == Opcodes.BIPUSH) {
-            return intNode.operand;
-        }
+        if (insn instanceof IntInsnNode intNode && intNode.getOpcode() == Opcodes.BIPUSH) { return intNode.operand; }
 
         return null;
     }

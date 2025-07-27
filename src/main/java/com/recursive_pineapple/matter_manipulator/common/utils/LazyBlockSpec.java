@@ -1,11 +1,10 @@
 package com.recursive_pineapple.matter_manipulator.common.utils;
 
 import net.minecraft.block.Block;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
-import org.jetbrains.annotations.NotNull;
+import cpw.mods.fml.common.registry.GameRegistry;
 
 import com.gtnewhorizon.gtnhlib.util.data.BlockMeta;
 import com.gtnewhorizon.gtnhlib.util.data.IMod;
@@ -14,7 +13,8 @@ import com.gtnewhorizon.gtnhlib.util.data.ImmutableItemMeta;
 import com.gtnewhorizon.gtnhlib.util.data.ItemMeta;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockSpec;
 import com.recursive_pineapple.matter_manipulator.common.building.ImmutableBlockSpec;
-import cpw.mods.fml.common.registry.GameRegistry;
+
+import org.jetbrains.annotations.NotNull;
 
 public abstract class LazyBlockSpec implements ImmutableItemMeta, ImmutableBlockMeta {
 

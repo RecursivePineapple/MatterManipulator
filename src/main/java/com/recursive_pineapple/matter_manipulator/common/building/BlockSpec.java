@@ -21,8 +21,6 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import net.minecraft.world.World;
 
-import org.jetbrains.annotations.NotNull;
-
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
 
@@ -36,6 +34,8 @@ import com.recursive_pineapple.matter_manipulator.common.utils.ItemId;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
+
+import org.jetbrains.annotations.NotNull;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
@@ -157,7 +157,7 @@ public class BlockSpec implements ImmutableBlockSpec {
     public @NotNull Item getItem() {
         ItemStack stack = toStack(1);
 
-        //noinspection DataFlowIssue
+        // noinspection DataFlowIssue
         return stack == null ? null : stack.getItem();
     }
 
@@ -168,7 +168,7 @@ public class BlockSpec implements ImmutableBlockSpec {
 
     @Override
     public int getBlockMeta() {
-        //noinspection ConstantValue
+        // noinspection ConstantValue
         return getItem() == null ? 0 : getItem().getMetadata(getItemMeta());
     }
 
@@ -186,7 +186,7 @@ public class BlockSpec implements ImmutableBlockSpec {
 
                 Item item = this.item.orElse(null);
 
-                //noinspection ConstantValue
+                // noinspection ConstantValue
                 if (item == null) {
                     this.stack = Optional.empty();
                     return null;
@@ -199,7 +199,7 @@ public class BlockSpec implements ImmutableBlockSpec {
                 }
             }
 
-            //noinspection ConstantValue
+            // noinspection ConstantValue
             if (stack != null && stack.getItem() != null) {
                 this.stack = Optional.of(stack);
             } else {
