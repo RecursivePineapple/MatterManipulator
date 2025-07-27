@@ -236,7 +236,9 @@ public class BlockSpec implements ImmutableBlockSpec {
                     }
                 }
 
-                if (stack2.getTagCompound().hasNoTags()) stack2.setTagCompound(null);
+                tag = stack2.getTagCompound();
+
+                if (tag != null && tag.hasNoTags()) stack2.setTagCompound(null);
             }
         }
 
