@@ -208,9 +208,7 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
 
         // check if the machine is a multi and store its settings
         if (mte instanceof MTEMultiBlockBase multi) {
-            if (multi instanceof MTECircuitAssemblyLine cal) {
-                mGTMode = getCALMode(cal);
-            } else if (multi instanceof MTEIntegratedOreFactory iof) {
+            if (multi instanceof MTEIntegratedOreFactory iof) {
                 mGTMode = getIOFMode(iof);
             } else {
                 mGTMode = multi.machineMode;
@@ -255,22 +253,6 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
         if (mte instanceof IMEConnectable me && me.connectsToAllSides()) {
             mGTFlags |= GT_ME_CONNECT_ALL_SIDES;
         }
-    }
-
-    private static final MethodHandle GET_CAL_MODE = MMUtils
-        .exposeFieldGetter(MTECircuitAssemblyLine.class, "mode");
-
-    @SneakyThrows
-    private static int getCALMode(MTECircuitAssemblyLine cal) {
-        return (int) GET_CAL_MODE.invokeExact(cal);
-    }
-
-    private static final MethodHandle SET_CAL_MODE = MMUtils
-        .exposeFieldSetter(MTECircuitAssemblyLine.class, "mode");
-
-    @SneakyThrows
-    private static void setCALMode(MTECircuitAssemblyLine cal, int mode) {
-        SET_CAL_MODE.invokeExact(cal, mode);
     }
 
     private static final MethodHandle GET_IOF_MODE = MMUtils
@@ -428,9 +410,7 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
 
             // set the various multi options
             if (mte instanceof MTEMultiBlockBase multi) {
-                if (mte instanceof MTECircuitAssemblyLine cal) {
-                    setCALMode(cal, mGTMode);
-                } else if (mte instanceof MTEIntegratedOreFactory iof) {
+                if (mte instanceof MTEIntegratedOreFactory iof) {
                     setIOFMode(iof, mGTMode);
                 } else {
                     multi.machineMode = mGTMode;
