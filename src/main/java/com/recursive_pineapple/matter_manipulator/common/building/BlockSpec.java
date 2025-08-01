@@ -35,6 +35,8 @@ import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
+import org.jetbrains.annotations.NotNull;
+
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 public class BlockSpec implements ImmutableBlockSpec {
@@ -129,7 +131,7 @@ public class BlockSpec implements ImmutableBlockSpec {
         return this;
     }
 
-    public BlockSpec populate() {
+    public void populate() {
         if (isBlock) {
             block = GameRegistry.findBlock(objectId.modId, objectId.name);
             item = Optional.ofNullable(MMUtils.getItemFromBlock(block, metadata));
@@ -137,8 +139,6 @@ public class BlockSpec implements ImmutableBlockSpec {
             item = Optional.of(GameRegistry.findItem(objectId.modId, objectId.name));
             block = MMUtils.getBlockFromItem(item.get(), item.get().getMetadata(metadata));
         }
-
-        return this;
     }
 
     @Override
@@ -147,46 +147,33 @@ public class BlockSpec implements ImmutableBlockSpec {
     }
 
     @Override
-    public Block getBlock() {
+    public @NotNull Block getBlock() {
         if (block == null) populate();
 
         return block;
     }
 
     @Override
-    public Item getItem() {
-        if (item == null) populate();
+    public @NotNull Item getItem() {
+        ItemStack stack = toStack(1);
 
-        return item.orElse(null);
+        // noinspection DataFlowIssue
+        return stack == null ? null : stack.getItem();
     }
 
     @Override
-    public ItemId getItemId() {
-        if (itemId == null) {
-            if (item == null) populate();
-
-            if (item.isPresent()) {
-                itemId = Optional.of(ItemId.create(item.get(), metadata, null));
-            } else {
-                itemId = Optional.empty();
-            }
-        }
-
-        return itemId.orElse(null);
-    }
-
-    @Override
-    public int getMeta() {
-        return metadata;
+    public int getItemMeta() {
+        return toStack(1).itemDamage;
     }
 
     @Override
     public int getBlockMeta() {
-        return getItem() == null ? 0 : getItem().getMetadata(getMeta());
+        // noinspection ConstantValue
+        return getItem() == null ? 0 : getItem().getMetadata(getItemMeta());
     }
 
     @Override
-    public ItemStack getStack() {
+    public ItemStack toStack(int amount) {
         if (this.stack == null) {
             ItemStack stack = null;
 
@@ -195,8 +182,11 @@ public class BlockSpec implements ImmutableBlockSpec {
             }
 
             if (stack == null || stack.getItem() == null) {
-                Item item = getItem();
+                if (this.item == null) populate();
 
+                Item item = this.item.orElse(null);
+
+                // noinspection ConstantValue
                 if (item == null) {
                     this.stack = Optional.empty();
                     return null;
@@ -209,6 +199,7 @@ public class BlockSpec implements ImmutableBlockSpec {
                 }
             }
 
+            // noinspection ConstantValue
             if (stack != null && stack.getItem() != null) {
                 this.stack = Optional.of(stack);
             } else {
@@ -232,10 +223,10 @@ public class BlockSpec implements ImmutableBlockSpec {
 
                         if (prop == null) {
                             MMMod.LOG.warn(
-                                "Tried to set intrinsic property {} on an item, but the property is not registered to that item.\nValue={}\nItem={}",
+                                "Tried to set intrinsic property '{}' on an item, but the property is not registered to that item. Value='{}' Item='{}'",
                                 e.getKey(),
                                 e.getValue(),
-                                stack.getDisplayName(),
+                                stack.toString(),
                                 new Exception()
                             );
                             continue;
@@ -245,16 +236,20 @@ public class BlockSpec implements ImmutableBlockSpec {
                     }
                 }
 
-                if (stack2.getTagCompound().hasNoTags()) stack2.setTagCompound(null);
+                tag = stack2.getTagCompound();
+
+                if (tag != null && tag.hasNoTags()) stack2.setTagCompound(null);
             }
         }
 
-        return ItemStack.copyItemStack(this.stack.orElse(null));
+        ItemStack out = ItemStack.copyItemStack(this.stack.orElse(null));
+        if (out != null) out.stackSize *= amount;
+        return out;
     }
 
     public void getItemDetails(List<String> details) {
         Map<String, IntrinsicProperty> props = new Object2ObjectOpenHashMap<>();
-        BlockPropertyRegistry.getIntrinsicProperties(getStack(), props);
+        BlockPropertyRegistry.getIntrinsicProperties(toStack(1), props);
 
         if (intrinsicProperties != null) {
             for (var e : intrinsicProperties.entrySet()) {
@@ -278,6 +273,7 @@ public class BlockSpec implements ImmutableBlockSpec {
         return pendingBlock;
     }
 
+    @Override
     public BlockSpec clone() {
         BlockSpec dup = new BlockSpec();
 
@@ -323,7 +319,7 @@ public class BlockSpec implements ImmutableBlockSpec {
     }
 
     public String getDisplayName() {
-        return (getStack() == null ? Blocks.air.getLocalizedName() : getStack().getDisplayName()) + getItemDetails();
+        return (toStack(1) == null ? Blocks.air.getLocalizedName() : toStack(1).getDisplayName()) + getItemDetails();
     }
 
     @Override

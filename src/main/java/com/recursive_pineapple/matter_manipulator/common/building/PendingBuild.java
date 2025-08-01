@@ -509,7 +509,7 @@ public class PendingBuild extends AbstractBuildable {
                     BlockSpec spec = BlockSpec.fromBlock(null, player.worldObj, pendingBlock.x, pendingBlock.y, pendingBlock.z);
 
                     if (InteropConstants.AE_BLOCK_CABLE.matches(spec)) {
-                        blockName = InteropConstants.AE_BLOCK_CABLE.get().asSpec().getDisplayName();
+                        blockName = InteropConstants.AE_BLOCK_CABLE.toSpec().getDisplayName();
                     } else {
                         blockName = spec.getDisplayName();
                     }
@@ -542,7 +542,7 @@ public class PendingBuild extends AbstractBuildable {
                 BlockSpec spec = BlockSpec.fromBlock(null, player.worldObj, pendingBlock.x, pendingBlock.y, pendingBlock.z);
 
                 if (InteropConstants.AE_BLOCK_CABLE.matches(spec)) {
-                    blockName = InteropConstants.AE_BLOCK_CABLE.get().asSpec().getDisplayName();
+                    blockName = InteropConstants.AE_BLOCK_CABLE.toSpec().getDisplayName();
                 } else {
                     blockName = spec.getDisplayName();
                 }

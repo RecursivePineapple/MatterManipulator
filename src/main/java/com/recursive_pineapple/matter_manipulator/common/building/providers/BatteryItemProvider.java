@@ -7,10 +7,10 @@ import net.minecraft.item.ItemStack;
 
 import net.minecraftforge.oredict.OreDictionary;
 
+import com.gtnewhorizon.gtnhlib.util.data.ImmutableItemMeta;
+import com.gtnewhorizon.gtnhlib.util.data.ItemMeta;
 import com.recursive_pineapple.matter_manipulator.common.building.IPseudoInventory;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
-import com.recursive_pineapple.matter_manipulator.common.utils.ImmutableItemMeta;
-import com.recursive_pineapple.matter_manipulator.common.utils.ItemMeta;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -43,7 +43,7 @@ public class BatteryItemProvider implements IItemProvider {
 
     @Override
     public @Nullable ItemStack getStack(IPseudoInventory inv, boolean consume) {
-        ItemStack stack = new ItemStack(battery.getItem(), 1, battery.getMeta());
+        ItemStack stack = new ItemStack(battery.getItem(), 1, battery.getItemMeta());
 
         if (!consume) return stack;
 
@@ -58,7 +58,7 @@ public class BatteryItemProvider implements IItemProvider {
     public IItemProvider clone() {
         BatteryItemProvider provider = new BatteryItemProvider();
 
-        provider.battery = new ItemMeta(battery.getItem(), battery.getMeta());
+        provider.battery = new ItemMeta(battery.getItem(), battery.getItemMeta());
 
         return provider;
     }

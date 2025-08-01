@@ -2,6 +2,7 @@ package com.recursive_pineapple.matter_manipulator.asm;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
@@ -12,6 +13,7 @@ import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.FrameNode;
 import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.JumpInsnNode;
 import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.LdcInsnNode;
@@ -90,7 +92,7 @@ public class ASMUtils {
         });
     }
 
-    public static boolean removeInsns(MethodNode method, InsnPredicate[] matchers) {
+    public static boolean removeInsns(MethodNode method, InsnPredicate... matchers) {
         return findInsns(method, matchers, (first, last, nodes) -> {
             removeInsns(method, nodes);
         });
@@ -113,9 +115,6 @@ public class ASMUtils {
     }
 
     public static void removeInsn(MethodNode method, AbstractInsnNode node) {
-        System.out.print("removing: ");
-        debug(node, method.localVariables);
-
         method.instructions.remove(node);
 
         if (node instanceof LabelNode label) {
@@ -129,12 +128,31 @@ public class ASMUtils {
         }
     }
 
-    public static AbstractInsnNode findInsn(MethodNode method, List<AbstractInsnNode> insns, InsnPredicate matcher) {
-        for (AbstractInsnNode insn : insns) {
-            if (matcher.test(method, insn)) { return insn; }
+    public static MethodNode findMethod(List<MethodNode> methods, int access, String name, String desc) {
+        for (MethodNode method : methods) {
+            if ((method.access & access) != access) continue;
+            if (name != null && !Objects.equals(method.name, name)) continue;
+            if (desc != null && !Objects.equals(method.desc, desc)) continue;
+
+            return method;
         }
 
         return null;
+    }
+
+    public static <T extends AbstractInsnNode> T findInsn(MethodNode method, AbstractInsnNode start, InsnPredicate matcher) {
+        for (; start != null; start = start.getNext()) {
+            if (matcher.test(method, start)) {
+                // noinspection unchecked
+                return (T) start;
+            }
+        }
+
+        return null;
+    }
+
+    public static InsnPredicate isAny() {
+        return (method, node) -> true;
     }
 
     public static InsnPredicate isGetStatic(@Nullable String owner, @Nullable String desc, @Nullable String name) {
@@ -195,6 +213,14 @@ public class ASMUtils {
             node.itf == true;
     }
 
+    public static InsnPredicate isInvokeSpecial(@Nullable String owner, @Nullable String desc, @Nullable String name) {
+        return (method, insn) -> insn.getOpcode() == Opcodes.INVOKESPECIAL &&
+            insn instanceof MethodInsnNode node &&
+            (owner == null || owner.equals(node.owner)) &&
+            (desc == null || desc.equals(node.desc)) &&
+            (name == null || name.equals(node.name));
+    }
+
     public static InsnPredicate isInvoke(@Nullable String owner, @Nullable String desc, @Nullable String name) {
         return (method, insn) -> insn instanceof MethodInsnNode node &&
             (owner == null || owner.equals(node.owner)) &&
@@ -225,6 +251,51 @@ public class ASMUtils {
 
     public static InsnPredicate isBasic(int opcode) {
         return (method, insn) -> insn.getOpcode() == opcode;
+    }
+
+    public static InsnPredicate isLDC(@org.jetbrains.annotations.Nullable Object cst) {
+        return (method, insn) -> insn.getOpcode() == Opcodes.LDC &&
+            insn instanceof LdcInsnNode node &&
+            (cst == null || cst.equals(node.cst));
+    }
+
+    public static InsnPredicate isLoadInt(Integer value) {
+        return (method, node) -> getLoadedInt(node) != null;
+    }
+
+    public static InsnPredicate isLineNumber(@org.jetbrains.annotations.Nullable Integer line) {
+        return (method, node) -> node instanceof LineNumberNode lnn &&
+            (line == null || line == lnn.line);
+    }
+
+    public static Integer getLoadedInt(AbstractInsnNode insn) {
+        if (insn instanceof InsnNode basic) {
+            return switch (basic.getOpcode()) {
+                case Opcodes.ICONST_0 -> 0;
+                case Opcodes.ICONST_1 -> 1;
+                case Opcodes.ICONST_2 -> 2;
+                case Opcodes.ICONST_3 -> 3;
+                case Opcodes.ICONST_4 -> 4;
+                case Opcodes.ICONST_5 -> 5;
+                default -> null;
+            };
+        }
+
+        if (insn instanceof IntInsnNode intNode && intNode.getOpcode() == Opcodes.BIPUSH) { return intNode.operand; }
+
+        return null;
+    }
+
+    public static AbstractInsnNode getIntConstInsn(int value) {
+        return switch (value) {
+            case 0 -> new InsnNode(Opcodes.ICONST_0);
+            case 1 -> new InsnNode(Opcodes.ICONST_1);
+            case 2 -> new InsnNode(Opcodes.ICONST_2);
+            case 3 -> new InsnNode(Opcodes.ICONST_3);
+            case 4 -> new InsnNode(Opcodes.ICONST_4);
+            case 5 -> new InsnNode(Opcodes.ICONST_5);
+            default -> new LdcInsnNode(value);
+        };
     }
 
     public static @Nullable LocalVariableNode getVariableNode(@Nullable List<LocalVariableNode> vars, int index) {

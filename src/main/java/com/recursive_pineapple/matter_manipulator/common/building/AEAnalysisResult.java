@@ -17,11 +17,14 @@ import net.minecraftforge.common.util.ForgeDirection;
 import appeng.api.implementations.tiles.IColorableTile;
 import appeng.api.implementations.tiles.ISegmentedInventory;
 import appeng.api.networking.IGridHost;
+import appeng.api.parts.IFacadeContainer;
+import appeng.api.parts.IFacadePart;
 import appeng.api.parts.IPart;
 import appeng.api.parts.IPartHost;
 import appeng.api.parts.PartItemStack;
 import appeng.api.util.AEColor;
 import appeng.helpers.ICustomNameObject;
+import appeng.items.parts.ItemFacade;
 import appeng.parts.automation.UpgradeInventory;
 import appeng.parts.p2p.PartP2PTunnelNormal;
 import appeng.tile.AEBaseTile;
@@ -45,6 +48,7 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
     public PortableItemStack[] mAEUpgrades = null;
     public String mAECustomName = null;
     public AEPartData[] mAEParts = null;
+    public PortableItemStack[] mAEFacades = null;
     public InventoryAnalysis mAECells = null;
     public InventoryAnalysis mAEPatterns = null;
 
@@ -102,12 +106,31 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
         // check all sides for parts (+UNKNOWN for cables)
         if (te instanceof IPartHost partHost) {
             mAEParts = new AEPartData[AEAnalysisResult.ALL_DIRECTIONS.length];
+            mAEFacades = new PortableItemStack[ForgeDirection.VALID_DIRECTIONS.length];
+
+            boolean hasParts = false, hasFacades = false;
 
             for (ForgeDirection dir : AEAnalysisResult.ALL_DIRECTIONS) {
                 IPart part = partHost.getPart(dir);
 
-                if (part != null) mAEParts[dir.ordinal()] = new AEPartData(part);
+                if (part != null) {
+                    mAEParts[dir.ordinal()] = new AEPartData(part);
+                    hasParts = true;
+                }
             }
+
+            if (!hasParts) mAEParts = null;
+
+            for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
+                IFacadePart facadePart = partHost.getFacadeContainer().getFacade(dir);
+
+                if (facadePart != null) {
+                    mAEFacades[dir.ordinal()] = PortableItemStack.withNBT(facadePart.getItemStack());
+                    hasFacades = true;
+                }
+            }
+
+            if (!hasFacades) mAEFacades = null;
         }
     }
 
@@ -155,10 +178,10 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
         boolean success = true;
 
         // add/remove/update ae parts and cables
-        if (te instanceof IPartHost partHost && mAEParts != null) {
+        if (te instanceof IPartHost partHost) {
             for (ForgeDirection dir : AEAnalysisResult.ALL_DIRECTIONS) {
                 IPart part = partHost.getPart(dir);
-                AEPartData expected = mAEParts[dir.ordinal()];
+                AEPartData expected = MMUtils.getIndexSafe(mAEParts, dir.ordinal());
 
                 ItemId actualItem = part == null ? null : ItemId.createWithoutNBT(part.getItemStack(PartItemStack.Break));
 
@@ -207,6 +230,52 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
                 }
 
                 Platform.notifyBlocksOfNeighbors(te.getWorldObj(), te.xCoord, te.yCoord, te.zCoord);
+            }
+        }
+
+        if (te instanceof IPartHost partHost) {
+            IFacadeContainer facadeContainer = partHost.getFacadeContainer();
+
+            for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
+                IFacadePart actual = facadeContainer.getFacade(dir);
+                PortableItemStack expected = MMUtils.getIndexSafe(mAEFacades, dir.ordinal());
+
+                ItemStack existingStack = actual == null ? null : actual.getItemStack();
+                ItemId actualItem = actual == null ? null : ItemId.create(existingStack);
+
+                ItemStack expectedStack = expected == null ? null : expected.toStack();
+                ItemId expectedItem = expectedStack == null ? null : ItemId.create(expectedStack);
+
+                if (actualItem != null && (expectedItem == null || !Objects.equals(actualItem, expectedItem))) {
+                    if (expectedStack != null) {
+                        var result = ctx.tryConsumeItems(Arrays.asList(BigItemStack.create(expectedStack)), IPseudoInventory.CONSUME_SIMULATED);
+
+                        if (!result.leftBoolean()) {
+                            ctx.warn("Could not extract item: " + expectedStack.getDisplayName());
+                            continue;
+                        }
+                    }
+
+                    ctx.givePlayerItems(existingStack);
+                    facadeContainer.removeFacade(partHost, dir);
+
+                    actualItem = null;
+                }
+
+                if (actualItem == null && expectedItem != null) {
+                    if (!(expectedStack.getItem() instanceof ItemFacade itemFacade)) continue;
+
+                    IFacadePart newPart = itemFacade.createPartFromItemStack(expectedStack, dir);
+
+                    if (newPart == null) continue;
+
+                    if (!ctx.tryConsumeItems(expectedStack)) {
+                        ctx.warn("Could not extract item: " + expectedStack.getDisplayName());
+                        continue;
+                    }
+
+                    facadeContainer.addFacade(newPart);
+                }
             }
         }
 

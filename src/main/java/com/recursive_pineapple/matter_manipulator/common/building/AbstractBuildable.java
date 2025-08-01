@@ -40,6 +40,7 @@ import gregtech.common.tileentities.storage.MTEDigitalChestBase;
 import appeng.api.config.Actionable;
 import appeng.api.implementations.tiles.IColorableTile;
 import appeng.api.implementations.tiles.ISegmentedInventory;
+import appeng.api.parts.IFacadePart;
 import appeng.api.parts.IPart;
 import appeng.api.parts.IPartHost;
 import appeng.api.parts.PartItemStack;
@@ -140,7 +141,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
             if (GregTech.isModLoaded() && GTUtility.isOre(existing.getBlock(), existing.getBlockMeta())) {
                 voidDrops = true;
             } else {
-                for (int id : OreDictionary.getOreIDs(existing.getStack())) {
+                for (int id : OreDictionary.getOreIDs(existing.toStack(1))) {
                     if (OreDictionary.getOreName(id).startsWith("ore")) {
                         voidDrops = true;
                         break;
@@ -151,8 +152,12 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
 
         if (voidDrops) {
             BlockCaptureDrops.captureDrops(block);
+            BlockCaptureDrops.captureDrops(world);
+            // Because GT uses this to call MTE.onRemoval() :doom:
+            block.getDrops(world, x, y, z, meta, 0);
             world.setBlockToAir(x, y, z);
             BlockCaptureDrops.stopCapturingDrops(block);
+            BlockCaptureDrops.stopCapturingDrops(world);
             return;
         }
 
@@ -194,10 +199,12 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         }
 
         BlockCaptureDrops.captureDrops(block);
+        BlockCaptureDrops.captureDrops(world);
 
         world.setBlockToAir(x, y, z);
 
         givePlayerItems(BlockCaptureDrops.stopCapturingDrops(block).toArray(new ItemStack[0]));
+        givePlayerItems(BlockCaptureDrops.stopCapturingDrops(world).toArray(new ItemStack[0]));
     }
 
     @Optional({
@@ -346,6 +353,14 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
                     if (!drops.isEmpty()) {
                         givePlayerItems(drops.toArray(new ItemStack[drops.size()]));
                     }
+                }
+
+                IFacadePart facadePart = host.getFacadeContainer()
+                    .getFacade(dir);
+
+                if (facadePart != null) {
+                    host.getFacadeContainer().removeFacade(host, dir);
+                    givePlayerItems(facadePart.getItemStack());
                 }
             }
         }

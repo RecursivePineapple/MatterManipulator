@@ -13,8 +13,11 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import net.minecraft.util.StatCollector;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.recursive_pineapple.matter_manipulator.common.compat.BlockProperty;
 import com.recursive_pineapple.matter_manipulator.common.compat.BlockPropertyRegistry;
+import com.recursive_pineapple.matter_manipulator.common.compat.IntrinsicProperty;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -59,23 +62,36 @@ public class BlockStateCommand extends CommandBase {
         Map<String, BlockProperty<?>> properties = new Object2ObjectOpenHashMap<>();
         BlockPropertyRegistry.getProperties(player.worldObj, hit.blockX, hit.blockY, hit.blockZ, properties);
 
+        Map<String, IntrinsicProperty> intrinsicProps = new Object2ObjectOpenHashMap<>();
+        BlockPropertyRegistry.getIntrinsicProperties(player.worldObj, hit.blockX, hit.blockY, hit.blockZ, intrinsicProps);
+
         if ("get".equals(action)) {
             if (name != null) {
                 var prop = properties.get(name);
 
-                if (prop == null) {
-                    sendErrorToPlayer(player, StatCollector.translateToLocal("mm.info.error.property_not_found"));
+                if (prop != null) {
+                    sendChatToPlayer(player, prop.getName() + ": " + prop.getValueAsString(player.worldObj, hit.blockX, hit.blockY, hit.blockZ));
                     return;
                 }
 
-                sendChatToPlayer(player, prop.getName() + ": " + prop.getValueAsString(player.worldObj, hit.blockX, hit.blockY, hit.blockZ));
-                return;
-            } else {
-                sendChatToPlayer(player, StatCollector.translateToLocal("mm.info.properties"));
+                var intrinsic = intrinsicProps.get(name);
 
-                if (properties.isEmpty()) {
+                if (intrinsic != null) {
+                    sendChatToPlayer(player, intrinsic.getName() + ": " + intrinsic.getValue(player.worldObj, hit.blockX, hit.blockY, hit.blockZ));
+                    return;
+                }
+
+                sendErrorToPlayer(player, StatCollector.translateToLocal("mm.info.error.property_not_found"));
+            } else {
+                if (properties.isEmpty() && intrinsicProps.isEmpty()) {
+                    sendChatToPlayer(player, StatCollector.translateToLocal("mm.info.properties"));
                     sendChatToPlayer(player, StatCollector.translateToLocal("mm.info.none"));
-                } else {
+                    return;
+                }
+
+                if (!properties.isEmpty()) {
+                    sendChatToPlayer(player, StatCollector.translateToLocal("mm.info.properties"));
+
                     for (var e : properties.entrySet()) {
                         sendChatToPlayer(
                             player,
@@ -84,29 +100,55 @@ public class BlockStateCommand extends CommandBase {
                     }
                 }
 
-                return;
+                if (!intrinsicProps.isEmpty()) {
+                    sendChatToPlayer(player, StatCollector.translateToLocal("mm.info.intrinsic_properties"));
+
+                    intrinsicProps.forEach((s, intrinsicProperty) -> {
+                        sendChatToPlayer(
+                            player,
+                            intrinsicProperty.getName() + ": " + intrinsicProperty.getValue(player.worldObj, hit.blockX, hit.blockY, hit.blockZ)
+                        );
+                    });
+                }
             }
         } else {
             var prop = properties.get(name);
 
-            if (prop == null) {
-                sendErrorToPlayer(player, StatCollector.translateToLocal("mm.info.error.property_not_found"));
+            if (prop != null) {
+                try {
+                    prop.setValueFromText(player.worldObj, hit.blockX, hit.blockY, hit.blockZ, value);
+                } catch (Throwable t) {
+                    sendErrorToPlayer(
+                        player,
+                        StatCollector.translateToLocalFormatted(
+                            "mm.info.error.error_setting_property",
+                            t.getMessage()
+                        )
+                    );
+                }
+
                 return;
             }
 
-            try {
-                prop.setValueFromText(player.worldObj, hit.blockX, hit.blockY, hit.blockZ, value);
-            } catch (Exception e) {
-                sendErrorToPlayer(
-                    player,
-                    StatCollector.translateToLocalFormatted(
-                        "mm.info.error.error_setting_property",
-                        e.getMessage()
-                    )
-                );
+            var intrinsic = intrinsicProps.get(name);
+
+            if (intrinsic != null) {
+                try {
+                    intrinsic.setValue(player.worldObj, hit.blockX, hit.blockY, hit.blockZ, new Gson().fromJson(value, JsonElement.class));
+                } catch (Throwable t) {
+                    sendErrorToPlayer(
+                        player,
+                        StatCollector.translateToLocalFormatted(
+                            "mm.info.error.error_setting_property",
+                            t.getMessage()
+                        )
+                    );
+                }
+
+                return;
             }
 
-            return;
+            sendErrorToPlayer(player, StatCollector.translateToLocal("mm.info.error.property_not_found"));
         }
     }
 }

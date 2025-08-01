@@ -1,7 +1,5 @@
 package com.recursive_pineapple.matter_manipulator.common.utils;
 
-import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
-
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
@@ -28,15 +26,21 @@ import tectech.thing.metaTileEntity.hatch.MTEHatchRack;
 
 public enum InventoryAdapter {
 
+    @Optional(Names.GREG_TECH)
     QCRack {
 
         @Override
         public boolean canHandle(IInventory inv) {
-            return GregTech.isModLoaded() && canHandleImpl(inv);
+            if (inv instanceof IGregTechTileEntity igte) {
+                IMetaTileEntity imte = igte.getMetaTileEntity();
+
+                if (imte instanceof MTEHatchRack) return true;
+            }
+
+            return false;
         }
 
         @Override
-        @Optional(Names.GREG_TECH)
         public boolean validate(BlockAnalyzer.IBlockApplyContext context, IInventory inv) {
             IGregTechTileEntity igte = (IGregTechTileEntity) inv;
             MTEHatchRack rack = (MTEHatchRack) igte.getMetaTileEntity();
@@ -53,28 +57,13 @@ public enum InventoryAdapter {
 
             return true;
         }
-
-        @Optional(Names.GREG_TECH)
-        private boolean canHandleImpl(IInventory inv) {
-            if (inv instanceof IGregTechTileEntity igte) {
-                IMetaTileEntity imte = igte.getMetaTileEntity();
-
-                if (imte instanceof MTEHatchRack) return true;
-            }
-
-            return false;
-        }
     },
 
+    @Optional(Names.GREG_TECH)
     GTUnrestricted {
 
         @Override
         public boolean canHandle(IInventory inv) {
-            return GregTech.isModLoaded() && canHandleImpl(inv);
-        }
-
-        @Optional(Names.GREG_TECH)
-        private boolean canHandleImpl(IInventory inv) {
             if (inv instanceof IGregTechTileEntity igte) {
                 IMetaTileEntity imte = igte.getMetaTileEntity();
 
@@ -89,15 +78,11 @@ public enum InventoryAdapter {
         }
     },
 
+    @Optional(Names.GREG_TECH)
     GTNoop {
 
         @Override
         public boolean canHandle(IInventory inv) {
-            return GregTech.isModLoaded() && canHandleImpl(inv);
-        }
-
-        @Optional(Names.GREG_TECH)
-        private boolean canHandleImpl(IInventory inv) {
             if (inv instanceof IGregTechTileEntity igte) {
                 if (igte.isDead()) return false;
 
@@ -113,25 +98,21 @@ public enum InventoryAdapter {
         }
 
         @Override
-        @Optional(Names.GREG_TECH)
         public boolean isValidSlot(IInventory inv, int slot) {
             return false;
         }
 
         @Override
-        @Optional(Names.GREG_TECH)
         public boolean canExtract(IInventory inv, int slot) {
             return false;
         }
 
         @Override
-        @Optional(Names.GREG_TECH)
         public boolean canInsert(IInventory inv, int slot, ItemStack stack) {
             return false;
         }
 
         @Override
-        @Optional(Names.GREG_TECH)
         public boolean insert(IInventory inv, int slot, ItemStack stack) {
             return false;
         }
@@ -142,38 +123,30 @@ public enum InventoryAdapter {
         }
     },
 
+    @Optional(Names.GREG_TECH)
     GT {
 
         @Override
         public boolean canHandle(IInventory inv) {
-            return GregTech.isModLoaded() && canHandleImpl(inv);
-        }
-
-        @Optional(Names.GREG_TECH)
-        private boolean canHandleImpl(IInventory inv) {
             return inv instanceof IHasInventory;
         }
 
         @Override
-        @Optional(Names.GREG_TECH)
         public boolean isValidSlot(IInventory inv, int slot) {
             return ((IHasInventory) inv).isValidSlot(slot);
         }
 
         @Override
-        @Optional(Names.GREG_TECH)
         public boolean canExtract(IInventory inv, int slot) {
             return ((IHasInventory) inv).canExtractItem(slot, inv.getStackInSlot(slot), ForgeDirection.UNKNOWN.ordinal());
         }
 
         @Override
-        @Optional(Names.GREG_TECH)
         public boolean canInsert(IInventory inv, int slot, ItemStack stack) {
             return ((IHasInventory) inv).canInsertItem(slot, stack, ForgeDirection.UNKNOWN.ordinal());
         }
 
         @Override
-        @Optional(Names.GREG_TECH)
         public boolean insert(IInventory inv, int slot, ItemStack stack) {
             return ((IHasInventory) inv).addStackToSlot(slot, stack);
         }

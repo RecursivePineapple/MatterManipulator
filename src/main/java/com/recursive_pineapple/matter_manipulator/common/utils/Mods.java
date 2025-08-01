@@ -6,7 +6,9 @@ import net.minecraft.util.ResourceLocation;
 
 import cpw.mods.fml.common.Loader;
 
-public enum Mods {
+import com.gtnewhorizon.gtnhlib.util.data.IMod;
+
+public enum Mods implements IMod {
 
     AE2Stuff(Names.AE2STUFF),
     Angelica(Names.ANGELICA),
@@ -15,6 +17,7 @@ public enum Mods {
     BloodMagic(Names.BLOOD_MAGIC),
     CarpentersBlocks(Names.CARPENTERS_BLOCKS),
     EnderIO(Names.ENDER_I_O),
+    EnderStorage(Names.ENDER_STORAGE),
     /** Creates the actual block parts from blocks. */
     ForgeMicroblocks(Names.FORGE_MICROBLOCKS),
     /** The forge multipart library. */
@@ -53,6 +56,7 @@ public enum Mods {
         public static final String BLOOD_MAGIC = "AWWayofTime";
         public static final String CARPENTERS_BLOCKS = "CarpentersBlocks";
         public static final String ENDER_I_O = "EnderIO";
+        public static final String ENDER_STORAGE = "EnderStorage";
         public static final String FORGE_MICROBLOCKS = "ForgeMicroblock";
         public static final String FORGE_MULTIPART = "ForgeMultipart";
         public static final String FLOOD_LIGHTS = "FloodLights";
@@ -82,12 +86,22 @@ public enum Mods {
         this.resourceDomain = ID.toLowerCase(Locale.ENGLISH);
     }
 
+    @Override
+    public String getID() {
+        return ID;
+    }
+
     public boolean isModLoaded() {
         if (!checkedMod) {
             this.modLoaded = Loader.isModLoaded(ID);
             checkedMod = true;
         }
         return this.modLoaded;
+    }
+
+    @Override
+    public String getResourceLocation() {
+        return resourceDomain;
     }
 
     public String getResourcePath(String... path) {

@@ -43,6 +43,7 @@ import net.minecraft.tileentity.TileEntitySkull;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
+import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import gregtech.api.GregTechAPI;
@@ -55,6 +56,7 @@ import gregtech.common.tileentities.machines.MTEHatchOutputME;
 import appeng.util.ReadableNumberConverter;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonPrimitive;
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.building.InteropConstants;
@@ -67,6 +69,9 @@ import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 import net.bdew.ae2stuff.machines.wireless.TileWireless;
 
 import bartworks.common.tileentities.multis.MTECircuitAssemblyLine;
+import codechicken.enderstorage.common.TileFrequencyOwner;
+import codechicken.enderstorage.storage.item.TileEnderChest;
+import codechicken.enderstorage.storage.liquid.TileEnderTank;
 import de.keridos.floodlights.tileentity.TileEntityMetaFloodlight;
 import de.keridos.floodlights.tileentity.TileEntitySmallFloodlight;
 import gcewing.architecture.common.tile.TileArchitecture;
@@ -256,6 +261,7 @@ public class BlockPropertyRegistry {
         if (Mods.FloodLights.isModLoaded()) initFloodLights();
         if (Mods.GregTech.isModLoaded()) initGT5u();
         if (Mods.AE2Stuff.isModLoaded()) initAE2Stuff();
+        if (Mods.EnderStorage.isModLoaded()) initEnderStorage();
     }
 
     // #region Vanilla
@@ -1073,6 +1079,64 @@ public class BlockPropertyRegistry {
 
     // #endregion
 
+    // #region Ender Storage
+
+    @Optional(Names.ENDER_STORAGE)
+    private static void initEnderStorage() {
+        registerIntrinsicProperty(InteropConstants.ENDER_STORAGE.getBlock(), new EnderStorageTypeProperty());
+        registerIntrinsicProperty(InteropConstants.ENDER_STORAGE.getBlock(), new EnderStorageFrequencyProperty());
+        registerIntrinsicProperty(InteropConstants.ENDER_STORAGE.getBlock(), new EnderStoragePrivateProperty());
+
+        registerProperty(
+            InteropConstants.ENDER_STORAGE.getBlock(),
+            new DirectionBlockProperty() {
+
+                private static final ForgeDirection[] VALUES = {
+                    SOUTH, WEST, NORTH, EAST
+                };
+
+                @Override
+                public String getName() {
+                    return "facing";
+                }
+
+                @Override
+                public ForgeDirection getValue(World world, int x, int y, int z) {
+                    TileEntity te = world.getTileEntity(x, y, z);
+
+                    if (te instanceof TileEnderTank tank) return VALUES[tank.rotation];
+
+                    if (te instanceof TileEnderChest chest) return VALUES[chest.rotation];
+
+                    return UNKNOWN;
+                }
+
+                @Override
+                public void setValue(World world, int x, int y, int z, ForgeDirection forgeDirection) {
+                    int index = MMUtils.indexOf(VALUES, forgeDirection);
+
+                    if (index != -1) {
+                        TileEntity te = world.getTileEntity(x, y, z);
+
+                        if (te instanceof TileEnderTank tank) {
+                            tank.rotation = index;
+                            tank.markDirty();
+                            world.markBlockForUpdate(x, y, z);
+                        }
+
+                        if (te instanceof TileEnderChest chest) {
+                            chest.rotation = index;
+                            chest.markDirty();
+                            world.markBlockForUpdate(x, y, z);
+                        }
+                    }
+                }
+            }
+        );
+    }
+
+    // #endregion
+
     @SneakyThrows
     public static DirectionBlockProperty methodIntDirectionTile(Class<?> clazz, String getterName, String setterName) {
         Method getter = clazz.getDeclaredMethod(getterName);
@@ -1210,17 +1274,7 @@ public class BlockPropertyRegistry {
 
         @Override
         public void setValue(ItemStack stack, JsonElement value) {
-            NBTTagCompound tag = stack.getTagCompound();
-
-            if (tag == null) {
-                stack.setTagCompound(tag = new NBTTagCompound());
-            }
-
-            setValue(tag, value);
-
-            if (tag.hasNoTags()) {
-                stack.setTagCompound(null);
-            }
+            setValue(stack.getTagCompound(), value);
         }
 
         public abstract JsonElement getValue(NBTTagCompound itemTag);
@@ -1374,6 +1428,169 @@ public class BlockPropertyRegistry {
             }
 
             details.add(String.format("Imprint: %s", stack == null ? "None" : stack.getDisplayName()));
+        }
+    }
+
+    private static class EnderStorageTypeProperty implements IntrinsicProperty {
+
+        @Override
+        public String getName() {
+            return "isTank";
+        }
+
+        @Override
+        public boolean hasValue(ItemStack stack) {
+            return InteropConstants.ENDER_STORAGE.matches(stack);
+        }
+
+        @Override
+        public boolean hasValue(IBlockAccess world, int x, int y, int z) {
+            return InteropConstants.ENDER_STORAGE.getBlock() == world.getBlock(x, y, z);
+        }
+
+        @Override
+        public JsonElement getValue(ItemStack stack) {
+            int meta = stack.getItemDamage();
+
+            return new JsonPrimitive(meta >= 4096);
+        }
+
+        @Override
+        public JsonElement getValue(IBlockAccess world, int x, int y, int z) {
+            return new JsonPrimitive(world.getTileEntity(x, y, z) instanceof TileEnderTank);
+        }
+
+        @Override
+        public void setValue(ItemStack stack, JsonElement value) {
+            int meta = stack.getItemDamage();
+
+            meta %= 4096;
+
+            if (value.getAsBoolean()) meta += 4096;
+
+            stack.setItemDamage(meta);
+        }
+
+        @Override
+        public void setValue(IBlockAccess world, int x, int y, int z, JsonElement value) {
+            throw new UnsupportedOperationException("Tank status is immutable for in-world blocks");
+        }
+    }
+
+    private static class EnderStorageFrequencyProperty implements IntrinsicProperty {
+
+        @Override
+        public String getName() {
+            return "freq";
+        }
+
+        @Override
+        public boolean hasValue(ItemStack stack) {
+            return InteropConstants.ENDER_STORAGE.matches(stack);
+        }
+
+        @Override
+        public boolean hasValue(IBlockAccess world, int x, int y, int z) {
+            return InteropConstants.ENDER_STORAGE.getBlock() == world.getBlock(x, y, z);
+        }
+
+        @Override
+        public JsonElement getValue(ItemStack stack) {
+            return new JsonPrimitive(stack.getItemDamage() % 4096);
+        }
+
+        @Override
+        public JsonElement getValue(IBlockAccess world, int x, int y, int z) {
+            TileEntity te = world.getTileEntity(x, y, z);
+
+            if (te instanceof TileFrequencyOwner tfo) {
+                return new JsonPrimitive(tfo.freq);
+            } else {
+                throw new IllegalStateException("expected " + te + " to be a TileFrequencyOwner");
+            }
+        }
+
+        @Override
+        public void setValue(ItemStack stack, JsonElement value) {
+            int meta = stack.getItemDamage();
+
+            meta &= 4096;
+            meta |= value.getAsInt() & 4095;
+
+            stack.setItemDamage(meta);
+        }
+
+        @Override
+        public void setValue(IBlockAccess world, int x, int y, int z, JsonElement value) {
+            TileEntity te = world.getTileEntity(x, y, z);
+
+            if (te instanceof TileFrequencyOwner tfo) {
+                tfo.freq = value.getAsInt();
+                tfo.reloadStorage();
+                tfo.markDirty();
+
+                if (world instanceof World w) w.markBlockForUpdate(x, y, z);
+            } else {
+                throw new IllegalStateException("expected " + te + " to be a TileFrequencyOwner");
+            }
+        }
+    }
+
+    private static class EnderStoragePrivateProperty implements IntrinsicProperty {
+
+        @Override
+        public String getName() {
+            return "owner";
+        }
+
+        @Override
+        public boolean hasValue(ItemStack stack) {
+            return InteropConstants.ENDER_STORAGE.matches(stack);
+        }
+
+        @Override
+        public boolean hasValue(IBlockAccess world, int x, int y, int z) {
+            return world.getTileEntity(x, y, z) instanceof TileFrequencyOwner;
+        }
+
+        @Override
+        public JsonElement getValue(ItemStack stack) {
+            NBTTagCompound tag = stack.getTagCompound();
+
+            if (tag == null || !tag.hasKey("owner", Constants.NBT.TAG_STRING)) return JsonNull.INSTANCE;
+
+            return new JsonPrimitive(tag.getString("owner"));
+        }
+
+        @Override
+        public JsonElement getValue(IBlockAccess world, int x, int y, int z) {
+            TileEntity te = world.getTileEntity(x, y, z);
+
+            if (te instanceof TileFrequencyOwner tfo) {
+                return "global".equals(tfo.owner) ? JsonNull.INSTANCE : new JsonPrimitive(tfo.owner);
+            } else {
+                throw new IllegalStateException("expected " + te + " to be a TileFrequencyOwner");
+            }
+        }
+
+        @Override
+        public void setValue(ItemStack stack, JsonElement value) {
+            String owner = value == null || value.isJsonNull() ? "global" : value.getAsString();
+
+            if (!owner.equals("global")) {
+                if (!stack.hasTagCompound()) stack.setTagCompound(new NBTTagCompound());
+
+                stack.getTagCompound().setString("owner", owner);
+            } else {
+                if (stack.hasTagCompound()) {
+                    stack.getTagCompound().removeTag("owner");
+                }
+            }
+        }
+
+        @Override
+        public void setValue(IBlockAccess world, int x, int y, int z, JsonElement value) {
+            throw new UnsupportedOperationException("Owner is immutable for in-world blocks");
         }
     }
 }

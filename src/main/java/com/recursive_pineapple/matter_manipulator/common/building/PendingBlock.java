@@ -136,7 +136,7 @@ public class PendingBlock extends Location {
     }
 
     public ItemStack getStack() {
-        ItemStack stack = spec.getStack();
+        ItemStack stack = spec.toStack(1);
 
         if (stack == null) return null;
 
