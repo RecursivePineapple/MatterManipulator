@@ -45,7 +45,6 @@ import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 
-import bartworks.common.tileentities.multis.MTECircuitAssemblyLine;
 import gtnhlanth.common.beamline.MTEBeamlinePipe;
 import lombok.SneakyThrows;
 import tectech.thing.metaTileEntity.hatch.MTEHatchDynamoTunnel;
