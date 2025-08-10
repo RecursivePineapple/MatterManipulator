@@ -163,7 +163,9 @@ public class BlockSpec implements ImmutableBlockSpec {
 
     @Override
     public int getItemMeta() {
-        return toStack(1).itemDamage;
+        ItemStack stack = toStack(1);
+
+        return stack == null ? 0 : stack.itemDamage;
     }
 
     @Override
