@@ -8,6 +8,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.lang.NullPointerException;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -1467,8 +1468,13 @@ public class MMUtils {
     @Optional(Names.APPLIED_ENERGISTICS2)
     public static boolean isAECable(ImmutableBlockSpec spec) {
         if (spec == null) return false;
-
-        return isAECable(spec.getItem(), spec.getItemMeta());
+        int metadata = 0;
+        try {
+            metadata = spec.getItemMeta();
+        } catch (NullPointerException t) {
+            return false;
+        }
+        return isAECable(spec.getItem(), metadata);
     }
 
     @Optional(Names.APPLIED_ENERGISTICS2)
