@@ -3,7 +3,7 @@ package com.recursive_pineapple.matter_manipulator.common.items.manipulator;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.min;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.signum;
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.AppliedEnergistics2;
-import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
+import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTechNH;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -490,7 +490,7 @@ public class MMState {
         } else {
             Block block = Block.getBlockFromItem(config.cables.getItem());
 
-            if (GregTech.isModLoaded()) {
+            if (GregTechNH.isModLoaded()) {
                 getGTCables(a, b, out, block, world, config.cables);
             }
 
@@ -502,7 +502,7 @@ public class MMState {
         return out;
     }
 
-    @Optional(Names.GREG_TECH)
+    @Optional(Names.GREG_TECH_NH)
     private void getGTCables(Vector3i a, Vector3i b, List<PendingBlock> out, Block block, World world, ImmutableBlockSpec cable) {
         if (block instanceof BlockMachines) {
             int end = 0, start = 0;

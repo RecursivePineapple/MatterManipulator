@@ -221,7 +221,7 @@ public enum Messages {
             World theWorld = Minecraft.getMinecraft().theWorld;
 
             if (theWorld.provider.dimensionId == packet.worldId) {
-                if (Mods.GregTech.isModLoaded() && Mods.AppliedEnergistics2.isModLoaded()) {
+                if (Mods.GregTechNH.isModLoaded() && Mods.AppliedEnergistics2.isModLoaded()) {
                     Location l = packet.getLocation();
 
                     setState(l.getWorld(), l.x, l.y, l.z, packet.getState());
@@ -230,7 +230,7 @@ public enum Messages {
         }
 
         @Optional({
-            Names.GREG_TECH, Names.APPLIED_ENERGISTICS2
+            Names.GREG_TECH_NH, Names.APPLIED_ENERGISTICS2
         })
         private void setState(World world, int x, int y, int z, UplinkState state) {
             if (world.getTileEntity(x, y, z) instanceof IGregTechTileEntity igte) {

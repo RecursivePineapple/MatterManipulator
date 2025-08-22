@@ -409,7 +409,7 @@ public class PendingBlock extends Location {
 
     public PendingBlock analyze(TileEntity te, int flags) {
         if (te != null) {
-            if ((flags & ANALYZE_GT) != 0 && Mods.GregTech.isModLoaded()) {
+            if ((flags & ANALYZE_GT) != 0 && Mods.GregTechNH.isModLoaded()) {
                 this.gt = GTAnalysisResult.analyze(te);
             }
 

@@ -26,6 +26,7 @@ public enum Mods implements IMod {
     GalacticraftCore(Names.GALACTICRAFT_CORE),
     GalaxySpace(Names.GALAXY_SPACE),
     GregTech(Names.GREG_TECH),
+    GregTechNH(Names.GREG_TECH_NH),
     GTPlusPlus(Names.G_T_PLUS_PLUS),
     GTNHIntergalactic(Names.GTNH_INTERGALACTIC),
     GraviSuite(Names.GRAVI_SUITE),
@@ -63,6 +64,7 @@ public enum Mods implements IMod {
         public static final String GALACTICRAFT_CORE = "GalacticraftCore";
         public static final String GALAXY_SPACE = "GalaxySpace";
         public static final String GREG_TECH = "gregtech";
+        public static final String GREG_TECH_NH = "gregtech_nh";
         public static final String GRAVI_SUITE = "GraviSuite";
         public static final String G_T_PLUS_PLUS = "miscutils";
         public static final String GTNH_INTERGALACTIC = "gtnhintergalactic";

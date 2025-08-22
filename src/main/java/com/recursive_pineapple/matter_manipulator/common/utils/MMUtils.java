@@ -733,7 +733,7 @@ public class MMUtils {
         }
     }
 
-    @Optional(Names.GREG_TECH)
+    @Optional(Names.GREG_TECH_NH)
     public static boolean isStockingBus(IInventory inv) {
         if (inv instanceof BaseMetaTileEntity base && base.getMetaTileEntity() instanceof MTEHatchInputBusME) {
             return true;
@@ -742,7 +742,7 @@ public class MMUtils {
         }
     }
 
-    @Optional(Names.GREG_TECH)
+    @Optional(Names.GREG_TECH_NH)
     public static boolean isStockingHatch(IFluidHandler tank) {
         if (tank instanceof BaseMetaTileEntity base && base.getMetaTileEntity() instanceof MTEHatchInputME) {
             return true;
@@ -1446,7 +1446,7 @@ public class MMUtils {
         return block;
     }
 
-    @Optional(Names.GREG_TECH)
+    @Optional(Names.GREG_TECH_NH)
     public static boolean isGTMachine(ImmutableBlockSpec spec) {
         if (spec.getBlock() instanceof BlockMachines) {
             if (getIndexSafe(GregTechAPI.METATILEENTITIES, spec.getItemMeta()) != null) { return true; }
@@ -1455,7 +1455,7 @@ public class MMUtils {
         return false;
     }
 
-    @Optional(Names.GREG_TECH)
+    @Optional(Names.GREG_TECH_NH)
     public static boolean isGTCable(ImmutableBlockSpec spec) {
         if (spec.getBlock() instanceof BlockMachines) {
             if (getIndexSafe(GregTechAPI.METATILEENTITIES, spec.getItemMeta()) instanceof IConnectable) { return true; }
@@ -1492,7 +1492,7 @@ public class MMUtils {
         return false;
     }
 
-    @Optional(Names.GREG_TECH)
+    @Optional(Names.GREG_TECH_NH)
     public static boolean getGTCable(BlockSpec spec, World world, int x, int y, int z) {
         if (world.getTileEntity(x, y, z) instanceof IGregTechTileEntity igte && igte.getMetaTileEntity() instanceof IConnectable) {
             spec.setObject(Item.getItemFromBlock(world.getBlock(x, y, z)), igte.getMetaTileID());
