@@ -25,7 +25,7 @@ public class MMItems {
     }
 
     @Optional({
-        Names.GREG_TECH, Names.APPLIED_ENERGISTICS2
+        Names.GREG_TECH_NH, Names.APPLIED_ENERGISTICS2
     })
     public static void registerMultis() {
         MMItemList.UplinkController.set(

@@ -230,7 +230,7 @@ public enum Messages {
         }
 
         @Optional({
-            Names.GREG_TECH, Names.APPLIED_ENERGISTICS2
+            Names.GREG_TECH_NH, Names.APPLIED_ENERGISTICS2
         })
         private void setState(World world, int x, int y, int z, UplinkState state) {
             if (world.getTileEntity(x, y, z) instanceof IGregTechTileEntity igte) {

@@ -561,7 +561,7 @@ public class MMInventory implements IPseudoInventory {
         }
     }
 
-    @Optional(Names.GREG_TECH)
+    @Optional(Names.GREG_TECH_NH)
     private void consumeItemsFromUplink(
         List<BigItemStack> requestedItems,
         List<BigItemStack> extractedItems,

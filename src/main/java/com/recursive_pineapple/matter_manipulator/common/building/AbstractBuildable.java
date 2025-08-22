@@ -208,7 +208,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
     }
 
     @Optional({
-        Names.GREG_TECH, Names.APPLIED_ENERGISTICS2
+        Names.GREG_TECH_NH, Names.APPLIED_ENERGISTICS2
     })
     protected void emptySuperchest(TileEntity te) {
         if (te instanceof IGregTechTileEntity igte && igte.getMetaTileEntity() instanceof MTEDigitalChestBase dchest) {
@@ -233,7 +233,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
     }
 
     @Optional({
-        Names.GREG_TECH, Names.APPLIED_ENERGISTICS2
+        Names.GREG_TECH_NH, Names.APPLIED_ENERGISTICS2
     })
     protected void emptyMEOutput(TileEntity te) {
         if (te instanceof IGregTechTileEntity igte) {
@@ -279,7 +279,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         }
     }
 
-    @Optional(Names.GREG_TECH)
+    @Optional(Names.GREG_TECH_NH)
     protected void removeCovers(TileEntity te) {
         if (te instanceof ICoverable coverable) {
             for (ForgeDirection side : ForgeDirection.VALID_DIRECTIONS) {
@@ -366,7 +366,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         }
     }
 
-    @Optional(Names.GREG_TECH)
+    @Optional(Names.GREG_TECH_NH)
     protected void resetGTMachine(TileEntity te) {
         if (te instanceof IRedstoneEmitter emitter) {
             for (ForgeDirection side : ForgeDirection.VALID_DIRECTIONS) {

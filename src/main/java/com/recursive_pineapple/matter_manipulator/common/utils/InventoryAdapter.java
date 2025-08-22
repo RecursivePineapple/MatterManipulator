@@ -26,7 +26,7 @@ import tectech.thing.metaTileEntity.hatch.MTEHatchRack;
 
 public enum InventoryAdapter {
 
-    @Optional(Names.GREG_TECH)
+    @Optional(Names.GREG_TECH_NH)
     QCRack {
 
         @Override
@@ -59,7 +59,7 @@ public enum InventoryAdapter {
         }
     },
 
-    @Optional(Names.GREG_TECH)
+    @Optional(Names.GREG_TECH_NH)
     GTUnrestricted {
 
         @Override
@@ -78,7 +78,7 @@ public enum InventoryAdapter {
         }
     },
 
-    @Optional(Names.GREG_TECH)
+    @Optional(Names.GREG_TECH_NH)
     GTNoop {
 
         @Override
@@ -123,7 +123,7 @@ public enum InventoryAdapter {
         }
     },
 
-    @Optional(Names.GREG_TECH)
+    @Optional(Names.GREG_TECH_NH)
     GT {
 
         @Override
