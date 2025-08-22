@@ -86,7 +86,7 @@ public class MMInventory implements IPseudoInventory {
             if (state.hasCap(ItemMatterManipulator.CONNECTS_TO_AE) && Mods.AppliedEnergistics2.isModLoaded()) {
                 consumeItemsFromAE(simulated, extracted, flags | CONSUME_SIMULATED);
             }
-            if (state.hasCap(ItemMatterManipulator.CONNECTS_TO_UPLINK) && Mods.GregTech.isModLoaded()) {
+            if (state.hasCap(ItemMatterManipulator.CONNECTS_TO_UPLINK) && Mods.GregTechNH.isModLoaded()) {
                 consumeItemsFromUplink(simulated, extracted, flags | CONSUME_SIMULATED);
             }
 
@@ -107,7 +107,7 @@ public class MMInventory implements IPseudoInventory {
             if (state.hasCap(ItemMatterManipulator.CONNECTS_TO_AE) && Mods.AppliedEnergistics2.isModLoaded()) {
                 consumeItemsFromAE(simulated, extracted, flags);
             }
-            if (state.hasCap(ItemMatterManipulator.CONNECTS_TO_UPLINK) && Mods.GregTech.isModLoaded()) {
+            if (state.hasCap(ItemMatterManipulator.CONNECTS_TO_UPLINK) && Mods.GregTechNH.isModLoaded()) {
                 consumeItemsFromUplink(simulated, extracted, flags);
             }
 

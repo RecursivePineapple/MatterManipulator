@@ -164,7 +164,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         TileEntity te = world.getTileEntity(x, y, z);
 
         boolean ae = Mods.AppliedEnergistics2.isModLoaded();
-        boolean gt = Mods.GregTech.isModLoaded();
+        boolean gt = Mods.GregTechNH.isModLoaded();
         boolean eio = Mods.EnderIO.isModLoaded();
 
         if (ae && gt) emptySuperchest(te);

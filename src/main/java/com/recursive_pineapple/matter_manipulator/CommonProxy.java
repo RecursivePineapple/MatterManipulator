@@ -27,8 +27,7 @@ public class CommonProxy {
 
     public void init(FMLInitializationEvent event) {
         EntityItemLarge.registerCommon();
-
-        if (Mods.AppliedEnergistics2.isModLoaded() && Mods.GregTech.isModLoaded()) {
+        if (Mods.AppliedEnergistics2.isModLoaded() && Mods.GregTechNH.isModLoaded()) {
             MMItems.registerMultis();
         }
 

@@ -259,7 +259,7 @@ public class BlockPropertyRegistry {
         if (Mods.IndustrialCraft2.isModLoaded()) initIC2();
         if (Mods.ArchitectureCraft.isModLoaded()) initArch();
         if (Mods.FloodLights.isModLoaded()) initFloodLights();
-        if (Mods.GregTech.isModLoaded()) initGT5u();
+        if (Mods.GregTechNH.isModLoaded()) initGT5u();
         if (Mods.AE2Stuff.isModLoaded()) initAE2Stuff();
         if (Mods.EnderStorage.isModLoaded()) initEnderStorage();
     }

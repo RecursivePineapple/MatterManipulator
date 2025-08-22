@@ -422,7 +422,7 @@ public class PendingBuild extends AbstractBuildable {
     }
 
     private ForgeDirection getDefaultPlaceSide(ImmutableBlockSpec spec) {
-        if (Mods.GregTech.isModLoaded() && MMUtils.isGTCable(spec)) { return ForgeDirection.UNKNOWN; }
+        if (Mods.GregTechNH.isModLoaded() && MMUtils.isGTCable(spec)) { return ForgeDirection.UNKNOWN; }
 
         return ForgeDirection.NORTH;
     }

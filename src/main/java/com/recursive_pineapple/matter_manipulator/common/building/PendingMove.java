@@ -329,7 +329,7 @@ public class PendingMove extends AbstractBuildable {
             newTileEntityF.yCoord = sy;
             newTileEntityF.zCoord = sz;
 
-            if (Mods.GregTech.isModLoaded()) {
+            if (Mods.GregTechNH.isModLoaded()) {
                 updateGTIfNeeded(newTileEntityF);
             }
         }

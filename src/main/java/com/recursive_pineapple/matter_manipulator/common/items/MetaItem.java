@@ -90,7 +90,7 @@ public class MetaItem extends Item {
             }
         }
 
-        if (Mods.GregTech.isModLoaded()) {
+        if (Mods.GregTechNH.isModLoaded()) {
             IDMetaItem metaItem = MMUtils.getIndexSafe(metaItems, meta);
 
             String tooltip = metaItem != null ? getItemTier(metaItem) : null;
@@ -175,7 +175,7 @@ public class MetaItem extends Item {
         public final Supplier<String> tooltip;
 
         Tier() {
-            if (Mods.GregTech.isModLoaded()) {
+            if (Mods.GregTechNH.isModLoaded()) {
                 tooltip = getForTier(name());
             } else {
                 tooltip = () -> null;

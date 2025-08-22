@@ -921,7 +921,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
         BlockSpec cable = new BlockSpec();
 
         if (hit != null) {
-            if (Mods.GregTech.isModLoaded()) {
+            if (Mods.GregTechNH.isModLoaded()) {
                 MMUtils.getGTCable(cable, world, hit.blockX, hit.blockY, hit.blockZ);
             }
 

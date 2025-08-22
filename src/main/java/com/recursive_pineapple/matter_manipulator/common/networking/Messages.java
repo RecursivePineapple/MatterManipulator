@@ -221,7 +221,7 @@ public enum Messages {
             World theWorld = Minecraft.getMinecraft().theWorld;
 
             if (theWorld.provider.dimensionId == packet.worldId) {
-                if (Mods.GregTech.isModLoaded() && Mods.AppliedEnergistics2.isModLoaded()) {
+                if (Mods.GregTechNH.isModLoaded() && Mods.AppliedEnergistics2.isModLoaded()) {
                     Location l = packet.getLocation();
 
                     setState(l.getWorld(), l.x, l.y, l.z, packet.getState());
