@@ -62,7 +62,6 @@ import com.recursive_pineapple.matter_manipulator.common.persist.UIDJsonAdapter;
 import com.recursive_pineapple.matter_manipulator.common.persist.WeightedListJsonAdapter;
 import com.recursive_pineapple.matter_manipulator.common.uplink.IUplinkMulti;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
 import org.joml.Vector3i;
