@@ -62,7 +62,7 @@ public enum Mods implements IMod {
         public static final String FLOOD_LIGHTS = "FloodLights";
         public static final String GALACTICRAFT_CORE = "GalacticraftCore";
         public static final String GALAXY_SPACE = "GalaxySpace";
-        public static final String GREG_TECH = "gregtech";
+        public static final String GREG_TECH = "gregtech_nh";
         public static final String GRAVI_SUITE = "GraviSuite";
         public static final String G_T_PLUS_PLUS = "miscutils";
         public static final String GTNH_INTERGALACTIC = "gtnhintergalactic";
