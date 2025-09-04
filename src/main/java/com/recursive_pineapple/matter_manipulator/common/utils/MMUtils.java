@@ -28,6 +28,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import java.util.UUID;
 import java.util.function.Function;
@@ -1007,9 +1008,7 @@ public class MMUtils {
     public static NBTBase toNbt(JsonElement jsonElement) {
         if (jsonElement == null || jsonElement == JsonNull.INSTANCE) { return null; }
 
-        if (jsonElement instanceof JsonPrimitive) {
-            final JsonPrimitive jsonPrimitive = (JsonPrimitive) jsonElement;
-
+        if (jsonElement instanceof JsonPrimitive jsonPrimitive) {
             if (jsonPrimitive.isNumber()) {
                 if (jsonPrimitive.getAsBigDecimal().remainder(BigDecimal.ONE).equals(BigDecimal.ZERO)) {
                     long lval = jsonPrimitive.getAsLong();
@@ -1229,6 +1228,41 @@ public class MMUtils {
         throw new IllegalArgumentException("Unhandled element " + jsonElement);
     }
 
+    private static final Pattern INTEGER = Pattern.compile("\\d+");
+    private static final Pattern FLOAT = Pattern.compile("\\d+\\.\\d+");
+
+    /**
+     * A helper for checking if an arbitrary JsonElement is truthy according to the standard JS rules, with some
+     * modifications. This is useful for situations where you have an arbitrary deserialized JsonElement that's supposed
+     * to have a boolean in it.
+     */
+    public static boolean isTruthy(JsonElement element) {
+        if (element.isJsonPrimitive()) {
+            JsonPrimitive primitive = (JsonPrimitive) element;
+
+            if (primitive.isBoolean()) return primitive.getAsBoolean();
+
+            if (primitive.isNumber()) return primitive.getAsNumber().doubleValue() != 0;
+
+            String value = primitive.getAsString();
+
+            if ("true".equals(value)) return true;
+            if ("false".equals(value)) return false;
+
+            if (INTEGER.matcher(value).matches()) return Long.parseLong(value) != 0;
+
+            if (FLOAT.matcher(value).matches()) return Double.parseDouble(value) != 0;
+
+            return !value.isEmpty();
+        }
+
+        if (element.isJsonArray()) return ((JsonArray) element).size() > 0;
+
+        if (element.isJsonObject()) return !((JsonObject) element).entrySet().isEmpty();
+
+        return false;
+    }
+
     public static boolean areStacksBasicallyEqual(ItemStack a, ItemStack b) {
         if (a == null || b == null) { return a == null && b == null; }
 
@@ -1431,19 +1465,15 @@ public class MMUtils {
     public static Block getBlockFromItem(Item item, int metadata) {
         if (item == null) return Blocks.air;
 
-        Block block = null;
-
         if (item == Items.redstone) {
-            block = Blocks.redstone_wire;
+            return Blocks.redstone_wire;
         } else if (item instanceof ItemReed specialPlacing) {
-            block = specialPlacing.field_150935_a;
+            return specialPlacing.field_150935_a;
         } else if (AppliedEnergistics2.isModLoaded() && isAECable(item, metadata)) {
-            block = InteropConstants.AE_BLOCK_CABLE.getBlock();
+            return InteropConstants.AE_BLOCK_CABLE.getBlock();
         } else {
-            block = Block.getBlockFromItem(item);
+            return Block.getBlockFromItem(item);
         }
-
-        return block;
     }
 
     @Optional(Names.GREG_TECH)

@@ -6,7 +6,6 @@ import java.util.Objects;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.particle.EntityFX;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.player.EntityPlayer;
@@ -30,7 +29,6 @@ import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
 import com.gtnewhorizon.gtnhlib.util.AboveHotbarHUD;
 import com.gtnewhorizon.gtnhlib.util.CoordinatePacker;
 import com.gtnewhorizon.structurelib.StructureLibAPI;
-import com.gtnewhorizon.structurelib.entity.fx.WeightlessParticleFX;
 import com.recursive_pineapple.matter_manipulator.GlobalMMConfig;
 import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.RenderingConfig;
 import com.recursive_pineapple.matter_manipulator.MMMod;
@@ -144,16 +142,6 @@ public class MMRenderer {
                     renderRegions(event, player, state, manipulator);
                     break;
                 }
-            }
-
-            try {
-                @SuppressWarnings("unchecked")
-                List<EntityFX> fxLayers = Minecraft.getMinecraft().effectRenderer.fxLayers[0];
-
-                // remove all of the structurelib hint particles
-                fxLayers.removeIf(particle -> particle instanceof WeightlessParticleFX);
-            } catch (Throwable e) {
-                e.printStackTrace();
             }
         } else {
             if (lastDrawer != null) {
