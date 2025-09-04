@@ -647,6 +647,8 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
         dup.mGTMode = mGTMode;
         dup.mGTData = mGTData == null ? null : MMUtils.toJsonObject(MMUtils.toNbt(mGTData));
         dup.mTTParams = mTTParams == null ? null : mTTParams.clone();
+        dup.mAmperes = mAmperes;
+        dup.mFluidPipeRestriction = mFluidPipeRestriction;
 
         return dup;
     }
