@@ -114,7 +114,7 @@ public class MMRenderer {
                 Minecraft.getMinecraft().thePlayer.addChatMessage(
                     new ChatComponentText(
                         EnumChatFormatting.RED
-                            + "Could not render preview due to a crash. Check the logs for more info."
+                            + "Could not render preview due to a crash. Check the logs for more info. Building will not work - items may be voided if you try."
                     )
                 );
                 lastExceptionPrint = now;
