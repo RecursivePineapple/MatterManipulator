@@ -1518,4 +1518,19 @@ public class MMUtils {
             case WEST -> "West";
         };
     }
+
+    public static <K, V> boolean areMapsEqual(Map<K, V> left, Map<K, V> right) {
+        if (left == null || right == null) return left == right;
+
+        HashSet<K> keys = new HashSet<>(left.size() + right.size());
+
+        keys.addAll(left.keySet());
+        keys.addAll(right.keySet());
+
+        for (K key : keys) {
+            if (!Objects.equals(left.get(key), right.get(key))) return false;
+        }
+
+        return true;
+    }
 }

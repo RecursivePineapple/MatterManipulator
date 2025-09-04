@@ -1369,6 +1369,13 @@ public class BlockPropertyRegistry {
         public void setValue(IBlockAccess world, int x, int y, int z, JsonElement value) {
             throw new UnsupportedOperationException("hub status is fixed and cannot be changed");
         }
+
+        @Override
+        public void getItemDetails(List<String> details, JsonElement value) {
+            if (value.getAsBoolean()) {
+                details.add("Hub");
+            }
+        }
     }
 
     private static class CALImprintProperty extends IntrinsicMTEProperty<MTECircuitAssemblyLine> {

@@ -331,9 +331,9 @@ public class BlockSpec implements ImmutableBlockSpec {
         return isBlock == blockSpec.isBlock && metadata == blockSpec.metadata &&
             getBlock() == blockSpec.getBlock() &&
             Objects.equals(objectId, blockSpec.objectId) &&
-            Objects.equals(properties, blockSpec.properties) &&
+            MMUtils.areMapsEqual(properties, blockSpec.properties) &&
             (!Mods.ArchitectureCraft.isModLoaded() || Objects.equals(arch, blockSpec.arch)) &&
-            Objects.equals(intrinsicProperties, blockSpec.intrinsicProperties);
+            MMUtils.areMapsEqual(intrinsicProperties, blockSpec.intrinsicProperties);
     }
 
     @Override
