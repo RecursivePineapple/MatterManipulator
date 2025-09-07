@@ -17,6 +17,8 @@ import net.minecraft.world.World;
 
 import net.minecraftforge.common.MinecraftForge;
 
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMConfig;
+import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.interfaces.tileentity.IIC2Enet;
@@ -213,6 +215,14 @@ public class PendingMove extends AbstractBuildable {
         Location startA = state.config.coordA;
         Location startB = state.config.coordB;
         Location dest = state.config.coordC;
+
+        MMConfig.VoxelAABB cut = new MMConfig.VoxelAABB(startA.toVec(), startB.toVec());
+        MMConfig.VoxelAABB paste = cut.clone().moveOrigin(dest.toVec());
+
+        if (cut.toBoundingBox().intersectsWith(paste.toBoundingBox())) {
+            MMUtils.sendErrorToPlayer(player, StatCollector.translateToLocal("mm.info.error.move_overlapping"));
+            return;
+        }
 
         int x1 = startA.x;
         int y1 = startA.y;
