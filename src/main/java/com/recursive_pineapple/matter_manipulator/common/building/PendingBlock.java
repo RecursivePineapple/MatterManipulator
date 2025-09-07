@@ -32,6 +32,7 @@ import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
+import com.recursive_pineapple.matter_manipulator.mixin.BlockCaptureDrops;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 /**
@@ -327,6 +328,11 @@ public class PendingBlock extends Location {
             }
         }
 
+        Block block = world.getBlock(context.getX(), context.getY(), context.getZ());
+
+        BlockCaptureDrops.captureDrops(world);
+        BlockCaptureDrops.captureDrops(block);
+
         for (var analysis : getIntegrations()) {
             if (!analysis.apply(context)) return false;
         }
@@ -334,6 +340,13 @@ public class PendingBlock extends Location {
         if (context.getTileEntity() instanceof IInventory inventory && this.inventory != null) {
             if (!this.inventory.apply(context, inventory, true, false)) { return false; }
         }
+
+        ArrayList<ItemStack> drops = new ArrayList<>();
+
+        drops.addAll(BlockCaptureDrops.stopCapturingDrops(world));
+        drops.addAll(BlockCaptureDrops.stopCapturingDrops(block));
+
+        context.givePlayerItems(drops.toArray(new ItemStack[0]));
 
         world.notifyBlockOfNeighborChange(x, y, z, Blocks.air);
 

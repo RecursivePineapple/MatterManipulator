@@ -30,6 +30,12 @@ public enum Mixin implements IMixins {
             .addRequiredMod(Mods.GregTech)
             .setPhase(Phase.LATE)
     ),
+    LinkedInputBusAccessors(
+        new MixinBuilder("Expose various internals of MTELinkedInputBus")
+            .addCommonMixins("MixinMTELinkedInputBus", "MixinSharedInventory")
+            .addRequiredMod(Mods.GregTech)
+            .setPhase(Phase.LATE)
+    ),
     //
     ;
 

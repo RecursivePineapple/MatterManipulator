@@ -3,7 +3,6 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.nullIfUnknown;
 
 import java.lang.invoke.MethodHandle;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -33,7 +32,6 @@ import gregtech.api.metatileentity.implementations.MTEFluidPipe;
 import gregtech.api.metatileentity.implementations.MTEHatchInputBus;
 import gregtech.api.metatileentity.implementations.MTEHatchOutput;
 import gregtech.api.metatileentity.implementations.MTEMultiBlockBase;
-import gregtech.common.blocks.BlockFrameBox;
 import gregtech.common.covers.Cover;
 import gregtech.common.tileentities.machines.multi.MTEIntegratedOreFactory;
 
@@ -227,7 +225,7 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
             if (multi.isRecipeLockingEnabled()) mGTFlags |= GT_MULTI_RECIPE_LOCK;
         }
 
-        // check if the machine can be copied with a data stick
+        // Check if the machine can be copied with a data stick
         if (mte instanceof IDataCopyable copyable) {
             try {
                 // There's no reason for this EntityPlayer parameter besides sending chat messages, so we just fail
@@ -239,7 +237,7 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
                 }
             } catch (Throwable t) {
                 // Probably an NPE, but we're catching Throwable just to be safe
-                MMMod.LOG.error("Could not copy IDataCopyable's data", t);
+                MMMod.LOG.info("Could not copy IDataCopyable's data. This is not a crash, but it could cause issues.", t);
             }
         }
 

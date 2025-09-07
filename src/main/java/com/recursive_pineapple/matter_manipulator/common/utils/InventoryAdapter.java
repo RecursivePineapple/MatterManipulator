@@ -6,6 +6,7 @@ import net.minecraft.item.ItemStack;
 
 import net.minecraftforge.common.util.ForgeDirection;
 
+import com.recursive_pineapple.matter_manipulator.mixin.interfaces.MTELinkedInputBusExt;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.interfaces.tileentity.IHasInventory;
@@ -89,6 +90,31 @@ public enum InventoryAdapter {
     },
 
     @Optional(Names.GREG_TECH_NH)
+    GTLinkedInputBus {
+
+        @Override
+        public boolean canHandle(IInventory inv) {
+            if (inv instanceof IGregTechTileEntity igte) {
+                if (igte.isDead()) return false;
+
+                IMetaTileEntity imte = igte.getMetaTileEntity();
+
+                return imte instanceof MTELinkedInputBusExt;
+            }
+
+            return false;
+        }
+
+        @Override
+        public boolean isValidSlot(IInventory inv, int slot) {
+            IGregTechTileEntity igte = (IGregTechTileEntity) inv;
+            MTELinkedInputBusExt inputBus = (MTELinkedInputBusExt) igte.getMetaTileEntity();
+
+            return inputBus.mm$getChannelRefCount() == 1 && super.isValidSlot(inv, slot);
+        }
+    },
+
+    @Optional(Names.GREG_TECH_NH)
     GTNoop {
 
         @Override
@@ -105,6 +131,11 @@ public enum InventoryAdapter {
             }
 
             return false;
+        }
+
+        @Override
+        public int getSizeInventory(IInventory inv) {
+            return 0;
         }
 
         @Override
