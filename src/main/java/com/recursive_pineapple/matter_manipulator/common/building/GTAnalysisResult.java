@@ -11,9 +11,12 @@ import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.World;
 
 import net.minecraftforge.common.util.ForgeDirection;
 
+import com.recursive_pineapple.matter_manipulator.mixin.interfaces.BlockFrameBoxExt;
+import gregtech.api.GregTechAPI;
 import gregtech.api.covers.CoverRegistry;
 import gregtech.api.enums.ItemList;
 import gregtech.api.enums.VoidingMode;
@@ -30,6 +33,7 @@ import gregtech.api.metatileentity.implementations.MTEFluidPipe;
 import gregtech.api.metatileentity.implementations.MTEHatchInputBus;
 import gregtech.api.metatileentity.implementations.MTEHatchOutput;
 import gregtech.api.metatileentity.implementations.MTEMultiBlockBase;
+import gregtech.common.blocks.BlockFrameBox;
 import gregtech.common.covers.Cover;
 import gregtech.common.tileentities.machines.multi.MTEIntegratedOreFactory;
 
@@ -274,7 +278,18 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
 
     @Override
     public boolean apply(IBlockApplyContext ctx) {
+        World world = ctx.getWorld();
+        int x = ctx.getX();
+        int y = ctx.getY();
+        int z = ctx.getZ();
+
         TileEntity te = ctx.getTileEntity();
+
+        // Create the frame tile if it doesn't have one and we're about to apply covers
+        if (world.getBlock(x, y, z) == GregTechAPI.sBlockFrames && te == null && mCovers != null) {
+            ((BlockFrameBoxExt) GregTechAPI.sBlockFrames).spawnFrameEntityExt(world, x, y, z);
+            te = ctx.getTileEntity();
+        }
 
         if (te instanceof IGregTechTileEntity gte) {
             IMetaTileEntity mte = gte.getMetaTileEntity();

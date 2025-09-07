@@ -23,7 +23,15 @@ public enum Mixin implements IMixins {
         new MixinBuilder("Cancel non-mm key presses")
             .addClientMixins("MixinKeyBinding")
             .setPhase(Phase.EARLY)
-    );
+    ),
+    FrameBoxTECreation(
+        new MixinBuilder("Expose BlockFrameBox.spawnFrameEntity")
+            .addCommonMixins("MixinBlockFrameBox")
+            .addRequiredMod(Mods.GregTech)
+            .setPhase(Phase.LATE)
+    ),
+    //
+    ;
 
     private final MixinBuilder builder;
 
