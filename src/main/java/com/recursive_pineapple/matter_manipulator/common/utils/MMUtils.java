@@ -275,18 +275,20 @@ public class MMUtils {
      * Gets the 'location' that the player is looking at.
      */
     public static Vector3i getLookingAtLocation(EntityPlayer player) {
-        double reachDistance = player instanceof EntityPlayerMP mp ?
+        double dist = player instanceof EntityPlayerMP mp ?
             mp.theItemInWorldManager.getBlockReachDistance() :
             Minecraft.getMinecraft().playerController.getBlockReachDistance();
 
-        Vec3 posVec = Vec3.createVectorHelper(player.posX, player.posY + player.getEyeHeight(), player.posZ);
+        Vec3 start = player.getPosition(0);
+        Vec3 look = player.getLookVec();
 
-        Vec3 lookVec = player.getLook(1);
+        if (player instanceof EntityPlayerMP) {
+            start.yCoord += player.getEyeHeight();
+        }
 
-        Vec3 modifiedPosVec = posVec
-            .addVector(lookVec.xCoord * reachDistance, lookVec.yCoord * reachDistance, lookVec.zCoord * reachDistance);
+        Vec3 end = Vec3.createVectorHelper(start.xCoord + look.xCoord * dist, start.yCoord + look.yCoord * dist, start.zCoord + look.zCoord * dist);
 
-        MovingObjectPosition hit = player.worldObj.rayTraceBlocks(posVec, modifiedPosVec);
+        MovingObjectPosition hit = player.worldObj.rayTraceBlocks(start, end);
 
         Vector3i target;
 
@@ -299,9 +301,9 @@ public class MMUtils {
             }
         } else {
             target = new Vector3i(
-                MathHelper.floor_double(modifiedPosVec.xCoord),
-                MathHelper.floor_double(modifiedPosVec.yCoord),
-                MathHelper.floor_double(modifiedPosVec.zCoord)
+                MathHelper.floor_double(end.xCoord),
+                MathHelper.floor_double(end.yCoord),
+                MathHelper.floor_double(end.zCoord)
             );
         }
 
