@@ -142,6 +142,8 @@ public class BlockSpec implements ImmutableBlockSpec {
 
             block = MMUtils.getBlockFromItem(item1, item1 == null ? 0 : item1.getMetadata(metadata));
         }
+
+        if (block == null) block = Blocks.air;
     }
 
     @Override
