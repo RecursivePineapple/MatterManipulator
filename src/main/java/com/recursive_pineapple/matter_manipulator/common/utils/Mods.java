@@ -26,6 +26,7 @@ public enum Mods implements IMod {
     GalacticraftCore(Names.GALACTICRAFT_CORE),
     GalaxySpace(Names.GALAXY_SPACE),
     GregTech(Names.GREG_TECH) {
+
         @Override
         protected String getEffectiveModID() {
             return Names.GREG_TECH_NH;
