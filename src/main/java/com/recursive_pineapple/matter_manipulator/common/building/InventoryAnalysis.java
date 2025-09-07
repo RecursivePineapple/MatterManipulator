@@ -2,8 +2,6 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 
 import java.util.Objects;
 
-import javax.annotation.Nullable;
-
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 

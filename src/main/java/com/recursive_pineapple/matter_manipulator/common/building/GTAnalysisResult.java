@@ -14,7 +14,6 @@ import net.minecraft.world.World;
 
 import net.minecraftforge.common.util.ForgeDirection;
 
-import com.recursive_pineapple.matter_manipulator.mixin.interfaces.BlockFrameBoxExt;
 import gregtech.api.GregTechAPI;
 import gregtech.api.covers.CoverRegistry;
 import gregtech.api.enums.ItemList;
@@ -46,6 +45,7 @@ import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import com.recursive_pineapple.matter_manipulator.mixin.interfaces.BlockFrameBoxExt;
 
 import gtnhlanth.common.beamline.MTEBeamlinePipe;
 import lombok.EqualsAndHashCode;

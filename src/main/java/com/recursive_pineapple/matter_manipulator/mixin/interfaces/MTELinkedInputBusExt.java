@@ -5,6 +5,7 @@ public interface MTELinkedInputBusExt {
     int mm$getChannelRefCount();
 
     interface SharedInventoryExt {
+
         int mm$getRefCount();
     }
 }

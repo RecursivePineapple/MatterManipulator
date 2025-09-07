@@ -17,14 +17,12 @@ import net.minecraft.world.World;
 
 import net.minecraftforge.common.MinecraftForge;
 
-import codechicken.multipart.MultipartHelper;
-import codechicken.multipart.TileMultipart;
-import com.github.bsideup.jabel.Desugar;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.interfaces.tileentity.IIC2Enet;
 import gregtech.api.metatileentity.BaseMetaTileEntity;
 
+import com.github.bsideup.jabel.Desugar;
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
@@ -37,6 +35,8 @@ import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 import com.recursive_pineapple.matter_manipulator.mixin.BlockCaptureDrops;
 
 import WayofTime.alchemicalWizardry.api.event.TeleposeEvent;
+import codechicken.multipart.MultipartHelper;
+import codechicken.multipart.TileMultipart;
 import it.unimi.dsi.fastutil.Pair;
 import tectech.thing.metaTileEntity.pipe.MTEPipeData;
 import tectech.thing.metaTileEntity.pipe.MTEPipeLaser;
@@ -333,6 +333,7 @@ public class PendingMove extends AbstractBuildable {
     }
 
     private enum BlockMovers {
+
         @Optional(Names.FORGE_MULTIPART)
         FMP(FMPBlockMover.INSTANCE),
         @Optional(Names.GREG_TECH_NH)

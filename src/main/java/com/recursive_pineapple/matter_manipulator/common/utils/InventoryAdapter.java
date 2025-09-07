@@ -6,7 +6,6 @@ import net.minecraft.item.ItemStack;
 
 import net.minecraftforge.common.util.ForgeDirection;
 
-import com.recursive_pineapple.matter_manipulator.mixin.interfaces.MTELinkedInputBusExt;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.interfaces.tileentity.IHasInventory;
@@ -21,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
+import com.recursive_pineapple.matter_manipulator.mixin.interfaces.MTELinkedInputBusExt;
 
 import gtPlusPlus.xmod.gregtech.api.metatileentity.implementations.MTEHatchTurbine;
 import tectech.thing.metaTileEntity.hatch.MTEHatchRack;

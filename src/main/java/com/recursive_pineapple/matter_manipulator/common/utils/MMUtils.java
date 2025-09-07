@@ -272,9 +272,9 @@ public class MMUtils {
     }
 
     public static Vec3 getPosition(EntityPlayer player, float partialTicks) {
-        double d0 = player.prevPosX + (player.posX - player.prevPosX) * (double)partialTicks;
-        double d1 = player.prevPosY + (player.posY - player.prevPosY) * (double)partialTicks + (player.getEyeHeight() - player.getDefaultEyeHeight());
-        double d2 = player.prevPosZ + (player.posZ - player.prevPosZ) * (double)partialTicks;
+        double d0 = player.prevPosX + (player.posX - player.prevPosX) * (double) partialTicks;
+        double d1 = player.prevPosY + (player.posY - player.prevPosY) * (double) partialTicks + (player.getEyeHeight() - player.getDefaultEyeHeight());
+        double d2 = player.prevPosZ + (player.posZ - player.prevPosZ) * (double) partialTicks;
         return Vec3.createVectorHelper(d0, d1, d2);
     }
 

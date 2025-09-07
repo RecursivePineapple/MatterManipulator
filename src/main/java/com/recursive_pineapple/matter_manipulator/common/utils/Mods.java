@@ -4,13 +4,13 @@ import java.util.Locale;
 
 import net.minecraft.util.ResourceLocation;
 
-import org.jetbrains.annotations.NotNull;
-
-import com.gtnewhorizon.gtnhmixins.builders.ITargetMod;
-import com.gtnewhorizon.gtnhmixins.builders.TargetModBuilder;
 import cpw.mods.fml.common.Loader;
 
 import com.gtnewhorizon.gtnhlib.util.data.IMod;
+import com.gtnewhorizon.gtnhmixins.builders.ITargetMod;
+import com.gtnewhorizon.gtnhmixins.builders.TargetModBuilder;
+
+import org.jetbrains.annotations.NotNull;
 
 public enum Mods implements IMod, ITargetMod {
 

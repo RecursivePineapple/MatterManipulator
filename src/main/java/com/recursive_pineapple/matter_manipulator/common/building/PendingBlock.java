@@ -28,11 +28,11 @@ import com.recursive_pineapple.matter_manipulator.common.compat.Orientation;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
+import com.recursive_pineapple.matter_manipulator.mixin.BlockCaptureDrops;
 
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
-import com.recursive_pineapple.matter_manipulator.mixin.BlockCaptureDrops;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 /**
