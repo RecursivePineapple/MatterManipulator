@@ -337,7 +337,7 @@ public class PendingMove extends AbstractBuildable {
         return true;
     }
 
-    @Optional(Names.GREG_TECH)
+    @Optional(Names.GREG_TECH_NH)
     private static void updateGTIfNeeded(TileEntity te) {
         if (te instanceof IGregTechTileEntity igte) {
             if (igte instanceof BaseMetaTileEntity bmte) {

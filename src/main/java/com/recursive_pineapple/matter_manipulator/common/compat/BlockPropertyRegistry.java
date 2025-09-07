@@ -1061,7 +1061,7 @@ public class BlockPropertyRegistry {
 
     // #region GT5u
 
-    @Optional(Names.GREG_TECH)
+    @Optional(Names.GREG_TECH_NH)
     private static void initGT5u() {
         registerIntrinsicProperty(GregTechAPI.sBlockMachines, new MEHatchCapacityProperty<>(MTEHatchOutputBusME.class));
         registerIntrinsicProperty(GregTechAPI.sBlockMachines, new MEHatchCapacityProperty<>(MTEHatchOutputME.class));

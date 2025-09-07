@@ -182,7 +182,7 @@ public class MetaItem extends Item {
             }
         }
 
-        @Method(modid = Names.GREG_TECH)
+        @Method(modid = Names.GREG_TECH_NH)
         private static Supplier<String> getForTier(String tier) {
             var t = GTTooltipHandler.Tier.valueOf(tier);
 

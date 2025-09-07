@@ -564,7 +564,7 @@ public class PendingBuild extends AbstractBuildable {
         }
     }
 
-    @Optional(Names.GREG_TECH)
+    @Optional(Names.GREG_TECH_NH)
     private String getGTBlockName(PendingBlock pendingBlock) {
         if (player.worldObj.getTileEntity(pendingBlock.x, pendingBlock.y, pendingBlock.z) instanceof IGregTechTileEntity igte) {
             IMetaTileEntity imte = igte.getMetaTileEntity();

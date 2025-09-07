@@ -502,7 +502,7 @@ public class MMState {
         return out;
     }
 
-    @Optional(Names.GREG_TECH)
+    @Optional(Names.GREG_TECH_NH)
     private void getGTCables(Vector3i a, Vector3i b, List<PendingBlock> out, Block block, World world, ImmutableBlockSpec cable) {
         if (block instanceof BlockMachines) {
             int end = 0, start = 0;

@@ -61,7 +61,7 @@ public class InteropConstants {
         return true;
     }
 
-    @Optional(Names.GREG_TECH)
+    @Optional(Names.GREG_TECH_NH)
     private static boolean isGTRenderer(Block block) {
         if (block == GregTechAPI.sDroneRender) return true;
         if (block == GregTechAPI.sWormholeRender) return true;

@@ -25,7 +25,12 @@ public enum Mods implements IMod {
     FloodLights(Names.FLOOD_LIGHTS),
     GalacticraftCore(Names.GALACTICRAFT_CORE),
     GalaxySpace(Names.GALAXY_SPACE),
-    GregTech(Names.GREG_TECH),
+    GregTech(Names.GREG_TECH) {
+        @Override
+        protected String getEffectiveModID() {
+            return Names.GREG_TECH_NH;
+        }
+    },
     GTPlusPlus(Names.G_T_PLUS_PLUS),
     GTNHIntergalactic(Names.GTNH_INTERGALACTIC),
     GraviSuite(Names.GRAVI_SUITE),
@@ -62,7 +67,8 @@ public enum Mods implements IMod {
         public static final String FLOOD_LIGHTS = "FloodLights";
         public static final String GALACTICRAFT_CORE = "GalacticraftCore";
         public static final String GALAXY_SPACE = "GalaxySpace";
-        public static final String GREG_TECH = "gregtech_nh";
+        public static final String GREG_TECH = "gregtech";
+        public static final String GREG_TECH_NH = "gregtech_nh";
         public static final String GRAVI_SUITE = "GraviSuite";
         public static final String G_T_PLUS_PLUS = "miscutils";
         public static final String GTNH_INTERGALACTIC = "gtnhintergalactic";
@@ -79,7 +85,7 @@ public enum Mods implements IMod {
 
     public final String ID;
     public final String resourceDomain;
-    private boolean checkedMod, modLoaded;
+    protected boolean checkedMod, modLoaded;
 
     Mods(String ID) {
         this.ID = ID;
@@ -91,9 +97,13 @@ public enum Mods implements IMod {
         return ID;
     }
 
+    protected String getEffectiveModID() {
+        return ID;
+    }
+
     public boolean isModLoaded() {
         if (!checkedMod) {
-            this.modLoaded = Loader.isModLoaded(ID);
+            this.modLoaded = Loader.isModLoaded(getEffectiveModID());
             checkedMod = true;
         }
         return this.modLoaded;
