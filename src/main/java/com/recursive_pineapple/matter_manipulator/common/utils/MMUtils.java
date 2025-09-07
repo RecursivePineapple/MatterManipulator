@@ -271,6 +271,13 @@ public class MMUtils {
         return hit != null && hit.typeOfHit != MovingObjectType.BLOCK ? null : hit;
     }
 
+    public static Vec3 getPosition(EntityPlayer player, float partialTicks) {
+        double d0 = player.prevPosX + (player.posX - player.prevPosX) * (double) partialTicks;
+        double d1 = player.prevPosY + (player.posY - player.prevPosY) * (double) partialTicks + (player.getEyeHeight() - player.getDefaultEyeHeight());
+        double d2 = player.prevPosZ + (player.posZ - player.prevPosZ) * (double) partialTicks;
+        return Vec3.createVectorHelper(d0, d1, d2);
+    }
+
     /**
      * Gets the 'location' that the player is looking at.
      */
@@ -279,7 +286,7 @@ public class MMUtils {
             mp.theItemInWorldManager.getBlockReachDistance() :
             Minecraft.getMinecraft().playerController.getBlockReachDistance();
 
-        Vec3 start = player.getPosition(0);
+        Vec3 start = getPosition(player, 0);
         Vec3 look = player.getLookVec();
 
         if (player instanceof EntityPlayerMP) {

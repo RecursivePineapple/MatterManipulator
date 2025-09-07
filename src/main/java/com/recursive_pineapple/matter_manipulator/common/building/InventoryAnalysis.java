@@ -2,8 +2,6 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 
 import java.util.Objects;
 
-import javax.annotation.Nullable;
-
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 
@@ -31,15 +29,13 @@ public class InventoryAnalysis {
      *
      * @param fuzzy When true, NBT will be ignored and items will be fuzzily-retrieved.
      */
-    public static @Nullable InventoryAnalysis fromInventory(IInventory inv, boolean fuzzy) {
-        InventoryAnalysis analysis = new InventoryAnalysis();
-        analysis.mFuzzy = fuzzy;
-
-        analysis.mItems = new IItemProvider[inv.getSizeInventory()];
-
+    public static InventoryAnalysis fromInventory(IInventory inv, boolean fuzzy) {
         InventoryAdapter adapter = InventoryAdapter.findAdapter(inv);
 
-        if (adapter == null) return null;
+        InventoryAnalysis analysis = new InventoryAnalysis();
+
+        analysis.mFuzzy = fuzzy;
+        analysis.mItems = new IItemProvider[adapter.getSizeInventory(inv)];
 
         for (int slot = 0; slot < analysis.mItems.length; slot++) {
             if (!adapter.isValidSlot(inv, slot)) continue;
@@ -83,8 +79,8 @@ public class InventoryAnalysis {
     private boolean apply(IBlockApplyContext context, IInventory inv, InventoryAdapter adapter, boolean consume, boolean simulate) {
         if (!adapter.validate(context, inv)) return false;
 
-        if (inv.getSizeInventory() != mItems.length) {
-            context.warn("Inventory was the wrong size (expected " + mItems.length + ", was " + inv.getSizeInventory() + ")");
+        if (adapter.getSizeInventory(inv) != mItems.length) {
+            context.warn("Inventory was the wrong size (expected " + mItems.length + ", was " + adapter.getSizeInventory(inv) + ")");
             return false;
         }
 

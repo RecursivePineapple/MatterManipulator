@@ -3,7 +3,6 @@ package com.recursive_pineapple.matter_manipulator.common.building;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.nullIfUnknown;
 
 import java.lang.invoke.MethodHandle;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -11,9 +10,11 @@ import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.World;
 
 import net.minecraftforge.common.util.ForgeDirection;
 
+import gregtech.api.GregTechAPI;
 import gregtech.api.covers.CoverRegistry;
 import gregtech.api.enums.ItemList;
 import gregtech.api.enums.VoidingMode;
@@ -44,8 +45,10 @@ import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import com.recursive_pineapple.matter_manipulator.mixin.interfaces.BlockFrameBoxExt;
 
 import gtnhlanth.common.beamline.MTEBeamlinePipe;
+import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
 import tectech.thing.metaTileEntity.hatch.MTEHatchDynamoTunnel;
 import tectech.thing.metaTileEntity.hatch.MTEHatchEnergyTunnel;
@@ -53,6 +56,7 @@ import tectech.thing.metaTileEntity.multi.base.TTMultiblockBase;
 import tectech.thing.metaTileEntity.pipe.MTEPipeData;
 import tectech.thing.metaTileEntity.pipe.MTEPipeLaser;
 
+@EqualsAndHashCode
 public class GTAnalysisResult implements ITileAnalysisIntegration {
 
     public byte mConnections = 0;
@@ -221,7 +225,7 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
             if (multi.isRecipeLockingEnabled()) mGTFlags |= GT_MULTI_RECIPE_LOCK;
         }
 
-        // check if the machine can be copied with a data stick
+        // Check if the machine can be copied with a data stick
         if (mte instanceof IDataCopyable copyable) {
             try {
                 // There's no reason for this EntityPlayer parameter besides sending chat messages, so we just fail
@@ -233,7 +237,7 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
                 }
             } catch (Throwable t) {
                 // Probably an NPE, but we're catching Throwable just to be safe
-                MMMod.LOG.error("Could not copy IDataCopyable's data", t);
+                MMMod.LOG.info("Could not copy IDataCopyable's data. This is not a crash, but it could cause issues.", t);
             }
         }
 
@@ -272,7 +276,18 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
 
     @Override
     public boolean apply(IBlockApplyContext ctx) {
+        World world = ctx.getWorld();
+        int x = ctx.getX();
+        int y = ctx.getY();
+        int z = ctx.getZ();
+
         TileEntity te = ctx.getTileEntity();
+
+        // Create the frame tile if it doesn't have one and we're about to apply covers
+        if (world.getBlock(x, y, z) == GregTechAPI.sBlockFrames && te == null && mCovers != null) {
+            ((BlockFrameBoxExt) GregTechAPI.sBlockFrames).spawnFrameEntityExt(world, x, y, z);
+            te = ctx.getTileEntity();
+        }
 
         if (te instanceof IGregTechTileEntity gte) {
             IMetaTileEntity mte = gte.getMetaTileEntity();
@@ -652,59 +667,4 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
 
         return dup;
     }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + mConnections;
-        result = prime * result + mGTColour;
-        result = prime * result + ((mGTFront == null) ? 0 : mGTFront.hashCode());
-        result = prime * result + ((mGTMainFacing == null) ? 0 : mGTMainFacing.hashCode());
-        result = prime * result + mGTFlags;
-        result = prime * result + ((mGTFacing == null) ? 0 : mGTFacing.hashCode());
-        result = prime * result + Arrays.hashCode(mCovers);
-        result = prime * result + mStrongRedstone;
-        result = prime * result + ((mGTCustomName == null) ? 0 : mGTCustomName.hashCode());
-        result = prime * result + mGTGhostCircuit;
-        result = prime * result + ((mGTItemLock == null) ? 0 : mGTItemLock.hashCode());
-        result = prime * result + ((mGTFluidLock == null) ? 0 : mGTFluidLock.hashCode());
-        result = prime * result + mGTMode;
-        result = prime * result + ((mGTData == null) ? 0 : mGTData.hashCode());
-        result = prime * result + Arrays.hashCode(mTTParams);
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
-        GTAnalysisResult other = (GTAnalysisResult) obj;
-        if (mConnections != other.mConnections) return false;
-        if (mGTColour != other.mGTColour) return false;
-        if (mGTFront != other.mGTFront) return false;
-        if (mGTMainFacing != other.mGTMainFacing) return false;
-        if (mGTFlags != other.mGTFlags) return false;
-        if (mGTFacing != other.mGTFacing) return false;
-        if (!Arrays.equals(mCovers, other.mCovers)) return false;
-        if (mStrongRedstone != other.mStrongRedstone) return false;
-        if (mGTCustomName == null) {
-            if (other.mGTCustomName != null) return false;
-        } else if (!mGTCustomName.equals(other.mGTCustomName)) return false;
-        if (mGTGhostCircuit != other.mGTGhostCircuit) return false;
-        if (mGTItemLock == null) {
-            if (other.mGTItemLock != null) return false;
-        } else if (!mGTItemLock.equals(other.mGTItemLock)) return false;
-        if (mGTFluidLock == null) {
-            if (other.mGTFluidLock != null) return false;
-        } else if (!mGTFluidLock.equals(other.mGTFluidLock)) return false;
-        if (mGTMode != other.mGTMode) return false;
-        if (mGTData == null) {
-            if (other.mGTData != null) return false;
-        } else if (!mGTData.equals(other.mGTData)) return false;
-        if (!Arrays.equals(mTTParams, other.mTTParams)) return false;
-        return true;
-    }
-
 }
