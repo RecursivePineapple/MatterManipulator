@@ -41,6 +41,16 @@ public enum InventoryAdapter {
         }
 
         @Override
+        public int getSizeInventory(IInventory inv) {
+            return 4;
+        }
+
+        @Override
+        public boolean isValidSlot(IInventory inv, int slot) {
+            return slot >= 0 && slot < 4;
+        }
+
+        @Override
         public boolean validate(BlockAnalyzer.IBlockApplyContext context, IInventory inv) {
             IGregTechTileEntity igte = (IGregTechTileEntity) inv;
             MTEHatchRack rack = (MTEHatchRack) igte.getMetaTileEntity();
@@ -51,7 +61,7 @@ public enum InventoryAdapter {
             }
 
             if (igte.isActive()) {
-                context.error("Cannot extract or insert items from/into QC Rack while QC is on");
+                context.error("Cannot extract or insert items from/into QC Rack while the QC is on");
                 return false;
             }
 
@@ -179,6 +189,10 @@ public enum InventoryAdapter {
 
     public boolean validate(BlockAnalyzer.IBlockApplyContext context, IInventory inv) {
         return true;
+    }
+
+    public int getSizeInventory(IInventory inv) {
+        return inv.getSizeInventory();
     }
 
     public boolean isValidSlot(IInventory inv, int slot) {
