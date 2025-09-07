@@ -17,8 +17,6 @@ import net.minecraft.world.World;
 
 import net.minecraftforge.common.MinecraftForge;
 
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMConfig;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.interfaces.tileentity.IIC2Enet;
@@ -27,8 +25,10 @@ import gregtech.api.metatileentity.BaseMetaTileEntity;
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMConfig;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
 import com.recursive_pineapple.matter_manipulator.common.networking.SoundResource;
+import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 import com.recursive_pineapple.matter_manipulator.mixin.BlockCaptureDrops;
