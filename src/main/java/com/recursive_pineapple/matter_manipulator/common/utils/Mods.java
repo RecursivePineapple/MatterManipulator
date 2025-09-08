@@ -7,13 +7,18 @@ import net.minecraft.util.ResourceLocation;
 import cpw.mods.fml.common.Loader;
 
 import com.gtnewhorizon.gtnhlib.util.data.IMod;
+import com.gtnewhorizon.gtnhmixins.builders.ITargetMod;
+import com.gtnewhorizon.gtnhmixins.builders.TargetModBuilder;
 
-public enum Mods implements IMod {
+import org.jetbrains.annotations.NotNull;
+
+public enum Mods implements IMod, ITargetMod {
 
     AE2Stuff(Names.AE2STUFF),
     Angelica(Names.ANGELICA),
     AppliedEnergistics2(Names.APPLIED_ENERGISTICS2),
     ArchitectureCraft(Names.ARCHITECTURE_CRAFT),
+    AvaritiaAddons(Names.AVARITIA_ADDONS),
     BloodMagic(Names.BLOOD_MAGIC),
     CarpentersBlocks(Names.CARPENTERS_BLOCKS),
     EnderIO(Names.ENDER_I_O),
@@ -59,6 +64,7 @@ public enum Mods implements IMod {
         public static final String ANGELICA = "angelica";
         public static final String APPLIED_ENERGISTICS2 = "appliedenergistics2";
         public static final String ARCHITECTURE_CRAFT = "ArchitectureCraft";
+        public static final String AVARITIA_ADDONS = "avaritiaddons";
         public static final String BLOOD_MAGIC = "AWWayofTime";
         public static final String CARPENTERS_BLOCKS = "CarpentersBlocks";
         public static final String ENDER_I_O = "EnderIO";
@@ -87,10 +93,17 @@ public enum Mods implements IMod {
     public final String ID;
     public final String resourceDomain;
     protected boolean checkedMod, modLoaded;
+    protected final TargetModBuilder builder;
 
     Mods(String ID) {
         this.ID = ID;
         this.resourceDomain = ID.toLowerCase(Locale.ENGLISH);
+        this.builder = new TargetModBuilder().setModId(getEffectiveModID());
+    }
+
+    @Override
+    public @NotNull TargetModBuilder getBuilder() {
+        return builder;
     }
 
     @Override

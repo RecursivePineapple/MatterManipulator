@@ -21,7 +21,7 @@ public class MMConfig {
 
     public PendingAction action;
     public BlockSelectMode blockSelectMode = BlockSelectMode.ALL;
-    public BlockRemoveMode removeMode = BlockRemoveMode.NONE;
+    public BlockRemoveMode removeMode = BlockRemoveMode.ALL;
     public PlaceMode placeMode = PlaceMode.GEOMETRY;
     public Shape shape = Shape.LINE;
 
