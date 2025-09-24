@@ -759,6 +759,10 @@ public class MMUtils {
         } else {
             return false;
         }
+
+    @Optional(Names.APPLIED_ENERGISTICS2)
+    public static boolean isPartHost(IFluidHandler tank) {
+        return tank instanceof IPartHost;
     }
 
     /**

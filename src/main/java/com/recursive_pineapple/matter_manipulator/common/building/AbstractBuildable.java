@@ -1,6 +1,7 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendWarningToPlayer;
+import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.AppliedEnergistics2;
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
 
 import java.util.ArrayList;
@@ -268,6 +269,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
     protected void emptyTank(TileEntity te) {
         if (te instanceof IFluidHandler handler) {
             if (GregTech.isModLoaded() && MMUtils.isStockingHatch(handler)) return;
+            if (AppliedEnergistics2.isModLoaded() && MMUtils.isPartHost(handler)) return;
 
             int i = 0;
             FluidStack fluid;
