@@ -1,7 +1,6 @@
 package com.recursive_pineapple.matter_manipulator.common.utils;
 
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.AppliedEnergistics2;
-import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -682,8 +681,6 @@ public class MMUtils {
 
         InventoryAdapter adapter = InventoryAdapter.findAdapter(src);
 
-        if (adapter == null) return;
-
         int size = src.getSizeInventory();
 
         for (int slot = 0; slot < size; slot++) {
@@ -729,12 +726,6 @@ public class MMUtils {
         return stack;
     }
 
-    public static boolean isSlotValid(IInventory inv, int slot) {
-        if (GregTech.isModLoaded() && !isSlotValidGT(inv, slot)) return false;
-
-        return true;
-    }
-
     private static boolean isSlotValidGT(IInventory inv, int slot) {
         if (inv instanceof IHasInventory hasInv) {
             return hasInv.isValidSlot(slot);
@@ -745,20 +736,13 @@ public class MMUtils {
 
     @Optional(Names.GREG_TECH_NH)
     public static boolean isStockingBus(IInventory inv) {
-        if (inv instanceof BaseMetaTileEntity base && base.getMetaTileEntity() instanceof MTEHatchInputBusME) {
-            return true;
-        } else {
-            return false;
-        }
+        return inv instanceof BaseMetaTileEntity base && base.getMetaTileEntity() instanceof MTEHatchInputBusME;
     }
 
     @Optional(Names.GREG_TECH_NH)
     public static boolean isStockingHatch(IFluidHandler tank) {
-        if (tank instanceof BaseMetaTileEntity base && base.getMetaTileEntity() instanceof MTEHatchInputME) {
-            return true;
-        } else {
-            return false;
-        }
+        return tank instanceof BaseMetaTileEntity base && base.getMetaTileEntity() instanceof MTEHatchInputME;
+    }
 
     @Optional(Names.APPLIED_ENERGISTICS2)
     public static boolean isPartHost(IFluidHandler tank) {
