@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Function;
 
 import javax.annotation.Nonnull;
 
@@ -59,19 +58,13 @@ import gregtech.api.util.GTUtility;
 import gregtech.api.util.IGTHatchAdder;
 import gregtech.api.util.MultiblockTooltipBuilder;
 import gregtech.api.util.shutdown.ShutDownReason;
-import gregtech.common.tileentities.machines.MTEHatchInputME;
 
 import appeng.api.config.Actionable;
 import appeng.api.config.FuzzyMode;
-import appeng.api.config.PowerMultiplier;
-import appeng.api.networking.security.IActionHost;
-import appeng.api.networking.security.MachineSource;
 import appeng.api.networking.storage.IStorageGrid;
 import appeng.api.storage.IMEMonitor;
 import appeng.api.storage.data.IAEFluidStack;
 import appeng.api.storage.data.IAEItemStack;
-import appeng.me.GridAccessException;
-import appeng.util.item.AEFluidStack;
 
 import com.google.common.collect.ImmutableList;
 import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable;
@@ -651,9 +644,6 @@ public class MTEMMUplink extends MTEExtendedPowerMultiBlockBase<MTEMMUplink> imp
         }
     }
 
-    private static final Function<MTEHatchInputME, FluidStack[]> ME_HATCH_STORED_FLUIDS = MMUtils
-        .exposeFieldGetterLambda(MTEHatchInputME.class, "storedFluids");
-
     /**
      * Converts plasma in hatches to EU.
      */
@@ -661,69 +651,27 @@ public class MTEMMUplink extends MTEExtendedPowerMultiBlockBase<MTEMMUplink> imp
         FuelBackend fuels = RecipeMaps.plasmaFuels.getBackend();
 
         for (MTEHatchInput input : mInputHatches) {
-            if (input instanceof MTEHatchInputME me) {
-                try {
-                    var inv = me.getProxy().getStorage().getFluidInventory();
-                    var energy = me.getProxy().getEnergy();
+            for (FluidTankInfo tank : input.getTankInfo(ForgeDirection.UNKNOWN)) {
+                if (tank.fluid == null) continue;
 
-                    FluidStack[] fluids = ME_HATCH_STORED_FLUIDS.apply(me);
+                GTRecipe fuel = fuels.findFuel(tank.fluid);
 
-                    for (FluidStack fluid : fluids) {
-                        if (fluid == null) continue;
+                if (fuel != null) {
+                    long euPerLitre = fuel.mSpecialValue;
 
-                        GTRecipe fuel = fuels.findFuel(fluid);
+                    int litresToConsume = (int) Math.min(Integer.MAX_VALUE, MMUtils.ceilDiv(euToGenerate, euPerLitre));
 
-                        if (fuel != null) {
-                            long euPerLitre = fuel.mSpecialValue;
+                    FluidStack toConsume = tank.fluid.copy();
+                    toConsume.amount = litresToConsume;
 
-                            int litresToConsume = (int) Math.min(Integer.MAX_VALUE, MMUtils.ceilDiv(euToGenerate, euPerLitre));
+                    FluidStack drained = input.drain(ForgeDirection.UNKNOWN, toConsume, true);
 
-                            FluidStack toConsume = fluid.copy();
-                            toConsume.amount = litresToConsume;
-
-                            IAEFluidStack drained = inv.extractItems(
-                                AEFluidStack.create(toConsume),
-                                Actionable.MODULATE,
-                                new MachineSource((IActionHost) me.getBaseMetaTileEntity())
-                            );
-
-                            if (drained == null) continue;
-
-                            energy.extractAEPower(drained.getStackSize(), Actionable.MODULATE, PowerMultiplier.CONFIG);
-
-                            long generated = drained.getStackSize() * euPerLitre;
-                            euToGenerate -= generated;
-                            pendingPlasmaEU += generated;
-                        }
-
-                        if (euToGenerate <= 0) { return; }
-                    }
-                } catch (GridAccessException e) {
-                    // :P
+                    long generated = drained.amount * euPerLitre;
+                    euToGenerate -= generated;
+                    pendingPlasmaEU += generated;
                 }
-            } else {
-                for (FluidTankInfo tank : input.getTankInfo(ForgeDirection.UNKNOWN)) {
-                    if (tank.fluid == null) continue;
 
-                    GTRecipe fuel = fuels.findFuel(tank.fluid);
-
-                    if (fuel != null) {
-                        long euPerLitre = fuel.mSpecialValue;
-
-                        int litresToConsume = (int) Math.min(Integer.MAX_VALUE, MMUtils.ceilDiv(euToGenerate, euPerLitre));
-
-                        FluidStack toConsume = tank.fluid.copy();
-                        toConsume.amount = litresToConsume;
-
-                        FluidStack drained = input.drain(ForgeDirection.UNKNOWN, toConsume, true);
-
-                        long generated = drained.amount * euPerLitre;
-                        euToGenerate -= generated;
-                        pendingPlasmaEU += generated;
-                    }
-
-                    if (euToGenerate <= 0) { return; }
-                }
+                if (euToGenerate <= 0) { return; }
             }
         }
     }
