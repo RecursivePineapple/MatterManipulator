@@ -152,13 +152,15 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         }
 
         if (voidDrops) {
-            BlockCaptureDrops.captureDrops(block);
-            BlockCaptureDrops.captureDrops(world);
-            // Because GT uses this to call MTE.onRemoval() :doom:
-            block.getDrops(world, x, y, z, meta, 0);
-            world.setBlockToAir(x, y, z);
-            BlockCaptureDrops.stopCapturingDrops(block);
-            BlockCaptureDrops.stopCapturingDrops(world);
+            try {
+                BlockCaptureDrops.captureDrops(world);
+                // Because GT uses this to call MTE.onRemoval() :doom:
+                block.getDrops(world, x, y, z, meta, 0);
+                world.setBlockToAir(x, y, z);
+            } finally {
+                BlockCaptureDrops.stopCapturingDrops(world);
+            }
+
             return;
         }
 
@@ -199,13 +201,13 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
             givePlayerItems(items.toArray(new ItemStack[0]));
         }
 
-        BlockCaptureDrops.captureDrops(block);
-        BlockCaptureDrops.captureDrops(world);
+        try {
+            BlockCaptureDrops.captureDrops(world);
 
-        world.setBlockToAir(x, y, z);
-
-        givePlayerItems(BlockCaptureDrops.stopCapturingDrops(block).toArray(new ItemStack[0]));
-        givePlayerItems(BlockCaptureDrops.stopCapturingDrops(world).toArray(new ItemStack[0]));
+            world.setBlockToAir(x, y, z);
+        } finally {
+            givePlayerItems(BlockCaptureDrops.stopCapturingDrops(world).toArray(new ItemStack[0]));
+        }
     }
 
     @Optional({

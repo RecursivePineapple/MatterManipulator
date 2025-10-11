@@ -328,25 +328,19 @@ public class PendingBlock extends Location {
             }
         }
 
-        Block block = world.getBlock(context.getX(), context.getY(), context.getZ());
-
         BlockCaptureDrops.captureDrops(world);
-        BlockCaptureDrops.captureDrops(block);
 
-        for (var analysis : getIntegrations()) {
-            if (!analysis.apply(context)) return false;
+        try {
+            for (var analysis : getIntegrations()) {
+                if (!analysis.apply(context)) return false;
+            }
+
+            if (context.getTileEntity() instanceof IInventory inventory && this.inventory != null) {
+                if (!this.inventory.apply(context, inventory, true, false)) return false;
+            }
+        } finally {
+            context.givePlayerItems(BlockCaptureDrops.stopCapturingDrops(world).toArray(new ItemStack[0]));
         }
-
-        if (context.getTileEntity() instanceof IInventory inventory && this.inventory != null) {
-            if (!this.inventory.apply(context, inventory, true, false)) { return false; }
-        }
-
-        ArrayList<ItemStack> drops = new ArrayList<>();
-
-        drops.addAll(BlockCaptureDrops.stopCapturingDrops(world));
-        drops.addAll(BlockCaptureDrops.stopCapturingDrops(block));
-
-        context.givePlayerItems(drops.toArray(new ItemStack[0]));
 
         world.notifyBlockOfNeighborChange(x, y, z, Blocks.air);
 
