@@ -10,7 +10,7 @@ public enum Mixin implements IMixins {
 
     BlockDropCapturing(
         new MixinBuilder("Expose mechanism to capture non-standard block drops")
-            .addCommonMixins("MixinBlockDropCapturing", "MixinWorldDropCapturing")
+            .addCommonMixins("MixinWorldDropCapturing")
             .setPhase(Phase.EARLY)
     ),
     DireAutoCraftDrops(

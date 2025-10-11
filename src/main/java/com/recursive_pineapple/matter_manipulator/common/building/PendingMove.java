@@ -287,20 +287,20 @@ public class PendingMove extends AbstractBuildable {
         BlockMover<Object> source = (BlockMover<Object>) getBlockMover(worldS, sx, sy, sz);
         BlockMover<Object> dest = (BlockMover<Object>) getBlockMover(worldD, dx, dy, dz);
 
-        BlockCaptureDrops.captureDrops(blockS);
-        BlockCaptureDrops.captureDrops(blockD);
-        BlockCaptureDrops.captureDrops(world);
+        try {
+            BlockCaptureDrops.captureDrops(worldS);
+            if (worldS != worldD) BlockCaptureDrops.captureDrops(worldD);
 
-        Object sourceState = source.remove(worldS, sx, sy, sz);
-        Object destState = dest.remove(worldD, dx, dy, dz);
+            Object sourceState = source.remove(worldS, sx, sy, sz);
+            Object destState = dest.remove(worldD, dx, dy, dz);
 
-        source.place(worldD, dx, dy, dz, sourceState);
-        dest.place(worldS, sx, sy, sz, destState);
-
-        // delete any items that were dropped
-        BlockCaptureDrops.stopCapturingDrops(blockS);
-        BlockCaptureDrops.stopCapturingDrops(blockD);
-        BlockCaptureDrops.stopCapturingDrops(world);
+            source.place(worldD, dx, dy, dz, sourceState);
+            dest.place(worldS, sx, sy, sz, destState);
+        } finally {
+            // delete any items that were dropped
+            BlockCaptureDrops.stopCapturingDrops(worldS);
+            if (worldS != worldD) BlockCaptureDrops.stopCapturingDrops(worldD);
+        }
 
         return true;
     }

@@ -1,6 +1,7 @@
 package com.recursive_pineapple.matter_manipulator.common.building;
 
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendWarningToPlayer;
+import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.AppliedEnergistics2;
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
 
 import java.util.ArrayList;
@@ -10,8 +11,8 @@ import java.util.Iterator;
 import java.util.function.Function;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -151,13 +152,15 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         }
 
         if (voidDrops) {
-            BlockCaptureDrops.captureDrops(block);
-            BlockCaptureDrops.captureDrops(world);
-            // Because GT uses this to call MTE.onRemoval() :doom:
-            block.getDrops(world, x, y, z, meta, 0);
-            world.setBlockToAir(x, y, z);
-            BlockCaptureDrops.stopCapturingDrops(block);
-            BlockCaptureDrops.stopCapturingDrops(world);
+            try {
+                BlockCaptureDrops.captureDrops(world);
+                // Because GT uses this to call MTE.onRemoval() :doom:
+                block.getDrops(world, x, y, z, meta, 0);
+                world.setBlockToAir(x, y, z);
+            } finally {
+                BlockCaptureDrops.stopCapturingDrops(world);
+            }
+
             return;
         }
 
@@ -180,8 +183,8 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
 
         if (block instanceof IFluidBlock fluidBlock && fluidBlock.canDrain(world, x, y, z)) {
             givePlayerFluids(fluidBlock.drain(world, x, y, z, true));
-        } else if (block == Blocks.water || block == Blocks.lava) {
-            givePlayerFluids(new FluidStack(block == Blocks.water ? FluidRegistry.WATER : FluidRegistry.LAVA, 1000));
+        } else if ((block.getMaterial() == Material.water || block.getMaterial() == Material.lava) && meta == 0) {
+            givePlayerFluids(new FluidStack(block.getMaterial() == Material.water ? FluidRegistry.WATER : FluidRegistry.LAVA, 1000));
         } else {
             ArrayList<ItemStack> items = block.getDrops(world, x, y, z, meta, 0);
             float chance = ForgeEventFactory.fireBlockHarvesting(items, world, block, x, y, z, meta, 0, 1, false, player);
@@ -198,13 +201,13 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
             givePlayerItems(items.toArray(new ItemStack[0]));
         }
 
-        BlockCaptureDrops.captureDrops(block);
-        BlockCaptureDrops.captureDrops(world);
+        try {
+            BlockCaptureDrops.captureDrops(world);
 
-        world.setBlockToAir(x, y, z);
-
-        givePlayerItems(BlockCaptureDrops.stopCapturingDrops(block).toArray(new ItemStack[0]));
-        givePlayerItems(BlockCaptureDrops.stopCapturingDrops(world).toArray(new ItemStack[0]));
+            world.setBlockToAir(x, y, z);
+        } finally {
+            givePlayerItems(BlockCaptureDrops.stopCapturingDrops(world).toArray(new ItemStack[0]));
+        }
     }
 
     @Optional({
@@ -268,6 +271,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
     protected void emptyTank(TileEntity te) {
         if (te instanceof IFluidHandler handler) {
             if (GregTech.isModLoaded() && MMUtils.isStockingHatch(handler)) return;
+            if (AppliedEnergistics2.isModLoaded() && MMUtils.isPartHost(handler)) return;
 
             int i = 0;
             FluidStack fluid;
