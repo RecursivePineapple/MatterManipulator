@@ -347,13 +347,16 @@ public class MMInventory implements IPseudoInventory {
 
         // spotless:off
         ItemStack idealCell = MMUtils.streamInventory(player.inventory)
+            .filter(x -> (
+                x != null &&
+                x.getItem() instanceof IFluidContainerItem container &&
+                x.stackSize == 1
+            ))
             .sorted(Comparator.comparingInt((ItemStack x) -> (
                 x != null && x.getItem() instanceof IFluidContainerItem container ? container.getCapacity(x) : 0
             )))
             .filter(x -> (
-                x != null &&
-                x.getItem() instanceof IFluidContainerItem container &&
-                container.fill(x, fluid, false) == fluid.amount
+                ((IFluidContainerItem) x.getItem()).fill(x, fluid, false) == fluid.amount
             ))
             .findFirst()
             .orElse(null);
@@ -372,6 +375,7 @@ public class MMInventory implements IPseudoInventory {
             .filter(x -> (
                 x != null &&
                 x.getItem() instanceof IFluidContainerItem container &&
+                x.stackSize == 1 &&
                 container.fill(x, fluid, false) > 0
             ))
             .collect(Collectors.toList());

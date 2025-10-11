@@ -11,8 +11,8 @@ import java.util.Iterator;
 import java.util.function.Function;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -183,8 +183,8 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
 
         if (block instanceof IFluidBlock fluidBlock && fluidBlock.canDrain(world, x, y, z)) {
             givePlayerFluids(fluidBlock.drain(world, x, y, z, true));
-        } else if (block == Blocks.water || block == Blocks.lava) {
-            givePlayerFluids(new FluidStack(block == Blocks.water ? FluidRegistry.WATER : FluidRegistry.LAVA, 1000));
+        } else if ((block.getMaterial() == Material.water || block.getMaterial() == Material.lava) && meta == 0) {
+            givePlayerFluids(new FluidStack(block.getMaterial() == Material.water ? FluidRegistry.WATER : FluidRegistry.LAVA, 1000));
         } else {
             ArrayList<ItemStack> items = block.getDrops(world, x, y, z, meta, 0);
             float chance = ForgeEventFactory.fireBlockHarvesting(items, world, block, x, y, z, meta, 0, 1, false, player);
