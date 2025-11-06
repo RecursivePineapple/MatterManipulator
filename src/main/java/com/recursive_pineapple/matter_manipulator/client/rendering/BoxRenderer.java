@@ -1,7 +1,6 @@
 package com.recursive_pineapple.matter_manipulator.client.rendering;
 
 import java.nio.ByteBuffer;
-import java.util.List;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.OpenGlHelper;
@@ -10,7 +9,6 @@ import net.minecraft.util.AxisAlignedBB;
 
 import com.gtnewhorizon.gtnhlib.client.renderer.CapturingTessellator;
 import com.gtnewhorizon.gtnhlib.client.renderer.TessellatorManager;
-import com.gtnewhorizon.gtnhlib.client.renderer.quad.QuadView;
 import com.gtnewhorizon.gtnhlib.client.renderer.shader.ShaderProgram;
 import com.gtnewhorizon.gtnhlib.client.renderer.vbo.VertexBuffer;
 import com.gtnewhorizon.gtnhlib.client.renderer.vertex.DefaultVertexFormat;
@@ -150,7 +148,7 @@ public class BoxRenderer {
      * Actually draws the stored boxes.
      */
     public void finish() {
-        List<QuadView> quads = TessellatorManager.stopCapturingToPooledQuads();
+        final var quads = TessellatorManager.stopCapturingToPooledQuads();
 
         QuadViewComparator quadSorter = new QuadViewComparator();
         quads.sort(quadSorter);
