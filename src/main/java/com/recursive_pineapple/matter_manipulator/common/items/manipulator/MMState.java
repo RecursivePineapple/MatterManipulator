@@ -56,6 +56,7 @@ import com.recursive_pineapple.matter_manipulator.common.building.PendingBlock;
 import com.recursive_pineapple.matter_manipulator.common.data.WeightedSpecList;
 import com.recursive_pineapple.matter_manipulator.common.items.MMUpgrades;
 import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
+import com.recursive_pineapple.matter_manipulator.common.persist.BitSetJsonAdapter;
 import com.recursive_pineapple.matter_manipulator.common.persist.NBTJsonAdapter;
 import com.recursive_pineapple.matter_manipulator.common.persist.StaticEnumJsonAdapter;
 import com.recursive_pineapple.matter_manipulator.common.persist.UIDJsonAdapter;
@@ -78,6 +79,7 @@ public class MMState {
         .registerTypeAdapter(NBTTagCompound.class, new NBTJsonAdapter())
         .registerTypeAdapter(ForgeDirection.class, new StaticEnumJsonAdapter<>(ForgeDirection.class))
         .registerTypeAdapter(WeightedSpecList.class, new WeightedListJsonAdapter())
+        .registerTypeAdapter(BitSet.class, new BitSetJsonAdapter())
         .create();
 
     @SerializedName("jv")
@@ -91,7 +93,7 @@ public class MMState {
     public double charge;
 
     public BitSet installedUpgrades = new BitSet();
-    public int upgradeProvidedCapabilities;
+    public transient int upgradeProvidedCapabilities;
 
     public transient ItemMatterManipulator manipulator;
 
@@ -148,7 +150,18 @@ public class MMState {
                 config.remove("replaceWhitelist");
                 config.remove("replaceWith");
             }
+
             version = 1;
+        }
+
+        if (version == 1) {
+            // Load with the default encoder
+            BitSet bitSet = new Gson().fromJson(obj.get("installedUpgrades"), BitSet.class);
+
+            // Save with the new encoder
+            obj.add("installedUpgrades", GSON.toJsonTree(bitSet));
+
+            version = 2;
         }
 
         obj.addProperty("jv", version);
