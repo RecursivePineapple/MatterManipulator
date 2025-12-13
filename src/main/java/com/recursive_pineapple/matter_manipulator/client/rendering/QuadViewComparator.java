@@ -2,7 +2,7 @@ package com.recursive_pineapple.matter_manipulator.client.rendering;
 
 import java.util.Comparator;
 
-import com.gtnewhorizon.gtnhlib.client.renderer.quad.QuadView;
+import com.gtnewhorizon.gtnhlib.client.renderer.cel.model.quad.ModelQuadView;
 
 import org.joml.Vector3f;
 
@@ -11,7 +11,7 @@ import org.joml.Vector3f;
  * It's mostly copied from the vanilla comparator.
  * This can certainly be improved, but it works well enough so I haven't.
  */
-public class QuadViewComparator implements Comparator<QuadView> {
+public class QuadViewComparator implements Comparator<ModelQuadView> {
 
     private float pX, pY, pZ;
 
@@ -22,7 +22,7 @@ public class QuadViewComparator implements Comparator<QuadView> {
     }
 
     @Override
-    public int compare(QuadView q1, QuadView q2) {
+    public int compare(ModelQuadView q1, ModelQuadView q2) {
         Vector3f avg1 = new Vector3f();
         Vector3f avg2 = new Vector3f();
 
