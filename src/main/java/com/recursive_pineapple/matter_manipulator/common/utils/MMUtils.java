@@ -74,9 +74,6 @@ import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.IFluidHandler;
 
-import appeng.api.storage.data.IAEItemStack;
-import appeng.api.storage.data.IAEStack;
-import appeng.tile.inventory.IAEStackInventory;
 import cpw.mods.fml.relauncher.ReflectionHelper;
 
 import gregtech.api.GregTechAPI;
@@ -94,7 +91,10 @@ import appeng.api.parts.IPartHost;
 import appeng.api.parts.IPartItem;
 import appeng.api.parts.PartItemStack;
 import appeng.api.storage.ICellWorkbenchItem;
+import appeng.api.storage.data.IAEItemStack;
+import appeng.api.storage.data.IAEStack;
 import appeng.parts.automation.UpgradeInventory;
+import appeng.tile.inventory.IAEStackInventory;
 import appeng.util.Platform;
 
 import com.google.gson.JsonArray;

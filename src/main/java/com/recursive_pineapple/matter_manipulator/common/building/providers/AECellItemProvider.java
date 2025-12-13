@@ -12,8 +12,8 @@ import appeng.api.config.FuzzyMode;
 import appeng.api.definitions.IItemDefinition;
 import appeng.api.storage.ICellWorkbenchItem;
 import appeng.parts.automation.UpgradeInventory;
-
 import appeng.tile.inventory.IAEStackInventory;
+
 import com.recursive_pineapple.matter_manipulator.common.building.IPseudoInventory;
 import com.recursive_pineapple.matter_manipulator.common.building.PortableItemStack;
 import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
