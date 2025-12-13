@@ -74,6 +74,9 @@ import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.IFluidHandler;
 
+import appeng.api.storage.data.IAEItemStack;
+import appeng.api.storage.data.IAEStack;
+import appeng.tile.inventory.IAEStackInventory;
 import cpw.mods.fml.relauncher.ReflectionHelper;
 
 import gregtech.api.GregTechAPI;
@@ -785,6 +788,24 @@ public class MMUtils {
             ItemStack stack = inventory.getStackInSlot(i);
 
             out[i] = stack == null ? null : new PortableItemStack(stack);
+        }
+
+        return out;
+    }
+
+    /**
+     * Doesn't merge stacks and preserves the order of stacks.
+     * Empty indices will be null.
+     */
+    public static PortableItemStack[] fromInventoryNoMerge(IAEStackInventory inventory) {
+        PortableItemStack[] out = new PortableItemStack[inventory.getSizeInventory()];
+
+        for (int i = 0; i < out.length; i++) {
+            IAEStack<?> stack = inventory.getAEStackInSlot(i);
+
+            if (stack instanceof IAEItemStack itemStack) {
+                out[i] = new PortableItemStack(itemStack.getItemStack());
+            }
         }
 
         return out;
