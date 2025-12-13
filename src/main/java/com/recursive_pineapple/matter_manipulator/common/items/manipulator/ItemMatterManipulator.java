@@ -46,6 +46,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
+import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMConfig.VoxelAABB;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Optional.Interface;
 import cpw.mods.fml.common.Optional.InterfaceList;
@@ -108,7 +109,9 @@ import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
 
+import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3i;
+import org.joml.Vector3ic;
 
 import ic2.api.item.IElectricItemManager;
 import ic2.api.item.ISpecialElectricItem;
@@ -1647,48 +1650,105 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
                         .setSize(40, 36 + 30))
             };
 
-            Widget[] right = {
-                makeHeader(StatCollector.translateToLocal("mm.transform.header.copy")),
-                padding(2, 2),
-                makeCoordinateEditor(buildContext.getPlayer(), -1, 0),
-                padding(2, 2),
-                makeCoordinateEditor(buildContext.getPlayer(), -1, 1),
-                padding(2, 2),
-                makeCoordinateEditor(buildContext.getPlayer(), -1, 2),
-                padding(2, 2),
-                makeHeader(StatCollector.translateToLocal("mm.transform.header.copy_a")),
-                padding(2, 2),
-                makeCoordinateEditor(buildContext.getPlayer(), 0, 0),
-                padding(2, 2),
-                makeCoordinateEditor(buildContext.getPlayer(), 0, 1),
-                padding(2, 2),
-                makeCoordinateEditor(buildContext.getPlayer(), 0, 2),
-                padding(10, 2),
-                makeHeader(StatCollector.translateToLocal("mm.transform.header.copy_b")),
-                padding(2, 2),
-                makeCoordinateEditor(buildContext.getPlayer(), 1, 0),
-                padding(2, 2),
-                makeCoordinateEditor(buildContext.getPlayer(), 1, 1),
-                padding(2, 2),
-                makeCoordinateEditor(buildContext.getPlayer(), 1, 2),
-                padding(10, 2),
-                makeHeader(StatCollector.translateToLocal("mm.transform.header.paste")),
-                padding(2, 2),
-                makeCoordinateEditor(buildContext.getPlayer(), 2, 0),
-                padding(2, 2),
-                makeCoordinateEditor(buildContext.getPlayer(), 2, 1),
-                padding(2, 2),
-                makeCoordinateEditor(buildContext.getPlayer(), 2, 2),
-                padding(10, 2),
-                makeHeader(StatCollector.translateToLocal("mm.transform.header.stacking")),
-                padding(2, 2),
-                makeCoordinateEditor(buildContext.getPlayer(), 3, 0),
-                padding(2, 2),
-                makeCoordinateEditor(buildContext.getPlayer(), 3, 1),
-                padding(2, 2),
-                makeCoordinateEditor(buildContext.getPlayer(), 3, 2),
-                padding(10, 2)
-            };
+            Widget[] right, lessRight;
+
+            if (Minecraft.getMinecraft().gameSettings.guiScale <= 2) {
+                right = new Widget[] {
+                    makeHeader(StatCollector.translateToLocal("mm.transform.header.copy")),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.Copy, CoordComponent.X),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.Copy, CoordComponent.Y),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.Copy, CoordComponent.Z),
+                    padding(2, 2),
+
+                    makeHeader(StatCollector.translateToLocal("mm.transform.header.copy_a")),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.CopyA, CoordComponent.X),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.CopyA, CoordComponent.Y),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.CopyA, CoordComponent.Z),
+                    padding(10, 2),
+
+                    makeHeader(StatCollector.translateToLocal("mm.transform.header.copy_b")),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.CopyB, CoordComponent.X),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.CopyB, CoordComponent.Y),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.CopyB, CoordComponent.Z),
+                    padding(10, 2),
+
+                    makeHeader(StatCollector.translateToLocal("mm.transform.header.paste")),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.Paste, CoordComponent.X),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.Paste, CoordComponent.Y),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.Paste, CoordComponent.Z),
+                    padding(10, 2),
+
+                    makeHeader(StatCollector.translateToLocal("mm.transform.header.stacking")),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.Stack, CoordComponent.X),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.Stack, CoordComponent.Y),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.Stack, CoordComponent.Z),
+                    padding(10, 2)
+                };
+
+                lessRight = new Widget[0];
+            } else {
+                right = new Widget[] {
+                    makeHeader(StatCollector.translateToLocal("mm.transform.header.copy_a")),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.CopyA, CoordComponent.X),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.CopyA, CoordComponent.Y),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.CopyA, CoordComponent.Z),
+                    padding(10, 2),
+
+                    makeHeader(StatCollector.translateToLocal("mm.transform.header.copy_b")),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.CopyB, CoordComponent.X),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.CopyB, CoordComponent.Y),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.CopyB, CoordComponent.Z),
+                    padding(10, 2),
+
+                    makeHeader(StatCollector.translateToLocal("mm.transform.header.paste")),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.Paste, CoordComponent.X),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.Paste, CoordComponent.Y),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.Paste, CoordComponent.Z),
+                };
+
+                lessRight = new Widget[] {
+                    makeHeader(StatCollector.translateToLocal("mm.transform.header.copy")),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.Copy, CoordComponent.X),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.Copy, CoordComponent.Y),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.Copy, CoordComponent.Z),
+                    padding(2, 2),
+
+                    makeHeader(StatCollector.translateToLocal("mm.transform.header.stacking")),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.Stack, CoordComponent.X),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.Stack, CoordComponent.Y),
+                    padding(2, 2),
+                    makeCoordinateEditor(buildContext.getPlayer(), Coord.Stack, CoordComponent.Z),
+                };
+            }
 
             builder.widget(
                 new Row().widgets(
@@ -1697,14 +1757,22 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
                         .setAlignment(MainAxisAlignment.CENTER, CrossAxisAlignment.START)
                         .widgets(left)).fillParent());
 
-            Column cr;
+            Column columnRight, columnLessRight;
 
             builder.widget(
-                (cr = new Column())
+                (columnRight = new Column())
                     .setAlignment(MainAxisAlignment.CENTER, CrossAxisAlignment.END)
                     .widgets(right)
                     .setPosProvider((screenSize, window, parent) -> {
-                        return new Pos2d(screenSize.width - cr.getSize().width - 10, 0);
+                        return new Pos2d(screenSize.width - columnRight.getSize().width - 10, 0);
+                    }));
+
+            builder.widget(
+                (columnLessRight = new Column())
+                    .setAlignment(MainAxisAlignment.CENTER, CrossAxisAlignment.END)
+                    .widgets(lessRight)
+                    .setPosProvider((screenSize, window, parent) -> {
+                        return new Pos2d(screenSize.width - columnRight.getSize().width - columnLessRight.getSize().width - 20, 0);
                     }));
         }
 
@@ -1733,180 +1801,54 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
     private static final AdaptableUITexture DISPLAY = AdaptableUITexture
         .of("modularui:gui/background/display", 143, 75, 2);
 
+    private enum Coord {
+        Copy,
+        CopyA,
+        CopyB,
+        Paste,
+        Stack
+    }
+
+    private enum CoordComponent {
+        X,
+        Y,
+        Z;
+
+        public int get(Vector3ic v) {
+            return switch (this) {
+                case X -> v.x();
+                case Y -> v.y();
+                case Z -> v.z();
+            };
+        }
+
+        public void set(Vector3i v, int k) {
+            switch (this) {
+                case X -> v.x = k;
+                case Y -> v.y = k;
+                case Z -> v.z = k;
+            };
+        }
+    }
+
     @SideOnly(Side.CLIENT)
-    private Row makeCoordinateEditor(EntityPlayer player, int coord, int component) {
-        IntSupplier getter = () -> {
-            MMState currState = getState(player.getHeldItem());
-
-            Vector3i l = switch (coord) {
-                case -1 -> new Vector3i(0);
-                case 0 -> currState.config.coordA == null ? null : currState.config.coordA.toVec();
-                case 1 -> currState.config.coordB == null ? null : currState.config.coordB.toVec();
-                case 2 -> currState.config.coordC == null ? null : currState.config.coordC.toVec();
-                case 3 -> currState.config.arraySpan;
-                default -> throw new IllegalArgumentException("coord");
-            };
-
-            if (l == null) {
-                if (coord == 3) {
-                    l = new Vector3i(0);
-                } else {
-                    l = getDefaultLocation(player);
-                }
-            }
-
-            return switch (component) {
-                case 0 -> l.x;
-                case 1 -> l.y;
-                case 2 -> l.z;
-                default -> throw new IllegalArgumentException("component");
-            };
-        };
+    private Row makeCoordinateEditor(EntityPlayer player, Coord coord, CoordComponent component) {
+        IntSupplier getter = createGetter(player, coord, component);
+        IntConsumer setter = createSetter(player, coord, component);
+        SizeStorage storage = new SizeStorage(player, coord, component);
 
         IntSupplier getterVisual = () -> {
             int k = getter.getAsInt();
 
-            if (coord == 3) {
+            if (coord == Coord.Stack) {
                 if (k >= 0) k++;
             }
 
             return k;
         };
 
-        IntConsumer setter = i -> {
-            MMState currState = getState(player.getHeldItem());
-
-            Vector3i l = switch (coord) {
-                case -1 -> new Vector3i(0);
-                case 0 -> currState.config.coordA == null ? null : currState.config.coordA.toVec();
-                case 1 -> currState.config.coordB == null ? null : currState.config.coordB.toVec();
-                case 2 -> currState.config.coordC == null ? null : currState.config.coordC.toVec();
-                case 3 -> currState.config.arraySpan;
-                default -> throw new IllegalArgumentException("coord");
-            };
-
-            if (l == null) {
-                if (coord == 3) {
-                    l = new Vector3i(0);
-                } else {
-                    l = getDefaultLocation(player);
-                }
-            }
-
-            switch (component) {
-                case 0 -> l.x = i;
-                case 1 -> l.y = i;
-                case 2 -> l.z = i;
-                default -> throw new IllegalArgumentException("component");
-            }
-
-            switch (coord) {
-                case -1 -> {
-                    if (currState.config.coordA != null) {
-                        currState.config.coordA = new Location(player.worldObj, currState.config.coordA.toVec().add(l));
-                    }
-
-                    if (currState.config.coordB != null) {
-                        currState.config.coordB = new Location(player.worldObj, currState.config.coordB.toVec().add(l));
-                    }
-                }
-                case 0 -> currState.config.coordA = new Location(player.worldObj, l);
-                case 1 -> currState.config.coordB = new Location(player.worldObj, l);
-                case 2 -> currState.config.coordC = new Location(player.worldObj, l);
-                case 3 -> currState.config.arraySpan = l;
-                default -> throw new IllegalArgumentException("coord");
-            }
-
-            ItemMatterManipulator.setState(player.getHeldItem(), currState);
-
-            switch (coord) {
-                case -1 -> {
-                    if (currState.config.coordA != null) {
-                        Messages.SetA.sendToServer(currState.config.coordA.toVec().add(l));
-                    }
-
-                    if (currState.config.coordB != null) {
-                        Messages.SetB.sendToServer(currState.config.coordB.toVec().add(l));
-                    }
-                }
-                case 0 -> {
-                    Messages.SetA.sendToServer(l);
-                }
-                case 1 -> {
-                    Messages.SetB.sendToServer(l);
-                }
-                case 2 -> {
-                    Messages.SetC.sendToServer(l);
-                }
-                case 3 -> {
-                    Messages.SetArray.sendToServer(l);
-                }
-                default -> throw new IllegalArgumentException("coord");
-            }
-        };
-
-        String compName = switch (component) {
-            case 0 -> "X";
-            case 1 -> "Y";
-            case 2 -> "Z";
-            default -> throw new IllegalArgumentException("component");
-        };
-
-        class SizeStorage {
-            public int x, y, z;
-            public boolean present = false;
-
-            public Vector3i get() {
-                if (!present && GuiScreen.isCtrlKeyDown()) {
-                    MMState currState = getState(player.getHeldItem());
-
-                    Vector3i size;
-
-                    if (coord == 2) {
-                        size = currState.config.getPasteVisualDeltas(null, false).size();
-                    } else {
-                        size = currState.config.getCopyVisualDeltas(null).size();
-                    }
-
-                    x = size.x;
-                    y = size.y;
-                    z = size.z;
-                    present = true;
-                }
-
-                if (!GuiScreen.isCtrlKeyDown()) {
-                    present = false;
-                }
-
-                return present ? new Vector3i(x, y, z) : new Vector3i(1);
-            }
-
-            public int getOffset() {
-                int offset = 1;
-
-                if (GuiScreen.isShiftKeyDown()) {
-                    offset = 10;
-                } else if (coord != 3 && GuiScreen.isCtrlKeyDown()) {
-                    Vector3i size = get();
-
-                    offset = switch (component) {
-                        case 0 -> size.x;
-                        case 1 -> size.y;
-                        case 2 -> size.z;
-                        default -> throw new IllegalArgumentException("component");
-                    };
-                } else {
-                    present = false;
-                }
-
-                return offset;
-            }
-        }
-
-        SizeStorage storage = new SizeStorage();
-
         return new Row().widgets(
-            new VanillaButtonWidget().setDisplayString(compName + " - 1")
+            new VanillaButtonWidget().setDisplayString(component.name() + " - 1")
                 .setOnClick(
                     (t, u) -> {
                         int i = getter.getAsInt();
@@ -1918,11 +1860,11 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
                 .setSynced(false, false)
                 .setSize(40, 18)
                 .setTicker(w -> {
-                    ((VanillaButtonWidget) w).setDisplayString(compName + " - " + storage.getOffset());
+                    ((VanillaButtonWidget) w).setDisplayString(component.name() + " - " + storage.getOffset());
                 }),
             padding(5, 5),
             new MultiChildWidget()
-                .addChild(coord != -1 ? (
+                .addChild(coord != Coord.Copy ? (
                     new NumericWidget()
                         .setSynced(false, false)
                         .setIntegerOnly(true)
@@ -1949,7 +1891,7 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
                 ))
                 .setSize(40, 18),
             padding(5, 5),
-            new VanillaButtonWidget().setDisplayString(compName + " + 1")
+            new VanillaButtonWidget().setDisplayString(component.name() + " + 1")
                 .setOnClick(
                     (t, u) -> {
                         int i = getter.getAsInt();
@@ -1961,8 +1903,150 @@ public class ItemMatterManipulator extends Item implements ISpecialElectricItem,
                 .setSynced(false, false)
                 .setSize(40, 18)
                 .setTicker(w -> {
-                    ((VanillaButtonWidget) w).setDisplayString(compName + " + " + storage.getOffset());
+                    ((VanillaButtonWidget) w).setDisplayString(component.name() + " + " + storage.getOffset());
                 }));
+    }
+
+    private static @NotNull Vector3i getTransformLocation(EntityPlayer player, Coord coord, MMState currState) {
+        Vector3i loc = switch (coord) {
+            case Copy -> new Vector3i(0);
+            case CopyA -> currState.config.coordA == null ? null : currState.config.coordA.toVec();
+            case CopyB -> currState.config.coordB == null ? null : currState.config.coordB.toVec();
+            case Paste -> currState.config.coordC == null ? null : currState.config.coordC.toVec();
+            case Stack -> currState.config.arraySpan;
+        };
+
+        if (loc == null) {
+            if (coord == Coord.Stack) {
+                loc = new Vector3i(0);
+            } else {
+                loc = getDefaultLocation(player);
+            }
+        }
+
+        return loc;
+    }
+
+    private static @NotNull IntSupplier createGetter(EntityPlayer player, Coord coord, CoordComponent component) {
+        return () -> {
+            MMState currState = getState(player.getHeldItem());
+
+            Vector3i loc = getTransformLocation(player, coord, currState);
+
+            return component.get(loc);
+        };
+    }
+
+    private static @NotNull IntConsumer createSetter(EntityPlayer player, Coord coord, CoordComponent component) {
+        return i -> {
+            MMState currState = getState(player.getHeldItem());
+
+            Vector3i loc = getTransformLocation(player, coord, currState);
+
+            component.set(loc, i);
+
+            switch (coord) {
+                case Copy -> {
+                    if (currState.config.coordA != null) {
+                        currState.config.coordA = new Location(player.worldObj, currState.config.coordA.toVec().add(loc));
+                    }
+
+                    if (currState.config.coordB != null) {
+                        currState.config.coordB = new Location(player.worldObj, currState.config.coordB.toVec().add(loc));
+                    }
+                }
+                case CopyA -> currState.config.coordA = new Location(player.worldObj, loc);
+                case CopyB -> currState.config.coordB = new Location(player.worldObj, loc);
+                case Paste -> currState.config.coordC = new Location(player.worldObj, loc);
+                case Stack -> currState.config.arraySpan = loc;
+            }
+
+            ItemMatterManipulator.setState(player.getHeldItem(), currState);
+
+            switch (coord) {
+                case Copy -> {
+                    if (currState.config.coordA != null) {
+                        Messages.SetA.sendToServer(currState.config.coordA.toVec());
+                    }
+
+                    if (currState.config.coordB != null) {
+                        Messages.SetB.sendToServer(currState.config.coordB.toVec());
+                    }
+                }
+                case CopyA -> {
+                    Messages.SetA.sendToServer(loc);
+                }
+                case CopyB -> {
+                    Messages.SetB.sendToServer(loc);
+                }
+                case Paste -> {
+                    Messages.SetC.sendToServer(loc);
+                }
+                case Stack -> {
+                    Messages.SetArray.sendToServer(loc);
+                }
+            }
+        };
+    }
+
+    private static class SizeStorage {
+
+        private final EntityPlayer player;
+        private final Coord coord;
+        private final CoordComponent component;
+        public int x, y, z;
+        public boolean present;
+
+        SizeStorage(EntityPlayer player, Coord coord, CoordComponent component) {
+            this.player = player;
+            this.coord = coord;
+            this.component = component;
+            present = false;
+        }
+
+        public Vector3i get() {
+            if (!present && GuiScreen.isCtrlKeyDown()) {
+                MMState currState = getState(player.getHeldItem());
+
+                Vector3i size;
+                VoxelAABB deltas;
+
+                if (coord == Coord.Paste) {
+                    deltas = currState.config.getPasteVisualDeltas(null, false);
+                } else {
+                    deltas = currState.config.getCopyVisualDeltas(null);
+                }
+
+                size = deltas == null ? new Vector3i(1, 1, 1) : deltas.size();
+
+                x = size.x;
+                y = size.y;
+                z = size.z;
+                present = true;
+            }
+
+            if (!GuiScreen.isCtrlKeyDown()) {
+                present = false;
+            }
+
+            return present ? new Vector3i(x, y, z) : new Vector3i(1);
+        }
+
+        public int getOffset() {
+            int offset = 1;
+
+            if (GuiScreen.isShiftKeyDown()) {
+                offset = 10;
+            } else if (coord != Coord.Stack && GuiScreen.isCtrlKeyDown()) {
+                Vector3i size = get();
+
+                offset = component.get(size);
+            } else {
+                present = false;
+            }
+
+            return offset;
+        }
     }
     // spotless:on
 
