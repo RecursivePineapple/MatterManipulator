@@ -17,7 +17,6 @@ import net.minecraft.world.World;
 
 import net.minecraftforge.common.util.ForgeDirection;
 
-import com.recursive_pineapple.matter_manipulator.MMMod;
 import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
 
 import gregtech.common.blocks.BlockMachines;
@@ -44,6 +43,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
 import com.gtnewhorizon.structurelib.util.XSTR;
+import com.recursive_pineapple.matter_manipulator.MMMod;
 import com.recursive_pineapple.matter_manipulator.asm.Optional;
 import com.recursive_pineapple.matter_manipulator.common.building.AEAnalysisResult;
 import com.recursive_pineapple.matter_manipulator.common.building.AEPartData;
