@@ -12,6 +12,7 @@ import appeng.api.config.FuzzyMode;
 import appeng.api.definitions.IItemDefinition;
 import appeng.api.storage.ICellWorkbenchItem;
 import appeng.parts.automation.UpgradeInventory;
+import appeng.tile.inventory.IAEStackInventory;
 
 import com.recursive_pineapple.matter_manipulator.common.building.IPseudoInventory;
 import com.recursive_pineapple.matter_manipulator.common.building.PortableItemStack;
@@ -42,7 +43,7 @@ public class AECellItemProvider implements IItemProvider {
         cell.mCell = new PortableItemStack(stack);
         IInventory upgrades = item.getUpgradesInventory(stack);
         cell.mUpgrades = upgrades == null ? null : MMUtils.fromInventory(upgrades);
-        IInventory config = item.getConfigInventory(stack);
+        IAEStackInventory config = item.getConfigAEInventory(stack);
         cell.mConfig = config == null ? null : MMUtils.fromInventoryNoMerge(config);
         cell.mFuzzyMode = switch (item.getFuzzyMode(stack)) {
             case IGNORE_ALL -> 0;
@@ -50,6 +51,8 @@ public class AECellItemProvider implements IItemProvider {
             case PERCENT_50 -> 2;
             case PERCENT_75 -> 3;
             case PERCENT_99 -> 4;
+            case PERCENT_10 -> 5;
+            case PERCENT_1 -> 6;
         };
 
         IItemDefinition oredictCard = AEApi.instance()
@@ -120,6 +123,8 @@ public class AECellItemProvider implements IItemProvider {
             case 2 -> FuzzyMode.PERCENT_50;
             case 3 -> FuzzyMode.PERCENT_75;
             case 4 -> FuzzyMode.PERCENT_99;
+            case 5 -> FuzzyMode.PERCENT_10;
+            case 6 -> FuzzyMode.PERCENT_1;
             default -> FuzzyMode.IGNORE_ALL;
         });
 
