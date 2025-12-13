@@ -17,6 +17,7 @@ import net.minecraft.world.World;
 
 import net.minecraftforge.common.util.ForgeDirection;
 
+import com.recursive_pineapple.matter_manipulator.MMMod;
 import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
 
 import gregtech.common.blocks.BlockMachines;
@@ -138,7 +139,7 @@ public class MMState {
     }
 
     private static void migrateJson(JsonObject obj) {
-        int version = obj.has("jv") ? obj.get("jv").getAsInt() : 0;
+        int version = obj.has("jv") ? obj.get("jv").getAsInt() : 2;
 
         if (version == 0) {
             if (obj.get("config") instanceof JsonObject config) {
@@ -155,11 +156,15 @@ public class MMState {
         }
 
         if (version == 1) {
-            // Load with the default encoder
-            BitSet bitSet = new Gson().fromJson(obj.get("installedUpgrades"), BitSet.class);
+            try {
+                // Load with the default encoder
+                BitSet bitSet = new Gson().fromJson(obj.get("installedUpgrades"), BitSet.class);
 
-            // Save with the new encoder
-            obj.add("installedUpgrades", GSON.toJsonTree(bitSet));
+                // Save with the new encoder
+                obj.add("installedUpgrades", GSON.toJsonTree(bitSet));
+            } catch (Throwable t) {
+                MMMod.LOG.error("Could not migrate installedUpgrades: your MM upgrades may have been deleted.", t);
+            }
 
             version = 2;
         }
