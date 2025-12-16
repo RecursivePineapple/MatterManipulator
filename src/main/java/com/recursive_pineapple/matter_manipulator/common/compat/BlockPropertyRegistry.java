@@ -46,6 +46,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.ForgeDirection;
 
+import com.rwtema.extrautils.block.BlockSpike;
 import gregtech.api.GregTechAPI;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
@@ -262,6 +263,7 @@ public class BlockPropertyRegistry {
         if (Mods.GregTech.isModLoaded()) initGT5u();
         if (Mods.AE2Stuff.isModLoaded()) initAE2Stuff();
         if (Mods.EnderStorage.isModLoaded()) initEnderStorage();
+        if (Mods.ExtraUtilities.isModLoaded()) initEXU();
     }
 
     // #region Vanilla
@@ -1133,6 +1135,33 @@ public class BlockPropertyRegistry {
                 }
             }
         );
+    }
+
+    // #endregion
+
+    // #region Extra Utilities
+
+    private static void initEXU() {
+        registerBlockInterfaceProperty(
+            BlockSpike.class, new DirectionBlockProperty() {
+
+                @Override
+                public String getName() {
+                    return "facing";
+                }
+
+                @Override
+                public ForgeDirection getValue(World world, int x, int y, int z) {
+                    return MMUtils.getIndexSafe(VALID_DIRECTIONS, world.getBlockMetadata(x, y, z) % 6);
+                }
+
+                @Override
+                public void setValue(World world, int x, int y, int z, ForgeDirection forgeDirection) {
+                    boolean enchanted = world.getBlockMetadata(x, y, z) >= 6;
+
+                    world.setBlockMetadataWithNotify(x, y, z, (enchanted ? 6 : 0) + forgeDirection.ordinal(), 3);
+                }
+            });
     }
 
     // #endregion

@@ -23,6 +23,7 @@ public enum Mods implements IMod, ITargetMod {
     CarpentersBlocks(Names.CARPENTERS_BLOCKS),
     EnderIO(Names.ENDER_I_O),
     EnderStorage(Names.ENDER_STORAGE),
+    ExtraUtilities(Names.EXTRA_UTILITIES),
     /** Creates the actual block parts from blocks. */
     ForgeMicroblocks(Names.FORGE_MICROBLOCKS),
     /** The forge multipart library. */
@@ -69,6 +70,7 @@ public enum Mods implements IMod, ITargetMod {
         public static final String CARPENTERS_BLOCKS = "CarpentersBlocks";
         public static final String ENDER_I_O = "EnderIO";
         public static final String ENDER_STORAGE = "EnderStorage";
+        public static final String EXTRA_UTILITIES = "ExtraUtilities";
         public static final String FORGE_MICROBLOCKS = "ForgeMicroblock";
         public static final String FORGE_MULTIPART = "ForgeMultipart";
         public static final String FLOOD_LIGHTS = "FloodLights";
