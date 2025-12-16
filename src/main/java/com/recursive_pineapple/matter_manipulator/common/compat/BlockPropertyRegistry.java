@@ -46,7 +46,6 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.ForgeDirection;
 
-import com.rwtema.extrautils.block.BlockSpike;
 import gregtech.api.GregTechAPI;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
@@ -66,6 +65,7 @@ import com.recursive_pineapple.matter_manipulator.common.compat.DirectionBlockPr
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
+import com.rwtema.extrautils.block.BlockSpike;
 
 import net.bdew.ae2stuff.machines.wireless.TileWireless;
 
@@ -1143,7 +1143,8 @@ public class BlockPropertyRegistry {
 
     private static void initEXU() {
         registerBlockInterfaceProperty(
-            BlockSpike.class, new DirectionBlockProperty() {
+            BlockSpike.class,
+            new DirectionBlockProperty() {
 
                 @Override
                 public String getName() {
@@ -1161,7 +1162,8 @@ public class BlockPropertyRegistry {
 
                     world.setBlockMetadataWithNotify(x, y, z, (enchanted ? 6 : 0) + forgeDirection.ordinal(), 3);
                 }
-            });
+            }
+        );
     }
 
     // #endregion
