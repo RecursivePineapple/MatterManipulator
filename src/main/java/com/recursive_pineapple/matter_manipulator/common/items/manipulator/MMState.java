@@ -84,9 +84,9 @@ public class MMState {
         .create();
 
     @SerializedName("jv")
-    private int jsonVersion = 0;
+    private int jsonVersion = LASTEST_JSON_VERSION;
     @SerializedName("dv")
-    private int dataVersion = 0;
+    private int dataVersion = LASTEST_DATA_VERSION;
 
     public MMConfig config = new MMConfig();
 
@@ -138,8 +138,11 @@ public class MMState {
         return copy;
     }
 
+    private static final int LASTEST_JSON_VERSION = 2;
+    private static final int LASTEST_DATA_VERSION = 0;
+
     private static void migrateJson(JsonObject obj) {
-        int version = obj.has("jv") ? obj.get("jv").getAsInt() : 2;
+        int version = obj.has("jv") ? obj.get("jv").getAsInt() : LASTEST_JSON_VERSION;
 
         if (version == 0) {
             if (obj.get("config") instanceof JsonObject config) {
@@ -157,11 +160,13 @@ public class MMState {
 
         if (version == 1) {
             try {
-                // Load with the default encoder
-                BitSet bitSet = new Gson().fromJson(obj.get("installedUpgrades"), BitSet.class);
+                if (obj.get("installedUpgrades") != null && obj.get("installedUpgrades").isJsonArray()) {
+                    // Load with the default encoder
+                    BitSet bitSet = new Gson().fromJson(obj.get("installedUpgrades"), BitSet.class);
 
-                // Save with the new encoder
-                obj.add("installedUpgrades", GSON.toJsonTree(bitSet));
+                    // Save with the new encoder
+                    obj.add("installedUpgrades", GSON.toJsonTree(bitSet));
+                }
             } catch (Throwable t) {
                 MMMod.LOG.error("Could not migrate installedUpgrades: your MM upgrades may have been deleted.", t);
             }
