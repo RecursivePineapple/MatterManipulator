@@ -65,6 +65,7 @@ import com.recursive_pineapple.matter_manipulator.common.compat.DirectionBlockPr
 import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
 import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
+import com.rwtema.extrautils.block.BlockSpike;
 
 import net.bdew.ae2stuff.machines.wireless.TileWireless;
 
@@ -262,6 +263,7 @@ public class BlockPropertyRegistry {
         if (Mods.GregTech.isModLoaded()) initGT5u();
         if (Mods.AE2Stuff.isModLoaded()) initAE2Stuff();
         if (Mods.EnderStorage.isModLoaded()) initEnderStorage();
+        if (Mods.ExtraUtilities.isModLoaded()) initEXU();
     }
 
     // #region Vanilla
@@ -1130,6 +1132,35 @@ public class BlockPropertyRegistry {
                             world.markBlockForUpdate(x, y, z);
                         }
                     }
+                }
+            }
+        );
+    }
+
+    // #endregion
+
+    // #region Extra Utilities
+
+    private static void initEXU() {
+        registerBlockInterfaceProperty(
+            BlockSpike.class,
+            new DirectionBlockProperty() {
+
+                @Override
+                public String getName() {
+                    return "facing";
+                }
+
+                @Override
+                public ForgeDirection getValue(World world, int x, int y, int z) {
+                    return MMUtils.getIndexSafe(VALID_DIRECTIONS, world.getBlockMetadata(x, y, z) % 6);
+                }
+
+                @Override
+                public void setValue(World world, int x, int y, int z, ForgeDirection forgeDirection) {
+                    boolean enchanted = world.getBlockMetadata(x, y, z) >= 6;
+
+                    world.setBlockMetadataWithNotify(x, y, z, (enchanted ? 6 : 0) + forgeDirection.ordinal(), 3);
                 }
             }
         );
