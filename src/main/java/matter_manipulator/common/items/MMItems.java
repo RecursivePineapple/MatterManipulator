@@ -2,12 +2,12 @@ package matter_manipulator.common.items;
 
 import gregtech.api.enums.MetaTileEntityIDs;
 
-import com.recursive_pineapple.matter_manipulator.asm.Optional;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
-import com.recursive_pineapple.matter_manipulator.common.uplink.MTEMMUplink;
-import com.recursive_pineapple.matter_manipulator.common.uplink.MTEMMUplinkMEHatch;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
+import matter_manipulator.asm.Optional;
+import matter_manipulator.common.items.manipulator.ItemMatterManipulator;
+import matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
+import matter_manipulator.common.uplink.MTEMMUplink;
+import matter_manipulator.common.uplink.MTEMMUplinkMEHatch;
+import matter_manipulator.common.utils.Mods.Names;
 
 public class MMItems {
 

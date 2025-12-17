@@ -7,13 +7,13 @@ import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 
-import com.recursive_pineapple.matter_manipulator.common.compat.BlockPropertyRegistry;
-import com.recursive_pineapple.matter_manipulator.common.entities.EntityItemLarge;
-import com.recursive_pineapple.matter_manipulator.common.items.MMItems;
-import com.recursive_pineapple.matter_manipulator.common.items.RecipeInstallUpgrade;
-import com.recursive_pineapple.matter_manipulator.common.networking.Messages;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
-import com.recursive_pineapple.matter_manipulator.server.BlockStateCommand;
+import matter_manipulator.common.compat.BlockPropertyRegistry;
+import matter_manipulator.common.entities.EntityItemLarge;
+import matter_manipulator.common.items.MMItems;
+import matter_manipulator.common.items.RecipeInstallUpgrade;
+import matter_manipulator.common.networking.Messages;
+import matter_manipulator.common.utils.Mods;
+import matter_manipulator.server.BlockStateCommand;
 
 public class CommonProxy {
 

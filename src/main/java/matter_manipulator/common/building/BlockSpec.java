@@ -1,6 +1,6 @@
 package matter_manipulator.common.building;
 
-import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.ArchitectureCraft;
+import static matter_manipulator.common.utils.Mods.ArchitectureCraft;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -26,14 +26,14 @@ import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
 
 import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
-import com.recursive_pineapple.matter_manipulator.MMMod;
-import com.recursive_pineapple.matter_manipulator.common.compat.BlockProperty;
-import com.recursive_pineapple.matter_manipulator.common.compat.BlockPropertyRegistry;
-import com.recursive_pineapple.matter_manipulator.common.compat.IntrinsicProperty;
-import com.recursive_pineapple.matter_manipulator.common.utils.ItemId;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
+import matter_manipulator.MMMod;
+import matter_manipulator.common.compat.BlockProperty;
+import matter_manipulator.common.compat.BlockPropertyRegistry;
+import matter_manipulator.common.compat.IntrinsicProperty;
+import matter_manipulator.common.utils.ItemId;
+import matter_manipulator.common.utils.MMUtils;
+import matter_manipulator.common.utils.Mods;
+import matter_manipulator.common.utils.Mods.Names;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -59,7 +59,7 @@ public class BlockSpec implements ImmutableBlockSpec {
     @SerializedName("p")
     public Map<CopyableProperty, String> properties;
 
-    @com.recursive_pineapple.matter_manipulator.asm.Optional(Names.ARCHITECTURE_CRAFT)
+    @matter_manipulator.asm.Optional(Names.ARCHITECTURE_CRAFT)
     @SerializedName("a")
     public ArchitectureCraftAnalysisResult arch;
 

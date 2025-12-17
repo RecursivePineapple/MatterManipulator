@@ -16,7 +16,7 @@ import cpw.mods.fml.relauncher.Side;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
-import com.recursive_pineapple.matter_manipulator.MMMod;
+import matter_manipulator.MMMod;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;

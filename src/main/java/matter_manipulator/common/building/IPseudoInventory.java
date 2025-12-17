@@ -6,9 +6,9 @@ import net.minecraft.item.ItemStack;
 
 import net.minecraftforge.fluids.FluidStack;
 
-import com.recursive_pineapple.matter_manipulator.common.utils.BigFluidStack;
-import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import matter_manipulator.common.utils.BigFluidStack;
+import matter_manipulator.common.utils.BigItemStack;
+import matter_manipulator.common.utils.MMUtils;
 
 import it.unimi.dsi.fastutil.booleans.BooleanObjectImmutablePair;
 

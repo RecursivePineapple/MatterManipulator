@@ -2,7 +2,7 @@ package matter_manipulator.common.items;
 
 import net.minecraft.item.ItemStack;
 
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
+import matter_manipulator.common.items.manipulator.ItemMatterManipulator;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;

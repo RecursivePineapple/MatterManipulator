@@ -1,8 +1,8 @@
 package matter_manipulator.common.building;
 
-import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendWarningToPlayer;
-import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.AppliedEnergistics2;
-import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
+import static matter_manipulator.common.utils.MMUtils.sendWarningToPlayer;
+import static matter_manipulator.common.utils.Mods.AppliedEnergistics2;
+import static matter_manipulator.common.utils.Mods.GregTech;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,20 +52,20 @@ import appeng.api.util.AEColor;
 import appeng.helpers.ICustomNameObject;
 import appeng.parts.AEBasePart;
 
-import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.BuildingConfig;
-import com.recursive_pineapple.matter_manipulator.asm.Optional;
-import com.recursive_pineapple.matter_manipulator.common.items.MMUpgrades;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
-import com.recursive_pineapple.matter_manipulator.common.networking.SoundResource;
-import com.recursive_pineapple.matter_manipulator.common.utils.BigFluidStack;
-import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
-import com.recursive_pineapple.matter_manipulator.mixin.BlockCaptureDrops;
+import matter_manipulator.GlobalMMConfig.BuildingConfig;
+import matter_manipulator.asm.Optional;
+import matter_manipulator.common.items.MMUpgrades;
+import matter_manipulator.common.items.manipulator.ItemMatterManipulator;
+import matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
+import matter_manipulator.common.items.manipulator.Location;
+import matter_manipulator.common.items.manipulator.MMState;
+import matter_manipulator.common.networking.SoundResource;
+import matter_manipulator.common.utils.BigFluidStack;
+import matter_manipulator.common.utils.BigItemStack;
+import matter_manipulator.common.utils.MMUtils;
+import matter_manipulator.common.utils.Mods;
+import matter_manipulator.common.utils.Mods.Names;
+import matter_manipulator.mixin.BlockCaptureDrops;
 
 import org.joml.Vector3d;
 

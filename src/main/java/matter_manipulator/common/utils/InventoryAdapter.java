@@ -17,10 +17,10 @@ import gregtech.common.tileentities.machines.MTEHatchOutputBusME;
 import gregtech.common.tileentities.machines.MTEHatchOutputME;
 
 import com.google.common.collect.ImmutableList;
-import com.recursive_pineapple.matter_manipulator.asm.Optional;
-import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
-import com.recursive_pineapple.matter_manipulator.mixin.interfaces.MTELinkedInputBusExt;
+import matter_manipulator.asm.Optional;
+import matter_manipulator.common.building.BlockAnalyzer;
+import matter_manipulator.common.utils.Mods.Names;
+import matter_manipulator.mixin.interfaces.MTELinkedInputBusExt;
 
 import gtPlusPlus.xmod.gregtech.api.metatileentity.implementations.MTEHatchTurbine;
 import tectech.thing.metaTileEntity.hatch.MTEHatchRack;

@@ -2,7 +2,7 @@ package matter_manipulator.common.building.providers;
 
 import net.minecraft.item.ItemStack;
 
-import com.recursive_pineapple.matter_manipulator.common.building.IPseudoInventory;
+import matter_manipulator.common.building.IPseudoInventory;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;

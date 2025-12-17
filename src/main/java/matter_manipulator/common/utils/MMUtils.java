@@ -1,6 +1,6 @@
 package matter_manipulator.common.utils;
 
-import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.AppliedEnergistics2;
+import static matter_manipulator.common.utils.Mods.AppliedEnergistics2;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -104,23 +104,23 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.gtnewhorizon.structurelib.util.XSTR;
-import com.recursive_pineapple.matter_manipulator.MMMod;
-import com.recursive_pineapple.matter_manipulator.asm.Optional;
-import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer;
-import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
-import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.RequiredItemAnalysis;
-import com.recursive_pineapple.matter_manipulator.common.building.BlockSpec;
-import com.recursive_pineapple.matter_manipulator.common.building.IPseudoInventory;
-import com.recursive_pineapple.matter_manipulator.common.building.ImmutableBlockSpec;
-import com.recursive_pineapple.matter_manipulator.common.building.InteropConstants;
-import com.recursive_pineapple.matter_manipulator.common.building.MMInventory;
-import com.recursive_pineapple.matter_manipulator.common.building.PendingBlock;
-import com.recursive_pineapple.matter_manipulator.common.building.PortableItemStack;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
-import com.recursive_pineapple.matter_manipulator.common.networking.Messages;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
+import matter_manipulator.MMMod;
+import matter_manipulator.asm.Optional;
+import matter_manipulator.common.building.BlockAnalyzer;
+import matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
+import matter_manipulator.common.building.BlockAnalyzer.RequiredItemAnalysis;
+import matter_manipulator.common.building.BlockSpec;
+import matter_manipulator.common.building.IPseudoInventory;
+import matter_manipulator.common.building.ImmutableBlockSpec;
+import matter_manipulator.common.building.InteropConstants;
+import matter_manipulator.common.building.MMInventory;
+import matter_manipulator.common.building.PendingBlock;
+import matter_manipulator.common.building.PortableItemStack;
+import matter_manipulator.common.items.manipulator.ItemMatterManipulator;
+import matter_manipulator.common.items.manipulator.Location;
+import matter_manipulator.common.items.manipulator.MMState;
+import matter_manipulator.common.networking.Messages;
+import matter_manipulator.common.utils.Mods.Names;
 
 import org.joml.Vector3i;
 

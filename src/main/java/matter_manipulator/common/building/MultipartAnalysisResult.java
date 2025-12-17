@@ -6,8 +6,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
-import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
+import matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
+import matter_manipulator.common.items.manipulator.Transform;
 
 import codechicken.lib.vec.BlockCoord;
 import codechicken.microblock.Microblock;

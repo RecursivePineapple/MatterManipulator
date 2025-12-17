@@ -5,9 +5,9 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-import com.recursive_pineapple.matter_manipulator.MMMod;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMKeyInputs;
+import matter_manipulator.MMMod;
+import matter_manipulator.common.items.manipulator.ItemMatterManipulator;
+import matter_manipulator.common.items.manipulator.MMKeyInputs;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

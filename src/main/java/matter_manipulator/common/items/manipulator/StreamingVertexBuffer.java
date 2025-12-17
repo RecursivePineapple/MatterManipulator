@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
 import com.gtnewhorizon.gtnhlib.client.renderer.vertex.VertexFormat;
-import com.recursive_pineapple.matter_manipulator.MMMod;
+import matter_manipulator.MMMod;
 
 import org.intellij.lang.annotations.MagicConstant;
 import org.lwjgl.opengl.GL11;

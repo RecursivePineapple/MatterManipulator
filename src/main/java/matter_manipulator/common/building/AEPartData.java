@@ -25,9 +25,9 @@ import appeng.parts.automation.UpgradeInventory;
 import appeng.parts.p2p.PartP2PTunnel;
 import appeng.parts.p2p.PartP2PTunnelNormal;
 
-import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
-import com.recursive_pineapple.matter_manipulator.common.building.providers.IItemProvider;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
+import matter_manipulator.common.building.providers.IItemProvider;
+import matter_manipulator.common.utils.MMUtils;
 
 /**
  * Stores data for AE facade parts. Also stores the data for AE cables.

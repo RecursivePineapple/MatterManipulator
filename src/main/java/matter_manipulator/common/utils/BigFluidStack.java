@@ -14,7 +14,7 @@ import cpw.mods.fml.common.Optional.Method;
 import appeng.api.storage.data.IAEFluidStack;
 import appeng.util.item.AEFluidStack;
 
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
+import matter_manipulator.common.utils.Mods.Names;
 
 public class BigFluidStack {
 

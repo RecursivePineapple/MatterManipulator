@@ -11,8 +11,8 @@ import static net.minecraftforge.common.util.ForgeDirection.WEST;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMConfig.VoxelAABB;
-import com.recursive_pineapple.matter_manipulator.common.networking.Messages;
+import matter_manipulator.common.items.manipulator.MMConfig.VoxelAABB;
+import matter_manipulator.common.networking.Messages;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;

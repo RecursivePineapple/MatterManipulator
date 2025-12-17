@@ -4,9 +4,9 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 
 import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
-import com.recursive_pineapple.matter_manipulator.MMMod;
-import com.recursive_pineapple.matter_manipulator.Tags;
-import com.recursive_pineapple.matter_manipulator.common.items.MMItemList;
+import matter_manipulator.MMMod;
+import matter_manipulator.Tags;
+import matter_manipulator.common.items.MMItemList;
 
 import codechicken.nei.api.IConfigureNEI;
 import codechicken.nei.event.NEIRegisterHandlerInfosEvent;

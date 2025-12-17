@@ -8,8 +8,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import appeng.api.AEApi;
 import appeng.api.definitions.IItemDefinition;
 
-import com.recursive_pineapple.matter_manipulator.common.building.IPseudoInventory;
-import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
+import matter_manipulator.common.building.IPseudoInventory;
+import matter_manipulator.common.utils.BigItemStack;
 
 import org.jetbrains.annotations.Nullable;
 

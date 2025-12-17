@@ -11,9 +11,9 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-import com.recursive_pineapple.matter_manipulator.MMMod;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
+import matter_manipulator.MMMod;
+import matter_manipulator.common.utils.MMUtils;
+import matter_manipulator.common.utils.Mods;
 
 public class UIDJsonAdapter implements JsonSerializer<UniqueIdentifier>, JsonDeserializer<UniqueIdentifier> {
 

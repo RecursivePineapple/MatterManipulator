@@ -11,8 +11,8 @@ import com.gtnewhorizon.gtnhlib.util.data.IMod;
 import com.gtnewhorizon.gtnhlib.util.data.ImmutableBlockMeta;
 import com.gtnewhorizon.gtnhlib.util.data.ImmutableItemMeta;
 import com.gtnewhorizon.gtnhlib.util.data.ItemMeta;
-import com.recursive_pineapple.matter_manipulator.common.building.BlockSpec;
-import com.recursive_pineapple.matter_manipulator.common.building.ImmutableBlockSpec;
+import matter_manipulator.common.building.BlockSpec;
+import matter_manipulator.common.building.ImmutableBlockSpec;
 
 import org.jetbrains.annotations.NotNull;
 

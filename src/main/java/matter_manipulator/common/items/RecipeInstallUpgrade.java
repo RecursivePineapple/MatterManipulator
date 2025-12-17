@@ -7,8 +7,8 @@ import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.world.World;
 
 import com.github.bsideup.jabel.Desugar;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
+import matter_manipulator.common.items.manipulator.ItemMatterManipulator;
+import matter_manipulator.common.items.manipulator.MMState;
 
 public class RecipeInstallUpgrade implements IRecipe {
 

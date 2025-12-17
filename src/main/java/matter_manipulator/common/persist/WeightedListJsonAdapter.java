@@ -13,8 +13,8 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-import com.recursive_pineapple.matter_manipulator.common.building.BlockSpec;
-import com.recursive_pineapple.matter_manipulator.common.data.WeightedSpecList;
+import matter_manipulator.common.building.BlockSpec;
+import matter_manipulator.common.data.WeightedSpecList;
 
 import it.unimi.dsi.fastutil.objects.ObjectIntMutablePair;
 

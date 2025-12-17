@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import matter_manipulator.common.utils.MMUtils;
 
 import org.junit.jupiter.api.Test;
 

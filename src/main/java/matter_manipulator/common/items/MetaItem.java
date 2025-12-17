@@ -20,10 +20,10 @@ import cpw.mods.fml.relauncher.SideOnly;
 
 import gregtech.client.GTTooltipHandler;
 
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
+import matter_manipulator.common.items.manipulator.ItemMatterManipulator;
+import matter_manipulator.common.utils.MMUtils;
+import matter_manipulator.common.utils.Mods;
+import matter_manipulator.common.utils.Mods.Names;
 
 public class MetaItem extends Item {
 

@@ -1,7 +1,7 @@
 package matter_manipulator.common.uplink;
 
-import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendErrorToPlayer;
-import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendInfoToPlayer;
+import static matter_manipulator.common.utils.MMUtils.sendErrorToPlayer;
+import static matter_manipulator.common.utils.MMUtils.sendInfoToPlayer;
 import static gregtech.api.enums.Textures.BlockIcons.OVERLAY_ME_INPUT_FLUID_HATCH;
 import static gregtech.api.enums.Textures.BlockIcons.OVERLAY_ME_INPUT_FLUID_HATCH_ACTIVE;
 
@@ -62,8 +62,8 @@ import appeng.util.Platform;
 import appeng.util.item.AEItemStack;
 
 import com.google.common.collect.ImmutableSet;
-import com.recursive_pineapple.matter_manipulator.common.items.MMItemList;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import matter_manipulator.common.items.MMItemList;
+import matter_manipulator.common.utils.MMUtils;
 
 public class MTEMMUplinkMEHatch extends MTEHatch implements IGridProxyable, IPowerChannelState, ICraftingProvider, ICraftingRequester {
 

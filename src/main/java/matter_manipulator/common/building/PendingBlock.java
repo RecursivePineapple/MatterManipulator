@@ -19,16 +19,16 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import com.gtnewhorizon.gtnhlib.util.CoordinatePacker;
-import com.recursive_pineapple.matter_manipulator.MMMod;
-import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
-import com.recursive_pineapple.matter_manipulator.common.building.providers.IItemProvider;
-import com.recursive_pineapple.matter_manipulator.common.compat.BlockProperty;
-import com.recursive_pineapple.matter_manipulator.common.compat.BlockPropertyRegistry;
-import com.recursive_pineapple.matter_manipulator.common.compat.Orientation;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
-import com.recursive_pineapple.matter_manipulator.mixin.BlockCaptureDrops;
+import matter_manipulator.MMMod;
+import matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
+import matter_manipulator.common.building.providers.IItemProvider;
+import matter_manipulator.common.compat.BlockProperty;
+import matter_manipulator.common.compat.BlockPropertyRegistry;
+import matter_manipulator.common.compat.Orientation;
+import matter_manipulator.common.items.manipulator.Location;
+import matter_manipulator.common.items.manipulator.Transform;
+import matter_manipulator.common.utils.Mods;
+import matter_manipulator.mixin.BlockCaptureDrops;
 
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;

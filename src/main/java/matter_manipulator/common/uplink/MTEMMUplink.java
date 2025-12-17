@@ -1,8 +1,8 @@
 package matter_manipulator.common.uplink;
 
-import static com.recursive_pineapple.matter_manipulator.common.structure.MMCasings.AdvancedIridiumPlatedMachineCasing;
-import static com.recursive_pineapple.matter_manipulator.common.structure.MMCasings.MatterGenerationCoil;
-import static com.recursive_pineapple.matter_manipulator.common.structure.MMCasings.RadiantNaquadahAlloyCasing;
+import static matter_manipulator.common.structure.MMCasings.AdvancedIridiumPlatedMachineCasing;
+import static matter_manipulator.common.structure.MMCasings.MatterGenerationCoil;
+import static matter_manipulator.common.structure.MMCasings.RadiantNaquadahAlloyCasing;
 import static gregtech.api.enums.GTValues.AuthorPineapple;
 import static gregtech.api.enums.HatchElement.Energy;
 import static gregtech.api.enums.HatchElement.ExoticEnergy;
@@ -70,16 +70,16 @@ import com.google.common.collect.ImmutableList;
 import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable;
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
-import com.recursive_pineapple.matter_manipulator.common.building.IPseudoInventory;
-import com.recursive_pineapple.matter_manipulator.common.items.MMItemList;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
-import com.recursive_pineapple.matter_manipulator.common.networking.Messages;
-import com.recursive_pineapple.matter_manipulator.common.structure.CasingGTFrames;
-import com.recursive_pineapple.matter_manipulator.common.utils.BigFluidStack;
-import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
+import matter_manipulator.common.building.IPseudoInventory;
+import matter_manipulator.common.items.MMItemList;
+import matter_manipulator.common.items.manipulator.ItemMatterManipulator;
+import matter_manipulator.common.items.manipulator.Location;
+import matter_manipulator.common.networking.Messages;
+import matter_manipulator.common.structure.CasingGTFrames;
+import matter_manipulator.common.utils.BigFluidStack;
+import matter_manipulator.common.utils.BigItemStack;
+import matter_manipulator.common.utils.MMUtils;
+import matter_manipulator.common.utils.Mods;
 
 import it.unimi.dsi.fastutil.Pair;
 import mcp.mobius.waila.api.IWailaConfigHandler;

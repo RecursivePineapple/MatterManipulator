@@ -3,7 +3,7 @@ package matter_manipulator;
 import com.gtnewhorizon.gtnhlib.config.Config;
 import com.gtnewhorizon.gtnhlib.config.ConfigException;
 import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
+import matter_manipulator.common.utils.Mods.Names;
 
 public class GlobalMMConfig {
 

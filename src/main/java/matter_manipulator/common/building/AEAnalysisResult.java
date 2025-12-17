@@ -1,6 +1,6 @@
 package matter_manipulator.common.building;
 
-import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.nullIfUnknown;
+import static matter_manipulator.common.utils.MMUtils.nullIfUnknown;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,12 +33,12 @@ import appeng.util.Platform;
 import appeng.util.SettingsFrom;
 
 import com.google.gson.JsonElement;
-import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
-import com.recursive_pineapple.matter_manipulator.common.building.providers.IItemProvider;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
-import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
-import com.recursive_pineapple.matter_manipulator.common.utils.ItemId;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
+import matter_manipulator.common.building.providers.IItemProvider;
+import matter_manipulator.common.items.manipulator.Transform;
+import matter_manipulator.common.utils.BigItemStack;
+import matter_manipulator.common.utils.ItemId;
+import matter_manipulator.common.utils.MMUtils;
 
 public class AEAnalysisResult implements ITileAnalysisIntegration {
 

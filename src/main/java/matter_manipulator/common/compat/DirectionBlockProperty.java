@@ -6,7 +6,7 @@ import net.minecraft.world.World;
 
 import net.minecraftforge.common.util.ForgeDirection;
 
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import matter_manipulator.common.utils.MMUtils;
 
 public interface DirectionBlockProperty extends BlockProperty<ForgeDirection> {
 

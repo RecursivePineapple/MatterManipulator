@@ -8,8 +8,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 
 import com.google.gson.annotations.SerializedName;
-import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
+import matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
+import matter_manipulator.common.items.manipulator.Transform;
 
 import gcewing.architecture.ArchitectureCraft;
 import gcewing.architecture.common.shape.Shape;

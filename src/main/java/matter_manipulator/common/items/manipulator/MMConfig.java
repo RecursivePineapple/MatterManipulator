@@ -5,13 +5,13 @@ import javax.annotation.Nullable;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 
-import com.recursive_pineapple.matter_manipulator.common.building.BlockSpec;
-import com.recursive_pineapple.matter_manipulator.common.data.WeightedSpecList;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.BlockRemoveMode;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.BlockSelectMode;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.PendingAction;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.PlaceMode;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.Shape;
+import matter_manipulator.common.building.BlockSpec;
+import matter_manipulator.common.data.WeightedSpecList;
+import matter_manipulator.common.items.manipulator.MMState.BlockRemoveMode;
+import matter_manipulator.common.items.manipulator.MMState.BlockSelectMode;
+import matter_manipulator.common.items.manipulator.MMState.PendingAction;
+import matter_manipulator.common.items.manipulator.MMState.PlaceMode;
+import matter_manipulator.common.items.manipulator.MMState.Shape;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;

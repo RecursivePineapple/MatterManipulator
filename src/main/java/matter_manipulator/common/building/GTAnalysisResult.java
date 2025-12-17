@@ -1,6 +1,6 @@
 package matter_manipulator.common.building;
 
-import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.nullIfUnknown;
+import static matter_manipulator.common.utils.MMUtils.nullIfUnknown;
 
 import java.lang.invoke.MethodHandle;
 import java.util.List;
@@ -41,11 +41,11 @@ import com.gtnewhorizon.structurelib.alignment.IAlignment;
 import com.gtnewhorizon.structurelib.alignment.IAlignmentProvider;
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
 import com.gtnewhorizon.structurelib.alignment.enumerable.Flip;
-import com.recursive_pineapple.matter_manipulator.MMMod;
-import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-import com.recursive_pineapple.matter_manipulator.mixin.interfaces.BlockFrameBoxExt;
+import matter_manipulator.MMMod;
+import matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
+import matter_manipulator.common.items.manipulator.Transform;
+import matter_manipulator.common.utils.MMUtils;
+import matter_manipulator.mixin.interfaces.BlockFrameBoxExt;
 
 import gtnhlanth.common.beamline.MTEBeamlinePipe;
 import lombok.EqualsAndHashCode;

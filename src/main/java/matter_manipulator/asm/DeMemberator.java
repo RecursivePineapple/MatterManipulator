@@ -1,7 +1,7 @@
 package matter_manipulator.asm;
 
-import static com.recursive_pineapple.matter_manipulator.asm.ASMUtils.*;
-import static com.recursive_pineapple.matter_manipulator.asm.ASMUtils.InsnPredicate;
+import static matter_manipulator.asm.ASMUtils.*;
+import static matter_manipulator.asm.ASMUtils.InsnPredicate;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;

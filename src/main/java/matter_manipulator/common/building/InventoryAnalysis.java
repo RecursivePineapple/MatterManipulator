@@ -5,14 +5,14 @@ import java.util.Objects;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 
-import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
-import com.recursive_pineapple.matter_manipulator.common.building.providers.AECellItemProvider;
-import com.recursive_pineapple.matter_manipulator.common.building.providers.BatteryItemProvider;
-import com.recursive_pineapple.matter_manipulator.common.building.providers.IItemProvider;
-import com.recursive_pineapple.matter_manipulator.common.building.providers.PatternItemProvider;
-import com.recursive_pineapple.matter_manipulator.common.utils.InventoryAdapter;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
+import matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
+import matter_manipulator.common.building.providers.AECellItemProvider;
+import matter_manipulator.common.building.providers.BatteryItemProvider;
+import matter_manipulator.common.building.providers.IItemProvider;
+import matter_manipulator.common.building.providers.PatternItemProvider;
+import matter_manipulator.common.utils.InventoryAdapter;
+import matter_manipulator.common.utils.MMUtils;
+import matter_manipulator.common.utils.Mods;
 
 /**
  * An analysis for an inventory.

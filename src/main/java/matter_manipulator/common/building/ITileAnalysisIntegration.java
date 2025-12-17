@@ -4,8 +4,8 @@ import java.util.List;
 
 import net.minecraft.nbt.NBTTagCompound;
 
-import com.recursive_pineapple.matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Transform;
+import matter_manipulator.common.building.BlockAnalyzer.IBlockApplyContext;
+import matter_manipulator.common.items.manipulator.Transform;
 
 public interface ITileAnalysisIntegration {
 

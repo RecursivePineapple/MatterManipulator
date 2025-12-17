@@ -8,7 +8,7 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
+import matter_manipulator.common.items.manipulator.Location;
 
 public enum SoundResource {
 

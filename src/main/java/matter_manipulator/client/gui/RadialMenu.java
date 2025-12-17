@@ -17,7 +17,7 @@ import com.gtnewhorizons.modularui.api.math.Pos2d;
 import com.gtnewhorizons.modularui.api.math.Size;
 import com.gtnewhorizons.modularui.api.widget.Interactable;
 import com.gtnewhorizons.modularui.api.widget.Widget;
-import com.recursive_pineapple.matter_manipulator.common.networking.SoundResource;
+import matter_manipulator.common.networking.SoundResource;
 
 import org.joml.Vector2d;
 import org.lwjgl.opengl.GL11;

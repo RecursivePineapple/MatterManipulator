@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Random;
 
-import com.recursive_pineapple.matter_manipulator.common.building.BlockSpec;
-import com.recursive_pineapple.matter_manipulator.common.building.ImmutableBlockSpec;
+import matter_manipulator.common.building.BlockSpec;
+import matter_manipulator.common.building.ImmutableBlockSpec;
 
 import it.unimi.dsi.fastutil.objects.ObjectIntMutablePair;
 

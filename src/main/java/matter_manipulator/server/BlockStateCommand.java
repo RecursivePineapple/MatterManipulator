@@ -1,7 +1,7 @@
 package matter_manipulator.server;
 
-import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendChatToPlayer;
-import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendErrorToPlayer;
+import static matter_manipulator.common.utils.MMUtils.sendChatToPlayer;
+import static matter_manipulator.common.utils.MMUtils.sendErrorToPlayer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,10 +15,10 @@ import net.minecraft.util.StatCollector;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
-import com.recursive_pineapple.matter_manipulator.common.compat.BlockProperty;
-import com.recursive_pineapple.matter_manipulator.common.compat.BlockPropertyRegistry;
-import com.recursive_pineapple.matter_manipulator.common.compat.IntrinsicProperty;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import matter_manipulator.common.compat.BlockProperty;
+import matter_manipulator.common.compat.BlockPropertyRegistry;
+import matter_manipulator.common.compat.IntrinsicProperty;
+import matter_manipulator.common.utils.MMUtils;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 

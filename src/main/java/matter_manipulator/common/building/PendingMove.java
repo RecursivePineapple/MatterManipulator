@@ -1,7 +1,7 @@
 package matter_manipulator.common.building;
 
-import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendErrorToPlayer;
-import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendInfoToPlayer;
+import static matter_manipulator.common.utils.MMUtils.sendErrorToPlayer;
+import static matter_manipulator.common.utils.MMUtils.sendInfoToPlayer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,16 +23,16 @@ import gregtech.api.interfaces.tileentity.IIC2Enet;
 import gregtech.api.metatileentity.BaseMetaTileEntity;
 
 import com.github.bsideup.jabel.Desugar;
-import com.recursive_pineapple.matter_manipulator.asm.Optional;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMConfig;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
-import com.recursive_pineapple.matter_manipulator.common.networking.SoundResource;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods.Names;
-import com.recursive_pineapple.matter_manipulator.mixin.BlockCaptureDrops;
+import matter_manipulator.asm.Optional;
+import matter_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
+import matter_manipulator.common.items.manipulator.Location;
+import matter_manipulator.common.items.manipulator.MMConfig;
+import matter_manipulator.common.items.manipulator.MMState;
+import matter_manipulator.common.networking.SoundResource;
+import matter_manipulator.common.utils.MMUtils;
+import matter_manipulator.common.utils.Mods;
+import matter_manipulator.common.utils.Mods.Names;
+import matter_manipulator.mixin.BlockCaptureDrops;
 
 import WayofTime.alchemicalWizardry.api.event.TeleposeEvent;
 import codechicken.multipart.MultipartHelper;

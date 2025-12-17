@@ -12,9 +12,9 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.InputEvent.KeyInputEvent;
 
 import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
-import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.InteractionConfig;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState.PlaceMode;
-import com.recursive_pineapple.matter_manipulator.common.networking.Messages;
+import matter_manipulator.GlobalMMConfig.InteractionConfig;
+import matter_manipulator.common.items.manipulator.MMState.PlaceMode;
+import matter_manipulator.common.networking.Messages;
 
 import org.lwjgl.input.Keyboard;
 

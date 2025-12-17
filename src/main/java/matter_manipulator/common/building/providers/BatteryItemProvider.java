@@ -9,8 +9,8 @@ import net.minecraftforge.oredict.OreDictionary;
 
 import com.gtnewhorizon.gtnhlib.util.data.ImmutableItemMeta;
 import com.gtnewhorizon.gtnhlib.util.data.ItemMeta;
-import com.recursive_pineapple.matter_manipulator.common.building.IPseudoInventory;
-import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
+import matter_manipulator.common.building.IPseudoInventory;
+import matter_manipulator.common.utils.BigItemStack;
 
 import org.jetbrains.annotations.Nullable;
 

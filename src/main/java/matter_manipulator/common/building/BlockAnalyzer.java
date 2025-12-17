@@ -1,7 +1,7 @@
 package matter_manipulator.common.building;
 
-import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendErrorToPlayer;
-import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendWarningToPlayer;
+import static matter_manipulator.common.utils.MMUtils.sendErrorToPlayer;
+import static matter_manipulator.common.utils.MMUtils.sendWarningToPlayer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,14 +14,14 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 
-import com.recursive_pineapple.matter_manipulator.GlobalMMConfig.DebugConfig;
-import com.recursive_pineapple.matter_manipulator.MMMod;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.Location;
-import com.recursive_pineapple.matter_manipulator.common.utils.BigFluidStack;
-import com.recursive_pineapple.matter_manipulator.common.utils.BigItemStack;
-import com.recursive_pineapple.matter_manipulator.common.utils.FluidId;
-import com.recursive_pineapple.matter_manipulator.common.utils.ItemId;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import matter_manipulator.GlobalMMConfig.DebugConfig;
+import matter_manipulator.MMMod;
+import matter_manipulator.common.items.manipulator.Location;
+import matter_manipulator.common.utils.BigFluidStack;
+import matter_manipulator.common.utils.BigItemStack;
+import matter_manipulator.common.utils.FluidId;
+import matter_manipulator.common.utils.ItemId;
+import matter_manipulator.common.utils.MMUtils;
 
 import org.joml.Vector3i;
 

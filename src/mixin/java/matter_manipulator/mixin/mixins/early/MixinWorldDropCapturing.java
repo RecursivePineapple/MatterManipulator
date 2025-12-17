@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import com.recursive_pineapple.matter_manipulator.mixin.BlockCaptureDrops;
+import matter_manipulator.mixin.BlockCaptureDrops;
 
 @Mixin(World.class)
 public class MixinWorldDropCapturing implements BlockCaptureDrops {

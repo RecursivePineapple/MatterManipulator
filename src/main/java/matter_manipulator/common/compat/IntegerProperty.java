@@ -4,7 +4,7 @@ import java.util.List;
 
 import net.minecraft.world.World;
 
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import matter_manipulator.common.utils.MMUtils;
 
 public interface IntegerProperty extends BlockProperty<Integer> {
 

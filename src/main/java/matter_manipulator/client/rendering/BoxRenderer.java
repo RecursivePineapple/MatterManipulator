@@ -12,7 +12,7 @@ import com.gtnewhorizon.gtnhlib.client.renderer.TessellatorManager;
 import com.gtnewhorizon.gtnhlib.client.renderer.shader.ShaderProgram;
 import com.gtnewhorizon.gtnhlib.client.renderer.vbo.VertexBuffer;
 import com.gtnewhorizon.gtnhlib.client.renderer.vertex.DefaultVertexFormat;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
+import matter_manipulator.common.utils.Mods;
 
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;

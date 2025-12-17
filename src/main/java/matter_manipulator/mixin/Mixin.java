@@ -2,7 +2,7 @@ package matter_manipulator.mixin;
 
 import com.gtnewhorizon.gtnhmixins.builders.IMixins;
 import com.gtnewhorizon.gtnhmixins.builders.MixinBuilder;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
+import matter_manipulator.common.utils.Mods;
 
 import org.jetbrains.annotations.NotNull;
 

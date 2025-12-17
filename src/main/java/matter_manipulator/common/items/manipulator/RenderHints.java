@@ -27,7 +27,7 @@ import com.gtnewhorizon.gtnhlib.client.renderer.TessellatorManager;
 import com.gtnewhorizon.gtnhlib.client.renderer.vertex.DefaultVertexFormat;
 import com.gtnewhorizon.gtnhlib.client.renderer.vertex.VertexFormat;
 import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
-import com.recursive_pineapple.matter_manipulator.MMMod;
+import matter_manipulator.MMMod;
 
 import org.joml.Vector3d;
 import org.joml.Vector3i;

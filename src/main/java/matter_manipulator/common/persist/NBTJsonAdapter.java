@@ -11,7 +11,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
+import matter_manipulator.common.utils.MMUtils;
 
 public class NBTJsonAdapter implements JsonSerializer<NBTTagCompound>, JsonDeserializer<NBTTagCompound> {
 

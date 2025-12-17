@@ -7,11 +7,11 @@ import java.util.List;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StatCollector;
 
-import com.recursive_pineapple.matter_manipulator.common.items.MMItemList;
-import com.recursive_pineapple.matter_manipulator.common.items.MMItems;
-import com.recursive_pineapple.matter_manipulator.common.items.MMUpgrades;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.ItemMatterManipulator;
-import com.recursive_pineapple.matter_manipulator.common.items.manipulator.MMState;
+import matter_manipulator.common.items.MMItemList;
+import matter_manipulator.common.items.MMItems;
+import matter_manipulator.common.items.MMUpgrades;
+import matter_manipulator.common.items.manipulator.ItemMatterManipulator;
+import matter_manipulator.common.items.manipulator.MMState;
 
 import codechicken.nei.recipe.ShapelessRecipeHandler;
 

@@ -18,8 +18,8 @@ import cpw.mods.fml.common.registry.EntityRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-import com.recursive_pineapple.matter_manipulator.common.utils.MMUtils;
-import com.recursive_pineapple.matter_manipulator.common.utils.Mods;
+import matter_manipulator.common.utils.MMUtils;
+import matter_manipulator.common.utils.Mods;
 
 public class EntityItemLarge extends EntityItem {
 
