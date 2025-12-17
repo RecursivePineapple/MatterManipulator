@@ -44,7 +44,7 @@ public class StreamingVertexBuffer implements AutoCloseable {
 
     /// Generates a new vertex buffer and closes the previous one, if present.
     /// This should be used sparingly - it's very expensive to call it each frame.
-    public synchronized void generate() {
+    public void generate() {
         if (this.id > 0) {
             close();
         }
@@ -53,7 +53,7 @@ public class StreamingVertexBuffer implements AutoCloseable {
     }
 
     @Override
-    public synchronized void close() {
+    public void close() {
         if (this.id > 0) {
             if (mapped) unmap();
 
@@ -65,17 +65,17 @@ public class StreamingVertexBuffer implements AutoCloseable {
         }
     }
 
-    public synchronized void bind() {
+    public void bind() {
         if (this.id == 0) throw new IllegalStateException("Cannot bind unallocated VBO");
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, this.id);
     }
 
-    public synchronized void unbind() {
+    public void unbind() {
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
     }
 
-    public synchronized void upload(int usage, ByteBuffer buffer, int vertexCount) {
+    public void upload(int usage, ByteBuffer buffer, int vertexCount) {
         if (this.id > 0) {
             this.vertexCount = vertexCount;
             this.bind();
@@ -84,11 +84,11 @@ public class StreamingVertexBuffer implements AutoCloseable {
         }
     }
 
-    public synchronized void upload(ByteBuffer buffer) {
+    public void upload(ByteBuffer buffer) {
         this.upload(GL15.GL_STATIC_DRAW, buffer, buffer.remaining() / this.format.getVertexSize());
     }
 
-    public synchronized void draw(FloatBuffer floatBuffer) {
+    public void draw(FloatBuffer floatBuffer) {
         GL11.glPushMatrix();
         GL11.glLoadIdentity();
         GL11.glMultMatrix(floatBuffer);
@@ -96,23 +96,23 @@ public class StreamingVertexBuffer implements AutoCloseable {
         GL11.glPopMatrix();
     }
 
-    public synchronized void draw() {
+    public void draw() {
         if (mapped) throw new IllegalStateException("Cannot draw a buffer that is mapped");
 
         GL11.glDrawArrays(this.drawMode, 0, this.vertexCount);
     }
 
-    public synchronized void setupState() {
+    public void setupState() {
         this.bind();
         this.format.setupBufferState(0L);
     }
 
-    public synchronized void cleanupState() {
+    public void cleanupState() {
         this.format.clearBufferState();
         this.unbind();
     }
 
-    public synchronized void render() {
+    public void render() {
         this.setupState();
         this.draw();
         this.cleanupState();
@@ -122,13 +122,13 @@ public class StreamingVertexBuffer implements AutoCloseable {
     /// drivers pool memory so there's a good chance it'll just pull it from the pool instead of allocating anything
     /// since the length is the same.
     /// Reference: [Buffer Object Streaming](https://wikis.khronos.org/opengl/Buffer_Object_Streaming)
-    public synchronized void reallocate() {
+    public void reallocate() {
         bind();
         GL15.glBufferData(GL15.GL_ARRAY_BUFFER, length, bufferFlags);
         unbind();
     }
 
-    public synchronized void allocate(
+    public void allocate(
         int vertexCount,
         @MagicConstant(intValues = {
             GL15.GL_STREAM_DRAW,
@@ -155,7 +155,7 @@ public class StreamingVertexBuffer implements AutoCloseable {
 
     /// Maps the buffer into the client memory space (CPU) and returns a [ByteBuffer] wrapper for it.
     /// @param access See [glMapBufferRange](https://docs.gl/es3/glMapBufferRange) for more info.
-    public synchronized ByteBuffer map(
+    public ByteBuffer map(
         @MagicConstant(intValues = {
             GL30.GL_MAP_READ_BIT,
             GL30.GL_MAP_WRITE_BIT,
@@ -187,7 +187,7 @@ public class StreamingVertexBuffer implements AutoCloseable {
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    public synchronized boolean unmap() {
+    public boolean unmap() {
         if (!mapped) throw new IllegalStateException("cannot unmap the same buffer twice");
 
         bind();

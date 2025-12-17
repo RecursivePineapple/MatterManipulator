@@ -144,31 +144,34 @@ public class RenderHints {
 
             final VertexFormat format = DefaultVertexFormat.POSITION_TEXTURE_COLOR;
 
-            vbo.allocate(quads.size() * 4, GL15.GL_STREAM_DRAW);
+            //noinspection SynchronizationOnLocalVariableOrMethodParameter
+            synchronized (vbo) {
+                vbo.allocate(quads.size() * 4, GL15.GL_STREAM_DRAW);
 
-            ByteBuffer buffer = vbo.map(GL30.GL_MAP_WRITE_BIT);
+                ByteBuffer buffer = vbo.map(GL30.GL_MAP_WRITE_BIT);
 
-            buffer.rewind();
+                buffer.rewind();
 
-            long expectedSize = (long) format.getVertexSize() * quads.size() * 4;
+                long expectedSize = (long) format.getVertexSize() * quads.size() * 4;
 
-            if (expectedSize > buffer.capacity()) {
-                MMMod.LOG.error(
-                    "Could not upload hint VBO: Could not insert hint quads into GL buffer (expectedSize={}, buffer.capacity={})",
-                    expectedSize,
-                    buffer.capacity()
-                );
+                if (expectedSize > buffer.capacity()) {
+                    MMMod.LOG.error(
+                        "Could not upload hint VBO: Could not insert hint quads into GL buffer (expectedSize={}, buffer.capacity={})",
+                        expectedSize,
+                        buffer.capacity()
+                    );
 
-                return new VBOResult(new Vector3i(xi, yi, zi), 0);
+                    return new VBOResult(new Vector3i(xi, yi, zi), 0);
+                }
+
+                for (int i = 0, quadsSize = quads.size(); i < quadsSize; i++) {
+                    format.writeQuad(quads.get(i), buffer);
+                }
+
+                buffer.rewind();
+
+                vbo.unmap();
             }
-
-            for (int i = 0, quadsSize = quads.size(); i < quadsSize; i++) {
-                format.writeQuad(quads.get(i), buffer);
-            }
-
-            buffer.rewind();
-
-            vbo.unmap();
 
             return new VBOResult(new Vector3i(xi, yi, zi), quads.size() * 4);
         } finally {
@@ -255,8 +258,11 @@ public class RenderHints {
                 GL11.glEnable(GL11.GL_DEPTH_TEST);
             }
 
-            // There aren't any frames in flight, so we can re-use this buffer on the next frame without issue
-            activeVBO.render();
+            //noinspection SynchronizeOnNonFinalField
+            synchronized (activeVBO) {
+                // There aren't any frames in flight, so we can re-use this buffer on the next frame without issue
+                activeVBO.render();
+            }
 
             GL11.glPopAttrib();
             GL11.glPopMatrix();
