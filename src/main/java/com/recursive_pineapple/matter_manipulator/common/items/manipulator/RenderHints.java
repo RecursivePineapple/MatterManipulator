@@ -1,7 +1,6 @@
 package com.recursive_pineapple.matter_manipulator.common.items.manipulator;
 
 import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.concurrent.ExecutionException;
@@ -32,27 +31,45 @@ import com.recursive_pineapple.matter_manipulator.MMMod;
 
 import org.joml.Vector3d;
 import org.joml.Vector3i;
+import org.lwjgl.LWJGLException;
+import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
-import org.lwjgl.util.glu.GLU;
+import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.SharedDrawable;
 
 import lombok.Setter;
 
 @EventBusSubscriber(side = Side.CLIENT)
 public class RenderHints {
 
-    private static final int BYTES_PER_HINT = DefaultVertexFormat.POSITION_TEXTURE_COLOR.getVertexSize() * 4 * 6;
-
+    /// The latest list of hints. This is not sorted in any way and can only be accessed by the main thread.
     private static final ArrayList<Hint> HINTS = new ArrayList<>(10000);
+
+    /// The list of hints that was sent to the worker thread. This field is modified by the main thread but the list
+    /// itself is modified by the worker thread. This is an optimization because the list from the prior position is
+    /// almost certainly nearly-sorted, which should reduce the number of comparisons significantly.
+    private static ArrayList<Hint> drawnHints = null;
 
     private static final Vector3d LAST_PLAYER_POSITION = new Vector3d();
     private static final Vector3i LAST_RENDERED_PLAYER_POSITION = new Vector3i();
 
     private static boolean vboNeedsRebuild = false;
-    /** The VBO being used for rendering */
-    private static VertexBuffer activeVBO;
-    /** The VBO that's mapped and is being written to */
-    private static VertexBuffer pendingVBO;
+    /// The VBO that's being used for rendering
+    private static StreamingVertexBuffer activeVBO;
+    /// The VBO that's being written to by the worker thread (or is idle)
+    private static StreamingVertexBuffer pendingVBO;
+
+    /// An opengl context that's active on the background thread and is used for writing to the pending VBO.
+    private static final SharedDrawable BACKGROUND_CONTEXT;
+
+    static {
+        try {
+            BACKGROUND_CONTEXT = new SharedDrawable(Display.getDrawable());
+        } catch (LWJGLException e) {
+            throw new RuntimeException("Could not initialized background SharedDrawable", e);
+        }
+    }
 
     private static final ExecutorService WORKER_THREAD = Executors.newFixedThreadPool(1);
     private static Future<VBOResult> renderTask;
@@ -67,12 +84,12 @@ public class RenderHints {
         }
 
         HINTS.clear();
+        drawnHints = null;
 
         vboNeedsRebuild = true;
     }
 
     public static void addHint(int x, int y, int z, Block block, int meta, short[] tint) {
-
         Hint hint = new Hint();
 
         hint.x = x;
@@ -86,6 +103,9 @@ public class RenderHints {
         }
 
         HINTS.add(hint);
+
+        // Invalidate the cached sort results
+        drawnHints = null;
     }
 
     @SubscribeEvent
@@ -95,47 +115,62 @@ public class RenderHints {
         }
     }
 
-    private static VBOResult buildVBO(ByteBuffer buffer, ArrayList<Hint> hints, double xd, double yd, double zd, int xi, int yi, int zi) {
+    private static VBOResult buildVBO(StreamingVertexBuffer vbo, ArrayList<Hint> hints, double xd, double yd, double zd, int xi, int yi, int zi) {
         try {
             Vector3d eyes = new Vector3d(xd, yd, zd);
 
+            try {
+                if (!BACKGROUND_CONTEXT.isCurrent()) {
+                    BACKGROUND_CONTEXT.makeCurrent();
+                }
+            } catch (LWJGLException e) {
+                throw new RuntimeException("Could not activate background GL context", e);
+            }
+
             hints.sort(Comparator.comparingDouble(info -> -eyes.distanceSquared(info.x + 0.5, info.y + 0.5, info.z + 0.5)));
 
-            TessellatorManager.startCapturing();
-
-            Tessellator tes = TessellatorManager.get();
+            Tessellator tes = TessellatorManager.startCapturingAndGet();
 
             tes.startDrawing(GL11.GL_QUADS);
 
             int hintCount = hints.size();
 
-            // noinspection ForLoopReplaceableByForEach
             for (int i = 0; i < hintCount; i++) {
                 hints.get(i).draw(tes, xd, yd, zd, xi, yi, zi);
             }
 
             final var quads = TessellatorManager.stopCapturingToPooledQuads();
 
-            long expectedSize = (long) DefaultVertexFormat.POSITION_TEXTURE_COLOR.getVertexSize() * quads.size() * 4;
+            final VertexFormat format = DefaultVertexFormat.POSITION_TEXTURE_COLOR;
 
-            buffer.rewind();
+            // noinspection SynchronizationOnLocalVariableOrMethodParameter
+            synchronized (vbo) {
+                vbo.allocate(quads.size() * 4, GL15.GL_STREAM_DRAW);
 
-            if (expectedSize > buffer.capacity()) {
-                MMMod.LOG.error(
-                    "Could not upload hint VBO: Could not insert hint quads into GL buffer (expectedSize={}, buffer.capacity={})",
-                    expectedSize,
-                    buffer.capacity()
-                );
+                ByteBuffer buffer = vbo.map(GL30.GL_MAP_WRITE_BIT);
 
-                return new VBOResult(new Vector3i(xi, yi, zi), 0);
+                buffer.rewind();
+
+                long expectedSize = (long) format.getVertexSize() * quads.size() * 4;
+
+                if (expectedSize > buffer.capacity()) {
+                    MMMod.LOG.error(
+                        "Could not upload hint VBO: Could not insert hint quads into GL buffer (expectedSize={}, buffer.capacity={})",
+                        expectedSize,
+                        buffer.capacity()
+                    );
+
+                    return new VBOResult(new Vector3i(xi, yi, zi), 0);
+                }
+
+                for (int i = 0, quadsSize = quads.size(); i < quadsSize; i++) {
+                    format.writeQuad(quads.get(i), buffer);
+                }
+
+                buffer.rewind();
+
+                vbo.unmap();
             }
-
-            // noinspection ForLoopReplaceableByForEach
-            for (int i = 0, quadsSize = quads.size(); i < quadsSize; i++) {
-                DefaultVertexFormat.POSITION_TEXTURE_COLOR.writeQuad(quads.get(i), buffer);
-            }
-
-            buffer.rewind();
 
             return new VBOResult(new Vector3i(xi, yi, zi), quads.size() * 4);
         } finally {
@@ -160,29 +195,28 @@ public class RenderHints {
         Vector3d currentPos = new Vector3d(xd, yd, zd);
 
         if (activeVBO == null) {
-            activeVBO = new VertexBuffer(DefaultVertexFormat.POSITION_TEXTURE_COLOR, GL11.GL_QUADS);
+            activeVBO = new StreamingVertexBuffer(DefaultVertexFormat.POSITION_TEXTURE_COLOR, GL11.GL_QUADS);
         }
 
         if (pendingVBO == null) {
-            pendingVBO = new VertexBuffer(DefaultVertexFormat.POSITION_TEXTURE_COLOR, GL11.GL_QUADS);
+            pendingVBO = new StreamingVertexBuffer(DefaultVertexFormat.POSITION_TEXTURE_COLOR, GL11.GL_QUADS);
         }
 
         if (renderTask != null && renderTask.isDone()) {
             VBOResult result = null;
+
             try {
                 result = renderTask.get();
             } catch (InterruptedException | ExecutionException ex) {
-                MMMod.LOG.error("Could not cancel render hints", ex);
+                MMMod.LOG.error("Could not assemble render hint quads", ex);
             }
 
             renderTask = null;
-            pendingVBO.unmap();
 
             if (result != null) {
                 LAST_RENDERED_PLAYER_POSITION.set(result.playerPosition);
-                pendingVBO.vertexCount = result.vertexCount;
 
-                VertexBuffer temp = activeVBO;
+                StreamingVertexBuffer temp = activeVBO;
                 activeVBO = pendingVBO;
                 pendingVBO = temp;
             }
@@ -192,19 +226,16 @@ public class RenderHints {
             LAST_PLAYER_POSITION.set(currentPos);
             vboNeedsRebuild = false;
 
-            ArrayList<Hint> hints = new ArrayList<>(HINTS);
-
-            if (pendingVBO.mapped) pendingVBO.unmap();
-
-            pendingVBO.ensureSize((long) hints.size() * BYTES_PER_HINT, GL15.GL_STREAM_DRAW);
-            ByteBuffer buffer = pendingVBO.map(GL15.GL_WRITE_ONLY);
-
-            if (buffer != null) {
-                renderTask = WORKER_THREAD.submit(() -> buildVBO(buffer, hints, xd, yd, zd, xi, yi, zi));
+            // If the hint list has changed, re-copy them into the drawnHints list so that the worker thread can sort
+            // them.
+            if (drawnHints == null) {
+                drawnHints = new ArrayList<>(HINTS);
             }
+
+            renderTask = WORKER_THREAD.submit(() -> buildVBO(pendingVBO, drawnHints, xd, yd, zd, xi, yi, zi));
         }
 
-        if (activeVBO.vertexCount > 0) {
+        if (activeVBO.getVertexCount() > 0) {
             p.startSection("Draw MM Hints");
 
             GL11.glPushMatrix();
@@ -226,8 +257,11 @@ public class RenderHints {
                 GL11.glEnable(GL11.GL_DEPTH_TEST);
             }
 
-            // There aren't any frames in flight, so we can re-use this buffer on the next frame without issue
-            activeVBO.render();
+            // noinspection SynchronizeOnNonFinalField
+            synchronized (activeVBO) {
+                // There aren't any frames in flight, so we can re-use this buffer on the next frame without issue
+                activeVBO.render();
+            }
 
             GL11.glPopAttrib();
             GL11.glPopMatrix();
@@ -350,146 +384,6 @@ public class RenderHints {
         public VBOResult(Vector3i playerPosition, int vertexCount) {
             this.playerPosition = playerPosition;
             this.vertexCount = vertexCount;
-        }
-    }
-
-    private static class VertexBuffer implements AutoCloseable {
-
-        private int id;
-        private volatile int vertexCount;
-        private VertexFormat format;
-        private int drawMode;
-
-        private volatile long currentSize;
-        private volatile int currentUsage;
-        private volatile ByteBuffer oldMap;
-        private volatile boolean mapped;
-
-        public VertexBuffer() {
-            this.id = GL15.glGenBuffers();
-        }
-
-        public VertexBuffer(VertexFormat format, int drawMode) {
-            this();
-            this.format = format;
-            this.drawMode = drawMode;
-        }
-
-        public void bind() {
-            GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, this.id);
-        }
-
-        public void unbind() {
-            GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
-        }
-
-        public void upload(int usage, ByteBuffer buffer, int vertexCount) {
-            if (this.id != -1) {
-                this.vertexCount = vertexCount;
-                this.bind();
-                GL15.glBufferData(GL15.GL_ARRAY_BUFFER, buffer, usage);
-                this.unbind();
-            }
-        }
-
-        public void upload(ByteBuffer buffer) {
-            if (this.format == null) {
-                throw new IllegalStateException("No format specified for VBO upload");
-            } else {
-                this.upload(GL15.GL_STATIC_DRAW, buffer, buffer.remaining() / this.format.getVertexSize());
-            }
-        }
-
-        public void close() {
-            if (this.id >= 0) {
-                GL15.glDeleteBuffers(this.id);
-                this.id = -1;
-            }
-        }
-
-        public void draw(FloatBuffer floatBuffer) {
-            GL11.glPushMatrix();
-            GL11.glLoadIdentity();
-            GL11.glMultMatrix(floatBuffer);
-            this.draw();
-            GL11.glPopMatrix();
-        }
-
-        public void draw() {
-            GL11.glDrawArrays(this.drawMode, 0, this.vertexCount);
-        }
-
-        public void setupState() {
-            if (this.format == null) {
-                throw new IllegalStateException("No format specified for VBO setup");
-            } else {
-                this.bind();
-                this.format.setupBufferState(0L);
-            }
-        }
-
-        public void cleanupState() {
-            this.format.clearBufferState();
-            this.unbind();
-        }
-
-        public void render() {
-            this.setupState();
-            this.draw();
-            this.cleanupState();
-        }
-
-        public void ensureSize(long size, int usage) {
-            if (size > currentSize || currentSize / 4 > size || currentUsage != usage) {
-                bind();
-
-                GL15.glBufferData(GL15.GL_ARRAY_BUFFER, size, usage);
-                currentSize = size;
-                currentUsage = usage;
-
-                unbind();
-            }
-        }
-
-        @SuppressWarnings("NonAtomicOperationOnVolatileField")
-        public ByteBuffer map(int access) {
-            if (mapped) throw new IllegalStateException("cannot map the same buffer twice");
-            if (currentSize == 0) throw new IllegalStateException("cannot map an empty buffer");
-
-            bind();
-
-            GL11.glGetError();
-
-            oldMap = GL15.glMapBuffer(GL15.GL_ARRAY_BUFFER, access, currentSize, oldMap);
-
-            if (oldMap == null) {
-                MMMod.LOG.error("Error mapping buffer: {}", GLU.gluErrorString(GL11.glGetError()));
-            } else {
-                mapped = true;
-            }
-
-            unbind();
-
-            return oldMap;
-        }
-
-        public void unmap() {
-            if (!mapped) throw new IllegalStateException("cannot unmap the same buffer twice");
-
-            bind();
-
-            GL11.glGetError();
-
-            GL15.glUnmapBuffer(GL15.GL_ARRAY_BUFFER);
-            int error = GL11.glGetError();
-
-            if (error != 0) {
-                MMMod.LOG.error("Error unmapping buffer: {}", GLU.gluErrorString(error));
-            }
-
-            mapped = false;
-
-            unbind();
         }
     }
 }
