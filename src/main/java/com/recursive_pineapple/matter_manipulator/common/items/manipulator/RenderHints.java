@@ -17,6 +17,7 @@ import net.minecraft.profiler.Profiler;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 
+import net.minecraftforge.client.event.RenderWorldEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.world.WorldEvent;
 
@@ -120,7 +121,9 @@ public class RenderHints {
             Vector3d eyes = new Vector3d(xd, yd, zd);
 
             try {
-                BACKGROUND_CONTEXT.makeCurrent();
+                if (!BACKGROUND_CONTEXT.isCurrent()) {
+                    BACKGROUND_CONTEXT.makeCurrent();
+                }
             } catch (LWJGLException e) {
                 throw new RuntimeException("Could not activate background GL context", e);
             }
@@ -166,12 +169,6 @@ public class RenderHints {
             buffer.rewind();
 
             vbo.unmap();
-
-            try {
-                BACKGROUND_CONTEXT.releaseContext();
-            } catch (LWJGLException e) {
-                throw new RuntimeException("Could not release background GL context", e);
-            }
 
             return new VBOResult(new Vector3i(xi, yi, zi), quads.size() * 4);
         } finally {
