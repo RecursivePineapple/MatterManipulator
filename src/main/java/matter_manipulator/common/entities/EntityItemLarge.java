@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.common.entities;
+package matter_manipulator.common.entities;
 
 import java.util.Iterator;
 

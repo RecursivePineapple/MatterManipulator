@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.client.nei;
+package matter_manipulator.client.nei;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;

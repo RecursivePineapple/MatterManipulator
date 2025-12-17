@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.mixin.interfaces;
+package matter_manipulator.mixin.interfaces;
 
 import net.minecraft.world.World;
 

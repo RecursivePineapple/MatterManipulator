@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.asm;
+package matter_manipulator.asm;
 
 import java.util.ArrayList;
 import java.util.List;

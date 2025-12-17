@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.common.items;
+package matter_manipulator.common.items;
 
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.ItemStack;

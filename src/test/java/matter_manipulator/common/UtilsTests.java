@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.common;
+package matter_manipulator.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

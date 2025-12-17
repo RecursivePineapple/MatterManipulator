@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.common.uplink;
+package matter_manipulator.common.uplink;
 
 import java.util.List;
 import java.util.Map;

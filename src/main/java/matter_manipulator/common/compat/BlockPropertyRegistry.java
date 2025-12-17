@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.common.compat;
+package matter_manipulator.common.compat;
 
 import static net.minecraftforge.common.util.ForgeDirection.*;
 import static net.minecraftforge.oredict.OreDictionary.WILDCARD_VALUE;

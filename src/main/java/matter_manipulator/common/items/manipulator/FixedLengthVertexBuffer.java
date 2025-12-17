@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.common.items.manipulator;
+package matter_manipulator.common.items.manipulator;
 
 import com.gtnewhorizon.gtnhlib.client.renderer.vertex.VertexFormat;
 

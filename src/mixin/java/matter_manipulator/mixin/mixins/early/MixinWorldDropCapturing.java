@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.mixin.mixins.early;
+package matter_manipulator.mixin.mixins.early;
 
 import java.util.ArrayList;
 import java.util.List;

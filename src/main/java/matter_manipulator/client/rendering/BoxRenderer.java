@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.client.rendering;
+package matter_manipulator.client.rendering;
 
 import java.nio.ByteBuffer;
 

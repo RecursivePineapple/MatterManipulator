@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.mixin;
+package matter_manipulator.mixin;
 
 import com.gtnewhorizon.gtnhmixins.builders.IMixins;
 import com.gtnewhorizon.gtnhmixins.builders.MixinBuilder;

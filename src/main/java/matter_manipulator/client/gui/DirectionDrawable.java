@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.client.gui;
+package matter_manipulator.client.gui;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;

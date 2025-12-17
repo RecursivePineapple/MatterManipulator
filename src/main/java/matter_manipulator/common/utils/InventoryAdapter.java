@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.common.utils;
+package matter_manipulator.common.utils;
 
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ISidedInventory;

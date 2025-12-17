@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator;
+package matter_manipulator;
 
 import com.gtnewhorizon.gtnhlib.config.Config;
 import com.gtnewhorizon.gtnhlib.config.ConfigException;

@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator;
+package matter_manipulator;
 
 import net.minecraft.entity.player.EntityPlayer;
 

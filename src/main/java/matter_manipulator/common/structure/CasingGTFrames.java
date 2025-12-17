@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.common.structure;
+package matter_manipulator.common.structure;
 
 import static gregtech.api.util.GTStructureUtility.ofFrame;
 

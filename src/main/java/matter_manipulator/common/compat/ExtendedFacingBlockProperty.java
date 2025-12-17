@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.common.compat;
+package matter_manipulator.common.compat;
 
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
 

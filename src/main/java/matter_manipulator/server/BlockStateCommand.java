@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.server;
+package matter_manipulator.server;
 
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendChatToPlayer;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendErrorToPlayer;

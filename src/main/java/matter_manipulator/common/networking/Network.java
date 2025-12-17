@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.common.networking;
+package matter_manipulator.common.networking;
 
 import java.util.EnumMap;
 import java.util.List;

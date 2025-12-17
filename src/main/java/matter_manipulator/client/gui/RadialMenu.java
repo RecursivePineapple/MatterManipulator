@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.client.gui;
+package matter_manipulator.client.gui;
 
 import static java.lang.Math.PI;
 

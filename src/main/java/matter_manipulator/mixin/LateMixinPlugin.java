@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.mixin;
+package matter_manipulator.mixin;
 
 import java.util.List;
 import java.util.Set;

@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.common.items.manipulator;
+package matter_manipulator.common.items.manipulator;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;

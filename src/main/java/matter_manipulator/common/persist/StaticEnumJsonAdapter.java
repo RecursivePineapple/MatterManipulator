@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.common.persist;
+package matter_manipulator.common.persist;
 
 import java.lang.reflect.Type;
 

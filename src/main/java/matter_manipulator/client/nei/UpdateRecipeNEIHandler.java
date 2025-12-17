@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.client.nei;
+package matter_manipulator.client.nei;
 
 import java.util.ArrayList;
 import java.util.Comparator;

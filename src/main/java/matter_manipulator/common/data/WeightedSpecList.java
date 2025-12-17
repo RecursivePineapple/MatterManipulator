@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.common.data;
+package matter_manipulator.common.data;
 
 import java.util.ArrayList;
 import java.util.Objects;

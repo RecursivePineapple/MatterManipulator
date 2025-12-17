@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.common.items.manipulator;
+package matter_manipulator.common.items.manipulator;
 
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.BLUE;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.GREEN;

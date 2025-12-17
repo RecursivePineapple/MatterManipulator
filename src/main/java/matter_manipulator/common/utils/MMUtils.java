@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.common.utils;
+package matter_manipulator.common.utils;
 
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.AppliedEnergistics2;
 

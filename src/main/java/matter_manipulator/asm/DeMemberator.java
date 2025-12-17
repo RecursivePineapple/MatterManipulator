@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.asm;
+package matter_manipulator.asm;
 
 import static com.recursive_pineapple.matter_manipulator.asm.ASMUtils.*;
 import static com.recursive_pineapple.matter_manipulator.asm.ASMUtils.InsnPredicate;

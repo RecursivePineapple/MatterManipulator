@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.common.building;
+package matter_manipulator.common.building;
 
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendErrorToPlayer;
 import static com.recursive_pineapple.matter_manipulator.common.utils.MMUtils.sendInfoToPlayer;

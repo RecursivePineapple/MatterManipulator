@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.common.structure;
+package matter_manipulator.common.structure;
 
 import java.util.function.Supplier;
 

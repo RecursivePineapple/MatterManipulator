@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator;
+package matter_manipulator;
 
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;

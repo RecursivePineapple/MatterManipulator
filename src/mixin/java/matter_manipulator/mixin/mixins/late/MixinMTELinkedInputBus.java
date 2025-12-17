@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.mixin.mixins.late;
+package matter_manipulator.mixin.mixins.late;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Field;

@@ -1,4 +1,4 @@
-package com.recursive_pineapple.matter_manipulator.common.networking;
+package matter_manipulator.common.networking;
 
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.AppliedEnergistics2;
 import static com.recursive_pineapple.matter_manipulator.common.utils.Mods.GregTech;
