@@ -25,6 +25,8 @@ public class BoxRenderer {
     private final ShaderProgram program;
     private final int time_location;
 
+    private final VertexBuffer buffer = new VertexBuffer(DefaultVertexFormat.POSITION_COLOR_TEXTURE, GL11.GL_QUADS);
+
     public BoxRenderer() {
         program = new ShaderProgram(
             Mods.MatterManipulator.resourceDomain,
@@ -39,8 +41,6 @@ public class BoxRenderer {
 
     /**
      * Starts rendering fancy boxes. Should only be called once per frame, to allow quad sorting.
-     *
-     * @param partialTickTime
      */
     public void start(double partialTickTime) {
         TessellatorManager.startCapturing();
@@ -163,13 +163,10 @@ public class BoxRenderer {
 
         program.use();
 
-        // this should only be done once a frame, but there aren't any side effects from calling it more
         GL20.glUniform1f(time_location, (((float) (System.currentTimeMillis() % 2500)) / 1000f));
 
-        try (VertexBuffer buffer = new VertexBuffer(DefaultVertexFormat.POSITION_COLOR_TEXTURE, GL11.GL_QUADS);) {
-            buffer.upload(bytes);
-            buffer.render();
-        }
+        buffer.upload(bytes);
+        buffer.render();
 
         ShaderProgram.clear();
 
