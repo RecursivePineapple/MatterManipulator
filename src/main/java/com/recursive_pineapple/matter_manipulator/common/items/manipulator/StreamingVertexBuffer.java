@@ -148,7 +148,7 @@ public class StreamingVertexBuffer implements AutoCloseable {
         this.length = vertexCount * (long) format.getVertexSize();
         this.bufferFlags = usage;
 
-        GL15.glBufferData(GL15.GL_ARRAY_BUFFER, this.length, this.usage);
+        GL15.glBufferData(GL15.GL_ARRAY_BUFFER, this.length, this.bufferFlags);
 
         unbind();
     }
