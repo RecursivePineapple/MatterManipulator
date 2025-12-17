@@ -17,7 +17,6 @@ import net.minecraft.profiler.Profiler;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 
-import net.minecraftforge.client.event.RenderWorldEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.world.WorldEvent;
 
@@ -144,7 +143,7 @@ public class RenderHints {
 
             final VertexFormat format = DefaultVertexFormat.POSITION_TEXTURE_COLOR;
 
-            //noinspection SynchronizationOnLocalVariableOrMethodParameter
+            // noinspection SynchronizationOnLocalVariableOrMethodParameter
             synchronized (vbo) {
                 vbo.allocate(quads.size() * 4, GL15.GL_STREAM_DRAW);
 
@@ -258,7 +257,7 @@ public class RenderHints {
                 GL11.glEnable(GL11.GL_DEPTH_TEST);
             }
 
-            //noinspection SynchronizeOnNonFinalField
+            // noinspection SynchronizeOnNonFinalField
             synchronized (activeVBO) {
                 // There aren't any frames in flight, so we can re-use this buffer on the next frame without issue
                 activeVBO.render();
