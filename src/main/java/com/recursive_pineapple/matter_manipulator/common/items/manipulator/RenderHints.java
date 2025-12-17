@@ -1,7 +1,6 @@
 package com.recursive_pineapple.matter_manipulator.common.items.manipulator;
 
 import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.concurrent.ExecutionException;
@@ -36,8 +35,8 @@ import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
+import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.SharedDrawable;
-import org.lwjgl.util.glu.GLU;
 
 import lombok.Setter;
 
@@ -57,9 +56,9 @@ public class RenderHints {
 
     private static boolean vboNeedsRebuild = false;
     /// The VBO that's being used for rendering
-    private static VertexBuffer activeVBO;
+    private static StreamingVertexBuffer activeVBO;
     /// The VBO that's being written to by the worker thread (or is idle)
-    private static VertexBuffer pendingVBO;
+    private static StreamingVertexBuffer pendingVBO;
 
     /// An opengl context that's active on the background thread and is used for writing to the pending VBO.
     private static final SharedDrawable BACKGROUND_CONTEXT;
@@ -116,7 +115,7 @@ public class RenderHints {
         }
     }
 
-    private static VBOResult buildVBO(VertexBuffer vbo, ArrayList<Hint> hints, double xd, double yd, double zd, int xi, int yi, int zi) {
+    private static VBOResult buildVBO(StreamingVertexBuffer vbo, ArrayList<Hint> hints, double xd, double yd, double zd, int xi, int yi, int zi) {
         try {
             Vector3d eyes = new Vector3d(xd, yd, zd);
 
@@ -142,16 +141,18 @@ public class RenderHints {
 
             final VertexFormat format = DefaultVertexFormat.POSITION_TEXTURE_COLOR;
 
-            long bufferSize = (long) format.getVertexSize() * quads.size() * 4;
+            vbo.allocate(quads.size() * 4, GL15.GL_STREAM_DRAW);
 
-            ByteBuffer buffer = vbo.map(GL15.GL_WRITE_ONLY, bufferSize, GL15.GL_STREAM_DRAW);
+            ByteBuffer buffer = vbo.map(GL30.GL_MAP_WRITE_BIT);
 
             buffer.rewind();
 
-            if (bufferSize > buffer.capacity()) {
+            long expectedSize = (long) format.getVertexSize() * quads.size() * 4;
+
+            if (expectedSize > buffer.capacity()) {
                 MMMod.LOG.error(
-                    "Could not upload hint VBO: Could not insert hint quads into GL buffer (bufferSize={}, buffer.capacity={})",
-                    bufferSize,
+                    "Could not upload hint VBO: Could not insert hint quads into GL buffer (expectedSize={}, buffer.capacity={})",
+                    expectedSize,
                     buffer.capacity()
                 );
 
@@ -195,11 +196,11 @@ public class RenderHints {
         Vector3d currentPos = new Vector3d(xd, yd, zd);
 
         if (activeVBO == null) {
-            activeVBO = new VertexBuffer(DefaultVertexFormat.POSITION_TEXTURE_COLOR, GL11.GL_QUADS);
+            activeVBO = new StreamingVertexBuffer(DefaultVertexFormat.POSITION_TEXTURE_COLOR, GL11.GL_QUADS);
         }
 
         if (pendingVBO == null) {
-            pendingVBO = new VertexBuffer(DefaultVertexFormat.POSITION_TEXTURE_COLOR, GL11.GL_QUADS);
+            pendingVBO = new StreamingVertexBuffer(DefaultVertexFormat.POSITION_TEXTURE_COLOR, GL11.GL_QUADS);
         }
 
         if (renderTask != null && renderTask.isDone()) {
@@ -215,9 +216,8 @@ public class RenderHints {
 
             if (result != null) {
                 LAST_RENDERED_PLAYER_POSITION.set(result.playerPosition);
-                pendingVBO.vertexCount = result.vertexCount;
 
-                VertexBuffer temp = activeVBO;
+                StreamingVertexBuffer temp = activeVBO;
                 activeVBO = pendingVBO;
                 pendingVBO = temp;
             }
@@ -236,7 +236,7 @@ public class RenderHints {
             renderTask = WORKER_THREAD.submit(() -> buildVBO(pendingVBO, drawnHints, xd, yd, zd, xi, yi, zi));
         }
 
-        if (activeVBO.vertexCount > 0) {
+        if (activeVBO.getVertexCount() > 0) {
             p.startSection("Draw MM Hints");
 
             GL11.glPushMatrix();
@@ -382,139 +382,6 @@ public class RenderHints {
         public VBOResult(Vector3i playerPosition, int vertexCount) {
             this.playerPosition = playerPosition;
             this.vertexCount = vertexCount;
-        }
-    }
-
-    private static class VertexBuffer implements AutoCloseable {
-
-        private volatile int id;
-        private volatile int vertexCount;
-        private volatile VertexFormat format;
-        private volatile int drawMode;
-
-        private volatile long currentSize;
-        private volatile int currentUsage;
-        private volatile ByteBuffer oldMap;
-        private volatile boolean mapped;
-
-        public VertexBuffer() {
-            this.id = GL15.glGenBuffers();
-        }
-
-        public VertexBuffer(VertexFormat format, int drawMode) {
-            this();
-            this.format = format;
-            this.drawMode = drawMode;
-        }
-
-        public void bind() {
-            GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, this.id);
-        }
-
-        public void unbind() {
-            GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
-        }
-
-        public void upload(int usage, ByteBuffer buffer, int vertexCount) {
-            if (this.id > 0) {
-                this.vertexCount = vertexCount;
-                this.bind();
-                GL15.glBufferData(GL15.GL_ARRAY_BUFFER, buffer, usage);
-                this.unbind();
-            }
-        }
-
-        public void upload(ByteBuffer buffer) {
-            if (this.format == null) {
-                throw new IllegalStateException("No format specified for VBO upload");
-            } else {
-                this.upload(GL15.GL_STATIC_DRAW, buffer, buffer.remaining() / this.format.getVertexSize());
-            }
-        }
-
-        public void close() {
-            if (this.id > 0) {
-                GL15.glDeleteBuffers(this.id);
-                this.id = 0;
-            }
-        }
-
-        public void draw(FloatBuffer floatBuffer) {
-            GL11.glPushMatrix();
-            GL11.glLoadIdentity();
-            GL11.glMultMatrix(floatBuffer);
-            this.draw();
-            GL11.glPopMatrix();
-        }
-
-        public void draw() {
-            if (mapped) throw new IllegalStateException("Cannot draw a buffer that is mapped");
-
-            GL11.glDrawArrays(this.drawMode, 0, this.vertexCount);
-        }
-
-        public void setupState() {
-            if (this.format == null) {
-                throw new IllegalStateException("No format specified for VBO setup");
-            } else {
-                this.bind();
-                this.format.setupBufferState(0L);
-            }
-        }
-
-        public void cleanupState() {
-            this.format.clearBufferState();
-            this.unbind();
-        }
-
-        public void render() {
-            this.setupState();
-            this.draw();
-            this.cleanupState();
-        }
-
-        @SuppressWarnings("NonAtomicOperationOnVolatileField")
-        public ByteBuffer map(int access, long size, int usage) {
-            if (mapped) throw new IllegalStateException("cannot map the same buffer twice");
-
-            bind();
-
-            GL15.glBufferData(GL15.GL_ARRAY_BUFFER, size, usage);
-            currentSize = size;
-            currentUsage = usage;
-
-            if (oldMap != null) {
-                oldMap.clear();
-            }
-
-            oldMap = GL15.glMapBuffer(GL15.GL_ARRAY_BUFFER, access, currentSize, oldMap);
-
-            if (oldMap == null) {
-                MMMod.LOG.error("Error mapping buffer: {}", GLU.gluErrorString(GL11.glGetError()));
-            } else {
-                mapped = true;
-            }
-
-            unbind();
-
-            return oldMap;
-        }
-
-        public void unmap() {
-            if (!mapped) throw new IllegalStateException("cannot unmap the same buffer twice");
-
-            bind();
-
-            GL15.glUnmapBuffer(GL15.GL_ARRAY_BUFFER);
-            int error = GL11.glGetError();
-
-            if (error != 0) {
-                MMMod.LOG.error("Error unmapping buffer: {}", GLU.gluErrorString(error));
-            }
-
-            mapped = false;
-
-            unbind();
         }
     }
 }
