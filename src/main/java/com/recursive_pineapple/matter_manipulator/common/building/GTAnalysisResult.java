@@ -62,7 +62,7 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
     public byte mConnections = 0;
     public byte mGTColour = -1;
     public ForgeDirection mGTFront = null, mGTMainFacing = null;
-    public short mGTFlags = 0;
+    public int mGTFlags = 0;
     public ExtendedFacing mGTFacing = null;
     public CoverData[] mCovers = null;
     public byte mStrongRedstone = 0;
@@ -75,23 +75,26 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
     public double[] mTTParams = null;
     public int mAmperes = 0;
     public byte mFluidPipeRestriction = 0;
+    public int mMaxParallels = 0;
 
     private static int counter = 0;
-    private static final short GT_MACHINE_ENABLED = (short) (0b1 << counter++);
-    private static final short GT_BASIC_IO_PUSH_ITEMS = (short) (0b1 << counter++);
-    private static final short GT_BASIC_IO_PUSH_FLUIDS = (short) (0b1 << counter++);
-    private static final short GT_BASIC_IO_DISABLE_FILTER = (short) (0b1 << counter++);
-    private static final short GT_BASIC_IO_DISABLE_MULTISTACK = (short) (0b1 << counter++);
-    private static final short GT_BASIC_IO_INPUT_FROM_OUTPUT_SIDE = (short) (0b1 << counter++);
-    private static final short GT_INPUT_BUS_NO_SORTING = (short) (0b1 << counter++);
-    private static final short GT_INPUT_BUS_NO_LIMITING = (short) (0b1 << counter++);
-    private static final short GT_INPUT_BUS_NO_FILTERING = (short) (0b1 << counter++);
-    private static final short GT_MULTI_PROTECT_ITEMS = (short) (0b1 << counter++);
-    private static final short GT_MULTI_PROTECT_FLUIDS = (short) (0b1 << counter++);
-    private static final short GT_MULTI_BATCH_MODE = (short) (0b1 << counter++);
-    private static final short GT_MULTI_INPUT_SEPARATION = (short) (0b1 << counter++);
-    private static final short GT_MULTI_RECIPE_LOCK = (short) (0b1 << counter++);
-    private static final short GT_ME_CONNECT_ALL_SIDES = (short) (0b1 << counter++);
+    private static final int GT_MACHINE_ENABLED = 0b1 << counter++;
+    private static final int GT_BASIC_IO_PUSH_ITEMS = 0b1 << counter++;
+    private static final int GT_BASIC_IO_PUSH_FLUIDS = 0b1 << counter++;
+    private static final int GT_BASIC_IO_DISABLE_FILTER = 0b1 << counter++;
+    private static final int GT_BASIC_IO_DISABLE_MULTISTACK = 0b1 << counter++;
+    private static final int GT_BASIC_IO_INPUT_FROM_OUTPUT_SIDE = 0b1 << counter++;
+    private static final int GT_INPUT_BUS_NO_SORTING = 0b1 << counter++;
+    private static final int GT_INPUT_BUS_NO_LIMITING = 0b1 << counter++;
+    private static final int GT_INPUT_BUS_NO_FILTERING = 0b1 << counter++;
+    private static final int GT_MULTI_PROTECT_ITEMS = 0b1 << counter++;
+    private static final int GT_MULTI_PROTECT_FLUIDS = 0b1 << counter++;
+    private static final int GT_MULTI_BATCH_MODE = 0b1 << counter++;
+    private static final int GT_MULTI_INPUT_SEPARATION = 0b1 << counter++;
+    private static final int GT_MULTI_RECIPE_LOCK = 0b1 << counter++;
+    private static final int GT_ME_CONNECT_ALL_SIDES = 0b1 << counter++;
+    private static final int GT_MAX_PARALLELS = 0b1 << counter++;
+    private static final int GT_POWERFAIL_EVENTS = 0b1 << counter++;
 
     private static final GTAnalysisResult NO_OP = new GTAnalysisResult();
 
@@ -223,6 +226,11 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
             if (multi.isBatchModeEnabled()) mGTFlags |= GT_MULTI_BATCH_MODE;
             if (multi.isInputSeparationEnabled()) mGTFlags |= GT_MULTI_INPUT_SEPARATION;
             if (multi.isRecipeLockingEnabled()) mGTFlags |= GT_MULTI_RECIPE_LOCK;
+
+            if (multi.isAlwaysMaxParallel()) mGTFlags |= GT_MAX_PARALLELS;
+            mMaxParallels = multi.getPowerPanelMaxParallel();
+
+            if (multi.makesPowerfailEvents()) mGTFlags |= GT_POWERFAIL_EVENTS;
         }
 
         // Check if the machine can be copied with a data stick
@@ -457,6 +465,16 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
                 if (multi.supportsBatchMode()) multi.setBatchMode((mGTFlags & GT_MULTI_BATCH_MODE) != 0);
                 if (multi.supportsInputSeparation()) multi.setInputSeparation((mGTFlags & GT_MULTI_INPUT_SEPARATION) != 0);
                 if (multi.supportsSingleRecipeLocking()) multi.setRecipeLocking((mGTFlags & GT_MULTI_RECIPE_LOCK) != 0);
+
+                if ((mGTFlags & GT_MAX_PARALLELS) != 0) {
+                    multi.setAlwaysMaxParallel(true);
+                    multi.setPowerPanelMaxParallel(multi.getMaxParallelRecipes());
+                } else {
+                    multi.setAlwaysMaxParallel(false);
+                    multi.setPowerPanelMaxParallel(mMaxParallels);
+                }
+
+                multi.setPowerfailEventCreationStatus((mGTFlags & GT_POWERFAIL_EVENTS) != 0);
             }
 
             // paste the data
