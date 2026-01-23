@@ -61,15 +61,7 @@ public class RenderHints {
     private static StreamingVertexBuffer pendingVBO;
 
     /// An opengl context that's active on the background thread and is used for writing to the pending VBO.
-    private static final SharedDrawable BACKGROUND_CONTEXT;
-
-    static {
-        try {
-            BACKGROUND_CONTEXT = new SharedDrawable(Display.getDrawable());
-        } catch (LWJGLException e) {
-            throw new RuntimeException("Could not initialized background SharedDrawable", e);
-        }
-    }
+    private static SharedDrawable backgroundContext;
 
     private static final ExecutorService WORKER_THREAD = Executors.newFixedThreadPool(1);
     private static Future<VBOResult> renderTask;
@@ -120,8 +112,8 @@ public class RenderHints {
             Vector3d eyes = new Vector3d(xd, yd, zd);
 
             try {
-                if (!BACKGROUND_CONTEXT.isCurrent()) {
-                    BACKGROUND_CONTEXT.makeCurrent();
+                if (!backgroundContext.isCurrent()) {
+                    backgroundContext.makeCurrent();
                 }
             } catch (LWJGLException e) {
                 throw new RuntimeException("Could not activate background GL context", e);
@@ -181,6 +173,14 @@ public class RenderHints {
     @SubscribeEvent
     public static void onRenderWorldLast(RenderWorldLastEvent e) {
         if (HINTS.isEmpty()) return;
+
+        if (backgroundContext == null) {
+            try {
+                backgroundContext = new SharedDrawable(Display.getDrawable());
+            } catch (LWJGLException ex) {
+                throw new RuntimeException("Could not initialized background SharedDrawable", ex);
+            }
+        }
 
         Profiler p = Minecraft.getMinecraft().mcProfiler;
 
