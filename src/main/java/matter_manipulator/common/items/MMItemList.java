@@ -5,6 +5,8 @@ import net.minecraft.item.ItemStack;
 
 public enum MMItemList {
 
+    Cluster,
+
     MK0,
     MK1,
     MK2,
@@ -69,7 +71,7 @@ public enum MMItemList {
 
     public ItemStack get(int amount) {
         ItemStack copy = stack.copy();
-        copy.stackSize = amount;
+        copy.setCount(amount);
         return copy;
     }
 }

@@ -1,0 +1,6 @@
+{
+    "parent": "item/generated",
+    "textures": {
+        "layer0": "matter-manipulator:item/metaitem/14"
+    }
+}

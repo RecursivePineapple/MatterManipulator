@@ -1,16 +1,14 @@
 package matter_manipulator;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
+import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 
-import com.gtnewhorizon.gtnhmixins.IEarlyMixinLoader;
-import com.gtnewhorizon.gtnhmixins.builders.IMixins;
-import matter_manipulator.mixin.Mixin;
+import zone.rong.mixinbooter.IEarlyMixinLoader;
 
-@IFMLLoadingPlugin.MCVersion("1.7.10")
+@IFMLLoadingPlugin.MCVersion("1.12.2")
 public class MMModCore implements IFMLLoadingPlugin, IEarlyMixinLoader {
 
     @Override
@@ -41,12 +39,17 @@ public class MMModCore implements IFMLLoadingPlugin, IEarlyMixinLoader {
     }
 
     @Override
-    public String getMixinConfig() {
-        return "mixins.matter-manipulator.early.json";
+    public List<String> getMixinConfigs() {
+        List<String> configs = new ArrayList<>();
+
+        configs.add("mixins.matter-manipulator.minecraft.json");
+        configs.add("mixins.matter-manipulator.forge.json");
+
+        return configs;
     }
 
     @Override
-    public List<String> getMixins(Set<String> loadedCoreMods) {
-        return IMixins.getEarlyMixins(Mixin.class, loadedCoreMods);
+    public boolean shouldMixinConfigQueue(String mixinConfig) {
+        return IEarlyMixinLoader.super.shouldMixinConfigQueue(mixinConfig);
     }
 }

@@ -1,0 +1,19 @@
+{
+  "package": "matter_manipulator.mixin.mixins.minecraft",
+  "refmap": "mixins.matter-manipulator.refmap.json",
+  "target": "@env(DEFAULT)",
+  "minVersion": "0.8",
+  "compatibilityLevel": "JAVA_8",
+  "injectors": {
+  },
+  "mixins": [
+    "AccessorItemStack",
+    "AccessorWorld",
+    "MixinEntityPlayer",
+    "MixinWorldDropCapturing"
+  ],
+  "client": [
+    "AccessorMinecraft"
+  ],
+  "server": []
+}

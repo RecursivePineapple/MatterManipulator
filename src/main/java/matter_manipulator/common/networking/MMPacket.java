@@ -1,41 +1,22 @@
 package matter_manipulator.common.networking;
 
-import net.minecraft.network.INetHandler;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.WorldServer;
 
-import com.google.common.io.ByteArrayDataInput;
+public interface MMPacket {
 
-import io.netty.buffer.ByteBuf;
+    ResourceLocation getPacketID();
 
-public abstract class MMPacket {
+    default void sendToServer() {
+        MMNetwork.CHANNEL.sendToServer(this);
+    }
 
-    public MMPacket() {}
+    default void sendToPlayer(EntityPlayerMP player) {
+        MMNetwork.CHANNEL.sendToPlayer(this, player);
+    }
 
-    /**
-     * Unique ID of this packet.
-     */
-    public abstract byte getPacketID();
-
-    /**
-     * Encode the data into given byte buffer.
-     */
-    public abstract void encode(ByteBuf buffer);
-
-    /**
-     * Decode byte buffer into packet object.
-     */
-    public abstract MMPacket decode(ByteArrayDataInput buffer);
-
-    /**
-     * Process the received packet.
-     *
-     * @param world null if message is received on server side, the client world if message is received on client side
-     */
-    public abstract void process(IBlockAccess world);
-
-    /**
-     * This will be called just before {@link #process(IBlockAccess)} to inform the handler about the source and type of
-     * connection.
-     */
-    public void setINetHandler(INetHandler handler) {}
+    default void sendToPlayersWatching(WorldServer world, int chunkX, int chunkZ) {
+        MMNetwork.CHANNEL.sendToPlayersWatching(world, this, chunkX, chunkZ);
+    }
 }

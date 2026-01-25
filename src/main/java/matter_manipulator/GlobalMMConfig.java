@@ -1,81 +1,63 @@
 package matter_manipulator;
 
-import com.gtnewhorizon.gtnhlib.config.Config;
-import com.gtnewhorizon.gtnhlib.config.ConfigException;
-import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
-import matter_manipulator.common.utils.Mods.Names;
+import net.minecraftforge.common.config.Config;
 
 public class GlobalMMConfig {
 
-    @Config(modid = Names.MATTER_MANIPULATOR, category = "interaction")
+    @Config(modid = Tags.MODID, category = "interaction")
     public static class InteractionConfig {
 
         @Config.Comment("Clear the paste region when the copy or cut regions are marked")
-        @Config.DefaultBoolean(true)
         @Config.Name("Auto Clear Paste")
-        public static boolean pasteAutoClear;
+        public static boolean pasteAutoClear = true;
 
         @Config.Comment("Clear the transform and the stacking amount when the coordinates are cleared")
-        @Config.DefaultBoolean(true)
         @Config.Name("Clear Transform")
-        public static boolean resetTransform;
+        public static boolean resetTransform = true;
     }
 
-    @Config(modid = Names.MATTER_MANIPULATOR, category = "rendering")
+    @Config(modid = Tags.MODID, category = "rendering")
     public static class RenderingConfig {
 
         @Config.Comment("Controls how many blocks are shown in the preview. Client only.")
-        @Config.DefaultInt(1_000_000)
         @Config.Name("Max Hints Shown")
-        public static int maxHints;
+        public static int maxHints = 1_000_000;
 
         @Config.Comment("Controls the duration of the build status warning/error hints (seconds). Client only. Set to 0 to never clear hints.")
-        @Config.DefaultInt(60)
         @Config.Name("Build Status Timeout")
-        public static int statusExpiration;
-
-        @Config.Comment("When true, hints will always be drawn on top of the terrain. Client only.")
-        @Config.DefaultBoolean(true)
-        @Config.Name("Draw Hints On Top")
-        public static boolean hintsOnTop;
+        public static int statusExpiration = 60;
     }
 
-    @Config(modid = Names.MATTER_MANIPULATOR, category = "debug")
+    @Config(modid = Tags.MODID, category = "debug")
     public static class DebugConfig {
 
-        @Config.DefaultBoolean(false)
-        @Config.Name("Enable Debug Logging")
-        public static boolean debug;
+        @Config.Comment("The maximum number of nanoseconds that the cooperative scheduler will run for each tick.")
+        @Config.Name("Scheduler Max Duration (ns)")
+        public static int schedulerDuration = 10_000_000; // 10 ms
+
+        @Config.Comment("The maximum number of tasks that the scheduler will try to run per tick (not a hard limit).")
+        @Config.Name("Scheduler Target Task Count")
+        public static int maxTaskCount = 5;
+
+        @Config.Comment("0 = No Profiling. 1 = Print the time taken by the scheduler. 2 = Print the time taken by each task.")
+        @Config.RangeInt(min = 0, max = 2)
+        @Config.Name("Scheduler Profiling")
+        public static int schedulerProfileLevel = 0;
     }
 
-    @Config(modid = Names.MATTER_MANIPULATOR, category = "building")
+    @Config(modid = Tags.MODID, category = "building")
     public static class BuildingConfig {
 
-        @Config.Comment("Empty ME Output Hatches/Busses when they're removed. Server only.")
-        @Config.DefaultBoolean(true)
-        @Config.Name("Empty ME Outputs")
-        public static boolean meEmptying;
-
-        @Config.Comment("High values may cause world desync and lag. Server only. Requires restart.")
-        @Config.DefaultInt(256)
+        @Config.Comment("High values may cause world desync, lag, and general server instability. Server only. Requires restart.")
         @Config.RangeInt(min = 1)
         @Config.Name("MK3 Block Place Speed")
         @Config.RequiresMcRestart
-        public static int mk3BlocksPerPlace;
+        public static int mk3BlocksPerPlace = 256;
     }
 
     public static boolean DEVENV = false;
 
     public static void init() {
-        try {
-            ConfigurationManager.registerConfig(InteractionConfig.class);
-            ConfigurationManager.registerConfig(RenderingConfig.class);
-            ConfigurationManager.registerConfig(DebugConfig.class);
-            ConfigurationManager.registerConfig(BuildingConfig.class);
-        } catch (ConfigException e) {
-            throw new RuntimeException(e);
-        }
-
         try {
             Class.forName("net.minecraft.server.MinecraftServer");
             DEVENV = true;

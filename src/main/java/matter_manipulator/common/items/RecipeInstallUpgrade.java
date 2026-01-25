@@ -2,24 +2,41 @@ package matter_manipulator.common.items;
 
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.world.World;
+import net.minecraftforge.event.RegistryEvent.Register;
+import net.minecraftforge.registries.IForgeRegistryEntry.Impl;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.github.bsideup.jabel.Desugar;
-import matter_manipulator.common.items.manipulator.ItemMatterManipulator;
-import matter_manipulator.common.items.manipulator.MMState;
+import matter_manipulator.Tags;
+import matter_manipulator.common.state.MMState;
 
-public class RecipeInstallUpgrade implements IRecipe {
+public class RecipeInstallUpgrade extends Impl<IRecipe> implements IRecipe {
 
     public static final RecipeInstallUpgrade INSTANCE = new RecipeInstallUpgrade();
 
-    public static void register() {
-        CraftingManager.getInstance().getRecipeList().add(INSTANCE);
+    static {
+        INSTANCE.setRegistryName(Tags.MODID, "mm-upgrade");
+    }
+
+    public static void register(Register<IRecipe> event) {
+        event.getRegistry().register(INSTANCE);
     }
 
     @Override
-    public boolean matches(InventoryCrafting inv, World world) {
+    public boolean isDynamic() {
+        return true;
+    }
+
+    @Override
+    public boolean canFit(int width, int height) {
+        return width * height >= 2;
+    }
+
+    @Override
+    public boolean matches(@NotNull InventoryCrafting inv, @NotNull World world) {
         if (getItemCount(inv) > 2) return false;
 
         var manipulator = findManipulator(inv);
@@ -32,16 +49,16 @@ public class RecipeInstallUpgrade implements IRecipe {
     }
 
     @Override
-    public ItemStack getCraftingResult(InventoryCrafting inv) {
-        if (getItemCount(inv) > 2) return null;
+    public @NotNull ItemStack getCraftingResult(@NotNull InventoryCrafting inv) {
+        if (getItemCount(inv) > 2) return ItemStack.EMPTY;
 
         var manipulator = findManipulator(inv);
 
-        if (manipulator == null) return null;
+        if (manipulator == null) return ItemStack.EMPTY;
 
         var upgrade = findUpgrade(inv, manipulator);
 
-        if (upgrade == null) return null;
+        if (upgrade == null) return ItemStack.EMPTY;
 
         ItemStack stack = manipulator.stack.copy();
 
@@ -52,13 +69,8 @@ public class RecipeInstallUpgrade implements IRecipe {
     }
 
     @Override
-    public int getRecipeSize() {
-        return 2;
-    }
-
-    @Override
-    public ItemStack getRecipeOutput() {
-        return null;
+    public @NotNull ItemStack getRecipeOutput() {
+        return ItemStack.EMPTY;
     }
 
     private static int getItemCount(InventoryCrafting inv) {
@@ -68,7 +80,7 @@ public class RecipeInstallUpgrade implements IRecipe {
         for (int i = 0; i < size; i++) {
             ItemStack stack = inv.getStackInSlot(i);
 
-            if (stack == null || stack.getItem() == null) continue;
+            if (stack == ItemStack.EMPTY) continue;
 
             count++;
         }
@@ -77,7 +89,7 @@ public class RecipeInstallUpgrade implements IRecipe {
     }
 
     @Desugar
-    private record ManipulatorInfo(ItemStack stack, int slot, MMState state, ItemMatterManipulator.ManipulatorTier tier) {}
+    private record ManipulatorInfo(ItemStack stack, int slot, MMState state, ManipulatorTier tier) {}
 
     private static ManipulatorInfo findManipulator(InventoryCrafting inv) {
         int size = inv.getSizeInventory();
@@ -85,7 +97,7 @@ public class RecipeInstallUpgrade implements IRecipe {
         for (int i = 0; i < size; i++) {
             ItemStack stack = inv.getStackInSlot(i);
 
-            if (stack == null || stack.getItem() == null) continue;
+            if (stack == ItemStack.EMPTY) continue;
 
             if (!(stack.getItem() instanceof ItemMatterManipulator manipulator)) continue;
 
@@ -104,9 +116,9 @@ public class RecipeInstallUpgrade implements IRecipe {
         for (int i = 0; i < size; i++) {
             ItemStack stack = inv.getStackInSlot(i);
 
-            if (stack == null || stack.getItem() == null) continue;
+            if (stack == ItemStack.EMPTY) continue;
 
-            if (!(stack.getItem() instanceof MetaItem)) continue;
+            if (!(stack.getItem() instanceof MMMetaItem)) continue;
 
             MMUpgrades upgrade = MMUpgrades.UPGRADES_BY_META.get(stack.getItemDamage());
 

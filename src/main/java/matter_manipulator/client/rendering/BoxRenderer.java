@@ -1,22 +1,21 @@
 package matter_manipulator.client.rendering;
 
-import java.nio.ByteBuffer;
-
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.client.renderer.WorldVertexBufferUploader;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.math.AxisAlignedBB;
 
-import com.gtnewhorizon.gtnhlib.client.renderer.CapturingTessellator;
-import com.gtnewhorizon.gtnhlib.client.renderer.TessellatorManager;
-import com.gtnewhorizon.gtnhlib.client.renderer.shader.ShaderProgram;
-import com.gtnewhorizon.gtnhlib.client.renderer.vbo.VertexBuffer;
-import com.gtnewhorizon.gtnhlib.client.renderer.vertex.DefaultVertexFormat;
-import matter_manipulator.common.utils.Mods;
-
-import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
+
+import matter_manipulator.client.rendering.shader.ShaderProgram;
+import matter_manipulator.client.rendering.vbo.StreamingVertexBuffer;
+import matter_manipulator.client.rendering.vertex.QuadCentroidComparator;
+import matter_manipulator.common.utils.Mods;
+import matter_manipulator.core.color.ImmutableColor;
 
 public class BoxRenderer {
 
@@ -25,7 +24,11 @@ public class BoxRenderer {
     private final ShaderProgram program;
     private final int time_location;
 
-    private final VertexBuffer buffer = new VertexBuffer(DefaultVertexFormat.POSITION_COLOR_TEXTURE, GL11.GL_QUADS);
+    private final WorldVertexBufferUploader uploader = new WorldVertexBufferUploader();
+    private final BufferBuilder buffer = new BufferBuilder(8192);
+    private final StreamingVertexBuffer vbo = new StreamingVertexBuffer(DefaultVertexFormats.POSITION_TEX_COLOR, GL11.GL_QUADS);
+
+    private boolean drawing = false;
 
     public BoxRenderer() {
         program = new ShaderProgram(
@@ -37,139 +40,99 @@ public class BoxRenderer {
         time_location = program.getUniformLocation("time");
     }
 
-    private CapturingTessellator tes;
-
     /**
      * Starts rendering fancy boxes. Should only be called once per frame, to allow quad sorting.
      */
-    public void start(double partialTickTime) {
-        TessellatorManager.startCapturing();
-
-        tes = (CapturingTessellator) TessellatorManager.get();
-
-        tes.startDrawing(GL11.GL_QUADS);
-
-        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-        double d0 = player.lastTickPosX + (player.posX - player.lastTickPosX) * partialTickTime;
-        double d1 = player.lastTickPosY + (player.posY - player.lastTickPosY) * partialTickTime;
-        double d2 = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * partialTickTime;
-
-        tes.setTranslation(-d0, -d1, -d2);
+    public void start() {
+        buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
+        drawing = true;
     }
 
     /**
      * Draws a fancy box around an AABB.
      */
-    public void drawAround(AxisAlignedBB aabb, Vector3f colour) {
-        aabb = aabb.copy()
-            .expand(0.01, 0.01, 0.01);
+    public void drawAround(float partialTickTime, AxisAlignedBB aabb, ImmutableColor color) {
+        if (!drawing) throw new IllegalStateException("Cannot draw box: BoxRenderer is not drawing");
 
-        tes.setColorRGBA_F(colour.x, colour.y, colour.z, 0.25f);
+        EntityPlayer player = Minecraft.getMinecraft().player;
+        double pX = player.lastTickPosX + (player.posX - player.lastTickPosX) * partialTickTime;
+        double pY = player.lastTickPosY + (player.posY - player.lastTickPosY) * partialTickTime;
+        double pZ = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * partialTickTime;
 
-        tes.storeTranslation();
-        tes.addTranslation((float) aabb.minX, (float) aabb.minY, (float) aabb.minZ);
+        buffer.setTranslation(-pX + aabb.minX, -pY + aabb.minY, -pZ + aabb.minZ);
 
         float dX = (float) (aabb.maxX - aabb.minX);
         float dY = (float) (aabb.maxY - aabb.minY);
         float dZ = (float) (aabb.maxZ - aabb.minZ);
 
+        int r = color.getRed();
+        int g = color.getGreen();
+        int b = color.getBlue();
+        int a = color.getAlpha();
+
         // spotless:off
         // bottom face
-        tes.addVertexWithUV(0, 0, 0, 0, 0);
-        tes.addVertexWithUV(dX, 0, 0, dX, 0);
-        tes.addVertexWithUV(dX, 0, dZ, dX, dZ);
-        tes.addVertexWithUV(0, 0, dZ, 0, dZ);
-
-        tes.addVertexWithUV(0, 0, 0, 0, 0);
-        tes.addVertexWithUV(0, 0, dZ, 0, dZ);
-        tes.addVertexWithUV(dX, 0, dZ, dX, dZ);
-        tes.addVertexWithUV(dX, 0, 0, dX, 0);
+        buffer.pos(0, 0, 0).tex(0, 0).color(r, g, b, a).endVertex();
+        buffer.pos(dX, 0, 0).tex(dX, 0).color(r, g, b, a).endVertex();
+        buffer.pos(dX, 0, dZ).tex(dX, dZ).color(r, g, b, a).endVertex();
+        buffer.pos(0, 0, dZ).tex(0, dZ).color(r, g, b, a).endVertex();
 
         // top face
-        tes.addVertexWithUV(0, dY, 0, dY + 0, 0);
-        tes.addVertexWithUV(0, dY, dZ, dY + 0, dZ);
-        tes.addVertexWithUV(dX, dY, dZ, dY + dX, dZ);
-        tes.addVertexWithUV(dX, dY, 0, dY + dX, 0);
-
-        tes.addVertexWithUV(0, dY, 0, dY + 0, 0);
-        tes.addVertexWithUV(dX, dY, 0, dY + dX, 0);
-        tes.addVertexWithUV(dX, dY, dZ, dY + dX, dZ);
-        tes.addVertexWithUV(0, dY, dZ, dY + 0, dZ);
+        buffer.pos(0, dY, 0).tex(dY + 0, 0).color(r, g, b, a).endVertex();
+        buffer.pos(0, dY, dZ).tex(dY + 0, dZ).color(r, g, b, a).endVertex();
+        buffer.pos(dX, dY, dZ).tex(dY + dX, dZ).color(r, g, b, a).endVertex();
+        buffer.pos(dX, dY, 0).tex(dY + dX, 0).color(r, g, b, a).endVertex();
 
         // west face
-        tes.addVertexWithUV(0, 0, 0, 0, 0);
-        tes.addVertexWithUV(0, 0, dZ, 0, dZ);
-        tes.addVertexWithUV(0, dY, dZ, dY, dZ);
-        tes.addVertexWithUV(0, dY, 0, dY, 0);
-
-        tes.addVertexWithUV(0, 0, 0, 0, 0);
-        tes.addVertexWithUV(0, dY, 0, dY, 0);
-        tes.addVertexWithUV(0, dY, dZ, dY, dZ);
-        tes.addVertexWithUV(0, 0, dZ, 0, dZ);
+        buffer.pos(0, 0, 0).tex(0, 0).color(r, g, b, a).endVertex();
+        buffer.pos(0, 0, dZ).tex(0, dZ).color(r, g, b, a).endVertex();
+        buffer.pos(0, dY, dZ).tex(dY, dZ).color(r, g, b, a).endVertex();
+        buffer.pos(0, dY, 0).tex(dY, 0).color(r, g, b, a).endVertex();
 
         // east face
-        tes.addVertexWithUV(dX, dY, dZ, dX + dY, dZ);
-        tes.addVertexWithUV(dX, 0, dZ, dX + 0, dZ);
-        tes.addVertexWithUV(dX, 0, 0, dX + 0, 0);
-        tes.addVertexWithUV(dX, dY, 0, dX + dY, 0);
-
-        tes.addVertexWithUV(dX, dY, dZ, dX + dY, dZ);
-        tes.addVertexWithUV(dX, dY, 0, dX + dY, 0);
-        tes.addVertexWithUV(dX, 0, 0, dX + 0, 0);
-        tes.addVertexWithUV(dX, 0, dZ, dX + 0, dZ);
+        buffer.pos(dX, dY, dZ).tex(dX + dY, dZ).color(r, g, b, a).endVertex();
+        buffer.pos(dX, 0, dZ).tex(dX + 0, dZ).color(r, g, b, a).endVertex();
+        buffer.pos(dX, 0, 0).tex(dX + 0, 0).color(r, g, b, a).endVertex();
+        buffer.pos(dX, dY, 0).tex(dX + dY, 0).color(r, g, b, a).endVertex();
 
         // north face
-        tes.addVertexWithUV(0, 0, 0, 0, 0);
-        tes.addVertexWithUV(dX, 0, 0, dX, 0);
-        tes.addVertexWithUV(dX, dY, 0, dX, dY);
-        tes.addVertexWithUV(0, dY, 0, 0, dY);
-
-        tes.addVertexWithUV(0, 0, 0, 0, 0);
-        tes.addVertexWithUV(0, dY, 0, 0, dY);
-        tes.addVertexWithUV(dX, dY, 0, dX, dY);
-        tes.addVertexWithUV(dX, 0, 0, dX, 0);
+        buffer.pos(0, 0, 0).tex(0, 0).color(r, g, b, a).endVertex();
+        buffer.pos(dX, 0, 0).tex(dX, 0).color(r, g, b, a).endVertex();
+        buffer.pos(dX, dY, 0).tex(dX, dY).color(r, g, b, a).endVertex();
+        buffer.pos(0, dY, 0).tex(0, dY).color(r, g, b, a).endVertex();
 
         // south face
-        tes.addVertexWithUV(0, 0, dZ, dZ + 0, 0);
-        tes.addVertexWithUV(0, dY, dZ, dZ + 0, dY);
-        tes.addVertexWithUV(dX, dY, dZ, dZ + dX, dY);
-        tes.addVertexWithUV(dX, 0, dZ, dZ + dX, 0);
-
-        tes.addVertexWithUV(0, 0, dZ, dZ + 0, 0);
-        tes.addVertexWithUV(dX, 0, dZ, dZ + dX, 0);
-        tes.addVertexWithUV(dX, dY, dZ, dZ + dX, dY);
-        tes.addVertexWithUV(0, dY, dZ, dZ + 0, dY);
+        buffer.pos(0, 0, dZ).tex(dZ + 0, 0).color(r, g, b, a).endVertex();
+        buffer.pos(0, dY, dZ).tex(dZ + 0, dY).color(r, g, b, a).endVertex();
+        buffer.pos(dX, dY, dZ).tex(dZ + dX, dY).color(r, g, b, a).endVertex();
+        buffer.pos(dX, 0, dZ).tex(dZ + dX, 0).color(r, g, b, a).endVertex();
         // spotless:on
-
-        tes.restoreTranslation();
     }
 
     /**
      * Actually draws the stored boxes.
      */
     public void finish() {
-        final var quads = TessellatorManager.stopCapturingToPooledQuads();
+        drawing = false;
 
-        QuadViewComparator quadSorter = new QuadViewComparator();
-        quads.sort(quadSorter);
+        buffer.finishDrawing();
 
-        ByteBuffer bytes = CapturingTessellator.quadsToBuffer(quads, DefaultVertexFormat.POSITION_COLOR_TEXTURE);
-
-        tes.clearQuads();
+        MMRenderUtils.sortQuads(buffer.getByteBuffer(), 0, buffer.getVertexCount() / 4, buffer.getVertexFormat(), new QuadCentroidComparator());
 
         GL11.glEnable(GL11.GL_BLEND);
         OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ZERO);
         GL11.glDisable(GL11.GL_TEXTURE_2D);
+        GL11.glDisable(GL11.GL_CULL_FACE);
 
         program.use();
 
-        GL20.glUniform1f(time_location, (((float) (System.currentTimeMillis() % 2500)) / 1000f));
+        GL20.glUniform1f(time_location, (float) (System.currentTimeMillis() % 2500) / 1000f);
 
-        buffer.upload(bytes);
-        buffer.render();
+        uploader.draw(buffer);
 
         ShaderProgram.clear();
 
+        GL11.glEnable(GL11.GL_CULL_FACE);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glDisable(GL11.GL_BLEND);
     }

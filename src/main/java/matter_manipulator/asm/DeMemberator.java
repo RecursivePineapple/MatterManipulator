@@ -1,16 +1,27 @@
 package matter_manipulator.asm;
 
-import static matter_manipulator.asm.ASMUtils.*;
 import static matter_manipulator.asm.ASMUtils.InsnPredicate;
+import static matter_manipulator.asm.ASMUtils.findInsn;
+import static matter_manipulator.asm.ASMUtils.findInsns;
+import static matter_manipulator.asm.ASMUtils.findMethod;
+import static matter_manipulator.asm.ASMUtils.getIntConstInsn;
+import static matter_manipulator.asm.ASMUtils.getLoadedInt;
+import static matter_manipulator.asm.ASMUtils.isAny;
+import static matter_manipulator.asm.ASMUtils.isBasic;
+import static matter_manipulator.asm.ASMUtils.isGetStatic;
+import static matter_manipulator.asm.ASMUtils.isLDC;
+import static matter_manipulator.asm.ASMUtils.isLineNumber;
+import static matter_manipulator.asm.ASMUtils.isLoadInt;
+import static matter_manipulator.asm.ASMUtils.isNew;
+import static matter_manipulator.asm.ASMUtils.isPutStatic;
+import static matter_manipulator.asm.ASMUtils.removeInsns;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 import net.minecraft.launchwrapper.IClassTransformer;
-
-import com.gtnewhorizon.gtnhlib.asm.ClassConstantPoolParser;
+import net.minecraftforge.fml.common.Loader;
 
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.objectweb.asm.ClassReader;
@@ -30,10 +41,13 @@ import lombok.SneakyThrows;
  */
 public class DeMemberator implements IClassTransformer {
 
-    private final ClassConstantPoolParser parser = new ClassConstantPoolParser("Lcom/recursive_pineapple/matter_manipulator/asm/Optional;");
+    private static final String MOD_INTEROP = "L" + ModInterop.class.getName().replace('.', '/') + ";";
+
+    private final ClassConstantPoolParser parser = new ClassConstantPoolParser(MOD_INTEROP);
 
     @Override
     public byte[] transform(String name, String transformedName, byte[] basicClass) {
+        if (name.startsWith("matter_manipulator.asm")) return basicClass;
 
         if (parser.find(basicClass)) {
             ClassReader reader = new ClassReader(basicClass);
@@ -225,15 +239,22 @@ public class DeMemberator implements IClassTransformer {
 
     @SneakyThrows
     private boolean shouldBeRemoved(AnnotationNode an) {
-        if ("Lcom/recursive_pineapple/matter_manipulator/asm/Optional;".equals(an.desc)) {
+        if (MOD_INTEROP.equals(an.desc)) {
             if (an.values != null && an.values.size() == 2) {
                 @SuppressWarnings("unchecked")
                 List<String> mods = (List<String>) an.values.get(1);
 
                 for (String mod : mods) {
-                    Method method = Class.forName("cpw.mods.fml.common.Loader").getMethod("isModLoaded", String.class);
+                    boolean wanted = true;
 
-                    if (!(boolean) method.invoke(null, mod)) return true;
+                    if (mod.startsWith("!")) {
+                        wanted = false;
+                        mod = mod.substring(1);
+                    }
+
+                    boolean loaded = Loader.isModLoaded(mod);
+
+                    if (wanted != loaded) return true;
                 }
             }
         }

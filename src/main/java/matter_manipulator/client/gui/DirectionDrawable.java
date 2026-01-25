@@ -1,31 +1,31 @@
 package matter_manipulator.client.gui;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
-
-import com.gtnewhorizons.modularui.api.drawable.IDrawable;
 
 import org.lwjgl.opengl.GL11;
 
-/**
- * "borrowed" from angelica and adapted to MUI
- * https://github.com/GTNewHorizons/Angelica/blob/99a81369f03d649bc4a48f23b026a1dea09c9e26/src/main/java/com/gtnewhorizons/angelica/debug/F3Direction.java
- */
+import com.cleanroommc.modularui.api.drawable.IDrawable;
+import com.cleanroommc.modularui.screen.viewport.GuiContext;
+import com.cleanroommc.modularui.theme.WidgetTheme;
+
+/// "borrowed" from angelica and adapted to MUI
+/// [Source](https://github.com/GTNewHorizons/Angelica/blob/99a81369f03d649bc4a48f23b026a1dea09c9e26/src/main/java/com/gtnewhorizons/angelica/debug/F3Direction.java)
 public class DirectionDrawable implements IDrawable {
 
     private final Minecraft mc = Minecraft.getMinecraft();
 
     @Override
-    public void draw(float x, float y, float width, float height, float partialTicks) {
+    public void draw(GuiContext context, int x, int y, int width, int height, WidgetTheme widgetTheme) {
         if (mc.gameSettings.thirdPersonView == 0) {
             GL11.glPushMatrix();
 
-            GL11.glTranslatef(x + width / 2, y + height / 2, -90);
+            GL11.glTranslatef(x + width / 2f, y + height / 2f, -90);
 
-            Entity entity = mc.renderViewEntity;
-            GL11.glRotatef(entity.prevRotationPitch + (entity.rotationPitch - entity.prevRotationPitch) * partialTicks, 1.0F, 0.0F, 0.0F);
-            GL11.glRotatef(entity.prevRotationYaw + (entity.rotationYaw - entity.prevRotationYaw) * partialTicks, 0.0F, -1.0F, 0.0F);
+            Entity entity = mc.getRenderViewEntity();
+            assert entity != null;
+            GL11.glRotatef(entity.prevRotationPitch + (entity.rotationPitch - entity.prevRotationPitch) * context.getPartialTicks(), 1.0F, 0.0F, 0.0F);
+            GL11.glRotatef(entity.prevRotationYaw + (entity.rotationYaw - entity.prevRotationYaw) * context.getPartialTicks(), 0.0F, -1.0F, 0.0F);
 
             GL11.glScalef(-1.0F, -1.0F, 1.0F);
 
@@ -39,27 +39,26 @@ public class DirectionDrawable implements IDrawable {
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glDisable(GL11.GL_LIGHTING);
         GL11.glDepthMask(false);
-        Tessellator tessellator = Tessellator.instance;
 
         GL11.glLineWidth(2.0F);
-        tessellator.startDrawing(GL11.GL_LINES);
+        GL11.glBegin(GL11.GL_LINES);
 
         // X
-        tessellator.setColorRGBA(255, 0, 0, 255);
-        tessellator.addVertex(0.0D, 0.0D, 0.0D);
-        tessellator.addVertex(length, 0.0D, 0.0D);
+        GL11.glColor4f(1f, 0, 0, 1f);
+        GL11.glVertex3d(0, 0, 0);
+        GL11.glVertex3d(length, 0, 0);
 
         // Z
-        tessellator.setColorRGBA(75, 75, 255, 255);
-        tessellator.addVertex(0.0D, 0.0D, 0.0D);
-        tessellator.addVertex(0.0D, 0.0D, length);
+        GL11.glColor4f(0.3f, 0.3f, 1f, 1f);
+        GL11.glVertex3d(0, 0, 0);
+        GL11.glVertex3d(0, 0, length);
 
         // Y
-        tessellator.setColorRGBA(0, 255, 0, 255);
-        tessellator.addVertex(0.0D, 0.0D, 0.0D);
-        tessellator.addVertex(0.0D, length, 0.0D);
+        GL11.glColor4f(0, 1f, 0, 1f);
+        GL11.glVertex3d(0, 0, 0);
+        GL11.glVertex3d(0, length, 0);
 
-        tessellator.draw();
+        GL11.glEnd();
 
         GL11.glLineWidth(1.0F);
         GL11.glDepthMask(true);

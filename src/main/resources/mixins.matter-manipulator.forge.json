@@ -1,0 +1,15 @@
+{
+  "package": "matter_manipulator.mixin.mixins.forge",
+  "refmap": "mixins.matter-manipulator.refmap.json",
+  "target": "@env(DEFAULT)",
+  "minVersion": "0.8",
+  "compatibilityLevel": "JAVA_8",
+  "injectors": {
+  },
+  "mixins": [
+    "MixinForgeHooks"
+  ],
+  "client": [
+  ],
+  "server": []
+}

@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 
-import matter_manipulator.common.utils.MMUtils;
+import matter_manipulator.core.persist.NBTPersist;
 
 import org.junit.jupiter.api.Test;
 
@@ -31,6 +31,6 @@ class UtilsTests {
         NBTTagList list = new NBTTagList();
         list.appendTag(tag);
 
-        assertEquals(list, MMUtils.toNbtExact(MMUtils.toJsonObjectExact(list)));
+        assertEquals(list, NBTPersist.toNbtExact(NBTPersist.toJsonObjectExact(list)));
     }
 }

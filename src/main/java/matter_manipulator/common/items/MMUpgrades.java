@@ -2,7 +2,7 @@ package matter_manipulator.common.items;
 
 import net.minecraft.item.ItemStack;
 
-import matter_manipulator.common.items.manipulator.ItemMatterManipulator;
+import matter_manipulator.CommonProxy;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -37,6 +37,6 @@ public enum MMUpgrades {
     }
 
     public ItemStack getStack() {
-        return new ItemStack(MMItems.META_ITEM, 1, id);
+        return new ItemStack(CommonProxy.META_ITEM, 1, id);
     }
 }

@@ -6,38 +6,50 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.PacketBuffer;
 
-import com.gtnewhorizons.modularui.api.drawable.IDrawable;
-import com.gtnewhorizons.modularui.api.drawable.ItemDrawable;
-import com.gtnewhorizons.modularui.api.screen.UIBuildContext;
+import net.minecraftforge.fml.relauncher.Side;
+
+import org.apache.commons.lang3.mutable.MutableInt;
+
+import com.cleanroommc.modularui.api.drawable.IDrawable;
+import com.cleanroommc.modularui.api.drawable.IIcon;
+import com.cleanroommc.modularui.api.drawable.IKey;
+import com.cleanroommc.modularui.drawable.ItemDrawable;
+import com.cleanroommc.modularui.value.sync.PanelSyncManager;
 import matter_manipulator.client.gui.RadialMenu.RadialMenuClickHandler;
 import matter_manipulator.client.gui.RadialMenu.RadialMenuOption;
 
 /**
  * A builder that significantly helps with making radial menus.
  */
-public class RadialMenuBuilder {
+public class RadialMenuBuilder implements BranchableRadialMenu {
 
-    public final UIBuildContext buildContext;
+    private final String syncActionPrefix;
+    private final PanelSyncManager syncManager;
+
+    private final MutableInt ids = new MutableInt(0);
+
     public final List<RadialMenuOptionBuilder<RadialMenuBuilder>> options = new ArrayList<>();
     public float innerRadius = 0.25f, outerRadius = 0.60f;
-    public IDrawable innerIcon;
+    public IIcon innerIcon;
 
-    public RadialMenuBuilder(UIBuildContext buildContext) {
-        this.buildContext = buildContext;
+    public RadialMenuBuilder(String syncActionPrefix, PanelSyncManager syncManager) {
+        this.syncActionPrefix = syncActionPrefix;
+        this.syncManager = syncManager;
     }
 
     /** Sets the inner icon */
     public RadialMenuBuilder innerIcon(IDrawable icon) {
-        this.innerIcon = icon;
+        this.innerIcon = icon.asIcon().marginLeft(-16).marginRight(-16).size(32, 32);
         return this;
     }
 
     /** Sets the inner icon */
     public RadialMenuBuilder innerIcon(ItemStack item) {
-        this.innerIcon = new ItemDrawable(item).withOffset(-8, -8)
-            .withFixedSize(32, 32);
+        innerIcon(new ItemDrawable(item));
         return this;
     }
 
@@ -63,8 +75,9 @@ public class RadialMenuBuilder {
      * Adds a new option to this builder.
      * Call {@link RadialMenuOptionBuilderLeaf#done()} once done to finish adding the option.
      */
+    @Override
     public RadialMenuOptionBuilderLeaf<RadialMenuBuilder> option() {
-        var leaf = new RadialMenuOptionBuilderLeaf<>(buildContext, this);
+        var leaf = new RadialMenuOptionBuilderLeaf<>(syncManager::getPlayer, this, ids);
         options.add(leaf);
         return leaf;
     }
@@ -73,8 +86,9 @@ public class RadialMenuBuilder {
      * Adds a new sub-menu to this builder.
      * Call {@link RadialMenuOptionBuilderBranch#done()} once done to finish adding the sub menu.
      */
+    @Override
     public RadialMenuOptionBuilderBranch<RadialMenuBuilder> branch() {
-        var branch = new RadialMenuOptionBuilderBranch<>(buildContext, this);
+        var branch = new RadialMenuOptionBuilderBranch<>(syncManager::getPlayer, this, ids);
         options.add(branch);
         return branch;
     }
@@ -95,7 +109,8 @@ public class RadialMenuBuilder {
         menu.outerRadius = this.outerRadius;
 
         for (var option : options) {
-            option.apply(menu);
+            option.registerActions(menu, syncManager, syncActionPrefix + ":");
+            option.apply(menu, syncManager, syncActionPrefix + ":");
         }
 
         return menu;
@@ -106,19 +121,20 @@ public class RadialMenuBuilder {
      */
     public static abstract class RadialMenuOptionBuilder<Parent> {
 
-        public final UIBuildContext buildContext;
+        public final Supplier<EntityPlayer> player;
         public final Parent parent;
 
-        public Supplier<String> label;
+        public IIcon label;
         public double weight = 1;
         public BooleanSupplier hidden = () -> false;
 
-        public RadialMenuOptionBuilder(UIBuildContext buildContext, Parent parent) {
-            this.buildContext = buildContext;
+        public RadialMenuOptionBuilder(Supplier<EntityPlayer> player, Parent parent) {
+            this.player = player;
             this.parent = parent;
         }
 
-        public abstract void apply(RadialMenu menu);
+        public abstract void registerActions(RadialMenu menu, PanelSyncManager syncManager, String baseName);
+        public abstract void apply(RadialMenu menu, PanelSyncManager syncManager, String baseName);
 
         /**
          * Finishes constructing this option/sub menu and returns to the parent builder.
@@ -134,18 +150,20 @@ public class RadialMenuBuilder {
     public static class RadialMenuOptionBuilderLeaf<Parent> extends RadialMenuOptionBuilder<Parent> {
 
         public RadialMenuClickHandler onClicked;
+        public String actionId;
 
-        public RadialMenuOptionBuilderLeaf(UIBuildContext buildContext, Parent parent) {
-            super(buildContext, parent);
+        public RadialMenuOptionBuilderLeaf(Supplier<EntityPlayer> player, Parent parent, MutableInt ids) {
+            super(player, parent);
+            this.actionId = Integer.toString(ids.addAndGet(1));
         }
 
-        public RadialMenuOptionBuilderLeaf<Parent> label(Supplier<String> label) {
-            this.label = label;
+        public RadialMenuOptionBuilderLeaf<Parent> label(IIcon icon) {
+            this.label = icon;
             return this;
         }
 
-        public RadialMenuOptionBuilderLeaf<Parent> label(String label) {
-            this.label = () -> label;
+        public RadialMenuOptionBuilderLeaf<Parent> label(IKey label) {
+            this.label = label.asIcon().width(60);
             return this;
         }
 
@@ -164,73 +182,97 @@ public class RadialMenuBuilder {
             return this;
         }
 
+        public RadialMenuOptionBuilderLeaf<Parent> actionId(String actionId) {
+            this.actionId = actionId;
+            return this;
+        }
+
         public RadialMenuOptionBuilderLeaf<Parent> onClicked(RadialMenuClickHandler onClicked) {
             this.onClicked = onClicked;
             return this;
         }
 
         public RadialMenuOptionBuilderLeaf<Parent> onClicked(Runnable onClicked) {
-            this.onClicked = (menu, option, mouseButton, doubleClicked) -> {
+            this.onClicked = (menu, option, mouseButton, side) -> {
                 onClicked.run();
-                buildContext.getPlayer()
-                    .closeScreen();
+                player.get().closeScreen();
             };
             return this;
         }
 
         public RadialMenuOptionBuilderLeaf<Parent> onClicked(BooleanSupplier onClicked) {
-            this.onClicked = (menu, option, mouseButton, doubleClicked) -> {
+            this.onClicked = (menu, option, mouseButton, side) -> {
                 if (onClicked.getAsBoolean()) {
-                    buildContext.getPlayer()
-                        .closeScreen();
+                    player.get().closeScreen();
                 }
             };
             return this;
         }
 
         public RadialMenuOptionBuilderLeaf<Parent> onClicked(int buttonId, Runnable onClicked) {
-            this.onClicked = (menu, option, mouseButton, doubleClicked) -> {
+            this.onClicked = (menu, option, mouseButton, side) -> {
                 if (mouseButton == buttonId) {
                     onClicked.run();
-                    buildContext.getPlayer()
-                        .closeScreen();
+                    player.get().closeScreen();
                 }
             };
 
             return this;
         }
 
+        public RadialMenuOptionBuilderLeaf<Parent> pipe(Consumer<RadialMenuOptionBuilderLeaf<Parent>> fn) {
+            fn.accept(this);
+            return this;
+        }
+
+        /// This variable is fucked, but I can't think of a better way to do it
+        private RadialMenuOption option;
+
         @Override
-        public void apply(RadialMenu menu) {
-            RadialMenuOption opt = new RadialMenuOption();
+        public void registerActions(RadialMenu menu, PanelSyncManager syncManager, String baseName) {
+            syncManager.registerSyncedAction(baseName + actionId, packet -> {
+                packet = new PacketBuffer(packet.copy());
+                this.onClicked.onClick(menu, this.option, packet.readVarInt(), syncManager.isClient() ? Side.CLIENT : Side.SERVER);
+            });
+        }
 
-            opt.label = this.label;
-            opt.weight = this.weight;
-            opt.hidden = this.hidden;
-            opt.onClick = onClicked;
+        @Override
+        public void apply(RadialMenu menu, PanelSyncManager syncManager, String baseName) {
+            this.option = new RadialMenuOption();
 
-            menu.options.add(opt);
+            this.option.label = this.label;
+            this.option.weight = this.weight;
+            this.option.hidden = this.hidden;
+            this.option.onClick = (menu2, option, mouseButton, side) -> {
+                syncManager.callSyncedAction(baseName + actionId, buffer -> {
+                    buffer.writeVarInt(mouseButton);
+                });
+            };
+
+            menu.options.add(this.option);
         }
     }
 
     /**
      * A builder for radial menu sub menus.
      */
-    public static class RadialMenuOptionBuilderBranch<Parent> extends RadialMenuOptionBuilder<Parent> {
+    public static class RadialMenuOptionBuilderBranch<Parent> extends RadialMenuOptionBuilder<Parent> implements BranchableRadialMenu {
 
         public final List<RadialMenuOptionBuilder<RadialMenuOptionBuilderBranch<Parent>>> children = new ArrayList<>();
+        protected final MutableInt ids;
 
-        public RadialMenuOptionBuilderBranch(UIBuildContext buildContext, Parent parent) {
-            super(buildContext, parent);
+        public RadialMenuOptionBuilderBranch(Supplier<EntityPlayer> player, Parent parent, MutableInt ids) {
+            super(player, parent);
+            this.ids = ids;
         }
 
-        public RadialMenuOptionBuilderBranch<Parent> label(Supplier<String> label) {
-            this.label = label;
+        public RadialMenuOptionBuilderBranch<Parent> label(IIcon icon) {
+            this.label = icon;
             return this;
         }
 
-        public RadialMenuOptionBuilderBranch<Parent> label(String label) {
-            this.label = () -> label;
+        public RadialMenuOptionBuilderBranch<Parent> label(IKey label) {
+            this.label = label.asIcon().width(60);
             return this;
         }
 
@@ -256,30 +298,44 @@ public class RadialMenuBuilder {
             return this;
         }
 
+        @Override
         public RadialMenuOptionBuilderLeaf<RadialMenuOptionBuilderBranch<Parent>> option() {
-            var leaf = new RadialMenuOptionBuilderLeaf<>(buildContext, this);
+            var leaf = new RadialMenuOptionBuilderLeaf<>(player, this, ids);
             children.add(leaf);
             return leaf;
         }
 
+        @Override
         public RadialMenuOptionBuilderBranch<RadialMenuOptionBuilderBranch<Parent>> branch() {
-            var branch = new RadialMenuOptionBuilderBranch<>(buildContext, this);
+            var branch = new RadialMenuOptionBuilderBranch<>(player, this, ids);
             children.add(branch);
             return branch;
         }
 
+        public RadialMenuOptionBuilderBranch<Parent> pipe(Consumer<RadialMenuOptionBuilderBranch<Parent>> fn) {
+            fn.accept(this);
+            return this;
+        }
+
         @Override
-        public void apply(RadialMenu menu) {
+        public void registerActions(RadialMenu menu, PanelSyncManager syncManager, String baseName) {
+            for (var child : children) {
+                child.registerActions(menu, syncManager, baseName);
+            }
+        }
+
+        @Override
+        public void apply(RadialMenu menu, PanelSyncManager syncManager, String baseName) {
             RadialMenuOption opt = new RadialMenuOption();
 
             opt.label = this.label;
             opt.weight = this.weight;
             opt.hidden = this.hidden;
-            opt.onClick = (_1, option, mouseButton, doubleClicked) -> {
+            opt.onClick = (_1, option, mouseButton, side) -> {
                 menu.options.clear();
 
                 for (var child : children) {
-                    child.apply(menu);
+                    child.apply(menu, syncManager, baseName);
                 }
             };
 

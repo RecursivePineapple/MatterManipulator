@@ -1,14 +1,17 @@
 package matter_manipulator.common.networking;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.SoundEvent;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.WorldServer;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-
-import matter_manipulator.common.items.manipulator.Location;
+import matter_manipulator.MMMod;
+import matter_manipulator.Tags;
 
 public enum SoundResource {
 
@@ -257,36 +260,68 @@ public enum SoundResource {
         this(new ResourceLocation(resourcePath));
     }
 
-    SoundResource(final String resourceDomain, final String resourcePath) {
-        this(new ResourceLocation(resourceDomain.toLowerCase(), resourcePath));
-    }
-
-    /**
-     * @inheritDoc
-     */
-    @Override
-    public String toString() {
-        return this.resourceLocation.toString();
-    }
-
     @SideOnly(Side.CLIENT)
     public void playClient(float volume, float pitch) {
-        Minecraft.getMinecraft().thePlayer.playSound(this.toString(), volume, pitch);
-    }
+        SoundEvent sound = SoundEvent.REGISTRY.getObject(this.resourceLocation);
 
-    public void sendPlayToPlayer(EntityPlayerMP player, Location l, float volume, float pitch) {
-        Messages.sendSoundToPlayer(player, l.getWorld(), l.x, l.y, l.z, this, volume, pitch);
-    }
-
-    public void sendPlayToAll(Location l, float volume, float pitch) {
-        Messages.sendSoundToAllWithinRange(l.getWorld(), l.x, l.y, l.z, this, volume, pitch);
-    }
-
-    public void playSound(Location l, float volume, float pitch) {
-        if (FMLCommonHandler.instance().getSide().isServer()) {
-            sendPlayToAll(l, volume, pitch);
-        } else {
-            playClient(volume, pitch);
+        if (sound == null) {
+            MMMod.LOG.warn("Tried to play invalid sound: {}", this.resourceLocation);
+            return;
         }
+
+        Minecraft.getMinecraft().player.playSound(sound, volume, pitch);
+    }
+
+    private static class SoundPacket {
+
+        public BlockPos pos;
+        public SoundResource sound;
+        public float strength, pitch;
+
+        public SoundPacket(BlockPos pos, SoundResource sound, float strength, float pitch) {
+            this.pos = pos;
+            this.sound = sound;
+            this.strength = strength;
+            this.pitch = pitch;
+        }
+
+        private SoundPacket() {
+        }
+
+        public static void encode(MMPacketBuffer buffer, SoundPacket packet) {
+            buffer.writeBlockPos(packet.pos);
+            buffer.writeInt(packet.sound.ordinal());
+            buffer.writeFloat(packet.strength);
+            buffer.writeFloat(packet.pitch);
+        }
+
+        public static SoundPacket decode(MMPacketBuffer buffer) {
+            SoundPacket message = new SoundPacket();
+
+            message.pos = buffer.readBlockPos();
+            message.sound = SoundResource.values()[buffer.readInt()];
+            message.strength = buffer.readFloat();
+            message.pitch = buffer.readFloat();
+
+            return message;
+        }
+
+        public static void process(EntityPlayer player, SoundPacket packet) {
+
+        }
+    }
+
+    private static final MMActionWithPayload<SoundPacket> PLAY_SOUND = MMActionWithPayload.client(
+        new ResourceLocation(Tags.MODID, "play-sound"),
+        SoundPacket::process,
+        SoundPacket::encode,
+        SoundPacket::decode);
+
+    public void sendPlayToPlayer(EntityPlayerMP player, BlockPos pos, float volume, float pitch) {
+        PLAY_SOUND.sendToPlayer(player, new SoundPacket(pos, this, volume, pitch));
+    }
+
+    public void sendPlayToAll(WorldServer server, BlockPos pos, float volume, float pitch) {
+        PLAY_SOUND.sendToPlayersWatching(server, new SoundPacket(pos, this, volume, pitch), pos.getX() >> 4, pos.getZ() >> 4);
     }
 }

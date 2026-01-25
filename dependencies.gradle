@@ -37,6 +37,39 @@
  *
  * For more details, see https://docs.gradle.org/8.4/userguide/java_library_plugin.html#sec:java_library_configurations_graph
  */
-dependencies {
 
+def asmVersion = "9.7"
+
+dependencies {
+//    implementation("com.github.GTNewHorizons:StructureLib:1.4.24:dev")
+//    implementation("com.github.GTNewHorizons:GTNHLib:0.8.32:dev")
+
+    shadowImplementation("it.unimi.dsi:fastutil:8.5.15") // Apache 2.0
+    // https://mvnrepository.com/artifact/com.google.guava/guava
+    shadowImplementation("com.google.guava:guava:33.5.0-jre") // Apache 2.0
+
+    api("com.cleanroommc:modularui:3.0.4") { transitive = false }
+
+    // For charging
+    runtimeOnlyNonPublishable(rfg.deobf("curse.maven:mcjtylib-233105:2745846"))
+    runtimeOnlyNonPublishable(rfg.deobf("curse.maven:rftools-224641:2861573"))
+
+//    devOnlyNonPublishable(rfg.deobf("curse.maven:ae2-extended-life-570458:5378163"))
+
+//    devOnlyNonPublishable("com.enderio:endercore:0.5.78")
+    // https://mvnrepository.com/artifact/team.chisel.ctm/CTM
+//    compileOnly("team.chisel.ctm:CTM:MC1.12.2-1.0.2.31")
+//    devOnlyNonPublishable("crazypants:enderio:5.3.72")
+
+    compileOnly("com.google.auto.value:auto-value-annotations:1.10.1") { transitive = false }
+    annotationProcessor("com.google.auto.value:auto-value:1.10.1")
+
+    compileOnly('org.projectlombok:lombok:1.18.34')
+    annotationProcessor('org.projectlombok:lombok:1.18.34')
+
+    implementation("org.ow2.asm:asm:${asmVersion}")
+    implementation("org.ow2.asm:asm-tree:${asmVersion}")
+
+    testImplementation(platform('org.junit:junit-bom:5.9.2'))
+    testImplementation('org.junit.jupiter:junit-jupiter')
 }
