@@ -1,5 +1,7 @@
 package matter_manipulator.core.resources;
 
+import org.jetbrains.annotations.NotNull;
+
 import matter_manipulator.core.i18n.Localized;
 
 /// A resource. This should be implemented on the stack class itself. For existing classes, this interface should be
@@ -19,6 +21,7 @@ public interface ResourceStack {
     /// Gets the [Resource] for this stack.
     Resource<?> getResource();
 
+    @NotNull
     Localized getName();
 
     /// Gets an immutable object that contains all identifying information for this stack. See [ResourceIdentity]'s

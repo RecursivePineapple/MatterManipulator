@@ -44,6 +44,11 @@ public interface ManipulatorMode<Config, Buildable extends IBuildable> {
             .done();
     }
 
+    @Contract(pure = true)
+    default Config getPreviewConfig(Config config, ManipulatorContext context) {
+        return config;
+    }
+
     @Contract(mutates = "param2")
     Optional<Config> onPickBlock(Config config, ManipulatorContext context);
 

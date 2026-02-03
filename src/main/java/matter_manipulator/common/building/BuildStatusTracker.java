@@ -33,8 +33,8 @@ public class BuildStatusTracker {
                 statusExpiration = System.currentTimeMillis() + GlobalMMConfig.RenderingConfig.statusExpiration * 1000;
             }
         },
-        (buffer, value) -> {
-            buffer.writeList(value, (buffer2, feedback) -> {
+        (value, buffer) -> {
+            buffer.writeList(value, (feedback, buffer2) -> {
                 buffer2.writeBlockPos(feedback.pos());
                 feedback.message().encode(buffer2);
                 buffer2.writeVarInt(feedback.severity().ordinal());
@@ -44,7 +44,7 @@ public class BuildStatusTracker {
             return buffer.readList(buffer2 -> {
                 return new BuildFeedback(
                     buffer2.readBlockPos(),
-                    new Localized().decode(buffer2),
+                    new Localized(buffer2),
                     FeedbackSeverity.values()[buffer2.readVarInt()]
                 );
             });

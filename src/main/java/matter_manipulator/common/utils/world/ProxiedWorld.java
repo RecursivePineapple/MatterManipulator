@@ -4,7 +4,6 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
-import net.minecraft.world.border.WorldBorder;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.common.Optional.Method;
 
@@ -34,13 +33,8 @@ public class ProxiedWorld extends DummyWorld {
     }
 
     @Override
-    public WorldBorder getWorldBorder() {
-        return base.getWorldBorder();
-    }
-
-    @Override
     protected boolean isChunkLoaded(int x, int z, boolean allowEmpty) {
-        return ((AccessorWorld) base).isChunkLoaded(x, z, allowEmpty);
+        return ((AccessorWorld) base).mm$isChunkLoaded(x, z, allowEmpty);
     }
 
     @Override

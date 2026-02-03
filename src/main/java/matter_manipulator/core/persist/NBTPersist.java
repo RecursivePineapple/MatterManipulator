@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagByte;
@@ -39,7 +40,10 @@ import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
+import matter_manipulator.core.persist.adapters.BlockSpecJsonAdapter;
+import matter_manipulator.core.block_spec.IBlockSpec;
 import matter_manipulator.core.persist.adapters.BitSetJsonAdapter;
+import matter_manipulator.core.persist.adapters.BlockStateJsonAdapter;
 import matter_manipulator.core.persist.adapters.DataStorageJsonAdapter;
 import matter_manipulator.core.persist.adapters.FluidStackJsonAdapter;
 import matter_manipulator.core.persist.adapters.ItemStackJsonAdapter;
@@ -57,6 +61,8 @@ public class NBTPersist {
         .registerTypeAdapter(DataStorage.class, new DataStorageJsonAdapter())
         .registerTypeAdapter(ItemStack.class, new ItemStackJsonAdapter())
         .registerTypeAdapter(FluidStack.class, new FluidStackJsonAdapter())
+        .registerTypeAdapter(IBlockSpec.class, new BlockSpecJsonAdapter())
+        .registerTypeAdapter(IBlockState.class, new BlockStateJsonAdapter())
         .create();
 
     /**

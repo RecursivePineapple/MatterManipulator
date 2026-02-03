@@ -13,7 +13,9 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
 
 import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import matter_manipulator.common.block_spec.StandardBlockSpecLoader;
 import matter_manipulator.common.interop.block_adapters.RedstoneBlockAdapter;
 import matter_manipulator.common.interop.block_adapters.StandardBlockAdapter;
 import matter_manipulator.common.interop.resetters.BlockRemover;
@@ -23,6 +25,7 @@ import matter_manipulator.common.modes.GeometryManipulatorMode;
 import matter_manipulator.common.resources.item.ios.DroppingItemStackIOFactory;
 import matter_manipulator.common.resources.item.ios.PlayerInventoryItemStackIOFactory;
 import matter_manipulator.common.utils.deps.DependencyGraph;
+import matter_manipulator.core.block_spec.IBlockSpecLoader;
 import matter_manipulator.core.block_spec.ICopyInteropModule;
 import matter_manipulator.core.interop.MMRegistries;
 import matter_manipulator.core.interop.interfaces.BlockAdapter;
@@ -52,6 +55,7 @@ public class MMRegistriesInternal {
     public static final Map<ResourceLocation, ManipulatorSetting<?>> SETTINGS = new Object2ObjectOpenHashMap<>();
     @SuppressWarnings("rawtypes")
     public static final Map<Resource, ResourceProviderFactory> RESOURCES = new Object2ObjectOpenHashMap<>();
+    public static final Object2ObjectMap<String, IBlockSpecLoader> LOADERS = new Object2ObjectOpenHashMap<>();
     @SuppressWarnings("rawtypes")
     public static Pair<Resource, ResourceProviderFactory>[] RESOURCE_ARRAY = new Pair[0];
     public static final Map<ResourceLocation, ManipulatorResourceLoader<?>> RESOURCE_LOADERS = new Object2ObjectOpenHashMap<>();
@@ -126,6 +130,10 @@ public class MMRegistriesInternal {
 
     static {
         MMRegistries.registerManipulatorResourceLoader(new RFEnergyResourceLoader());
+    }
+
+    static {
+        MMRegistries.registerSpecLoader(StandardBlockSpecLoader.INSTANCE);
     }
 
     @Nullable

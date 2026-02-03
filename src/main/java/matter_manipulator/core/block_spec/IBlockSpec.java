@@ -2,26 +2,34 @@ package matter_manipulator.core.block_spec;
 
 import java.util.EnumSet;
 
+import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 
 import org.jetbrains.annotations.ApiStatus.NonExtendable;
 
-import matter_manipulator.common.block_spec.BlockSpecImpl;
+import matter_manipulator.common.block_spec.StandardBlockSpec;
 import matter_manipulator.common.utils.math.Transform;
 import matter_manipulator.core.context.BlockPlacingContext;
+import matter_manipulator.core.i18n.Localized;
 import matter_manipulator.core.resources.ResourceStack;
 
-/// A specification that can recreate a block in full. This includes all block properties and all block entity state.
+/// A specification that can recreate a block in full. This includes all block properties and all tile entity state.
+/// Note that some specs may not completely erase whatever was previously present - as an example, a spec placing an AE
+/// cable may keep any existing parts in the same block.
 @NonExtendable
 public interface IBlockSpec {
 
-    IBlockSpec AIR = new BlockSpecImpl(Blocks.AIR.getDefaultState());
+    IBlockSpec AIR = new StandardBlockSpec(Blocks.AIR.getDefaultState());
+
+    IBlockSpecLoader getLoader();
 
     boolean isValid();
 
     IBlockState getBlockState();
     ResourceStack getResource();
+
+    Localized getDisplayName();
 
     void transform(Transform transform);
 
@@ -35,6 +43,6 @@ public interface IBlockSpec {
     IBlockSpec clone();
 
     default boolean isAir() {
-        return getBlockState().getBlock() == Blocks.AIR;
+        return getBlockState().getMaterial() == Material.AIR;
     }
 }

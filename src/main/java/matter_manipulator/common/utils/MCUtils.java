@@ -50,15 +50,15 @@ public class MCUtils {
     static final Pattern FLOAT = Pattern.compile("\\d+\\.\\d+");
 
     public static void sendErrorToPlayer(EntityPlayer player, String msg) {
-        player.sendStatusMessage(new TextComponentString(RED + msg), true);
+        player.sendStatusMessage(new TextComponentString(processFormatStacks(RED + msg)), true);
     }
 
     public static void sendWarningToPlayer(EntityPlayer player, String msg) {
-        player.sendStatusMessage(new TextComponentString(GOLD + msg), true);
+        player.sendStatusMessage(new TextComponentString(processFormatStacks(GOLD + msg)), true);
     }
 
     public static void sendInfoToPlayer(EntityPlayer player, String msg) {
-        player.sendStatusMessage(new TextComponentString(GRAY + msg), true);
+        player.sendStatusMessage(new TextComponentString(processFormatStacks(DARK_GRAY + msg)), true);
     }
 
     public static void sendChatToPlayer(EntityPlayer player, String msg) {

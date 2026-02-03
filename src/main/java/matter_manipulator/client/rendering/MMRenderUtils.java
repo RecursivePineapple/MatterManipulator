@@ -1,12 +1,15 @@
 package matter_manipulator.client.rendering;
 
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.Comparator;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.client.renderer.vertex.VertexFormatElement;
 import net.minecraft.client.renderer.vertex.VertexFormatElement.EnumType;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
@@ -22,9 +25,9 @@ import matter_manipulator.core.color.RGBColor;
 
 public class MMRenderUtils {
 
-    public static final ImmutableColor BLUE = new RGBColor(38, 153, 192, 192);
-    public static final ImmutableColor ORANGE = new RGBColor(192, 128, 38, 192);
-    public static final ImmutableColor GREEN = new RGBColor(102, 192, 38, 192);
+    public static final ImmutableColor BLUE = new RGBColor(38, 153, 192, 100);
+    public static final ImmutableColor ORANGE = new RGBColor(192, 128, 38, 100);
+    public static final ImmutableColor GREEN = new RGBColor(102, 192, 38, 100);
 
     private static Vector3d getVecForDir(EnumFacing dir) {
         return new Vector3d(dir.getXOffset(), dir.getYOffset(), dir.getZOffset());
@@ -100,8 +103,11 @@ public class MMRenderUtils {
         int vertStride = format.getSize();
         int quadStride = vertStride * 4;
 
-        ByteBuffer temp1 = ByteBuffer.allocateDirect(quadStride);
-        ByteBuffer temp2 = ByteBuffer.allocateDirect(quadStride);
+        IntBuffer asInts = data.asIntBuffer();
+
+        // No mult here because 4 verts go into a quad, but each vert is in bytes.
+        // int stride = vert stride (bytes) * 4 / 4.
+        int quadStrideInt = vertStride;
 
         int offsetIntoVert = 0;
 
@@ -134,28 +140,27 @@ public class MMRenderUtils {
                 return comparator.compare(quad1, quad2);
             },
             (quadIndex1, quadIndex2) -> {
-                int a = quadIndex1 * quadStride;
-                int b = quadIndex2 * quadStride;
+                quadIndex1 *= quadStrideInt;
+                quadIndex2 *= quadStrideInt;
 
-                int limit = data.limit();
+                for (int i = 0; i < quadStrideInt; i++) {
+                    int a = asInts.get(quadIndex1 + i);
+                    int b = asInts.get(quadIndex2 + i);
 
-                data.limit(quadStride);
-
-                data.position(a);
-                temp1.clear();
-                temp1.put(data);
-
-                data.position(b);
-                temp2.clear();
-                temp2.put(data);
-
-                data.position(b);
-                data.put(temp1);
-
-                data.position(a);
-                data.put(temp2);
-
-                data.position(0).limit(limit);
+                    asInts.put(quadIndex1 + i, b);
+                    asInts.put(quadIndex2 + i, a);
+                }
             });
+    }
+
+    public static Vector3d getPlayerPosition(double partialTicks) {
+        Entity player = Minecraft.getMinecraft().getRenderViewEntity();
+        assert player != null;
+
+        double xd = player.lastTickPosX + (player.posX - player.lastTickPosX) * partialTicks;
+        double yd = player.lastTickPosY + (player.posY - player.lastTickPosY) * partialTicks;
+        double zd = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * partialTicks;
+
+        return new Vector3d(xd, yd, zd);
     }
 }

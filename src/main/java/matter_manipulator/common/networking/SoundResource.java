@@ -288,11 +288,11 @@ public enum SoundResource {
         private SoundPacket() {
         }
 
-        public static void encode(MMPacketBuffer buffer, SoundPacket packet) {
-            buffer.writeBlockPos(packet.pos);
-            buffer.writeInt(packet.sound.ordinal());
-            buffer.writeFloat(packet.strength);
-            buffer.writeFloat(packet.pitch);
+        public void encode(MMPacketBuffer buffer) {
+            buffer.writeBlockPos(pos);
+            buffer.writeInt(sound.ordinal());
+            buffer.writeFloat(strength);
+            buffer.writeFloat(pitch);
         }
 
         public static SoundPacket decode(MMPacketBuffer buffer) {

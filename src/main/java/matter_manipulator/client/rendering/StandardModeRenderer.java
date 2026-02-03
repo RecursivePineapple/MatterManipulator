@@ -13,7 +13,8 @@ import net.minecraft.world.World;
 import org.joml.Vector3i;
 
 import matter_manipulator.GlobalMMConfig.RenderingConfig;
-import matter_manipulator.common.block_spec.BlockSpecImpl;
+import matter_manipulator.common.block_spec.StandardBlockSpec;
+import matter_manipulator.common.context.AnalysisContextImpl;
 import matter_manipulator.common.utils.data.Lazy;
 import matter_manipulator.core.block_spec.IBlockSpec;
 import matter_manipulator.core.building.IPendingBlockBuildable;
@@ -31,7 +32,7 @@ public class StandardModeRenderer<Config, Buildable extends IPendingBlockBuildab
     private static final ImmutableColor WARNING = RGBColor.fromRGB(0xFFAA00);
     private static final ImmutableColor ERROR = RGBColor.fromRGB(0xFF5555);
 
-    public static final Lazy<IBlockSpec> STONE = new Lazy<>(() -> new BlockSpecImpl(Blocks.STONE.getDefaultState()));
+    public static final Lazy<IBlockSpec> STONE = new Lazy<>(() -> new StandardBlockSpec(Blocks.STONE.getDefaultState()));
 
     @Override
     public void renderOverlay(ManipulatorRenderingContext context, Config config, Buildable buildable) {
@@ -53,13 +54,13 @@ public class StandardModeRenderer<Config, Buildable extends IPendingBlockBuildab
             MathHelper.floor(player.posY),
             MathHelper.floor(player.posZ));
 
-        MMHintRenderer.INSTANCE.reset();
-
         Map<BlockPos, BuildFeedback> feedbackMap = new HashMap<>();
 
         for (BuildFeedback f : context.getFeedback()) {
             feedbackMap.put(f.pos(), f);
         }
+
+        AnalysisContextImpl analysisContext = new AnalysisContextImpl(context);
 
         for (PendingBlock pendingBlock : buildable.getPendingBlocks()) {
             if (!pendingBlock.isInWorld(world)) continue;
@@ -74,7 +75,8 @@ public class StandardModeRenderer<Config, Buildable extends IPendingBlockBuildab
 
             if (pendingBlock.spec.isAir() && world.isAirBlock(pos)) continue;
 
-            BlockSpecImpl existing = BlockSpecImpl.fromWorld(world, pos);
+            analysisContext.setPos(pos);
+            StandardBlockSpec existing = StandardBlockSpec.fromWorld(analysisContext);
 
             ResourceStack pendingResource = pendingBlock.spec.getResource();
             ResourceStack existingResource = existing.getResource();

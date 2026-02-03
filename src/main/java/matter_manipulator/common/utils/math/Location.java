@@ -14,16 +14,15 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import org.joml.Vector3i;
 import org.joml.Vector3ic;
 
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import matter_manipulator.common.utils.hash.Fnv1a32;
 
 /**
  * Represents a location in a world.
  * Can probably be improved, but it's not a big problem yet since these aren't meant to be kept around for very
  * long.
  */
-@EqualsAndHashCode(callSuper = true)
 public class Location extends Vector3i {
 
     @Getter
@@ -114,6 +113,25 @@ public class Location extends Vector3i {
 
     public Location clone() {
         return new Location(worldId, x, y, z);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Location other)) return false;
+
+        return x == other.x && y == other.y && z == other.z && worldId == other.worldId;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = Fnv1a32.initialState();
+
+        hash = Fnv1a32.hashStep(hash, worldId);
+        hash = Fnv1a32.hashStep(hash, x);
+        hash = Fnv1a32.hashStep(hash, y);
+        hash = Fnv1a32.hashStep(hash, z);
+
+        return hash;
     }
 
     /**

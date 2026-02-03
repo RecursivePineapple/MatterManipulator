@@ -59,7 +59,10 @@ public class GeometryConfig implements GeometryBlockPalette {
             public Optional<GeometryConfig> process(GeometryConfig config, ManipulatorContext context,
                 boolean forPreview) {
                 config.a = context.getLookedAtBlock();
-                config.action = PendingAction.MARK_B;
+
+                if (!forPreview) {
+                    config.action = PendingAction.MARK_B;
+                }
 
                 return Optional.of(config);
             }
@@ -74,10 +77,13 @@ public class GeometryConfig implements GeometryBlockPalette {
             public Optional<GeometryConfig> process(GeometryConfig config, ManipulatorContext context,
                 boolean forPreview) {
                 config.b = context.getLookedAtBlock();
-                config.action = null;
 
-                if (config.shape != null && config.shape.needsC()) {
-                    config.action = PendingAction.MARK_C;
+                if (!forPreview) {
+                    config.action = null;
+
+                    if (config.shape != null && config.shape.needsC()) {
+                        config.action = PendingAction.MARK_C;
+                    }
                 }
 
                 return Optional.of(config);
@@ -93,7 +99,10 @@ public class GeometryConfig implements GeometryBlockPalette {
             public Optional<GeometryConfig> process(GeometryConfig config, ManipulatorContext context,
                 boolean forPreview) {
                 config.c = context.getLookedAtBlock();
-                config.action = null;
+
+                if (!forPreview) {
+                    config.action = null;
+                }
 
                 return Optional.of(config);
             }
@@ -122,12 +131,12 @@ public class GeometryConfig implements GeometryBlockPalette {
             @Override
             public Coroutine<StandardBuild> getBlocks(GeometryConfig config, ManipulatorContext context) {
                 return ctx -> {
-                    Vector3i a = config.a;
-                    Vector3i b = config.b;
+                    Vector3i min = new Vector3i(config.a).min(config.b);
+                    Vector3i max = new Vector3i(config.a).max(config.b);
 
                     XSTR rng = new XSTR(config.hashCode());
 
-                    ArrayList<PendingBlock> blocks = GeometryModeCube.iterateCube(config, context.getWorld(), a.x, a.y, a.z, b.x, b.y, b.z);
+                    ArrayList<PendingBlock> blocks = GeometryModeCube.iterateCube(config, context.getWorld(), min.x, min.y, min.z, max.x, max.y, max.z);
 
                     ctx.stop(new StandardBuild(new ArrayDeque<>(blocks)));
                 };
@@ -207,7 +216,7 @@ public class GeometryConfig implements GeometryBlockPalette {
             throw new UnsupportedOperationException();
         }
 
-        public String getLocalizedName() {
+        public String toString() {
             return MCUtils.translate("mm.mode.geometry.shape." + name().toLowerCase());
         }
     }

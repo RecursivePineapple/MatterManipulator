@@ -87,7 +87,7 @@ public class StreamingVertexBuffer implements AutoCloseable {
     }
 
     public void upload(ByteBuffer buffer) {
-        this.upload(GL15.GL_STATIC_DRAW, buffer, buffer.remaining() / this.format.getSize());
+        this.upload(GL15.GL_DYNAMIC_DRAW, buffer, buffer.remaining() / this.format.getSize());
     }
 
     public void draw(FloatBuffer floatBuffer) {
@@ -121,18 +121,18 @@ public class StreamingVertexBuffer implements AutoCloseable {
         for (VertexFormatElement element : format.getElements()) {
             switch (element.getUsage()) {
                 case POSITION -> {
-                    GL11.glVertexPointer(element.getElementCount(), element.getType().getGlConstant(), stride, offset);
                     GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+                    GL11.glVertexPointer(element.getElementCount(), element.getType().getGlConstant(), stride, offset);
                 }
                 case UV -> {
                     GL13.glClientActiveTexture(GL13.GL_TEXTURE0 + element.getIndex());
-                    GL11.glTexCoordPointer(element.getElementCount(), element.getType().getGlConstant(), stride, offset);
                     GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+                    GL11.glTexCoordPointer(element.getElementCount(), element.getType().getGlConstant(), stride, offset);
                     GL13.glClientActiveTexture(GL13.GL_TEXTURE0);
                 }
                 case COLOR -> {
-                    GL11.glColorPointer(element.getElementCount(), element.getType().getGlConstant(), stride, offset);
                     GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
+                    GL11.glColorPointer(element.getElementCount(), element.getType().getGlConstant(), stride, offset);
                 }
             }
 

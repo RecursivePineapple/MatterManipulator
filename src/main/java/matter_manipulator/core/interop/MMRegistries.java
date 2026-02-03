@@ -8,6 +8,7 @@ import net.minecraft.util.ResourceLocation;
 import it.unimi.dsi.fastutil.Pair;
 import matter_manipulator.common.interop.MMRegistriesInternal;
 import matter_manipulator.common.utils.deps.IDependencyGraph;
+import matter_manipulator.core.block_spec.IBlockSpecLoader;
 import matter_manipulator.core.block_spec.ICopyInteropModule;
 import matter_manipulator.core.interop.interfaces.BlockAdapter;
 import matter_manipulator.core.interop.interfaces.BlockResetter;
@@ -78,5 +79,9 @@ public class MMRegistries {
 
     public static void registerManipulatorResourceLoader(ManipulatorResourceLoader loader) {
         MMRegistriesInternal.RESOURCE_LOADERS.put(loader.getResourceID(), loader);
+    }
+
+    public static void registerSpecLoader(IBlockSpecLoader loader) {
+        MMRegistriesInternal.LOADERS.put(loader.getKey(), loader);
     }
 }

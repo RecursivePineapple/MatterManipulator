@@ -1,14 +1,13 @@
 package matter_manipulator.common.block_spec;
 
 import java.util.EnumSet;
-import java.util.Optional;
 
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+
+import org.jetbrains.annotations.NotNull;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import matter_manipulator.MMMod;
@@ -16,22 +15,32 @@ import matter_manipulator.common.interop.MMRegistriesInternal;
 import matter_manipulator.common.utils.math.Transform;
 import matter_manipulator.core.block_spec.ApplyResult;
 import matter_manipulator.core.block_spec.IBlockSpec;
+import matter_manipulator.core.block_spec.IBlockSpecLoader;
 import matter_manipulator.core.block_spec.ICopyInteropModule;
+import matter_manipulator.core.context.BlockAnalysisContext;
 import matter_manipulator.core.context.BlockPlacingContext;
+import matter_manipulator.core.i18n.Localized;
 import matter_manipulator.core.interop.interfaces.BlockAdapter;
 import matter_manipulator.core.resources.ResourceStack;
 import matter_manipulator.core.resources.item.ItemStackWrapper;
 
-public class BlockSpecImpl implements IBlockSpec {
+/// An [IBlockSpec] that places a standard block, along with some interop state.
+public class StandardBlockSpec implements IBlockSpec {
 
-    private IBlockState state;
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    private Optional<ResourceStack> resource;
+    public IBlockState state;
     @SuppressWarnings("rawtypes")
-    private Object2ObjectOpenHashMap<ICopyInteropModule, Object> interop = new Object2ObjectOpenHashMap<>(0);
+    public final Object2ObjectOpenHashMap<ICopyInteropModule, Object> interop = new Object2ObjectOpenHashMap<>(0);
 
-    public BlockSpecImpl(IBlockState state) {
+    private boolean hasResource = false;
+    private ResourceStack resource;
+
+    public StandardBlockSpec(IBlockState state) {
         this.state = state;
+    }
+
+    @Override
+    public IBlockSpecLoader getLoader() {
+        return StandardBlockSpecLoader.INSTANCE;
     }
 
     @Override
@@ -46,8 +55,7 @@ public class BlockSpecImpl implements IBlockSpec {
 
     @Override
     public ResourceStack getResource() {
-        //noinspection OptionalAssignedToNull
-        if (resource != null) return resource.orElse(null);
+        if (hasResource) return resource;
 
         BlockAdapter adapter = MMRegistriesInternal.getBlockAdapter(state);
 
@@ -56,9 +64,15 @@ public class BlockSpecImpl implements IBlockSpec {
             return new ItemStackWrapper(ItemStack.EMPTY);
         }
 
-        resource = Optional.ofNullable(adapter.getResourceForm(state));
+        resource = adapter.getResourceForm(state);
+        hasResource = true;
 
-        return resource.orElse(null);
+        return resource;
+    }
+
+    @Override
+    public Localized getDisplayName() {
+        return getResource().getName();
     }
 
     @SuppressWarnings("unchecked")
@@ -93,6 +107,7 @@ public class BlockSpecImpl implements IBlockSpec {
         EnumSet<ApplyResult> result = EnumSet.noneOf(ApplyResult.class);
 
         for (var e : interop.object2ObjectEntrySet()) {
+            //noinspection unchecked
             result.add(e.getKey().apply(context, e.getValue()));
         }
 
@@ -101,10 +116,37 @@ public class BlockSpecImpl implements IBlockSpec {
 
     @Override
     public IBlockSpec clone() {
-        return new BlockSpecImpl(this.state);
+        return new StandardBlockSpec(this.state);
     }
 
-    public static BlockSpecImpl fromWorld(World world, BlockPos pos) {
-        throw new UnsupportedOperationException("TODO");
+    @Override
+    public final boolean equals(Object o) {
+        if (!(o instanceof StandardBlockSpec that)) return false;
+
+        return state.equals(that.state) && interop.equals(that.interop);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = state.hashCode();
+        result = 31 * result + interop.hashCode();
+        return result;
+    }
+
+    @NotNull
+    public static StandardBlockSpec fromWorld(BlockAnalysisContext context) {
+        IBlockState state = context.getBlockState();
+
+        StandardBlockSpec spec = new StandardBlockSpec(state);
+
+        for (ICopyInteropModule<?> interop : MMRegistriesInternal.INTEROP_MODULES.sorted()) {
+            var result = interop.analyze(context);
+
+            if (!result.isPresent()) continue;
+
+            spec.interop.put(interop, result.get());
+        }
+
+        return spec;
     }
 }

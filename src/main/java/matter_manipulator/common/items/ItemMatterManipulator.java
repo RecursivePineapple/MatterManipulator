@@ -254,9 +254,11 @@ public class ItemMatterManipulator extends Item implements IGuiHolder<Manipulato
     public static boolean onPickBlock(EntityPlayer player) {
         if (player.getHeldItem(EnumHand.MAIN_HAND).getItem() instanceof ItemMatterManipulator) {
             onPickBlock(player, EnumHand.MAIN_HAND);
+            if (player.world.isRemote) PICK_BLOCK.sendToServer();
             return true;
         } else if (player.getHeldItem(EnumHand.OFF_HAND).getItem() instanceof ItemMatterManipulator) {
             onPickBlock(player, EnumHand.OFF_HAND);
+            if (player.world.isRemote) PICK_BLOCK.sendToServer();
             return true;
         }
 

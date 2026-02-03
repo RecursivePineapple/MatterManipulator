@@ -2,6 +2,7 @@ package matter_manipulator.core.i18n;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
@@ -24,16 +25,27 @@ public class Localized {
 
     public static final MMActionWithPayload<Localized> CHAT = MMActionWithPayload.client(
         new ResourceLocation(Tags.MODNAME, "chat"),
-        (player, packet) -> packet.sendChat(player),
-        (buffer, value) -> value.encode(buffer),
-        buffer -> new Localized().decode(buffer));
+        (player, packet) -> packet.sendChat(player), Localized::encode,
+        Localized::new);
 
     public Object key;
     public Object[] args;
     public TextFormatting baseColour = null;
 
-    public Localized() {
+    public Localized(MMPacketBuffer buffer) {
+        this.key = switch (buffer.readByte()) {
+            case KEY_LOCALIZER -> LocalizerRegistry.getLocalizer(buffer.readResourceLocation());
+            case KEY_LANG -> buffer.readString(Short.MAX_VALUE);
+            default -> null;
+        };
 
+        baseColour = DataUtils.getIndexSafe(TextFormatting.values(), buffer.readByte());
+
+        this.args = new Object[buffer.readInt()];
+
+        for (int i = 0; i < args.length; i++) {
+            args[i] = decodeArg(buffer);
+        }
     }
 
     Localized(Object key, Object[] args) {
@@ -147,6 +159,7 @@ public class Localized {
     private static final byte TYPE_DOUBLE = 4;
     private static final byte TYPE_STRING = 5;
     private static final byte TYPE_LOCALIZED = 6;
+    private static final byte TYPE_ITEM_STACK = 7;
 
     private static void encodeArg(MMPacketBuffer buffer, Object arg) {
         if (arg instanceof Integer i) {
@@ -185,6 +198,12 @@ public class Localized {
             return;
         }
 
+        if (arg instanceof ItemStack stack) {
+            buffer.writeByte(TYPE_ITEM_STACK);
+            buffer.writeItemStack(stack);
+            return;
+        }
+
         buffer.writeByte(TYPE_INVALID);
 
         MMMod.LOG.error("Attempted to send illegal Localized argument over the network: {}", arg, new Exception());
@@ -211,9 +230,10 @@ public class Localized {
                 return buffer.readString(Short.MAX_VALUE);
             }
             case TYPE_LOCALIZED -> {
-                Localized l = new Localized();
-                l.decode(buffer);
-                return l;
+                return new Localized(buffer);
+            }
+            case TYPE_ITEM_STACK -> {
+                return buffer.readItemStack();
             }
         }
 
@@ -248,6 +268,11 @@ public class Localized {
 
             if (arg instanceof Double d) {
                 out[idx] = MCUtils.formatNumbers(d);
+                continue;
+            }
+
+            if (arg instanceof ItemStack stack) {
+                out[idx] = stack.getDisplayName();
                 continue;
             }
 

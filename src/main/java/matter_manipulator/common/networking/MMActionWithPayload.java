@@ -87,7 +87,7 @@ public class MMActionWithPayload<T> extends MMPacketEncoder<ActionPacketWithPayl
 
     @Override
     public void writePacket(MMPacketBuffer buffer, ActionPacketWithPayload<T> packet) {
-        encoder.encode(buffer, packet.payload);
+        encoder.encode(packet.payload, buffer);
     }
 
     @Override

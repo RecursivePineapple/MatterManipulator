@@ -1,5 +1,6 @@
 package matter_manipulator.client.rendering;
 
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 
 import net.minecraft.block.state.IBlockState;
@@ -10,7 +11,7 @@ import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ModelManager;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.entity.Entity;
+import net.minecraft.client.renderer.vertex.VertexFormatElement;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -19,11 +20,9 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3d;
 import org.lwjgl.opengl.GL11;
 
-import lombok.Setter;
 import matter_manipulator.client.rendering.vbo.StreamingVertexBuffer;
 import matter_manipulator.client.rendering.vertex.QuadCentroidComparator;
 import matter_manipulator.common.utils.world.ProxiedWorld;
@@ -49,7 +48,7 @@ public class MMHintRenderer {
     /// True when the cpu buffer needs to be re-uploaded to the VBO.
     private boolean vboNeedsUpload = false;
 
-    private final HintBufferBuilder buffer = new HintBufferBuilder(2_097_152);
+    private final BufferBuilder buffer = new BufferBuilder(2_097_152);
     private final ForgeBlockModelRenderer modelRenderer = new ForgeBlockModelRenderer(Minecraft.getMinecraft().getBlockColors());
     private final BlockFluidRenderer fluidRenderer = new BlockFluidRenderer(Minecraft.getMinecraft().getBlockColors());
 
@@ -89,14 +88,7 @@ public class MMHintRenderer {
 
         p.startSection("Render MM Hints");
 
-        Entity player = Minecraft.getMinecraft().getRenderViewEntity();
-        assert player != null;
-
-        double xd = player.lastTickPosX + (player.posX - player.lastTickPosX) * e.getPartialTicks();
-        double yd = player.lastTickPosY + (player.posY - player.lastTickPosY) * e.getPartialTicks();
-        double zd = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * e.getPartialTicks();
-
-        Vector3d currentPos = new Vector3d(xd, yd, zd);
+        Vector3d currentPos = MMRenderUtils.getPlayerPosition(e.getPartialTicks());
 
         if (vbo == null) {
             vbo = new StreamingVertexBuffer(DefaultVertexFormats.BLOCK, GL11.GL_QUADS);
@@ -107,21 +99,37 @@ public class MMHintRenderer {
 
             buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);
 
+            buffer.setTranslation(0, 0, 0);
+
             ModelManager modelManager = ((AccessorMinecraft) Minecraft.getMinecraft()).getModelManager();
             ProxiedWorld world = new ProxiedWorld(Minecraft.getMinecraft().world);
 
-            Vector3d pos = new Vector3d();
+            java.nio.ByteBuffer bytes = buffer.getByteBuffer();
+            IntBuffer data = buffer.getByteBuffer().asIntBuffer();
+
+            int posOffset = 0, colorOffset = DefaultVertexFormats.BLOCK.getColorOffset();
+            int intStride = DefaultVertexFormats.BLOCK.getIntegerSize();
+            int byteStride = DefaultVertexFormats.BLOCK.getSize();
+
+            for (VertexFormatElement element : DefaultVertexFormats.BLOCK.getElements()) {
+                if (element.isPositionElement()) {
+                    break;
+                }
+
+                posOffset += element.getSize();
+            }
+
+            posOffset /= 4;
 
             for (Hint hint : hints) {
                 IBlockState state = hint.spec.getBlockState();
+
+                int startVert = buffer.getVertexCount();
 
                 switch (state.getRenderType()) {
                     case MODEL -> {
                         world.overrides.clear();
                         world.setBlockState(hint, state);
-
-                        buffer.setCurrentPos(pos.set(hint.getX() + 0.5, hint.getY() + 0.5, hint.getZ() + 0.5));
-                        buffer.setTint(hint.tint);
 
                         IBakedModel model = modelManager.getBlockModelShapes().getModelForState(state);
                         modelRenderer.renderModel(
@@ -142,6 +150,43 @@ public class MMHintRenderer {
 
                     }
                 }
+
+                int endVert = buffer.getVertexCount();
+
+                float kR = hint.tint.getRed() / 255f;
+                float kG = hint.tint.getGreen() / 255f;
+                float kB = hint.tint.getBlue() / 255f;
+
+                for (int vert = startVert; vert < endVert; vert++) {
+                    int pos = vert * intStride + posOffset;
+
+                    float cX = hint.getX() + 0.5f;
+                    float cY = hint.getY() + 0.5f;
+                    float cZ = hint.getZ() + 0.5f;
+
+                    float x = Float.intBitsToFloat(data.get(pos));
+                    float y = Float.intBitsToFloat(data.get(pos + 1));
+                    float z = Float.intBitsToFloat(data.get(pos + 2));
+
+                    x = (x - cX) * 0.7f + cX;
+                    y = (y - cY) * 0.7f + cY;
+                    z = (z - cZ) * 0.7f + cZ;
+
+                    data.put(pos, Float.floatToIntBits(x));
+                    data.put(pos + 1, Float.floatToIntBits(y));
+                    data.put(pos + 2, Float.floatToIntBits(z));
+
+                    int color = vert * byteStride + colorOffset;
+
+                    int r = bytes.get(color) & 0xFF;
+                    int g = bytes.get(color + 1) & 0xFF;
+                    int b = bytes.get(color + 2) & 0xFF;
+
+                    bytes.put(color, (byte) ((int) (r * kR) & 0xFF));
+                    bytes.put(color + 1, (byte) ((int) (g * kG) & 0xFF));
+                    bytes.put(color + 2, (byte) ((int) (b * kB) & 0xFF));
+                    bytes.put(color + 3, (byte) 100);
+                }
             }
 
             buffer.finishDrawing();
@@ -154,7 +199,10 @@ public class MMHintRenderer {
         if (vboNeedsSort || currentPos.distance(lastPlayerPosition) > 1.0) {
             lastPlayerPosition.set(currentPos);
 
-            MMRenderUtils.sortQuads(buffer.getByteBuffer(), 0, buffer.getVertexCount() / 4, buffer.getVertexFormat(), new QuadCentroidComparator());
+            QuadCentroidComparator comparator = new QuadCentroidComparator();
+            comparator.setOrigin((float) currentPos.x, (float) currentPos.y, (float) currentPos.z);
+
+            MMRenderUtils.sortQuads(buffer.getByteBuffer(), 0, buffer.getVertexCount() / 4, buffer.getVertexFormat(), comparator);
 
             vboNeedsSort = false;
             vboNeedsUpload = true;
@@ -174,13 +222,12 @@ public class MMHintRenderer {
 
             Minecraft.getMinecraft().renderEngine.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 
-            GL11.glTranslated(-xd + lastPlayerPosition.x, -yd + lastPlayerPosition.y, -zd + lastPlayerPosition.z);
+            GL11.glTranslated(-currentPos.x, -currentPos.y, -currentPos.z);
 
             GL11.glDisable(GL11.GL_CULL_FACE);
             GL11.glDisable(GL11.GL_ALPHA_TEST);
             GL11.glEnable(GL11.GL_BLEND);
             GL11.glBlendFunc(GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_SRC_ALPHA);
-
             GL11.glDisable(GL11.GL_DEPTH_TEST);
 
             // noinspection SynchronizeOnNonFinalField
@@ -206,28 +253,6 @@ public class MMHintRenderer {
             super(x, y, z);
             this.spec = spec;
             this.tint = tint;
-        }
-    }
-
-    private static class HintBufferBuilder extends BufferBuilder {
-
-        @Setter
-        private Vector3d currentPos;
-        @Setter
-        private ImmutableColor tint;
-
-        public HintBufferBuilder(int bufferSizeIn) {
-            super(bufferSizeIn);
-        }
-
-        @Override
-        public @NotNull BufferBuilder pos(double x, double y, double z) {
-            return super.pos((x - currentPos.x) * 0.8 + currentPos.x, (y - currentPos.y) * 0.8 + currentPos.y, (z - currentPos.z) * 0.8 + currentPos.z);
-        }
-
-        @Override
-        public @NotNull BufferBuilder color(int red, int green, int blue, int alpha) {
-            return super.color(red * tint.getRed(), green * tint.getGreen(), blue * tint.getBlue(), alpha * tint.getAlpha());
         }
     }
 }

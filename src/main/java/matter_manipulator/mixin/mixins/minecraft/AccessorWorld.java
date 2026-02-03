@@ -9,6 +9,6 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 public interface AccessorWorld {
 
     @Invoker("isChunkLoaded")
-    boolean isChunkLoaded(int x, int z, boolean allowEmpty);
+    boolean mm$isChunkLoaded(int x, int z, boolean allowEmpty);
 
 }

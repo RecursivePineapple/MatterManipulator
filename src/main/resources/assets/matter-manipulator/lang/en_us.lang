@@ -55,6 +55,9 @@ mm.mode.geometry.shape.line=Line
 mm.mode.geometry.shape.sphere=Sphere
 mm.mode.geometry.shape.cylinder=Cylinder
 
+# Misc
+mm.misc.itemstack=%s
+
 # GUI
 mm.gui.set_mode=Set Mode
 mm.gui.set_remove_mode=Set Remove Mode
@@ -129,7 +132,7 @@ mm.info.error.could_not_push_items_to_uplink=Could not push items to uplink:
 mm.info.error.could_not_push_fluids_to_uplink=Could not push fluids to uplink: 
 mm.info.error.could_not_request_items_from_uplink=Could not request items from uplink: 
 mm.info.added=Added %s to %s
-mm.info.set=Set %s to: %s
+mm.info.set=Set %s to %s
 mm.info.set_block_to_replace_with=Set block to replace with to: %s
 mm.info.added_block_to_exchange_whitelist=Added block to exchange whitelist: %s
 mm.info.set_exchange_whitelist_to_only_contain=Set exchange whitelist to only contain: %s

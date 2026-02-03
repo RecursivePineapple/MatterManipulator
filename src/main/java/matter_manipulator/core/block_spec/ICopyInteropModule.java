@@ -38,7 +38,8 @@ import matter_manipulator.core.persist.IStateSandbox;
 /// overloads and writes its data to a [JsonObject], which is persisted by calling [IStateSandbox#setValue(JsonElement)].
 /// [IStateSandbox#save(Object)] compacts the two operations into one call if the exact format doesn't matter.
 /// <br />
-/// 3. The [IBlockSpec] saves its own state into a [JsonObject], which is converted to a [NBTTagCompound].
+/// 3. The [IBlockSpec] saves its own state into a [JsonObject] via a [IBlockSpecLoader], which is converted to a
+/// [NBTTagCompound].
 /// <p />
 /// When loading, this is the data flow:
 /// <br />

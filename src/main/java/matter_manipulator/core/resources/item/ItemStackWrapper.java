@@ -31,8 +31,8 @@ public class ItemStackWrapper implements ItemResourceStack, IntResourceStack {
     }
 
     @Override
-    public Localized getName() {
-        return null;
+    public @NotNull Localized getName() {
+        return new Localized("mm.misc.itemstack", toStack(1));
     }
 
     @Override

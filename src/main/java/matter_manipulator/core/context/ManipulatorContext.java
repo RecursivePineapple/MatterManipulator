@@ -25,4 +25,8 @@ public interface ManipulatorContext extends StackManipulatorContext {
     default Location getLookedAtBlock() {
         return new Location(getWorld(), MathUtils.getLookedAtBlock(getRealPlayer()));
     }
+
+    default boolean isRemote() {
+        return getWorld().isRemote;
+    }
 }

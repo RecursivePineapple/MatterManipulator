@@ -50,7 +50,7 @@ public class MMPacketBuffer extends PacketBuffer {
 
     public interface Encoder<T> {
 
-        void encode(MMPacketBuffer buffer, T value);
+        void encode(T value, MMPacketBuffer buffer);
     }
 
     public interface Decoder<T> {
@@ -62,7 +62,7 @@ public class MMPacketBuffer extends PacketBuffer {
         writeVarInt(array.length);
 
         for (T value : array) {
-            encoder.encode(this, value);
+            encoder.encode(value, this);
         }
     }
 
@@ -121,7 +121,7 @@ public class MMPacketBuffer extends PacketBuffer {
         writeVarInt(list.size());
 
         for (T value : list) {
-            encoder.encode(this, value);
+            encoder.encode(value, this);
         }
     }
 
@@ -224,7 +224,7 @@ public class MMPacketBuffer extends PacketBuffer {
             values.add(Pair.of(prop.getName(), prop.getName(obj)));
         }
 
-        writeList(values, (buffer, value) -> {
+        writeList(values, (value, buffer) -> {
             buffer.writeString(value.left());
             buffer.writeString(value.right());
         });

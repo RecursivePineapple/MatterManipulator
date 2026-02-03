@@ -12,7 +12,8 @@ import net.minecraft.world.World;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import matter_manipulator.MMMod;
-import matter_manipulator.common.block_spec.BlockSpecImpl;
+import matter_manipulator.common.block_spec.StandardBlockSpec;
+import matter_manipulator.common.context.AnalysisContextImpl;
 import matter_manipulator.common.items.ItemMatterManipulator;
 import matter_manipulator.common.networking.SoundResource;
 import matter_manipulator.common.utils.MCUtils;
@@ -51,6 +52,8 @@ public class StandardBuild implements IPendingBlockBuildable {
         ProxiedWorld proxiedWorld = new ProxiedWorld(world);
 
         ArrayDeque<PendingBlock> toPlace = new ArrayDeque<>();
+
+        AnalysisContextImpl analysisContext = new AnalysisContextImpl(context);
 
         // check every pending block that's left
         while (toPlace.size() < placeSpeed && !pendingBlocks.isEmpty()) {
@@ -101,7 +104,8 @@ public class StandardBuild implements IPendingBlockBuildable {
                 if (!firstResource.isSameType(nextResource)) break;
             }
 
-            BlockSpecImpl existing = BlockSpecImpl.fromWorld(world, pos);
+            analysisContext.setPos(pos);
+            StandardBlockSpec existing = StandardBlockSpec.fromWorld(analysisContext);
 
             if (next.spec.isAir() && world.isAirBlock(pos)) {
                 pendingBlocks.removeFirst();
@@ -184,7 +188,8 @@ public class StandardBuild implements IPendingBlockBuildable {
 
             context.setTarget(pos, pendingBlock.spec);
 
-            IBlockSpec existing = BlockSpecImpl.fromWorld(context.getWorld(), pos);
+            analysisContext.setPos(pos);
+            IBlockSpec existing = StandardBlockSpec.fromWorld(analysisContext);
 
             if (!existing.isAir()) {
                 ResourceStack pendingResource = pendingBlock.spec.getResource();

@@ -10,12 +10,16 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(ForgeHooks.class)
+import matter_manipulator.common.items.ItemMatterManipulator;
+
+@Mixin(value = ForgeHooks.class, remap = false)
 public class MixinForgeHooks {
 
     @Inject(method = "onPickBlock", at = @At("HEAD"), cancellable = true)
     private static void interceptPickBlock(RayTraceResult target, EntityPlayer player, World world, CallbackInfoReturnable<Boolean> cir) {
-
+        if (ItemMatterManipulator.onPickBlock(player)) {
+            cir.cancel();
+        }
     }
 
 }

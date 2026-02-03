@@ -24,7 +24,7 @@ public class QuadCentroidComparator implements Comparator<Quad> {
     @Override
     public int compare(Quad q1, Quad q2) {
         avg1.set(q1.a()).add(q1.b()).add(q1.c()).add(q1.d()).mul(0.25f);
-        avg2.set(q1.a()).add(q1.b()).add(q1.c()).add(q1.d()).mul(0.25f);
+        avg2.set(q2.a()).add(q2.b()).add(q2.c()).add(q2.d()).mul(0.25f);
 
         return Float.compare(avg2.distanceSquared(origin), avg1.distanceSquared(origin));
     }

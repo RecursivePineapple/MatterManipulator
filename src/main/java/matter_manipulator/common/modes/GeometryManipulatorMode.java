@@ -1,5 +1,9 @@
 package matter_manipulator.common.modes;
 
+import static matter_manipulator.common.utils.MCUtils.BLUE;
+import static matter_manipulator.common.utils.MCUtils.GRAY;
+import static matter_manipulator.common.utils.MCUtils.processFormatStacks;
+
 import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Optional;
@@ -13,10 +17,14 @@ import matter_manipulator.Tags;
 import matter_manipulator.client.gui.BranchableRadialMenu;
 import matter_manipulator.client.rendering.ModeRenderer;
 import matter_manipulator.client.rendering.modes.GeometryModeRenderer;
+import matter_manipulator.common.block_spec.StandardBlockSpec;
 import matter_manipulator.common.building.StandardBuild;
+import matter_manipulator.common.context.AnalysisContextImpl;
 import matter_manipulator.common.modes.GeometryConfig.PendingAction;
 import matter_manipulator.common.modes.GeometryConfig.Shape;
 import matter_manipulator.common.networking.MMPacketBuffer;
+import matter_manipulator.common.utils.MCUtils;
+import matter_manipulator.core.block_spec.IBlockSpec;
 import matter_manipulator.core.context.ManipulatorContext;
 import matter_manipulator.core.modes.ManipulatorMode;
 import matter_manipulator.core.persist.IDataStorage;
@@ -40,19 +48,38 @@ public class GeometryManipulatorMode implements ManipulatorMode<GeometryConfig, 
     }
 
     @Override
+    public GeometryConfig getPreviewConfig(GeometryConfig geometryConfig, ManipulatorContext context) {
+        if (geometryConfig.action != null) {
+            Optional<GeometryConfig> result = geometryConfig.action.process(geometryConfig, context, true);
+
+            if (result.isPresent()) {
+                return result.get();
+            }
+        }
+
+        return geometryConfig;
+    }
+
+    @Override
     public void addTooltipInfo(ManipulatorContext context, List<String> lines) {
         GeometryConfig config = loadConfig(context.getState().getActiveModeConfigStorage());
 
-        lines.add("Shape: " + config.shape);
+        addTooltipLine(lines, "Shape: ", config.shape);
 
-        lines.add("A: " + config.a);
-        lines.add("B: " + config.b);
-        lines.add("C: " + config.c);
+        addTooltipLine(lines, "A: ", config.a);
+        addTooltipLine(lines, "B: ", config.b);
+        if (config.shape.needsC()) {
+            addTooltipLine(lines, "C: ", config.c);
+        }
 
-        lines.add("Faces: " + config.faces);
-        lines.add("Edges: " + config.edges);
-        lines.add("Corners: " + config.corners);
-        lines.add("Volumes: " + config.volumes);
+        addTooltipLine(lines, "Faces: ", config.faces().getDisplayName());
+        addTooltipLine(lines, "Edges: ", config.edges().getDisplayName());
+        addTooltipLine(lines, "Corners: ", config.corners().getDisplayName());
+        addTooltipLine(lines, "Volumes: ", config.volumes().getDisplayName());
+    }
+
+    private static void addTooltipLine(List<String> lines, String name, Object value) {
+        lines.add(GRAY + name + processFormatStacks(BLUE + value));
     }
 
     @Override
@@ -64,7 +91,7 @@ public class GeometryManipulatorMode implements ManipulatorMode<GeometryConfig, 
             .pipe(shapes -> {
                 for (Shape shape : Shape.values()) {
                     shapes.option()
-                        .label(IKey.str(shape.getLocalizedName()))
+                        .label(IKey.str(shape.toString()))
                         .onClicked(() -> {
                             config.shape = shape;
                             saveConfig(context.getState().getActiveModeConfigStorage(), config);
@@ -77,7 +104,23 @@ public class GeometryManipulatorMode implements ManipulatorMode<GeometryConfig, 
 
     @Override
     public Optional<GeometryConfig> onPickBlock(GeometryConfig geometryConfig, ManipulatorContext context) {
-        return Optional.empty();
+        var hit = context.getHitResult();
+
+        IBlockSpec selected = IBlockSpec.AIR;
+
+        if (hit != null) {
+            AnalysisContextImpl analysisContext = new AnalysisContextImpl(context);
+            analysisContext.setPos(hit.getBlockPos());
+            selected = StandardBlockSpec.fromWorld(analysisContext);
+        }
+
+        geometryConfig.volumes = selected;
+
+        if (context.isRemote()) {
+            MCUtils.sendInfoToPlayer(context.getRealPlayer(), MCUtils.translate("mm.info.set", "volumes", selected.getDisplayName().toString()));
+        }
+
+        return Optional.of(geometryConfig);
     }
 
     @Override

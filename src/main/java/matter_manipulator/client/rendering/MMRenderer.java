@@ -100,6 +100,8 @@ public class MMRenderer {
             if (mode != null) {
                 Object config = mode.loadConfig(state.getActiveModeConfigStorage());
 
+                config = mode.getPreviewConfig(config, context);
+
                 ModeRenderer renderer = mode.getRenderer(context);
 
                 if (!Objects.equals(renderer, lastRenderer) && lastRenderer != null) {
@@ -117,6 +119,8 @@ public class MMRenderer {
                     lastAnalysis = (IBuildable) mode.startAnalysis(config, context).get();
                     lastAnalyzedConfig = config;
                     lastAnalysisMS = System.currentTimeMillis();
+                    needsAnalysis = false;
+                    needsHintDraw = true;
                 }
 
                 BoxRenderer.INSTANCE.start();
@@ -126,6 +130,7 @@ public class MMRenderer {
                 BoxRenderer.INSTANCE.finish();
 
                 if (needsHintDraw) {
+                    needsHintDraw = false;
                     MMHintRenderer.INSTANCE.reset();
 
                     lastRenderer.emitHints(context, config, lastAnalysis);
@@ -259,7 +264,7 @@ public class MMRenderer {
 
         @Override
         public void drawBox(VoxelAABB aabb, ImmutableColor color) {
-            BoxRenderer.INSTANCE.drawAround(partialTickTime, aabb.toBoundingBox().expand(0.01, 0.01, 0.01), color);
+            BoxRenderer.INSTANCE.drawAround(partialTickTime, aabb.toBoundingBox().grow(0.01, 0.01, 0.01), color);
         }
     }
 }

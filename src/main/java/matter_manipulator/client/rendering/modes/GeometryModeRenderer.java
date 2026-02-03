@@ -1,7 +1,5 @@
 package matter_manipulator.client.rendering.modes;
 
-import java.util.Optional;
-
 import org.joml.Vector3i;
 
 import matter_manipulator.client.rendering.MMRenderUtils;
@@ -24,12 +22,6 @@ public class GeometryModeRenderer extends StandardModeRenderer<GeometryConfig, S
 
             if (ruler != null) {
                 context.drawRulers(context.getLookedAtBlock().toPos(), ruler);
-            }
-
-            Optional<GeometryConfig> result = config.action.process(config, context, true);
-
-            if (result.isPresent()) {
-                config = result.get();
             }
         }
 
