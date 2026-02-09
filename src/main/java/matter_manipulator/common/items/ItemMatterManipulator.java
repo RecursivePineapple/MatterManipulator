@@ -58,9 +58,13 @@ import matter_manipulator.common.ui.ManipulatorGuiData;
 import matter_manipulator.common.ui.ManipulatorRadialMenuUI;
 import matter_manipulator.common.ui.ManipulatorUIFactory;
 import matter_manipulator.common.utils.MCUtils;
+import matter_manipulator.core.building.IBuildable;
 import matter_manipulator.core.meta.MetadataContainer;
 import matter_manipulator.core.modes.ManipulatorMode;
 import matter_manipulator.core.persist.IDataStorage;
+import matter_manipulator.core.util.Coroutine;
+import matter_manipulator.core.util.CoroutineExecutor;
+import matter_manipulator.core.util.CoroutineFuture;
 import mcp.MethodsReturnNonnullByDefault;
 
 @ParametersAreNonnullByDefault
@@ -324,13 +328,34 @@ public class ItemMatterManipulator extends Item implements IGuiHolder<Manipulato
     @Override
     public void onUsingTick(ItemStack stack, EntityLivingBase entity, int ticksUsed) {
         if (!(entity instanceof EntityPlayerMP player)) return;
-        if (!player.world.isRemote) return;
 
         BuildContainer container = ((MetadataContainer) player).getMetaValue(BuildContainerMetaKey.INSTANCE);
 
         if (container == null) {
+            MMState state = getState(stack);
+
+            @SuppressWarnings("rawtypes")
+            ManipulatorMode mode = state.getActiveMode();
+
+            if (mode != null) {
+                Object config = mode.loadConfig(state.getActiveModeConfigStorage());
+
+                ManipulatorContextImpl context = new ManipulatorContextImpl(player.getEntityWorld(), player, stack, state);
+
+                @SuppressWarnings("unchecked")
+                Coroutine<IBuildable> analysis = mode.startAnalysis(config, context);
+
+                CoroutineFuture<IBuildable> future = CoroutineExecutor.SERVER.schedule(analysis);
+
+                container = new BuildContainer(player.getEntityWorld(), player, player.getActiveHand(), future);
+
+                ((MetadataContainer) player).putMetaValue(BuildContainerMetaKey.INSTANCE, container);
+            }
+
             return;
         }
+
+        if (container.done) return;
 
         container.load();
 
@@ -345,7 +370,7 @@ public class ItemMatterManipulator extends Item implements IGuiHolder<Manipulato
                 } catch (ExecutionException e) {
                     MMMod.LOG.error("Could not wait for build to compile", e);
                     // Fatal
-                    player.stopActiveHand();
+                    container.done = true;
                     MCUtils.sendErrorToPlayer(player, MCUtils.translate("mm.info.error.build_compile_crash"));
                 } catch (TimeoutException e) {
                     // Not finished, do nothing
@@ -371,12 +396,11 @@ public class ItemMatterManipulator extends Item implements IGuiHolder<Manipulato
                     container.context.onBuildTickFinished();
 
                     if (container.buildable.isDone()) {
-                        player.stopActiveHand();
+                        container.done = true;
                     }
                 } catch (Throwable t) {
                     MMMod.LOG.error("Could not place blocks", t);
                     MCUtils.sendErrorToPlayer(player, MCUtils.translate("mm.info.error.build_place_crash"));
-                    player.stopActiveHand();
                 }
             }
         }

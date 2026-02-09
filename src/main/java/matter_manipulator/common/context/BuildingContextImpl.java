@@ -7,9 +7,10 @@ import java.util.Map;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.SoundCategory;
+import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
 
 import org.joml.Vector3d;
 
@@ -19,13 +20,12 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import matter_manipulator.MMMod;
 import matter_manipulator.common.interop.MMRegistriesInternal;
 import matter_manipulator.common.items.MMUpgrades;
-import matter_manipulator.common.networking.SoundResource;
 import matter_manipulator.common.state.MMState;
 import matter_manipulator.core.block_spec.IBlockSpec;
 import matter_manipulator.core.context.BlockPlacingContext;
 import matter_manipulator.core.i18n.Localized;
 import matter_manipulator.core.i18n.MMTextBuilder;
-import matter_manipulator.core.interop.interfaces.BlockResetter;
+import matter_manipulator.core.interop.BlockResetter;
 import matter_manipulator.core.manipulator_resource.EnergyManipulatorResource;
 import matter_manipulator.core.manipulator_resource.ManipulatorResource;
 import matter_manipulator.core.misc.BuildFeedback;
@@ -52,7 +52,7 @@ public class BuildingContextImpl extends ManipulatorContextImpl implements Block
     /// TODO: turn this into a config or something
     protected static final double BASE_EU_COST = 128.0, EU_DISTANCE_EXP = 1.25;
 
-    private final HashMap<Pair<SoundResource, World>, SoundInfo> pendingSounds = new HashMap<>();
+    private final HashMap<Pair<SoundEvent, World>, SoundInfo> pendingSounds = new HashMap<>();
 
     private final Object2LongOpenHashMap<ResourceIdentity> extractionFailures = new Object2LongOpenHashMap<>();
 
@@ -186,8 +186,8 @@ public class BuildingContextImpl extends ManipulatorContextImpl implements Block
     }
 
     @Override
-    public void playSound(BlockPos pos, SoundResource sound) {
-        Pair<SoundResource, World> pair = Pair.of(sound, world);
+    public void playSound(BlockPos pos, SoundEvent sound) {
+        Pair<SoundEvent, World> pair = Pair.of(sound, world);
 
         SoundInfo info = pendingSounds.computeIfAbsent(pair, ignored -> new SoundInfo());
 
@@ -225,7 +225,7 @@ public class BuildingContextImpl extends ManipulatorContextImpl implements Block
 
             float distance = (float) new Vector3d(player.posX - avgX, player.posY - avgY, player.posZ - avgZ).length();
 
-            pair.left().sendPlayToAll((WorldServer) pair.right(), new BlockPos(avgX, avgY, avgZ), (distance / 16f) + 1, -1);
+            pair.right().playSound(null, new BlockPos(avgX, avgY, avgZ), pair.left(), SoundCategory.MASTER, (distance / 16f) + 1, -1f);
         });
 
         pendingSounds.clear();

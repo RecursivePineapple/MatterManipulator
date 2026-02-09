@@ -12,9 +12,11 @@ import com.google.gson.JsonObject;
 import matter_manipulator.common.utils.math.Transform;
 import matter_manipulator.core.context.BlockAnalysisContext;
 import matter_manipulator.core.context.BlockPlacingContext;
+import matter_manipulator.core.i18n.Localized;
 import matter_manipulator.core.interop.MMRegistries;
 import matter_manipulator.core.persist.IDataStorage;
 import matter_manipulator.core.persist.IStateSandbox;
+import matter_manipulator.core.resources.ResourceStack;
 
 /// A module that allows a matter manipulator to interact with a block or tile entity. This may do anything so long as
 /// it only affects the target coordinates. This object should not contain any state - the analysis result
@@ -26,7 +28,8 @@ import matter_manipulator.core.persist.IStateSandbox;
 /// <br />
 /// 2. It loops over all registered [ICopyInteropModule] objects and calls [#analyze(BlockAnalysisContext)].
 /// <br />
-/// 3. The analysis results are stored in a `Map<ICopyInteropModule<State>, State>` within a [IBlockSpec].
+/// 3. The analysis results are stored in a `Map<ICopyInteropModule<AnalysisResult>, AnalysisResult>` within a
+/// [IBlockSpec].
 /// <p />
 /// From here, the [IBlockSpec] can either be saved, applied to a block, or discarded entirely.
 /// <p />
@@ -35,10 +38,11 @@ import matter_manipulator.core.persist.IStateSandbox;
 /// 1. An [IBlockSpec] loops over its stored analysis results and calls [#save(IDataStorage, Object)].
 /// <br />
 /// 2. Each interop module retrieves a sandboxed state storage via one of the [IDataStorage#getSandbox(String, String)]
-/// overloads and writes its data to a [JsonObject], which is persisted by calling [IStateSandbox#setValue(JsonElement)].
-/// [IStateSandbox#save(Object)] compacts the two operations into one call if the exact format doesn't matter.
+/// overloads and writes its data to a [JsonElement], which is persisted by calling
+/// [IStateSandbox#setValue(JsonElement)]. [IStateSandbox#save(Object)] compacts the two operations into one call if the
+/// exact format doesn't matter.
 /// <br />
-/// 3. The [IBlockSpec] saves its own state into a [JsonObject] via a [IBlockSpecLoader], which is converted to a
+/// 3. The [IBlockSpec] saves its own state into a [JsonObject] via a [IBlockSpecLoader], which is then converted to a
 /// [NBTTagCompound].
 /// <p />
 /// When loading, this is the data flow:
@@ -48,7 +52,7 @@ import matter_manipulator.core.persist.IStateSandbox;
 /// loads their results via [#load(IDataStorage)].
 /// <br />
 /// 2. Each [ICopyInteropModule] loads its sandbox and deserializes its state into its object, which is stored in a
-/// `Map<ICopyInteropModule<State>, State>` within the [IBlockSpec].
+/// `Map<ICopyInteropModule<AnalysisResult>, AnalysisResult>` within the [IBlockSpec].
 /// <br />
 /// 3. As before, the [IBlockSpec] can either be saved again, applied to a block, or discarded entirely.
 ///
@@ -81,19 +85,26 @@ public interface ICopyInteropModule<AnalysisResult> {
     void save(IDataStorage storage, AnalysisResult analysis);
     Optional<AnalysisResult> load(IDataStorage storage);
 
+    /// Modifies the resource stack as necessary. This is usually used to add NBT fields to items.
     @Contract(mutates = "param1")
-    default void modifyResource(Object resource, AnalysisResult analysis) {
+    default void modifyResource(ResourceStack resource, AnalysisResult analysis) {
 
     }
 
+    /// Gets any user-relevant details that describe the analysis. This is usually used to differentiate similarly-named
+    /// but distinct item stacks (for blocks that store NBT when broken).
     @Contract(mutates = "param1")
-    default void getDetails(List<String> text, AnalysisResult analysis) {
+    default void getDetails(List<Localized> text, AnalysisResult analysis) {
 
     }
 
+    /// Transforms the result according to the given [Transform].
     @Contract(mutates = "param1")
     default void transform(AnalysisResult analysis, Transform transform) {
 
     }
 
+    default AnalysisResult cloneAnalysis(AnalysisResult analysisResult) {
+        return analysisResult;
+    }
 }

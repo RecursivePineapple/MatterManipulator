@@ -1,0 +1,48 @@
+{
+  "parent": "block/block",
+  "display": {
+    "firstperson_righthand": {
+      "rotation": [ 0, 135, 0 ],
+      "translation": [ 0, 0, 0 ],
+      "scale": [ 0.40, 0.40, 0.40 ]
+    }
+  },
+  "elements": [
+    {
+      "from": [ 0, 0, 0 ],
+      "to": [ 16, 16, 16 ],
+      "faces": {
+        "down":  { "texture": "#casing", "cullface": "down" },
+        "up":    { "texture": "#casing", "cullface": "up" },
+        "north": { "texture": "#casing", "cullface": "north" },
+        "south": { "texture": "#casing", "cullface": "south" },
+        "west":  { "texture": "#casing", "cullface": "west" },
+        "east":  { "texture": "#casing", "cullface": "east" }
+      }
+    },
+    {
+      "from": [ 0, 0, 0 ],
+      "to": [ 16, 16, 16 ],
+      "faces": {
+        "north": {
+          "texture": "matter-manipulator:blocks/uplink_front_off",
+          "cullface": "north"
+        }
+      }
+    },
+    {
+      "from": [ 0, 0, 0 ],
+      "to": [ 16, 16, 16 ],
+      "faces": {
+        "north": {
+          "texture": "matter-manipulator:blocks/uplink_front_idle_glow",
+          "cullface": "north"
+        }
+      }
+    }
+  ],
+  "textures": {
+    "particle": "#casing",
+    "casing": "matter-manipulator:blocks/uplink_casing"
+  }
+}

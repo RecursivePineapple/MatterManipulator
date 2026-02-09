@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "normal": { "model": "matter-manipulator:uplink-controller-off" },
+    "facing=north,state=off": { "model": "matter-manipulator:uplink-controller-off" },
+    "facing=south,state=off": { "model": "matter-manipulator:uplink-controller-off", "y": 180 },
+    "facing=west,state=off":  { "model": "matter-manipulator:uplink-controller-off", "y": 270 },
+    "facing=east,state=off":  { "model": "matter-manipulator:uplink-controller-off", "y": 90 },
+
+    "facing=north,state=idle": { "model": "matter-manipulator:uplink-controller-idle" },
+    "facing=south,state=idle": { "model": "matter-manipulator:uplink-controller-idle", "y": 180 },
+    "facing=west,state=idle":  { "model": "matter-manipulator:uplink-controller-idle", "y": 270 },
+    "facing=east,state=idle":  { "model": "matter-manipulator:uplink-controller-idle", "y": 90 },
+
+    "facing=north,state=active": { "model": "matter-manipulator:uplink-controller-active" },
+    "facing=south,state=active": { "model": "matter-manipulator:uplink-controller-active", "y": 180 },
+    "facing=west,state=active":  { "model": "matter-manipulator:uplink-controller-active", "y": 270 },
+    "facing=east,state=active":  { "model": "matter-manipulator:uplink-controller-active", "y": 90 }
+  }
+}

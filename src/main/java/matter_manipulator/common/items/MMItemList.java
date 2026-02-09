@@ -12,6 +12,8 @@ public enum MMItemList {
     MK2,
     MK3,
 
+    HologramProjector,
+
     Hologram,
     PowerCore0,
     ComputerCore0,

@@ -1,4 +1,4 @@
-package matter_manipulator.core.interop.interfaces;
+package matter_manipulator.core.interop;
 
 import java.util.List;
 

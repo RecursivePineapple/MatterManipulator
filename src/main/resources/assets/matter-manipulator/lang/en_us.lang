@@ -1,5 +1,9 @@
 
-tile.air.name=Air
+tile.hint_blank.name=Hint (Blank)
+tile.hint_dot.name=Hint (Dot)
+tile.hint_warning.name=Hint (Warning)
+tile.hint_x.name=Hint (X)
+tile.uplink-controller.name=Quantum Uplink Controller
 
 item.matter-manipulator-0.name=Prototype Matter Manipulator
 item.matter-manipulator-1.name=Matter Manipulator MKI

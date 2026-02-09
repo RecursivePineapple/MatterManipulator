@@ -3,25 +3,22 @@ package matter_manipulator.core.interop;
 import net.minecraft.block.Block;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
 
 import it.unimi.dsi.fastutil.Pair;
 import matter_manipulator.common.interop.MMRegistriesInternal;
 import matter_manipulator.common.utils.deps.IDependencyGraph;
 import matter_manipulator.core.block_spec.IBlockSpecLoader;
 import matter_manipulator.core.block_spec.ICopyInteropModule;
-import matter_manipulator.core.interop.interfaces.BlockAdapter;
-import matter_manipulator.core.interop.interfaces.BlockResetter;
 import matter_manipulator.core.inventory_adapter.InventoryAdapter;
 import matter_manipulator.core.inventory_adapter.InventoryAdapterFactory;
+import matter_manipulator.core.manipulator_resource.ManipulatorResourceLoader;
 import matter_manipulator.core.modes.ManipulatorMode;
 import matter_manipulator.core.persist.IDataStorage;
-import matter_manipulator.core.manipulator_resource.ManipulatorResourceLoader;
-import matter_manipulator.core.resources.item.ItemStackIO;
-import matter_manipulator.core.resources.item.ItemStackIOFactory;
 import matter_manipulator.core.resources.Resource;
 import matter_manipulator.core.resources.ResourceProvider;
 import matter_manipulator.core.resources.ResourceProviderFactory;
+import matter_manipulator.core.resources.item.ItemStackIO;
+import matter_manipulator.core.resources.item.ItemStackIOFactory;
 import matter_manipulator.core.settings.ManipulatorSetting;
 
 /// All registries available for third party mods to add their own Matter Manipulator integrations.
@@ -65,12 +62,13 @@ public class MMRegistries {
         MMRegistriesInternal.MODES.put(mode.getModeID(), mode);
     }
 
-    public static void registerManipulatorSetting(ResourceLocation id, ManipulatorSetting<?> mode) {
-        MMRegistriesInternal.SETTINGS.put(id, mode);
+    public static void registerManipulatorSetting(ManipulatorSetting<?> mode) {
+        MMRegistriesInternal.SETTINGS.put(mode.getSettingID(), mode);
     }
 
     public static <Provider extends ResourceProvider> void registerResourceType(Resource<Provider> resource, ResourceProviderFactory<Provider> factory) {
         MMRegistriesInternal.RESOURCES.put(resource, factory);
+        //noinspection unchecked
         MMRegistriesInternal.RESOURCE_ARRAY = MMRegistriesInternal.RESOURCES.entrySet()
             .stream()
             .map(e -> Pair.of(e.getKey(), e.getValue()))
@@ -83,5 +81,9 @@ public class MMRegistries {
 
     public static void registerSpecLoader(IBlockSpecLoader loader) {
         MMRegistriesInternal.LOADERS.put(loader.getKey(), loader);
+    }
+
+    public static IDependencyGraph<BlockStateTransformer> blockStateTransformers() {
+        return MMRegistriesInternal.BLOCK_STATE_TRANSFORMERS;
     }
 }

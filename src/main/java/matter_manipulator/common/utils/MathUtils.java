@@ -22,6 +22,31 @@ import matter_manipulator.common.utils.math.Location;
 
 public class MathUtils {
 
+    private static final int NUM_X_BITS = 1 + MathHelper.log2(MathHelper.smallestEncompassingPowerOfTwo(30000000));
+    private static final int NUM_Z_BITS = NUM_X_BITS;
+    private static final int NUM_Y_BITS = 64 - NUM_X_BITS - NUM_Z_BITS;
+    private static final int Y_SHIFT = 0 + NUM_Z_BITS;
+    private static final int X_SHIFT = Y_SHIFT + NUM_Y_BITS;
+    private static final long X_MASK = (1L << NUM_X_BITS) - 1L;
+    private static final long Y_MASK = (1L << NUM_Y_BITS) - 1L;
+    private static final long Z_MASK = (1L << NUM_Z_BITS) - 1L;
+
+    public static long pack(int x, int y, int z) {
+        return ((long)x & X_MASK) << X_SHIFT | ((long)y & Y_MASK) << Y_SHIFT | ((long)z & Z_MASK) << 0;
+    }
+
+    public static int unpackX(long l) {
+        return (int)(l << 64 - X_SHIFT - NUM_X_BITS >> 64 - NUM_X_BITS);
+    }
+
+    public static int unpackY(long l) {
+        return (int)(l << 64 - Y_SHIFT - NUM_Y_BITS >> 64 - NUM_Y_BITS);
+    }
+
+    public static int unpackZ(long l) {
+        return (int)(l << 64 - NUM_Z_BITS >> 64 - NUM_Z_BITS);
+    }
+
     public static int clamp(int val, int lo, int hi) {
         return Math.max(lo, Math.min(hi, val));
     }
@@ -115,6 +140,24 @@ public class MathUtils {
 
     public static int longToInt(long l) {
         return l > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) l;
+    }
+
+    public static long d2lCeil(double d) {
+        long l = (long) d;
+        return d > l ? l + 1 : l;
+    }
+
+    public static int d2iCeil(double d) {
+        int i = (int) d;
+        return d > i ? i + 1 : i;
+    }
+
+    public static float lerp(float a, float b, float k) {
+        return a * (1 - k) + b * k;
+    }
+
+    public static double dot2(double x, double y, double z) {
+        return x * x + y * y + z * z;
     }
 
     /**

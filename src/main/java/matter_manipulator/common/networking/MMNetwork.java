@@ -16,6 +16,7 @@ import net.minecraftforge.fml.common.network.internal.FMLProxyPacket;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -47,7 +48,7 @@ public class MMNetwork extends MessageToMessageCodec<FMLProxyPacket, MMPacket> {
 
     @Override
     protected void encode(ChannelHandlerContext context, MMPacket packet, List<Object> output) {
-        MMPacketBuffer buffer = new MMPacketBuffer(context.alloc().buffer());
+        MMPacketBuffer buffer = new MMPacketBuffer(Unpooled.buffer(256));
 
         MMPacketEncoder<MMPacket> encoder = this.encoders.get(packet.getPacketID());
 

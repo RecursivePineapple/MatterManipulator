@@ -1,7 +1,5 @@
 package matter_manipulator.common.building;
 
-import java.util.concurrent.Future;
-
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.EnumHand;
 import net.minecraft.world.World;
@@ -10,6 +8,7 @@ import matter_manipulator.common.context.BuildingContextImpl;
 import matter_manipulator.common.items.ItemMatterManipulator;
 import matter_manipulator.core.building.IBuildable;
 import matter_manipulator.core.meta.MetaKey;
+import matter_manipulator.core.util.CoroutineFuture;
 
 public class BuildContainer {
 
@@ -18,12 +17,12 @@ public class BuildContainer {
 
     public BuildingContextImpl context;
 
-    public Future<IBuildable> task;
-    public int ticksWaited = 0;
+    public CoroutineFuture<IBuildable> task;
 
     public IBuildable buildable;
+    public boolean done = false;
 
-    public BuildContainer(World world, EntityPlayerMP player, EnumHand hand, Future<IBuildable> task) {
+    public BuildContainer(World world, EntityPlayerMP player, EnumHand hand, CoroutineFuture<IBuildable> task) {
         this.player = player;
         this.hand = hand;
         this.task = task;

@@ -90,6 +90,8 @@ public class MMRenderer {
         EntityPlayer player = Minecraft.getMinecraft().player;
         ItemStack held = player.getHeldItem(EnumHand.MAIN_HAND);
 
+        boolean justRendered = lastRenderer != null;
+
         if (held != ItemStack.EMPTY && held.getItem() instanceof ItemMatterManipulator) {
             MMState state = ItemMatterManipulator.getState(held);
 
@@ -131,16 +133,21 @@ public class MMRenderer {
 
                 if (needsHintDraw) {
                     needsHintDraw = false;
-                    MMHintRenderer.INSTANCE.reset();
+
+                    MMHintRenderer.INSTANCE.start();
 
                     lastRenderer.emitHints(context, config, lastAnalysis);
+
+                    MMHintRenderer.INSTANCE.finish();
                 }
 
                 return;
             }
         }
 
-        clear();
+        if (justRendered) {
+            clear();
+        }
     }
 
     private void clear() {
@@ -156,7 +163,8 @@ public class MMRenderer {
         needsHintDraw = false;
         needsAnalysis = false;
 
-        MMHintRenderer.INSTANCE.reset();
+        MMHintRenderer.INSTANCE.start();
+        MMHintRenderer.INSTANCE.finish();
     }
 
     @SubscribeEvent
@@ -247,8 +255,10 @@ public class MMRenderer {
 
         @Override
         public void clearHints() {
-            MMHintRenderer.INSTANCE.reset();
             MMRenderer.INSTANCE.needsHintDraw = false;
+
+            MMHintRenderer.INSTANCE.start();
+            MMHintRenderer.INSTANCE.finish();
         }
 
         @Override

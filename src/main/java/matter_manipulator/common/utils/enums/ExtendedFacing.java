@@ -7,10 +7,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
-import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
@@ -22,7 +19,10 @@ import org.joml.Vector3f;
 import org.joml.Vector3i;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.MultimapBuilder;
 import lombok.Getter;
+import matter_manipulator.common.structure.coords.StructureRelativeCoords;
 import matter_manipulator.common.utils.math.IntegerAxisSwap;
 
 public enum ExtendedFacing {
@@ -129,37 +129,33 @@ public enum ExtendedFacing {
 
     public static final ExtendedFacing DEFAULT = NORTH_NORMAL_NONE;
     public static final ExtendedFacing[] VALUES = values();
-    public static final Map<EnumFacing, List<ExtendedFacing>> FOR_FACING = new HashMap<>();
+    public static final Multimap<EnumFacing, ExtendedFacing> FOR_FACING = MultimapBuilder.enumKeys(EnumFacing.class).arrayListValues().build();
 
     static {
-        stream(values()).forEach(
-                extendedFacing -> FOR_FACING.compute(extendedFacing.direction, ((EnumFacing, extendedFacings) -> {
-                    if (extendedFacings == null) {
-                        extendedFacings = new ArrayList<>();
-                    }
-                    extendedFacings.add(extendedFacing);
-                    return extendedFacings;
-                })));
+        for (ExtendedFacing value : values()) {
+            FOR_FACING.put(value.direction, value);
+        }
     }
 
-    private static final Map<String, ExtendedFacing> NAME_LOOKUP = stream(VALUES)
-            .collect(toMap(ExtendedFacing::getName, (extendedFacing) -> extendedFacing));
-    private static final EnumMap<EnumFacing, ImmutableSet<ExtendedFacing>> LOOKUP_BY_DIRECTION = stream(VALUES)
-            .collect(
-                    groupingBy(
-                            ExtendedFacing::getDirection,
-                            () -> new EnumMap<>(EnumFacing.class),
-                            collectingAndThen(toSet(), ImmutableSet::copyOf)));
+    private static final Map<String, ExtendedFacing> NAME_LOOKUP = stream(VALUES).collect(toMap(
+        ExtendedFacing::getName,
+        extendedFacing -> extendedFacing));
+    private static final EnumMap<EnumFacing, ImmutableSet<ExtendedFacing>> LOOKUP_BY_DIRECTION = stream(VALUES).collect(
+        groupingBy(
+            ExtendedFacing::getDirection,
+            () -> new EnumMap<>(EnumFacing.class),
+            collectingAndThen(toSet(), ImmutableSet::copyOf)));
     private static final EnumMap<Rotation, ImmutableSet<ExtendedFacing>> LOOKUP_BY_ROTATION = stream(VALUES).collect(
-            groupingBy(
-                    ExtendedFacing::getRotation,
-                    () -> new EnumMap<>(Rotation.class),
-                    collectingAndThen(toSet(), ImmutableSet::copyOf)));
-    private static final EnumMap<Flip, ImmutableSet<ExtendedFacing>> LOOKUP_BY_FLIP = stream(VALUES).collect(
-            groupingBy(
-                    ExtendedFacing::getFlip,
-                    () -> new EnumMap<>(Flip.class),
-                    collectingAndThen(toSet(), ImmutableSet::copyOf)));
+        groupingBy(
+            ExtendedFacing::getRotation,
+            () -> new EnumMap<>(Rotation.class),
+            collectingAndThen(toSet(), ImmutableSet::copyOf)));
+    private static final EnumMap<Flip, ImmutableSet<ExtendedFacing>> LOOKUP_BY_FLIP = stream(VALUES).collect(groupingBy(ExtendedFacing::getFlip,
+        () -> new EnumMap<>(Flip.class),
+        collectingAndThen(toSet(), ImmutableSet::copyOf)));
+
+    @Getter
+    private final String name;
     @Getter
     private final EnumFacing direction;
     private final EnumFacing a, b, c;
@@ -169,8 +165,8 @@ public enum ExtendedFacing {
     private final Flip flip;
 
     @Getter
-    private final String name;
     private final IntegerAxisSwap integerAxisSwap;
+    private final StructureRelativeCoords coordinateSystem;
 
     ExtendedFacing(String name) {
         this.name = name;
@@ -252,6 +248,7 @@ public enum ExtendedFacing {
         this.b = b;
         this.c = c;
         integerAxisSwap = new IntegerAxisSwap(a, b, c);
+        coordinateSystem = new StructureRelativeCoords(integerAxisSwap);
     }
 
     private static int getAlignmentIndex(EnumFacing direction, Rotation rotation, Flip flip) {
@@ -367,6 +364,17 @@ public enum ExtendedFacing {
         };
     }
 
+    public EnumFacing getWorldDirectionInverse(EnumFacing world) {
+        if (world == getRelativeForwardInWorld()) return EnumFacing.NORTH;
+        if (world == getRelativeBackInWorld()) return EnumFacing.SOUTH;
+        if (world == getRelativeDownInWorld()) return EnumFacing.UP;
+        if (world == getRelativeUpInWorld()) return EnumFacing.DOWN;
+        if (world == getRelativeLeftInWorld()) return EnumFacing.EAST;
+        if (world == getRelativeRightInWorld()) return EnumFacing.WEST;
+
+        return null;
+    }
+
     /**
      * Translates world offset to relative front facing offset
      *
@@ -387,10 +395,6 @@ public enum ExtendedFacing {
 
     public void getOffsetABC(double[] point, double[] out) {
         integerAxisSwap.translate(point, out);
-    }
-
-    public IntegerAxisSwap getIntegerAxisSwap() {
-        return integerAxisSwap;
     }
 
     public EnumFacing getRelativeLeftInWorld() {
@@ -415,5 +419,9 @@ public enum ExtendedFacing {
 
     public EnumFacing getRelativeForwardInWorld() {
         return c.getOpposite();
+    }
+
+    public StructureRelativeCoords asCoordinateSystem() {
+        return coordinateSystem;
     }
 }

@@ -1,0 +1,6 @@
+{
+    "parent": "block/cube_all",
+    "textures": {
+        "all": "matter-manipulator:blocks/hints/hint_blank"
+    }
+}

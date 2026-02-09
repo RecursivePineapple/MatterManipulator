@@ -6,20 +6,23 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+
+import org.apache.commons.lang3.mutable.MutableObject;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import matter_manipulator.MMMod;
 import matter_manipulator.common.block_spec.StandardBlockSpec;
 import matter_manipulator.common.context.AnalysisContextImpl;
+import matter_manipulator.common.interop.MMRegistriesInternal;
 import matter_manipulator.common.items.ItemMatterManipulator;
-import matter_manipulator.common.networking.SoundResource;
 import matter_manipulator.common.utils.MCUtils;
 import matter_manipulator.common.utils.world.ProxiedWorld;
 import matter_manipulator.core.block_spec.ApplyResult;
-import matter_manipulator.core.block_spec.IBlockSpec;
 import matter_manipulator.core.building.IPendingBlockBuildable;
 import matter_manipulator.core.building.PendingBlock;
 import matter_manipulator.core.context.BlockPlacingContext;
@@ -32,8 +35,13 @@ public class StandardBuild implements IPendingBlockBuildable {
     private final ObjectOpenHashSet<BlockPos> visited = new ObjectOpenHashSet<>();
     private boolean done = false;
 
+    // Don't filter if we have a lot of blocks. Filtering causes only one resource to be placed per tick, which
+    // makes it look more impressive but take longer.
+    private final boolean doFilter;
+
     public StandardBuild(ArrayDeque<PendingBlock> pendingBlocks) {
         this.pendingBlocks = pendingBlocks;
+        this.doFilter = pendingBlocks.size() < 256;
     }
 
     @Override
@@ -42,31 +50,32 @@ public class StandardBuild implements IPendingBlockBuildable {
     }
 
     @Override
-    public void onBuildTick(BlockPlacingContext context) {
-        int placeSpeed = context.getPlaceSpeed();
+    public void onBuildTick(BlockPlacingContext placingContext) {
+        int placeSpeed = placingContext.getPlaceSpeed();
 
         Integer lastChunkX = null, lastChunkZ = null;
         int shuffleCount = 0;
 
-        World world = context.getWorld();
+        World world = placingContext.getWorld();
         ProxiedWorld proxiedWorld = new ProxiedWorld(world);
 
-        ArrayDeque<PendingBlock> toPlace = new ArrayDeque<>();
+        AnalysisContextImpl analysisContext = new AnalysisContextImpl(placingContext);
 
-        AnalysisContextImpl analysisContext = new AnalysisContextImpl(context);
+        int quota = placeSpeed;
 
-        // check every pending block that's left
-        while (toPlace.size() < placeSpeed && !pendingBlocks.isEmpty()) {
-            PendingBlock next = pendingBlocks.getFirst();
+        ResourceStack filter = null;
 
-            int x = next.x, y = next.y, z = next.z;
-            BlockPos pos = next.toPos();
+        while (quota > 0 && !pendingBlocks.isEmpty()) {
+            PendingBlock pendingBlock = pendingBlocks.getFirst();
 
-            context.setTarget(pos, next.spec);
+            int x = pendingBlock.x, z = pendingBlock.z;
+            BlockPos pos = pendingBlock.toPos();
 
-            if (!next.spec.isValid()) {
+            placingContext.setTarget(pos, pendingBlock.spec);
+
+            if (!pendingBlock.spec.isValid()) {
                 pendingBlocks.removeFirst();
-                context.error(new Localized("mm.info.error.unplaceable_block", next.spec.getBlockState().toString()));
+                placingContext.error(new Localized("mm.info.error.unplaceable_block", pendingBlock.spec.getBlockState().toString()));
                 continue;
             }
 
@@ -95,22 +104,19 @@ public class StandardBuild implements IPendingBlockBuildable {
 //                continue;
 //            }
 
-            // if this block is different from the last one, stop checking blocks
-            // since the pending blocks are sorted by their contained block, this is usually true
-            if (!toPlace.isEmpty()) {
-                ResourceStack firstResource = toPlace.getFirst().spec.getResource();
-                ResourceStack nextResource = next.spec.getResource();
+            if (pendingBlock.spec.isAir() && world.isAirBlock(pos)) {
+                pendingBlocks.removeFirst();
+                continue;
+            }
 
-                if (!firstResource.isSameType(nextResource)) break;
+            ResourceStack pendingResource = pendingBlock.spec.getResource();
+
+            if (doFilter) {
+                if (filter != null && !pendingResource.isSameType(filter)) break;
             }
 
             analysisContext.setPos(pos);
             StandardBlockSpec existing = StandardBlockSpec.fromWorld(analysisContext);
-
-            if (next.spec.isAir() && world.isAirBlock(pos)) {
-                pendingBlocks.removeFirst();
-                continue;
-            }
 
             // Check if the existing block is removable
 //            boolean canPlace = switch (state.config.removeMode) {
@@ -134,9 +140,9 @@ public class StandardBuild implements IPendingBlockBuildable {
                 }
             }
 
-            // if there's an existing block then remove it if possible
+            // if there's an existing block then skip it if we can't remove it
             if (!world.isAirBlock(pos)) {
-                if (!context.hasCapability(ItemMatterManipulator.ALLOW_REMOVING)) {
+                if (!placingContext.hasCapability(ItemMatterManipulator.ALLOW_REMOVING)) {
                     pendingBlocks.removeFirst();
                     continue;
                 }
@@ -147,7 +153,7 @@ public class StandardBuild implements IPendingBlockBuildable {
 
             // Check block dependencies for things like levers
             // If we can't place this block, shuffle it to the back of the list
-            if (!next.spec.getBlockState().getBlock().canPlaceBlockAt(proxiedWorld, pos)) {
+            if (!pendingBlock.spec.getBlockState().getBlock().canPlaceBlockAt(proxiedWorld, pos)) {
                 pendingBlocks.addLast(pendingBlocks.removeFirst());
                 shuffleCount++;
 
@@ -160,66 +166,59 @@ public class StandardBuild implements IPendingBlockBuildable {
             }
 
             if (!visited.add(pos)) {
-                MMMod.LOG.warn("Tried to place block twice! {}", next);
+                MMMod.LOG.warn("Tried to place block twice! {}", pendingBlock);
                 pendingBlocks.removeFirst();
                 continue;
             }
 
-            toPlace.add(next);
-            pendingBlocks.remove();
-        }
+            placingContext.setTarget(pos, pendingBlock.spec);
 
-        if (toPlace.isEmpty()) {
-            if (pendingBlocks.isEmpty()) {
-                MCUtils.sendInfoToPlayer(context.getRealPlayer(), MCUtils.translate("mm.info.finished_placing"));
-            } else {
-                MCUtils.sendErrorToPlayer(context.getRealPlayer(), MCUtils.translate("mm.info.error.could_not_place", pendingBlocks.size()));
-            }
-
-            this.done = true;
-
-            return;
-        }
-
-        while (!toPlace.isEmpty()) {
-            PendingBlock pendingBlock = toPlace.getFirst();
-
-            BlockPos pos = pendingBlock.toPos();
-
-            context.setTarget(pos, pendingBlock.spec);
-
-            analysisContext.setPos(pos);
-            IBlockSpec existing = StandardBlockSpec.fromWorld(analysisContext);
-
-            if (!existing.isAir()) {
-                ResourceStack pendingResource = pendingBlock.spec.getResource();
-                ResourceStack existingResource = existing.getResource();
-
-                if (!pendingResource.isSameType(existingResource)) {
-                    context.removeBlock();
-
-                    if (!world.isAirBlock(pos)) {
-                        pendingBlocks.add(pendingBlock);
-                        visited.remove(pos);
-
-                        context.error(new Localized("mm.info.error.could_not_remove"));
-                        continue;
-                    }
-                }
-            }
+            ResourceStack existingResource = existing.getResource();
 
             EnumSet<ApplyResult> result = EnumSet.noneOf(ApplyResult.class);
 
+            // If there's already a block at this location, we need to remove it if it's different
+            if (!existing.isAir() && !ResourceStack.areStacksEqual(pendingResource, existingResource)) {
+                placingContext.removeBlock();
+                result.add(ApplyResult.DidSomething);
+
+                if (!world.isAirBlock(pos)) {
+                    pendingBlocks.add(pendingBlock);
+                    visited.remove(pos);
+
+                    placingContext.error(new Localized("mm.info.error.could_not_remove"));
+                    quota--;
+                    continue;
+                }
+            }
+
+            // Place the block if there isn't one (or if it was just removed).
             if (world.isAirBlock(pos)) {
-                result.add(pendingBlock.spec.place(context));
+                result.add(pendingBlock.spec.place(placingContext));
+
+                if (doFilter && filter == null && (result.contains(ApplyResult.DidSomething) || result.contains(ApplyResult.Wrenched))) {
+                    filter = pendingResource.multipliedCopy(1);
+                }
             }
 
             if (!result.contains(ApplyResult.Error)) {
-                result.addAll(pendingBlock.spec.update(context));
+                MutableObject<IBlockState> state = new MutableObject<>(world.getBlockState(pos));
+
+                MMRegistriesInternal.transformBlock(state, pendingBlock.spec.getBlockState(), result);
+
+                if (!result.contains(ApplyResult.Error)) {
+                    world.setBlockState(pos, state.getValue());
+                }
             }
 
+            if (!result.contains(ApplyResult.Error)) {
+                result.addAll(pendingBlock.spec.update(placingContext));
+            }
+
+            // TODO: wrench sounds and particles
+
             if (result.contains(ApplyResult.DidSomething)) {
-                context.playSound(SoundResource.MOB_ENDERMEN_PORTAL);
+                placingContext.playSound(SoundEvents.ENTITY_ENDERMEN_TELEPORT);
             }
 
             if (result.contains(ApplyResult.Retry)) {
@@ -227,12 +226,21 @@ public class StandardBuild implements IPendingBlockBuildable {
                 visited.remove(pos);
             }
 
-            toPlace.removeFirst();
+            pendingBlocks.remove();
+
+            if (result.contains(ApplyResult.DidSomething) || result.contains(ApplyResult.Wrenched)) {
+                quota--;
+            }
         }
 
-        for (PendingBlock pendingBlock : toPlace) {
-            pendingBlocks.add(pendingBlock);
-            visited.remove(pendingBlock.toPos());
+        if (quota == placeSpeed) {
+            if (pendingBlocks.isEmpty()) {
+                MCUtils.sendInfoToPlayer(placingContext.getRealPlayer(), MCUtils.translate("mm.info.finished_placing"));
+            } else {
+                MCUtils.sendErrorToPlayer(placingContext.getRealPlayer(), MCUtils.translate("mm.info.error.could_not_place", pendingBlocks.size()));
+            }
+
+            this.done = true;
         }
     }
 

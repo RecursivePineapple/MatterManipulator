@@ -14,8 +14,8 @@ import net.minecraftforge.oredict.OreDictionary;
 
 import matter_manipulator.core.context.ManipulatorContext;
 import matter_manipulator.common.interop.MMRegistriesInternal;
-import matter_manipulator.core.interop.interfaces.BlockAdapter;
-import matter_manipulator.core.interop.interfaces.BlockResetter;
+import matter_manipulator.core.interop.BlockAdapter;
+import matter_manipulator.core.interop.BlockResetter;
 import matter_manipulator.core.item.ItemStackLike;
 import matter_manipulator.core.resources.ResourceStack;
 import matter_manipulator.core.resources.item.ItemStackWrapper;

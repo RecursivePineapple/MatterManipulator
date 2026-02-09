@@ -23,5 +23,5 @@ public interface MetadataContainer {
     <T> T removeMetaValue(MetaKey<T> key);
 
     /// Inserts a value into this metadata container. The value is strongly referenced and will not be deallocated.
-    <T> void put(MetaKey<T> key, T value);
+    <T> void putMetaValue(MetaKey<T> key, T value);
 }

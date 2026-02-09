@@ -2,7 +2,9 @@ package matter_manipulator.client.rendering.vbo;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
+import java.util.Objects;
 
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.client.renderer.vertex.VertexFormatElement;
 
@@ -88,6 +90,14 @@ public class StreamingVertexBuffer implements AutoCloseable {
 
     public void upload(ByteBuffer buffer) {
         this.upload(GL15.GL_DYNAMIC_DRAW, buffer, buffer.remaining() / this.format.getSize());
+    }
+
+    public void upload(BufferBuilder buffer) {
+        if (!Objects.equals(buffer.getVertexFormat(), this.format)) {
+            throw new IllegalArgumentException("Invalid buffer format. Was " + buffer.getVertexFormat() + " but expected " + this.format);
+        }
+
+        this.upload(GL15.GL_DYNAMIC_DRAW, buffer.getByteBuffer(), buffer.getVertexCount());
     }
 
     public void draw(FloatBuffer floatBuffer) {

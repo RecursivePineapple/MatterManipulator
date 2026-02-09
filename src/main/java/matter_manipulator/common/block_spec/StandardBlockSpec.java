@@ -20,7 +20,7 @@ import matter_manipulator.core.block_spec.ICopyInteropModule;
 import matter_manipulator.core.context.BlockAnalysisContext;
 import matter_manipulator.core.context.BlockPlacingContext;
 import matter_manipulator.core.i18n.Localized;
-import matter_manipulator.core.interop.interfaces.BlockAdapter;
+import matter_manipulator.core.interop.BlockAdapter;
 import matter_manipulator.core.resources.ResourceStack;
 import matter_manipulator.core.resources.item.ItemStackWrapper;
 
@@ -95,11 +95,23 @@ public class StandardBlockSpec implements IBlockSpec {
 
         if (adapter == null) return ApplyResult.Error;
 
-        IBlockState prev = context.getWorld().getBlockState(context.getPos());
+        ResourceStack resource = adapter.getResourceForm(context.getSpec().getBlockState());
 
-        adapter.place(context.getWorld(), context.getPos(), state);
+        if (!context.resource(resource.getResource()).extract(resource)) return ApplyResult.Retry;
 
-        return context.getWorld().getBlockState(context.getPos()) != prev ? ApplyResult.DidSomething : ApplyResult.DidNothing;
+        ApplyResult result = adapter.place(context.getWorld(), context.getPos(), resource);
+
+        switch (result) {
+            case DidNothing, NotApplicable, Retry, Error -> {
+                // For whatever reason the adapter couldn't place the block, so we have to reinsert it.
+                context.resource(resource.getResource()).insert(resource);
+            }
+            default -> {
+
+            }
+        }
+
+        return result;
     }
 
     @Override
@@ -116,7 +128,26 @@ public class StandardBlockSpec implements IBlockSpec {
 
     @Override
     public IBlockSpec clone() {
-        return new StandardBlockSpec(this.state);
+        StandardBlockSpec spec = new StandardBlockSpec(this.state);
+
+        this.interop.forEach((module, analysis) -> {
+            //noinspection unchecked
+            spec.interop.put(module, module.cloneAnalysis(analysis));
+        });
+
+        return spec;
+    }
+
+    @Override
+    public IBlockSpec clone(IBlockState newState) {
+        StandardBlockSpec spec = new StandardBlockSpec(newState);
+
+        this.interop.forEach((module, analysis) -> {
+            //noinspection unchecked
+            spec.interop.put(module, module.cloneAnalysis(analysis));
+        });
+
+        return spec;
     }
 
     @Override

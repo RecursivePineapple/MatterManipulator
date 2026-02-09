@@ -192,7 +192,7 @@ public class MCUtils {
                     stack.push(currentFormat);
                 } else if (code == 't') {
                     if (stack.isEmpty()) {
-                        // No format in the stack, reset it
+                        // No format in the stack, start it
                         out.append(FORMAT_ESCAPE)
                             .append('r');
                     } else {

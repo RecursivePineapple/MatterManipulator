@@ -11,7 +11,7 @@ import net.minecraft.util.math.BlockPos;
 
 import matter_manipulator.common.interop.MMRegistriesInternal;
 import matter_manipulator.core.context.ManipulatorContext;
-import matter_manipulator.core.interop.interfaces.BlockResetter;
+import matter_manipulator.core.interop.BlockResetter;
 import matter_manipulator.core.inventory_adapter.InventoryAdapter;
 import matter_manipulator.core.resources.ResourceStack;
 import matter_manipulator.core.resources.item.ItemStackWrapper;

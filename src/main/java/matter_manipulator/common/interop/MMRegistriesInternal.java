@@ -1,5 +1,6 @@
 package matter_manipulator.common.interop;
 
+import java.util.EnumSet;
 import java.util.Map;
 
 import javax.annotation.Nonnull;
@@ -9,6 +10,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,8 +18,10 @@ import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import matter_manipulator.common.block_spec.StandardBlockSpecLoader;
+import matter_manipulator.common.interop.block_adapters.AirBlockAdapter;
 import matter_manipulator.common.interop.block_adapters.RedstoneBlockAdapter;
 import matter_manipulator.common.interop.block_adapters.StandardBlockAdapter;
+import matter_manipulator.common.interop.block_state_transformers.PropertyCopyStateTransformer;
 import matter_manipulator.common.interop.resetters.BlockRemover;
 import matter_manipulator.common.inventory_adapter.ItemHandlerInventoryAdapterFactory;
 import matter_manipulator.common.inventory_adapter.StandardInventoryAdapterFactory;
@@ -25,11 +29,13 @@ import matter_manipulator.common.modes.GeometryManipulatorMode;
 import matter_manipulator.common.resources.item.ios.DroppingItemStackIOFactory;
 import matter_manipulator.common.resources.item.ios.PlayerInventoryItemStackIOFactory;
 import matter_manipulator.common.utils.deps.DependencyGraph;
+import matter_manipulator.core.block_spec.ApplyResult;
 import matter_manipulator.core.block_spec.IBlockSpecLoader;
 import matter_manipulator.core.block_spec.ICopyInteropModule;
+import matter_manipulator.core.interop.BlockAdapter;
+import matter_manipulator.core.interop.BlockResetter;
+import matter_manipulator.core.interop.BlockStateTransformer;
 import matter_manipulator.core.interop.MMRegistries;
-import matter_manipulator.core.interop.interfaces.BlockAdapter;
-import matter_manipulator.core.interop.interfaces.BlockResetter;
 import matter_manipulator.core.inventory_adapter.InventoryAdapter;
 import matter_manipulator.core.inventory_adapter.InventoryAdapterFactory;
 import matter_manipulator.core.manipulator_resource.ManipulatorResourceLoader;
@@ -37,7 +43,6 @@ import matter_manipulator.core.manipulator_resource.RFEnergyResourceLoader;
 import matter_manipulator.core.modes.ManipulatorMode;
 import matter_manipulator.core.resources.Resource;
 import matter_manipulator.core.resources.ResourceProviderFactory;
-import matter_manipulator.core.resources.ResourceStack;
 import matter_manipulator.core.resources.item.ItemStackIOFactory;
 import matter_manipulator.core.resources.item.ItemStackResource;
 import matter_manipulator.core.resources.item.ItemStackResourceProviderFactory;
@@ -56,9 +61,10 @@ public class MMRegistriesInternal {
     @SuppressWarnings("rawtypes")
     public static final Map<Resource, ResourceProviderFactory> RESOURCES = new Object2ObjectOpenHashMap<>();
     public static final Object2ObjectMap<String, IBlockSpecLoader> LOADERS = new Object2ObjectOpenHashMap<>();
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public static Pair<Resource, ResourceProviderFactory>[] RESOURCE_ARRAY = new Pair[0];
     public static final Map<ResourceLocation, ManipulatorResourceLoader<?>> RESOURCE_LOADERS = new Object2ObjectOpenHashMap<>();
+    public static final DependencyGraph<BlockStateTransformer> BLOCK_STATE_TRANSFORMERS = new DependencyGraph<>();
 
     static {
         // Anything that empties inventories
@@ -102,11 +108,12 @@ public class MMRegistriesInternal {
 
     static {
         BLOCK_ADAPTERS.addObject("redstone", new RedstoneBlockAdapter(), "before:standard");
+        BLOCK_ADAPTERS.addObject("air", new AirBlockAdapter(), "before:standard");
         BLOCK_ADAPTERS.addObject("standard", new StandardBlockAdapter());
     }
 
     static {
-        RESOURCES.put(ItemStackResource.ITEMS, ItemStackResourceProviderFactory.INSTANCE);
+        MMRegistries.registerResourceType(ItemStackResource.ITEMS, ItemStackResourceProviderFactory.INSTANCE);
     }
 
     static {
@@ -136,6 +143,10 @@ public class MMRegistriesInternal {
         MMRegistries.registerSpecLoader(StandardBlockSpecLoader.INSTANCE);
     }
 
+    static {
+        MMRegistries.blockStateTransformers().addObject("facing", new PropertyCopyStateTransformer("facing"));
+    }
+
     @Nullable
     public static InventoryAdapter getInventoryAdapter(@Nonnull TileEntity te, @Nullable EnumFacing side) {
         for (var factory : INV_ADAPTERS.sorted()) {
@@ -156,23 +167,11 @@ public class MMRegistriesInternal {
         return null;
     }
 
-    @Nullable
-    public static BlockAdapter getBlockAdapter(ResourceStack resource) {
-        for (var adapter : BLOCK_ADAPTERS.sorted()) {
-            if (adapter.canAdapt(resource)) return adapter;
+    public static void transformBlock(MutableObject<IBlockState> state, IBlockState target, EnumSet<ApplyResult> result) {
+        for (var transformer : BLOCK_STATE_TRANSFORMERS.sorted()) {
+            result.add(transformer.transform(state, target));
+
+            if (result.contains(ApplyResult.Error)) break;
         }
-
-        return null;
-    }
-
-    @SuppressWarnings("rawtypes")
-    public static Pair<Resource, ResourceProviderFactory> getResourceForStack(ResourceStack stack) {
-        for (var pair : RESOURCE_ARRAY) {
-            if (pair.right().supports(stack)) {
-                return pair;
-            }
-        }
-
-        return null;
     }
 }

@@ -1,0 +1,5 @@
+{
+    "variants": {
+        "normal": { "model": "matter-manipulator:hint_warning" }
+  }
+}

@@ -1,0 +1,7 @@
+{
+    "parent": "block/cube_column",
+    "textures": {
+        "end": "matter-manipulator:blocks/hints/hint_blank",
+        "side": "matter-manipulator:blocks/hints/hint_warning"
+    }
+}

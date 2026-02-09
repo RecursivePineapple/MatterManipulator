@@ -42,6 +42,8 @@ public interface IBlockSpec {
 
     IBlockSpec clone();
 
+    IBlockSpec clone(IBlockState newState);
+
     default boolean isAir() {
         return getBlockState().getMaterial() == Material.AIR;
     }

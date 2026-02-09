@@ -28,6 +28,34 @@ public class VoxelAABB {
         return new Vector3i(a).max(b);
     }
 
+    public int minX() {
+        return Math.min(a.x, b.x);
+    }
+
+    public int minY() {
+        return Math.min(a.y, b.y);
+    }
+
+    public int minZ() {
+        return Math.min(a.z, b.z);
+    }
+
+    public int maxX() {
+        return Math.max(a.x, b.x);
+    }
+
+    public int maxY() {
+        return Math.max(a.y, b.y);
+    }
+
+    public int maxZ() {
+        return Math.max(a.z, b.z);
+    }
+
+    public boolean contains(int x, int y, int z) {
+        return x >= minX() && x <= maxX() && y >= minY() && y <= maxY() && z >= minZ() && z <= maxZ();
+    }
+
     public VoxelAABB union(Vector3i v) {
         Vector3i min = min(), max = max();
 

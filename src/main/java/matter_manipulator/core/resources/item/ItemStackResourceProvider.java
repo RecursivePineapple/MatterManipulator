@@ -2,8 +2,6 @@ package matter_manipulator.core.resources.item;
 
 import java.util.List;
 
-import net.minecraft.item.ItemStack;
-
 import org.jetbrains.annotations.ApiStatus.Internal;
 
 import matter_manipulator.core.resources.ResourceProvider;
@@ -23,24 +21,22 @@ public class ItemStackResourceProvider implements ResourceProvider {
         return ItemStackResourceProviderFactory.INSTANCE;
     }
 
-    public int extract(ItemStack stack) {
-        //noinspection DataFlowIssue
-        return (int) extract((ResourceStack) (Object) stack);
-    }
-
-    public boolean insert(ItemStack stack) {
-        //noinspection DataFlowIssue
-        return insert((ResourceStack) (Object) stack);
+    @Override
+    public boolean canExtract(ResourceStack request) {
+        return true;
     }
 
     @Override
-    public long extract(ResourceStack request) {
-        return 0;
+    public boolean extract(ResourceStack request) {
+        if (!(request instanceof ItemResourceStack item)) return false;
+
+        return true;
     }
 
     @Override
     public boolean insert(ResourceStack stack) {
-        return false;
-    }
+        if (!(stack instanceof ItemResourceStack item)) return false;
 
+        return true;
+    }
 }

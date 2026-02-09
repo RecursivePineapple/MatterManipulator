@@ -65,4 +65,22 @@ public interface ResourceStack {
         long getAmountLong();
         void setAmountLong(long amount);
     }
+
+    static long getStackAmount(ResourceStack stack) {
+        if (stack.hasTrait(ResourceTrait.LongAmount)) {
+            return ((LongResourceStack) stack).getAmountLong();
+        } else if (stack.hasTrait(ResourceTrait.IntAmount)) {
+            return ((IntResourceStack) stack).getAmountInt();
+        } else {
+            throw new IllegalStateException("Resource " + stack + " must have either the IntAmount or LongAmount resource trait.");
+        }
+    }
+
+    static boolean areStacksEqual(ResourceStack a, ResourceStack b) {
+        if (a == null || b == null) return a == null && b == null;
+
+        if (!a.isSameType(b)) return false;
+
+        return getStackAmount(a) == getStackAmount(b);
+    }
 }

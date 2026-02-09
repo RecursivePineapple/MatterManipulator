@@ -9,10 +9,11 @@
   "mixins": [
     "AccessorItemStack",
     "AccessorWorld",
-    "MixinEntityPlayer",
+    "MixinMiscMetadata",
     "MixinWorldDropCapturing"
   ],
   "client": [
+    "MixinBufferBuilder",
     "AccessorMinecraft"
   ],
   "server": []

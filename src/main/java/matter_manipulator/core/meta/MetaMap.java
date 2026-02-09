@@ -19,6 +19,8 @@ public class MetaMap implements MetadataContainer {
 
         // Hack so that we don't have to do an extra map operation to check if the key was missing
         if (value == MISSING) {
+            value = null;
+
             Optional def = key.getDefault();
 
             if (def.isPresent()) {
@@ -37,6 +39,8 @@ public class MetaMap implements MetadataContainer {
 
         // Hack so that we don't have to do an extra map operation to check if the key was missing
         if (value == MISSING) {
+            value = null;
+
             Optional def = key.getDefault();
 
             if (!def.isPresent()) {
@@ -61,7 +65,7 @@ public class MetaMap implements MetadataContainer {
     }
 
     @Override
-    public <T> void put(MetaKey<T> key, T value) {
+    public <T> void putMetaValue(MetaKey<T> key, T value) {
         values.put(key, value);
     }
 }

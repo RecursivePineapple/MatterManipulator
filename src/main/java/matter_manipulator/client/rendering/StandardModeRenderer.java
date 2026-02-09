@@ -1,29 +1,35 @@
 package matter_manipulator.client.rendering;
 
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.OptionalInt;
 
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.joml.Vector3i;
 
+import matter_manipulator.CommonProxy;
 import matter_manipulator.GlobalMMConfig.RenderingConfig;
 import matter_manipulator.common.block_spec.StandardBlockSpec;
 import matter_manipulator.common.context.AnalysisContextImpl;
+import matter_manipulator.common.interop.MMRegistriesInternal;
 import matter_manipulator.common.utils.data.Lazy;
+import matter_manipulator.core.block_spec.ApplyResult;
 import matter_manipulator.core.block_spec.IBlockSpec;
 import matter_manipulator.core.building.IPendingBlockBuildable;
 import matter_manipulator.core.building.PendingBlock;
 import matter_manipulator.core.color.ImmutableColor;
 import matter_manipulator.core.color.RGBColor;
 import matter_manipulator.core.context.ManipulatorRenderingContext;
+import matter_manipulator.core.interop.BlockAdapter;
 import matter_manipulator.core.misc.BuildFeedback;
-import matter_manipulator.core.resources.ResourceStack;
 
 public class StandardModeRenderer<Config, Buildable extends IPendingBlockBuildable> implements ModeRenderer<Config, Buildable> {
 
@@ -32,7 +38,10 @@ public class StandardModeRenderer<Config, Buildable extends IPendingBlockBuildab
     private static final ImmutableColor WARNING = RGBColor.fromRGB(0xFFAA00);
     private static final ImmutableColor ERROR = RGBColor.fromRGB(0xFF5555);
 
-    public static final Lazy<IBlockSpec> STONE = new Lazy<>(() -> new StandardBlockSpec(Blocks.STONE.getDefaultState()));
+    public static final Lazy<IBlockSpec> HINT_BLANK = new Lazy<>(() -> new StandardBlockSpec(CommonProxy.HINT_BLANK.getDefaultState()));
+    public static final Lazy<IBlockSpec> HINT_DOT = new Lazy<>(() -> new StandardBlockSpec(CommonProxy.HINT_DOT.getDefaultState()));
+    public static final Lazy<IBlockSpec> HINT_WARNING = new Lazy<>(() -> new StandardBlockSpec(CommonProxy.HINT_WARNING.getDefaultState()));
+    public static final Lazy<IBlockSpec> HINT_X = new Lazy<>(() -> new StandardBlockSpec(CommonProxy.HINT_X.getDefaultState()));
 
     @Override
     public void renderOverlay(ManipulatorRenderingContext context, Config config, Buildable buildable) {
@@ -78,10 +87,7 @@ public class StandardModeRenderer<Config, Buildable extends IPendingBlockBuildab
             analysisContext.setPos(pos);
             StandardBlockSpec existing = StandardBlockSpec.fromWorld(analysisContext);
 
-            ResourceStack pendingResource = pendingBlock.spec.getResource();
-            ResourceStack existingResource = existing.getResource();
-
-            if (pendingResource.isSameType(existingResource)) continue;
+            if (pendingBlock.spec.equals(existing)) continue;
 
             if (++i > RenderingConfig.maxHints) break;
 
@@ -97,27 +103,51 @@ public class StandardModeRenderer<Config, Buildable extends IPendingBlockBuildab
                 };
             }
 
-            if (pendingBlock.spec.isAir()) {
+            IBlockState target = pendingBlock.spec.getBlockState();
+
+            BlockAdapter adapter = MMRegistriesInternal.getBlockAdapter(target);
+
+            if (adapter == null) {
                 MMHintRenderer.INSTANCE.addHint(
                     pendingBlock.x,
                     pendingBlock.y,
                     pendingBlock.z,
-                    STONE.get(),
-                    tint
+                    HINT_WARNING.get(),
+                    ERROR
                 );
-            } else {
-                MMHintRenderer.INSTANCE.addHint(
-                    pendingBlock.x,
-                    pendingBlock.y,
-                    pendingBlock.z,
-                    pendingBlock.spec,
-                    tint
-                );
+
+                continue;
             }
+
+            IBlockState base = adapter.getBlockForm(adapter.getResourceForm(target));
+
+            MutableObject<IBlockState> state = new MutableObject<>(base);
+
+            MMRegistriesInternal.transformBlock(state, target, EnumSet.noneOf(ApplyResult.class));
+
+            MMHintRenderer.INSTANCE.addHint(
+                pendingBlock.x,
+                pendingBlock.y,
+                pendingBlock.z,
+                state.getValue().getBlock() == Blocks.AIR ?
+                    HINT_X.get() :
+                    pendingBlock.spec.clone(state.getValue()),
+                tint
+            );
         }
 
         feedbackMap.forEach((pos, feedback) -> {
-            MMHintRenderer.INSTANCE.addHint(pos.getX(), pos.getY(), pos.getZ(), STONE.get(), WARNING);
+            ImmutableColor tint = WHITE;
+
+            if (feedback != null) {
+                tint = switch (feedback.severity()) {
+                    case ERROR -> ERROR;
+                    case WARNING -> WARNING;
+                    case INFO -> INFO;
+                };
+            }
+
+            MMHintRenderer.INSTANCE.addHint(pos.getX(), pos.getY(), pos.getZ(), HINT_WARNING.get(), tint);
         });
     }
 

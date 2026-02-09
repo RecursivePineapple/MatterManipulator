@@ -5,7 +5,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 
-import matter_manipulator.core.interop.interfaces.BlockAdapter;
+import matter_manipulator.core.interop.BlockAdapter;
 import matter_manipulator.core.item.ItemStackLike;
 import matter_manipulator.core.resources.ResourceStack;
 import matter_manipulator.core.resources.item.ItemStackWrapper;

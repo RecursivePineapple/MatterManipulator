@@ -49,8 +49,8 @@ dependencies {
     api("com.cleanroommc:modularui:3.0.4") { transitive = false }
 
     // For charging
-    runtimeOnlyNonPublishable(rfg.deobf("curse.maven:mcjtylib-233105:2745846"))
-    runtimeOnlyNonPublishable(rfg.deobf("curse.maven:rftools-224641:2861573"))
+//    runtimeOnlyNonPublishable(rfg.deobf("curse.maven:mcjtylib-233105:2745846"))
+//    runtimeOnlyNonPublishable(rfg.deobf("curse.maven:rftools-224641:2861573"))
 
 //    devOnlyNonPublishable(rfg.deobf("curse.maven:ae2-extended-life-570458:5378163"))
 
