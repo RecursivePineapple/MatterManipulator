@@ -1,6 +1,8 @@
 package matter_manipulator.client.rendering;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.Comparator;
 
@@ -14,6 +16,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 
+import org.joml.Matrix4f;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
@@ -163,5 +166,20 @@ public class MMRenderUtils {
         double zd = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * partialTicks;
 
         return new Vector3d(xd, yd, zd);
+    }
+
+    private static final FloatBuffer BUFFER = ByteBuffer.allocateDirect(16 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+
+    public static void glMultMatrix(Matrix4f mat) {
+        BUFFER.clear();
+        mat.get(BUFFER);
+        BUFFER.clear();
+        GL11.glMultMatrix(BUFFER);
+    }
+
+    public static float project(Vector3f v, Vector3f onto) {
+        float len = onto.length();
+
+        return len == 0 ? 0 : v.dot(onto) / len;
     }
 }

@@ -17,7 +17,7 @@ import matter_manipulator.common.utils.enums.ExtendedFacing;
 public class Transform {
 
     public boolean flipX, flipY, flipZ;
-    public EnumFacing forward = ExtendedFacing.DEFAULT.getRelativeForwardInWorld(), up = EnumFacing.UP;
+    public EnumFacing forward = EnumFacing.NORTH, up = EnumFacing.UP;
 
     public transient Matrix4f rotation;
 
@@ -116,36 +116,18 @@ public class Transform {
             + "]";
     }
 
-    /** Unused, but potentially useful */
     public static Matrix4f fromFacing(ExtendedFacing facing) {
-        Matrix4f dir = switch (facing.getDirection()) {
-            case UP -> new Matrix4f().lookAlong(MathUtils.v(EnumFacing.UP), MathUtils.v(EnumFacing.NORTH));
-            case DOWN -> new Matrix4f().lookAlong(MathUtils.v(EnumFacing.DOWN), MathUtils.v(EnumFacing.NORTH));
-            case NORTH -> new Matrix4f().lookAlong(MathUtils.v(EnumFacing.NORTH), MathUtils.v(EnumFacing.UP));
-            case SOUTH -> new Matrix4f().lookAlong(MathUtils.v(EnumFacing.SOUTH), MathUtils.v(EnumFacing.UP));
-            case EAST -> new Matrix4f().lookAlong(MathUtils.v(EnumFacing.EAST), MathUtils.v(EnumFacing.UP));
-            case WEST -> new Matrix4f().lookAlong(MathUtils.v(EnumFacing.WEST), MathUtils.v(EnumFacing.UP));
+        Transform transform = new Transform();
+
+        transform.flipZ = true;
+        transform.forward = facing.getRelativeForwardInWorld();
+        transform.up = switch (transform.forward) {
+            case UP -> EnumFacing.SOUTH;
+            case DOWN -> EnumFacing.NORTH;
+            default -> EnumFacing.UP;
         };
 
-        Matrix4f rot = switch (facing.getRotation()) {
-            case CLOCKWISE -> new Matrix4f().rotate((float) (Math.PI / 2), MathUtils.v(EnumFacing.NORTH));
-            case COUNTER_CLOCKWISE -> new Matrix4f().rotate((float) (-Math.PI / 2), MathUtils.v(EnumFacing.NORTH));
-            case NORMAL -> new Matrix4f();
-            case UPSIDE_DOWN -> new Matrix4f().rotate((float) (Math.PI), MathUtils.v(EnumFacing.NORTH));
-        };
-
-        Matrix4f flip = new Matrix4f();
-
-        if (facing.getFlip().isHorizontallyFlipped()) {
-            flip.scale(-1, 1, 1);
-        }
-
-        if (facing.getFlip().isVerticallyFliped()) {
-            flip.scale(1, -1, 1);
-        }
-
-        return rot.mul(flip)
-            .mul(dir);
+        return transform.getRotation();
     }
 
     public static EnumFacing transform(EnumFacing dir, Matrix4f transform) {
@@ -160,7 +142,7 @@ public class Transform {
         for (ExtendedFacing candidate : ExtendedFacing.getAllWith(forward)) {
             if (candidate.getRelativeLeftInWorld() != left) continue;
             if (candidate.getRelativeDownInWorld() != down) continue;
-            if (candidate.getFlip().isVerticallyFliped()) continue;
+            if (candidate.getFlip().isVerticallyFlipped()) continue;
 
             return candidate;
         }

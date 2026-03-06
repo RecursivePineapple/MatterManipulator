@@ -68,11 +68,15 @@ public enum Flip {
         return this == BOTH;
     }
 
+    public boolean isEitherFlipped() {
+        return this == HORIZONTAL || this == VERTICAL;
+    }
+
     public boolean isHorizontallyFlipped() {
         return this == HORIZONTAL || isBothFlipped();
     }
 
-    public boolean isVerticallyFliped() {
+    public boolean isVerticallyFlipped() {
         return this == VERTICAL || isBothFlipped();
     }
 }

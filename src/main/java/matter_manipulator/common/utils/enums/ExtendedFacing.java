@@ -15,6 +15,7 @@ import java.util.Random;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.text.translation.I18n;
 
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 
@@ -23,7 +24,9 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import lombok.Getter;
 import matter_manipulator.common.structure.coords.StructureRelativeCoords;
+import matter_manipulator.common.utils.MathUtils;
 import matter_manipulator.common.utils.math.IntegerAxisSwap;
+import matter_manipulator.common.utils.math.Transform;
 
 public enum ExtendedFacing {
 
@@ -129,6 +132,8 @@ public enum ExtendedFacing {
 
     public static final ExtendedFacing DEFAULT = NORTH_NORMAL_NONE;
     public static final ExtendedFacing[] VALUES = values();
+    public static final int STATES_COUNT = VALUES.length;
+
     public static final Multimap<EnumFacing, ExtendedFacing> FOR_FACING = MultimapBuilder.enumKeys(EnumFacing.class).arrayListValues().build();
 
     static {
@@ -167,6 +172,9 @@ public enum ExtendedFacing {
     @Getter
     private final IntegerAxisSwap integerAxisSwap;
     private final StructureRelativeCoords coordinateSystem;
+
+    @Getter
+    private final Matrix4f matrix;
 
     ExtendedFacing(String name) {
         this.name = name;
@@ -249,6 +257,7 @@ public enum ExtendedFacing {
         this.c = c;
         integerAxisSwap = new IntegerAxisSwap(a, b, c);
         coordinateSystem = new StructureRelativeCoords(integerAxisSwap);
+        matrix = Transform.fromFacing(this);
     }
 
     private static int getAlignmentIndex(EnumFacing direction, Rotation rotation, Flip flip) {
@@ -365,14 +374,9 @@ public enum ExtendedFacing {
     }
 
     public EnumFacing getWorldDirectionInverse(EnumFacing world) {
-        if (world == getRelativeForwardInWorld()) return EnumFacing.NORTH;
-        if (world == getRelativeBackInWorld()) return EnumFacing.SOUTH;
-        if (world == getRelativeDownInWorld()) return EnumFacing.UP;
-        if (world == getRelativeUpInWorld()) return EnumFacing.DOWN;
-        if (world == getRelativeLeftInWorld()) return EnumFacing.EAST;
-        if (world == getRelativeRightInWorld()) return EnumFacing.WEST;
+        if (world == null) return null;
 
-        return null;
+        return MathUtils.vprime(matrix.transformDirection(MathUtils.v(world)));
     }
 
     /**

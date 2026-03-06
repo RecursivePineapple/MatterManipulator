@@ -2,6 +2,7 @@ package matter_manipulator.client.rendering;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -44,15 +45,25 @@ public class MMHintRenderer {
     public static final MMHintRenderer INSTANCE = new MMHintRenderer();
     public static final VertexFormat FORMAT = DefaultVertexFormats.BLOCK;
 
+    private static class RenderState {
+        public final List<Hint> hints;
+        public long expiration;
+        public boolean depthTest = false;
+
+        public RenderState(List<Hint> hints) {
+            this.hints = hints;
+        }
+    }
+
     /// The most recent batch of hints. This is not used by the renderer, and it must be flushed by calling [#finish()].
     /// This must only be accessed by the client thread.
-    private ArrayList<Hint> pendingHints = null;
+    private RenderState pending = null;
 
-    /// The latest list of hints. This is not sorted in any way and can only be accessed by the client thread.
-    /// The contents of this can only be accessed by the worker thread, but the list reference itself can only be
-    /// accessed by the client. The worker thread receives a reference to this list which it uses, but this field can be
-    /// replaced arbitrarily.
-    private List<Hint> hints = null;
+    /// The latest batch of hints. This is not sorted in any way and can only be accessed by the client thread.
+    /// The contents of this object's hint list can only be accessed by the worker thread, but the list reference itself
+    /// and the RenderState object can only be accessed by the client. The worker thread receives a reference to the
+    /// hint list, but this field can be replaced arbitrarily.
+    private RenderState hints = null;
 
     /// The player position for the most recent buffer. If the player moves too far, it will cause the quads to be
     /// re-sorted.
@@ -78,16 +89,33 @@ public class MMHintRenderer {
     }
 
     public void start() {
-        pendingHints = new ArrayList<>();
+        pending = new RenderState(new ArrayList<>());
     }
 
     public void addHint(int x, int y, int z, IBlockSpec spec, ImmutableColor tint) {
-        pendingHints.add(new Hint(x, y, z, spec, tint));
+        pending.hints.add(new Hint(x, y, z, spec, tint));
+    }
+
+    public void setDepthTest(boolean depthTest) {
+        pending.depthTest = depthTest;
+    }
+
+    public void setExpiry(Duration duration) {
+        pending.expiration = System.currentTimeMillis() + duration.toMillis();
     }
 
     public void finish() {
-        hints = pendingHints == null ? null : Collections.unmodifiableList(pendingHints);
-        pendingHints = null;
+        if (pending == null) {
+            hints = null;
+        } else {
+            hints = new RenderState(Collections.unmodifiableList(pending.hints));
+
+            hints.expiration = pending.expiration;
+            hints.depthTest = pending.depthTest;
+        }
+
+        pending = null;
+
         vboNeedsRebuild = true;
     }
 
@@ -101,7 +129,11 @@ public class MMHintRenderer {
 
     @SubscribeEvent
     public void onRenderWorldLast(RenderWorldLastEvent e) {
-        if (hints == null || hints.isEmpty()) return;
+        if (hints != null && System.currentTimeMillis() >= hints.expiration) {
+            hints = null;
+        }
+
+        if (hints == null || hints.hints.isEmpty()) return;
 
         Profiler p = Minecraft.getMinecraft().profiler;
 
@@ -127,7 +159,7 @@ public class MMHintRenderer {
             GL11.glDisable(GL11.GL_ALPHA_TEST);
             GL11.glEnable(GL11.GL_BLEND);
             GL11.glBlendFunc(GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_SRC_ALPHA);
-            GL11.glDisable(GL11.GL_DEPTH_TEST);
+            if (!hints.depthTest) GL11.glDisable(GL11.GL_DEPTH_TEST);
 
             vbo.render();
 
@@ -154,7 +186,7 @@ public class MMHintRenderer {
                 vboNeedsRebuild = false;
 
                 BufferBuilder data = buffer.passive();
-                List<Hint> hints = this.hints;
+                List<Hint> hints = this.hints.hints;
 
                 lastPlayerPosition.set(playerPos);
 

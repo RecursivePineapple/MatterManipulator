@@ -20,6 +20,7 @@ import matter_manipulator.common.blocks.BlockUplinkController;
 import matter_manipulator.common.items.ItemCluster;
 import matter_manipulator.common.items.ItemHologramProjector;
 import matter_manipulator.common.items.ItemMatterManipulator;
+import matter_manipulator.common.items.ItemWrench;
 import matter_manipulator.common.items.MMItemList;
 import matter_manipulator.common.items.MMMetaItem;
 import matter_manipulator.common.items.ManipulatorTier;
@@ -38,6 +39,7 @@ public class CommonProxy {
     public static final BlockHint HINT_X = new BlockHint("hint_x");
 
     public static final ItemHologramProjector HOLOGRAM_PROJECTOR = new ItemHologramProjector();
+    public static final ItemWrench WRENCH = new ItemWrench();
 
     public static final BlockUplinkController UPLINK_CONTROLLER = new BlockUplinkController();
 
@@ -76,6 +78,7 @@ public class CommonProxy {
         MMItemList.MK3.set(registerItem(new ItemMatterManipulator(ManipulatorTier.Tier3)));
 
         MMItemList.HologramProjector.set(registerItem(HOLOGRAM_PROJECTOR));
+        MMItemList.Wrench.set(registerItem(WRENCH));
 
         registerItem(META_ITEM, false);
     }

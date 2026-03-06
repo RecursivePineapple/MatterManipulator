@@ -69,6 +69,10 @@ public class StreamingVertexBuffer implements AutoCloseable {
         }
     }
 
+    public void clear() {
+        this.vertexCount = 0;
+    }
+
     public void bind() {
         if (this.id == 0) throw new IllegalStateException("Cannot bind unallocated VBO");
 

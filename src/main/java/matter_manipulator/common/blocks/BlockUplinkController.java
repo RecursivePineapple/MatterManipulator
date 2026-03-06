@@ -5,12 +5,14 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
+import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
@@ -20,13 +22,16 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.property.ExtendedBlockState;
 import net.minecraftforge.common.property.IExtendedBlockState;
 import net.minecraftforge.common.property.IUnlistedProperty;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import org.jetbrains.annotations.Nullable;
 
 import matter_manipulator.CommonProxy;
 import matter_manipulator.Tags;
+import matter_manipulator.client.rendering.models.MachineModelRegistry;
 import matter_manipulator.common.uplink.TileUplinkController;
-import matter_manipulator.common.uplink.TileUplinkController.UplinkState;
+import matter_manipulator.common.uplink.UplinkState;
 import matter_manipulator.common.utils.enums.ExtendedFacing;
 import mcp.MethodsReturnNonnullByDefault;
 
@@ -35,57 +40,15 @@ import mcp.MethodsReturnNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class BlockUplinkController extends BlockContainer {
 
-    public static final IUnlistedProperty<EnumFacing> FACING = new IUnlistedProperty<>() {
-
-        @Override
-        public String getName() {
-            return "facing";
-        }
-
-        @Override
-        public boolean isValid(EnumFacing value) {
-            return value.getYOffset() == 0;
-        }
-
-        @Override
-        public Class<EnumFacing> getType() {
-            return EnumFacing.class;
-        }
-
-        @Override
-        public String valueToString(EnumFacing value) {
-            return value.getName();
-        }
-    };
-
-    public static final IUnlistedProperty<UplinkState> STATE = new IUnlistedProperty<>() {
-
-        @Override
-        public String getName() {
-            return "state";
-        }
-
-        @Override
-        public boolean isValid(UplinkState value) {
-            return true;
-        }
-
-        @Override
-        public Class<UplinkState> getType() {
-            return UplinkState.class;
-        }
-
-        @Override
-        public String valueToString(UplinkState value) {
-            return value.name();
-        }
-    };
+    public static final PropertyEnum<UplinkState> STATE = PropertyEnum.create("state", UplinkState.class);
 
     public BlockUplinkController() {
         super(Material.IRON);
 
         setTranslationKey("uplink-controller");
         setRegistryName(Tags.MODID, "uplink-controller");
+
+        this.setDefaultState(this.blockState.getBaseState().withProperty(STATE, UplinkState.off));
     }
 
     @Override
@@ -120,6 +83,11 @@ public class BlockUplinkController extends BlockContainer {
         ((TileUplinkController) worldIn.getTileEntity(pos)).setOrientation(ExtendedFacing.of(placer.getHorizontalFacing().getOpposite()));
     }
 
+    @SideOnly(Side.CLIENT)
+    public BlockRenderLayer getRenderLayer() {
+        return BlockRenderLayer.CUTOUT;
+    }
+
     @Override
     public EnumBlockRenderType getRenderType(IBlockState state) {
         return EnumBlockRenderType.MODEL;
@@ -127,17 +95,18 @@ public class BlockUplinkController extends BlockContainer {
 
     @Override
     protected BlockStateContainer createBlockState() {
-        return new ExtendedBlockState(this, new IProperty[0], new IUnlistedProperty[] { FACING, STATE });
+        return new ExtendedBlockState(this, new IProperty[] { STATE }, new IUnlistedProperty[] { MachineModelRegistry.EXTENDED_FACING });
     }
 
     @Override
     public IBlockState getStateFromMeta(int meta) {
-        return getDefaultState();
+        return getDefaultState()
+            .withProperty(STATE, UplinkState.values()[meta % 3]);
     }
 
     @Override
     public int getMetaFromState(IBlockState state) {
-        return 0;
+        return state.getValue(STATE).ordinal();
     }
 
     @Override
@@ -145,7 +114,6 @@ public class BlockUplinkController extends BlockContainer {
         TileUplinkController controller = (TileUplinkController) world.getTileEntity(pos);
 
         return ((IExtendedBlockState) state)
-            .withProperty(FACING, controller.getOrientation().getDirection())
-            .withProperty(STATE, controller.getState());
+            .withProperty(MachineModelRegistry.EXTENDED_FACING, controller.getOrientation());
     }
 }

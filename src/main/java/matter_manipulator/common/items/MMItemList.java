@@ -1,9 +1,14 @@
 package matter_manipulator.common.items;
 
+import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
-public enum MMItemList {
+import org.jetbrains.annotations.NotNull;
+
+import matter_manipulator.core.item.ImmutableItemMeta;
+
+public enum MMItemList implements ImmutableItemMeta {
 
     Cluster,
 
@@ -13,6 +18,7 @@ public enum MMItemList {
     MK3,
 
     HologramProjector,
+    Wrench,
 
     Hologram,
     PowerCore0,
@@ -53,7 +59,7 @@ public enum MMItemList {
 
     ;
 
-    public ItemStack stack;
+    public ItemStack stack = ItemStack.EMPTY;
 
     public void set(ItemStack stack) {
         this.stack = stack;
@@ -67,13 +73,13 @@ public enum MMItemList {
         stack = new ItemStack(item, 1, meta);
     }
 
-    public ItemStack get() {
-        return stack.copy();
+    @Override
+    public @NotNull Item getItem() {
+        return stack.getItem();
     }
 
-    public ItemStack get(int amount) {
-        ItemStack copy = stack.copy();
-        copy.setCount(amount);
-        return copy;
+    @Override
+    public int getItemMeta() {
+        return Items.FEATHER.getDamage(stack);
     }
 }

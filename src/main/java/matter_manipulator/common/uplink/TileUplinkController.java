@@ -1,23 +1,27 @@
 package matter_manipulator.common.uplink;
 
+import java.time.Duration;
 import java.util.HashSet;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 
-import lombok.Getter;
 import lombok.Setter;
 import matter_manipulator.client.rendering.MMHintRenderer;
+import matter_manipulator.common.structure.IAlignment;
+import matter_manipulator.common.structure.IAlignmentLimits;
 import matter_manipulator.common.structure.IStructureDefinition;
 import matter_manipulator.common.structure.MultiblockController;
 import matter_manipulator.common.structure.MultiblockStructureContext;
@@ -27,7 +31,8 @@ import matter_manipulator.common.structure.coords.ControllerRelativeCoords;
 import matter_manipulator.common.utils.enums.ExtendedFacing;
 import matter_manipulator.common.utils.math.VoxelAABB;
 
-public class TileUplinkController extends TileEntity implements MultiblockController<TileUplinkController>, ITickable {
+public class TileUplinkController extends TileEntity implements MultiblockController<TileUplinkController>, ITickable,
+    IAlignment {
 
     private static final String[][] SHAPE = {
         {
@@ -132,17 +137,6 @@ public class TileUplinkController extends TileEntity implements MultiblockContro
         .addElement('E', StructureUtils.block(() -> Blocks.STONE.getDefaultState()))
         .build();
 
-    public enum UplinkState implements IStringSerializable {
-        off,
-        idle,
-        active;
-
-        @Override
-        public String getName() {
-            return name();
-        }
-    }
-
     @Setter
     private ExtendedFacing orientation = ExtendedFacing.DEFAULT;
     private ControllerRelativeCoords controllerCoords;
@@ -150,8 +144,6 @@ public class TileUplinkController extends TileEntity implements MultiblockContro
 
     private boolean structureDirty = true, formed = false;
     private final HashSet<TileUplinkModule> modules = new HashSet<>();
-    @Getter
-    private UplinkState state = UplinkState.off;
 
     @Override
     public void onMachineUpdate(BlockPos pos) {
@@ -187,6 +179,11 @@ public class TileUplinkController extends TileEntity implements MultiblockContro
         if (aabb != null && !this.world.isRemote) {
             StructureOverlord.get((WorldServer) this.world).removeController(this);
         }
+    }
+
+    @Override
+    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
+        return oldState.getBlock() != newState.getBlock();
     }
 
     public void updateBoundingBox() {
@@ -253,8 +250,10 @@ public class TileUplinkController extends TileEntity implements MultiblockContro
                 module.disconnect(this);
             }
 
-            MultiblockStructureContext<TileUplinkController> context = new MultiblockStructureContext<>(this);
+            modules.clear();
 
+            MultiblockStructureContext<TileUplinkController> context = new MultiblockStructureContext<>(this);
+            context.part = "main";
             formed = STRUCTURE.checkPart(context);
 
             if (formed) {
@@ -275,6 +274,8 @@ public class TileUplinkController extends TileEntity implements MultiblockContro
         MultiblockStructureContext<TileUplinkController> context = new MultiblockStructureContext<>(this, player, trigger, 0);
 
         MMHintRenderer.INSTANCE.start();
+        MMHintRenderer.INSTANCE.setExpiry(Duration.ofSeconds(30));
+        MMHintRenderer.INSTANCE.setDepthTest(false);
 
         STRUCTURE.emitHints(context);
 
@@ -297,11 +298,21 @@ public class TileUplinkController extends TileEntity implements MultiblockContro
     }
 
     @Override
+    public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
+        super.onDataPacket(net, pkt);
+
+        readFromNBT(pkt.getNbtCompound());
+
+        IBlockState state = this.world.getBlockState(this.pos);
+
+        this.world.notifyBlockUpdate(this.pos, state, state, 3);
+    }
+
+    @Override
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         super.writeToNBT(compound);
 
         compound.setString("facing", this.orientation.name());
-        compound.setString("state", this.state.name());
 
         return compound;
     }
@@ -311,6 +322,26 @@ public class TileUplinkController extends TileEntity implements MultiblockContro
         super.readFromNBT(compound);
 
         this.orientation = ExtendedFacing.valueOf(compound.getString("facing"));
-        this.state = UplinkState.valueOf(compound.getString("state"));
+    }
+
+    @Override
+    public ExtendedFacing getExtendedFacing() {
+        return this.orientation;
+    }
+
+    @Override
+    public void setExtendedFacing(ExtendedFacing alignment) {
+        this.orientation = alignment;
+
+        updateBoundingBox();
+
+        IBlockState state = this.world.getBlockState(this.pos);
+
+        this.world.notifyBlockUpdate(this.pos, state, state, 3);
+    }
+
+    @Override
+    public IAlignmentLimits getAlignmentLimits() {
+        return (dir, rot, flip) -> !flip.isVerticallyFlipped();
     }
 }
