@@ -10,6 +10,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 
 import org.joml.Vector3d;
@@ -35,9 +36,6 @@ import matter_manipulator.core.resources.ResourceIdentity;
 import matter_manipulator.core.resources.ResourceProvider;
 import matter_manipulator.core.resources.ResourceProviderFactory;
 import matter_manipulator.core.resources.ResourceStack;
-import matter_manipulator.core.resources.ResourceStack.IntResourceStack;
-import matter_manipulator.core.resources.ResourceStack.LongResourceStack;
-import matter_manipulator.core.resources.ResourceTrait;
 
 public class BuildingContextImpl extends ManipulatorContextImpl implements BlockPlacingContext {
 
@@ -90,7 +88,7 @@ public class BuildingContextImpl extends ManipulatorContextImpl implements Block
     }
 
     @Override
-    public <P extends ResourceProvider> P resource(Resource<P> resource) {
+    public <P extends ResourceProvider<?>> P resource(Resource<P> resource) {
         var cached = cachedProviders.get(resource);
 
         if (cached != null) {
@@ -199,17 +197,7 @@ public class BuildingContextImpl extends ManipulatorContextImpl implements Block
 
     @Override
     public void extractionFailure(ResourceStack stack) {
-        long amount = 0;
-
-        if (stack.hasTrait(ResourceTrait.LongAmount)) {
-            amount = ((LongResourceStack) stack).getAmountLong();
-        } else if (stack.hasTrait(ResourceTrait.IntAmount)) {
-            amount = ((IntResourceStack) stack).getAmountInt();
-        } else {
-            throw new IllegalStateException("Resource " + stack + " must have either the IntAmount or the LongAmount resource trait");
-        }
-
-        this.extractionFailures.addTo(stack.getIdentity(), amount);
+        this.extractionFailures.addTo(stack.getIdentity(), ResourceStack.getStackAmount(stack));
     }
 
     @Override
@@ -231,12 +219,15 @@ public class BuildingContextImpl extends ManipulatorContextImpl implements Block
         pendingSounds.clear();
 
         extractionFailures.object2LongEntrySet().fastForEach(e -> {
-            new Localized("mm.info.warning.could_not_find").sendChat(getRealPlayer());
+            new Localized("mm.info.warning.could_not_find").setBase(TextFormatting.GRAY).sendChat(getRealPlayer());
             new MMTextBuilder("mm.info.warning.missing_resource")
+                .setBase(TextFormatting.GRAY)
                 .addLocalized(e.getKey().getName())
                 .addNumber(e.getLongValue())
                 .toLocalized()
                 .sendChat(getRealPlayer());
         });
+
+        extractionFailures.clear();
     }
 }

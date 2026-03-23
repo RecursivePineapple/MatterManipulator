@@ -3,6 +3,7 @@ package matter_manipulator;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.crafting.IRecipe;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -27,6 +28,10 @@ public class MMMod {
         serverSide = "matter_manipulator.CommonProxy"
     )
     public static CommonProxy proxy;
+
+    public static ResourceLocation loc(String path) {
+        return new ResourceLocation(Tags.MODID, path);
+    }
 
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {

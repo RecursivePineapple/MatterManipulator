@@ -7,8 +7,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.OreDictionary;
 
-import matter_manipulator.common.utils.items.ItemUtils;
-
 /**
  * An immutable item-meta pair. This must not be cast down to its mutable version unless you have a very good reason. It
  * can be assumed that the values of {@link #getItem()} and {@link #getItemMeta()} will never change for this object if

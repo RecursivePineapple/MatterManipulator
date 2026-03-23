@@ -7,6 +7,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.jetbrains.annotations.NotNull;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -21,6 +22,7 @@ import matter_manipulator.core.context.BlockAnalysisContext;
 import matter_manipulator.core.context.BlockPlacingContext;
 import matter_manipulator.core.i18n.Localized;
 import matter_manipulator.core.interop.BlockAdapter;
+import matter_manipulator.core.resources.ResourceProvider;
 import matter_manipulator.core.resources.ResourceStack;
 import matter_manipulator.core.resources.item.ItemStackWrapper;
 
@@ -89,22 +91,32 @@ public class StandardBlockSpec implements IBlockSpec {
         }
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public ApplyResult place(BlockPlacingContext context) {
         BlockAdapter adapter = MMRegistriesInternal.getBlockAdapter(state);
 
         if (adapter == null) return ApplyResult.Error;
 
-        ResourceStack resource = adapter.getResourceForm(context.getSpec().getBlockState());
+        ResourceStack stack = adapter.getResourceForm(context.getSpec().getBlockState());
 
-        if (!context.resource(resource.getResource()).extract(resource)) return ApplyResult.Retry;
+        ResourceProvider resource = context.resource(stack.getResource());
 
-        ApplyResult result = adapter.place(context.getWorld(), context.getPos(), resource);
+        ResourceStack extracted = resource.extract(stack);
+
+        if (ResourceStack.getStackAmount(extracted) != ResourceStack.getStackAmount(stack)) {
+            // We couldn't extract the right amount of items/fluids/etc. Reinsert whatever we got and try again later.
+            resource.insert(extracted);
+            context.extractionFailure(stack);
+            return ApplyResult.Retry;
+        }
+
+        ApplyResult result = adapter.place(context.getWorld(), context.getPos(), stack);
 
         switch (result) {
             case DidNothing, NotApplicable, Retry, Error -> {
                 // For whatever reason the adapter couldn't place the block, so we have to reinsert it.
-                context.resource(resource.getResource()).insert(resource);
+                resource.insert(extracted);
             }
             default -> {
 
@@ -139,7 +151,7 @@ public class StandardBlockSpec implements IBlockSpec {
     }
 
     @Override
-    public IBlockSpec clone(IBlockState newState) {
+    public IBlockSpec cloneWithState(IBlockState newState) {
         StandardBlockSpec spec = new StandardBlockSpec(newState);
 
         this.interop.forEach((module, analysis) -> {
@@ -148,6 +160,19 @@ public class StandardBlockSpec implements IBlockSpec {
         });
 
         return spec;
+    }
+
+    @Override
+    public IBlockSpec sanitized() {
+        BlockAdapter adapter = MMRegistriesInternal.getBlockAdapter(getBlockState());
+
+        if (adapter == null) return this;
+
+        MutableObject<IBlockState> state = new MutableObject<>(adapter.sanitized(getBlockState()));
+
+        MMRegistriesInternal.transformBlock(state, getBlockState(), EnumSet.noneOf(ApplyResult.class));
+
+        return cloneWithState(state.getValue());
     }
 
     @Override

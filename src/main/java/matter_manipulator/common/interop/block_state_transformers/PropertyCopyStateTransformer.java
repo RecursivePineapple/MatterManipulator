@@ -4,7 +4,6 @@ import java.util.function.Predicate;
 
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.util.EnumFacing;
 
 import org.apache.commons.lang3.mutable.MutableObject;
 
@@ -15,9 +14,11 @@ import matter_manipulator.core.interop.BlockStateTransformer;
 public class PropertyCopyStateTransformer implements BlockStateTransformer {
 
     private final Predicate<IProperty<?>> filter;
+    private final Class<?> expectedType;
 
-    public PropertyCopyStateTransformer(String propertyName) {
+    public PropertyCopyStateTransformer(String propertyName, Class<?> expectedType) {
         filter = p -> p.getName().equals(propertyName);
+        this.expectedType = expectedType;
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -25,11 +26,9 @@ public class PropertyCopyStateTransformer implements BlockStateTransformer {
     public ApplyResult transform(MutableObject<IBlockState> state, IBlockState target) {
         IBlockState curr = state.getValue();
 
-        if (curr.getBlock() != target.getBlock()) return ApplyResult.NotApplicable;
-
         IProperty facing = DataUtils.find(curr.getPropertyKeys(), filter);
 
-        if (facing == null || facing.getValueClass() != EnumFacing.class) return ApplyResult.NotApplicable;
+        if (facing == null || facing.getValueClass() != expectedType) return ApplyResult.NotApplicable;
 
         if (curr.getValue(facing) == target.getValue(facing)) return ApplyResult.DidNothing;
 

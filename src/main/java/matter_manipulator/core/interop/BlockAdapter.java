@@ -15,6 +15,10 @@ public interface BlockAdapter {
     ResourceStack getResourceForm(IBlockState state);
     IBlockState getBlockForm(ResourceStack resource);
 
+    default IBlockState sanitized(IBlockState state) {
+        return getBlockForm(getResourceForm(state));
+    }
+
     default ApplyResult place(World world, BlockPos pos, ResourceStack resource) {
         IBlockState toPlace = getBlockForm(resource);
 

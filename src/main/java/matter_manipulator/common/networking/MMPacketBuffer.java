@@ -1,11 +1,15 @@
 package matter_manipulator.common.networking;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.properties.IProperty;
@@ -13,13 +17,21 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.PacketBuffer;
+import net.minecraftforge.fluids.FluidRegistry;
+import net.minecraftforge.fluids.FluidStack;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.google.common.base.Optional;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.bytes.ByteArrayList;
 import matter_manipulator.MMMod;
 import matter_manipulator.common.utils.DataUtils;
 
@@ -46,6 +58,16 @@ public class MMPacketBuffer extends PacketBuffer {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public @NotNull FluidStack readFluidStack() {
+        return new FluidStack(FluidRegistry.getFluid(readString(8192)), readVarInt(), readCompoundTag());
+    }
+
+    public void writeFluidStack(FluidStack stack) {
+        writeString(FluidRegistry.getFluidName(stack.getFluid()));
+        writeVarInt(stack.amount);
+        writeCompoundTag(stack.tag);
     }
 
     public interface Encoder<T> {
@@ -239,5 +261,178 @@ public class MMPacketBuffer extends PacketBuffer {
         }
 
         return state.withProperty(prop, parsed.get());
+    }
+
+    private static final int BSON_DOUBLE = 1;
+    private static final int BSON_UTF8_STRING = 2;
+    private static final int BSON_DOCUMENT = 3;
+    private static final int BSON_ARRAY = 4;
+    private static final int BSON_BOOLEAN = 8;
+    private static final int BSON_NULL = 10;
+    private static final int BSON_INT = 16;
+    private static final int BSON_LONG = 18;
+
+    public void writeBSON(JsonObject obj) {
+        writeIntLE(obj.size());
+
+        for (var e : obj.entrySet()) {
+            writeBSONElement(e.getKey(), e.getValue());
+        }
+
+        writeByte(0);
+    }
+
+    private void writeBSONElement(String ename, JsonElement el) {
+        if (el.isJsonNull()) {
+            writeByte(BSON_NULL);
+            writeBsonCString(ename);
+        } else if (el instanceof JsonPrimitive prim) {
+            if (prim.isBoolean()) {
+                writeByte(BSON_BOOLEAN);
+                writeBsonCString(ename);
+
+                writeByte(prim.getAsBoolean() ? 1 : 0);
+            } else if (prim.isString()) {
+                byte[] utf8 = prim.getAsString().getBytes(StandardCharsets.UTF_8);
+
+                writeByte(BSON_UTF8_STRING);
+                writeBsonCString(ename);
+
+                writeIntLE(utf8.length + 1);
+                writeBytes(utf8);
+                writeByte(0);
+            } else {
+                Class<? extends Number> type = prim.getAsNumber().getClass();
+
+                if (type == Integer.class || type == Short.class) {
+                    writeByte(BSON_INT);
+                    writeBsonCString(ename);
+
+                    writeIntLE(prim.getAsInt());
+                } else if (type == Long.class || type == BigInteger.class) {
+                    writeByte(BSON_LONG);
+                    writeBsonCString(ename);
+
+                    writeLongLE(prim.getAsLong());
+                } else if (type == Float.class || type == Double.class || type == BigDecimal.class) {
+                    writeByte(BSON_DOUBLE);
+                    writeBsonCString(ename);
+
+                    writeLongLE(Double.doubleToLongBits(prim.getAsDouble()));
+                }
+            }
+        } else if (el.isJsonArray()) {
+            int key = 0;
+
+            writeByte(BSON_ARRAY);
+            writeBsonCString(ename);
+
+            writeIntLE(el.getAsJsonArray().size());
+
+            for (JsonElement el2 : el.getAsJsonArray()) {
+                writeBSONElement(Integer.toString(key++), el2);
+            }
+
+            writeByte(0);
+        } else if (el.isJsonObject()) {
+            writeByte(BSON_DOCUMENT);
+            writeBsonCString(ename);
+
+            writeBSON(el.getAsJsonObject());
+        }
+    }
+
+    public JsonObject readBSON() {
+        int len = readIntLE();
+
+        JsonObject obj = new JsonObject();
+
+        BiConsumer<String, JsonElement> adder = obj::add;
+
+        for (int i = 0; i < len; i++) {
+            readBSONElement(adder);
+        }
+
+        readByte();
+
+        return obj;
+    }
+
+    private void readBSONElement(BiConsumer<String, JsonElement> adder) {
+        int type = readByte();
+        String ename = readBsonCString();
+
+        switch (type) {
+            case BSON_DOUBLE -> {
+                adder.accept(ename, new JsonPrimitive(Double.longBitsToDouble(readLongLE())));
+            }
+            case BSON_UTF8_STRING -> {
+                int len = readIntLE();
+
+                byte[] data = new byte[len];
+
+                readBytes(data);
+
+                adder.accept(ename, new JsonPrimitive(new String(data, StandardCharsets.UTF_8)));
+            }
+            case BSON_DOCUMENT -> {
+                adder.accept(ename, readBSON());
+            }
+            case BSON_ARRAY -> {
+                int len = readIntLE();
+
+                JsonArray array = new JsonArray();
+
+                BiConsumer<String, JsonElement> adder2 = (key, value) -> array.add(value);
+
+                for (int i = 0; i < len; i++) {
+                    readBSONElement(adder2);
+                }
+
+                readByte();
+
+                adder.accept(ename, array);
+            }
+            case BSON_BOOLEAN -> {
+                adder.accept(ename, new JsonPrimitive(readByte() != 0));
+            }
+            case BSON_NULL -> {
+                adder.accept(ename, JsonNull.INSTANCE);
+            }
+            case BSON_INT -> {
+                adder.accept(ename, new JsonPrimitive(readIntLE()));
+            }
+            case BSON_LONG -> {
+                adder.accept(ename, new JsonPrimitive(readLongLE()));
+            }
+            default -> {
+                throw new IllegalStateException("Invalid bson code: " + type);
+            }
+        }
+    }
+
+    private void writeBsonCString(String str) {
+        byte[] ascii = str.getBytes(StandardCharsets.UTF_8);
+
+        for (byte b : ascii) {
+            if (b == 0) {
+                throw new IllegalArgumentException("cstring cannot contain 0: '" + str + "' / " + Arrays.toString(ascii));
+            }
+        }
+
+        writeBytes(ascii);
+        writeByte(0);
+    }
+
+    private String readBsonCString() {
+        final ByteArrayList bytes = new ByteArrayList();
+
+        byte b;
+
+        while ((b = readByte()) != 0) {
+            bytes.add(b);
+        }
+
+        return new String(bytes.toByteArray(), StandardCharsets.UTF_8);
     }
 }

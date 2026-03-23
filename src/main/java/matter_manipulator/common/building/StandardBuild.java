@@ -20,6 +20,7 @@ import matter_manipulator.common.block_spec.StandardBlockSpec;
 import matter_manipulator.common.context.AnalysisContextImpl;
 import matter_manipulator.common.interop.MMRegistriesInternal;
 import matter_manipulator.common.items.ItemMatterManipulator;
+import matter_manipulator.common.networking.MMPacketBuffer;
 import matter_manipulator.common.utils.MCUtils;
 import matter_manipulator.common.utils.world.ProxiedWorld;
 import matter_manipulator.core.block_spec.ApplyResult;
@@ -35,13 +36,8 @@ public class StandardBuild implements IPendingBlockBuildable {
     private final ObjectOpenHashSet<BlockPos> visited = new ObjectOpenHashSet<>();
     private boolean done = false;
 
-    // Don't filter if we have a lot of blocks. Filtering causes only one resource to be placed per tick, which
-    // makes it look more impressive but take longer.
-    private final boolean doFilter;
-
     public StandardBuild(ArrayDeque<PendingBlock> pendingBlocks) {
         this.pendingBlocks = pendingBlocks;
-        this.doFilter = pendingBlocks.size() < 256;
     }
 
     @Override
@@ -63,6 +59,8 @@ public class StandardBuild implements IPendingBlockBuildable {
 
         int quota = placeSpeed;
 
+        List<PendingBlock> retry = new ArrayList<>();
+
         ResourceStack filter = null;
 
         while (quota > 0 && !pendingBlocks.isEmpty()) {
@@ -70,12 +68,13 @@ public class StandardBuild implements IPendingBlockBuildable {
 
             int x = pendingBlock.x, z = pendingBlock.z;
             BlockPos pos = pendingBlock.toPos();
+            IBlockState pendingState = pendingBlock.getBlockState();
 
             placingContext.setTarget(pos, pendingBlock.spec);
 
             if (!pendingBlock.spec.isValid()) {
                 pendingBlocks.removeFirst();
-                placingContext.error(new Localized("mm.info.error.unplaceable_block", pendingBlock.spec.getBlockState().toString()));
+                placingContext.error(new Localized("mm.info.error.unplaceable_block", pendingState.toString()));
                 continue;
             }
 
@@ -111,9 +110,7 @@ public class StandardBuild implements IPendingBlockBuildable {
 
             ResourceStack pendingResource = pendingBlock.spec.getResource();
 
-            if (doFilter) {
-                if (filter != null && !pendingResource.isSameType(filter)) break;
-            }
+            if (filter != null && !pendingResource.isSameType(filter)) break;
 
             analysisContext.setPos(pos);
             StandardBlockSpec existing = StandardBlockSpec.fromWorld(analysisContext);
@@ -148,12 +145,13 @@ public class StandardBuild implements IPendingBlockBuildable {
                 }
             }
 
+            // Check block dependencies for things like levers by placing it in a fake world and mocking a block update.
+            // If it removes itself, then it can't be placed here yet.
             proxiedWorld.overrides.clear();
-            proxiedWorld.setBlockState(pos, Blocks.AIR.getDefaultState());
+            proxiedWorld.setBlockState(pos, pendingState);
+            pendingState.getBlock().neighborChanged(pendingState, proxiedWorld, pos, Blocks.AIR, pos.add(0, 1, 0));
 
-            // Check block dependencies for things like levers
-            // If we can't place this block, shuffle it to the back of the list
-            if (!pendingBlock.spec.getBlockState().getBlock().canPlaceBlockAt(proxiedWorld, pos)) {
+            if (proxiedWorld.getBlockState(pos) != pendingState) {
                 pendingBlocks.addLast(pendingBlocks.removeFirst());
                 shuffleCount++;
 
@@ -196,22 +194,22 @@ public class StandardBuild implements IPendingBlockBuildable {
             if (world.isAirBlock(pos)) {
                 result.add(pendingBlock.spec.place(placingContext));
 
-                if (doFilter && filter == null && (result.contains(ApplyResult.DidSomething) || result.contains(ApplyResult.Wrenched))) {
+                if (filter == null && (result.contains(ApplyResult.DidSomething) || result.contains(ApplyResult.Wrenched))) {
                     filter = pendingResource.multipliedCopy(1);
                 }
             }
 
-            if (!result.contains(ApplyResult.Error)) {
+            if (!ApplyResult.hasFailure(result)) {
                 MutableObject<IBlockState> state = new MutableObject<>(world.getBlockState(pos));
 
-                MMRegistriesInternal.transformBlock(state, pendingBlock.spec.getBlockState(), result);
+                MMRegistriesInternal.transformBlock(state, pendingState, result);
 
-                if (!result.contains(ApplyResult.Error)) {
+                if (!ApplyResult.hasFailure(result)) {
                     world.setBlockState(pos, state.getValue());
                 }
             }
 
-            if (!result.contains(ApplyResult.Error)) {
+            if (!ApplyResult.hasFailure(result)) {
                 result.addAll(pendingBlock.spec.update(placingContext));
             }
 
@@ -222,8 +220,7 @@ public class StandardBuild implements IPendingBlockBuildable {
             }
 
             if (result.contains(ApplyResult.Retry)) {
-                pendingBlocks.add(pendingBlock);
-                visited.remove(pos);
+                retry.add(pendingBlock);
             }
 
             pendingBlocks.remove();
@@ -231,6 +228,13 @@ public class StandardBuild implements IPendingBlockBuildable {
             if (result.contains(ApplyResult.DidSomething) || result.contains(ApplyResult.Wrenched)) {
                 quota--;
             }
+
+            quota--;
+        }
+
+        for (PendingBlock pendingBlock : retry) {
+            pendingBlocks.add(pendingBlock);
+            visited.remove(pendingBlock.toPos());
         }
 
         if (quota == placeSpeed) {
@@ -252,5 +256,14 @@ public class StandardBuild implements IPendingBlockBuildable {
     @Override
     public boolean isDone() {
         return done;
+    }
+
+    public void encode(MMPacketBuffer buffer) {
+        buffer.writeList(new ArrayList<>(this.pendingBlocks), PendingBlock::encode);
+    }
+
+    public void decode(MMPacketBuffer buffer) {
+        pendingBlocks.clear();
+        pendingBlocks.addAll(buffer.readList(PendingBlock::decodeNew));
     }
 }

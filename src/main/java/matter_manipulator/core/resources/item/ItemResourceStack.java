@@ -7,8 +7,8 @@ import matter_manipulator.core.resources.ResourceStack;
 public interface ItemResourceStack extends ResourceStack, ItemStackLike {
 
     @Override
-    default ItemStackResource getResource() {
-        return ItemStackResource.ITEMS;
+    default ItemResource getResource() {
+        return ItemResource.ITEMS;
     }
 
     @Override

@@ -6,7 +6,7 @@ import matter_manipulator.core.context.ManipulatorContext;
 /// extract or insert a specific type of resource. Any implementation details beyond this are undefined, and each
 /// [Resource] will have its own mechanism for registering sub-providers, assuming such a concept makes sense for that
 /// resource.
-public interface ResourceProviderFactory<Provider extends ResourceProvider> {
+public interface ResourceProviderFactory<Provider extends ResourceProvider<?>> {
 
     /// Returns the resource that is associated with this factory.
     Resource<Provider> getResource();

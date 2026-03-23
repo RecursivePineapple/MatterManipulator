@@ -62,10 +62,6 @@ public class MMRenderer {
     /// Just loads the class
     public static void init() {}
 
-    public static void markNeedsReanalysis() {
-        INSTANCE.needsAnalysis = true;
-    }
-
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void renderSelection(RenderWorldLastEvent event) {
         try {
@@ -92,7 +88,7 @@ public class MMRenderer {
 
         boolean justRendered = lastRenderer != null;
 
-        if (held != ItemStack.EMPTY && held.getItem() instanceof ItemMatterManipulator) {
+        if (!held.isEmpty() && held.getItem() instanceof ItemMatterManipulator) {
             MMState state = ItemMatterManipulator.getState(held);
 
             RenderContextImpl context = new RenderContextImpl(held, state, event.getPartialTicks());
@@ -184,7 +180,7 @@ public class MMRenderer {
         }
 
         if (wasInUse) {
-            markNeedsReanalysis();
+            needsAnalysis = true;
             wasInUse = false;
         }
     }

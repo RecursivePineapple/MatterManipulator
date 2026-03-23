@@ -11,15 +11,15 @@ import net.minecraft.util.math.AxisAlignedBB;
 import org.jetbrains.annotations.NotNull;
 
 import matter_manipulator.common.items.ItemCluster;
-import matter_manipulator.core.item.ImmutableItemStack;
-import matter_manipulator.common.utils.items.ItemUtils;
 import matter_manipulator.core.context.ManipulatorContext;
+import matter_manipulator.core.item.ImmutableItemStack;
+import matter_manipulator.core.item.ItemStackIO;
+import matter_manipulator.core.item.ItemStackIteratorBuilder;
+import matter_manipulator.core.item.ItemUtils;
 import matter_manipulator.core.persist.IDataStorage;
-import matter_manipulator.core.resources.item.ItemStackIO;
-import matter_manipulator.core.resources.item.ItemStackIOFactory;
-import matter_manipulator.core.resources.item.ItemStackIteratorBuilder;
+import matter_manipulator.core.resources.ResourceIOFactory;
 
-public class DroppingItemStackIOFactory implements ItemStackIOFactory {
+public class DroppingItemStackIOFactory implements ResourceIOFactory<ItemStackIO> {
 
     @Override
     public Optional<ItemStackIO> getIO(ManipulatorContext context, IDataStorage storage) {

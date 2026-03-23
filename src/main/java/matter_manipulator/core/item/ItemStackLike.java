@@ -7,7 +7,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.oredict.OreDictionary;
 
 import matter_manipulator.common.utils.MCUtils;
-import matter_manipulator.common.utils.items.ItemUtils;
 
 /// Something that acts like an ItemStack. Does not include amounts, use [ImmutableItemStack] for that instead.
 public interface ItemStackLike extends ImmutableItemMeta {

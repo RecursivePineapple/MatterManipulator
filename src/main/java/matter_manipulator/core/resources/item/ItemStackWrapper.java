@@ -6,15 +6,14 @@ import net.minecraft.nbt.NBTTagCompound;
 
 import org.jetbrains.annotations.NotNull;
 
-import matter_manipulator.common.utils.items.ItemUtils;
 import matter_manipulator.core.i18n.Localized;
 import matter_manipulator.core.item.ItemId;
 import matter_manipulator.core.item.ItemStackLike;
+import matter_manipulator.core.item.ItemUtils;
 import matter_manipulator.core.resources.ResourceStack;
-import matter_manipulator.core.resources.ResourceStack.IntResourceStack;
 import matter_manipulator.core.resources.ResourceTrait;
 
-public class ItemStackWrapper implements ItemResourceStack, IntResourceStack {
+public class ItemStackWrapper implements IntItemResourceStack {
 
     public ItemStack stack;
 

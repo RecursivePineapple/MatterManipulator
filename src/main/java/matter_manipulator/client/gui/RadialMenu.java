@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.function.BooleanSupplier;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.init.SoundEvents;
 import net.minecraftforge.fml.relauncher.Side;
 
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +26,6 @@ import com.cleanroommc.modularui.theme.WidgetTheme;
 import com.cleanroommc.modularui.theme.WidgetThemeEntry;
 import com.cleanroommc.modularui.widget.Widget;
 import com.cleanroommc.modularui.widget.sizer.Area;
-import matter_manipulator.common.networking.SoundResource;
 
 /**
  * A radial menu widget that fills the whole screen.
@@ -185,7 +186,7 @@ public class RadialMenu extends Widget<RadialMenu> implements Interactable {
 
             if (isHoveredOver) {
                 if (!option.hidden.getAsBoolean()) {
-                    SoundResource.RANDOM_CLICK.playClient(0.5f, 1f);
+                    Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.0F));
                     option.onClick.onClick(this, option, mouseButton, Side.CLIENT);
                 }
 

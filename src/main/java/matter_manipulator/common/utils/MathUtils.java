@@ -8,6 +8,7 @@ import java.util.function.Function;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.RayTraceResult.Type;
@@ -271,7 +272,7 @@ public class MathUtils {
      * This can certainly be improved but I couldn't get the Iterator version to work properly and this doesn't seem to
      * be a big problem.
      */
-    public static List<Vector3i> getBlocksInBB(Location l, Vector3i deltas) {
+    public static List<BlockPos> getBlocksInBB(Location l, Vector3i deltas) {
         int minX = Math.min(l.x, l.x + deltas.x);
         int minY = Math.min(l.y, l.y + deltas.y);
         int minZ = Math.min(l.z, l.z + deltas.z);
@@ -283,12 +284,12 @@ public class MathUtils {
         int dY = maxY - minY;
         int dZ = maxZ - minZ;
 
-        List<Vector3i> blocks = new ArrayList<>();
+        List<BlockPos> blocks = new ArrayList<>();
 
         for (int y = 0; y < dY; y++) {
             for (int z = 0; z < dZ; z++) {
                 for (int x = 0; x < dX; x++) {
-                    blocks.add(new Vector3i(minX + x, minY + y, minZ + z));
+                    blocks.add(new BlockPos(minX + x, minY + y, minZ + z));
                 }
             }
         }

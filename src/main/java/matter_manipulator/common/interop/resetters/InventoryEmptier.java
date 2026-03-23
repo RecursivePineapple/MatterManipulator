@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
@@ -14,7 +13,7 @@ import matter_manipulator.core.context.ManipulatorContext;
 import matter_manipulator.core.interop.BlockResetter;
 import matter_manipulator.core.inventory_adapter.InventoryAdapter;
 import matter_manipulator.core.resources.ResourceStack;
-import matter_manipulator.core.resources.item.ItemStackWrapper;
+import matter_manipulator.core.resources.item.ItemResourceStack;
 
 public class InventoryEmptier implements BlockResetter {
 
@@ -36,22 +35,22 @@ public class InventoryEmptier implements BlockResetter {
     }
 
     private static void emptyInventory(List<ResourceStack> out, TileEntity te, EnumFacing side) {
-        InventoryAdapter adapter = MMRegistriesInternal.getInventoryAdapter(te, side);
+        InventoryAdapter<? extends ItemResourceStack> adapter = MMRegistriesInternal.getInventoryAdapter(te, side);
 
         if (adapter == null) return;
 
         for (int slot : adapter.getSlots().toIntArray()) {
-            ItemStack stack = adapter.getStackInSlot(slot);
+            ResourceStack stack = adapter.getStackInSlot(slot);
 
             if (stack == null || stack.isEmpty()) continue;
 
             if (!adapter.canExtract(slot)) continue;
 
-            ItemStack extracted = adapter.extract(slot);
+            ResourceStack extracted = adapter.extract(slot);
 
             if (extracted == null || extracted.isEmpty()) continue;
 
-            out.add(new ItemStackWrapper(extracted));
+            out.add(extracted);
         }
     }
 }

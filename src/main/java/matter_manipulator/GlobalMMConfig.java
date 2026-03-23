@@ -31,6 +31,9 @@ public class GlobalMMConfig {
     @Config(modid = Tags.MODID, category = "debug")
     public static class DebugConfig {
 
+        @Config.Name("Enables various debug tools")
+        public static boolean debug = false;
+
         @Config.Comment("The maximum number of nanoseconds that the cooperative scheduler will run for each tick.")
         @Config.Name("Scheduler Max Duration (ns)")
         public static int schedulerDuration = 10_000_000; // 10 ms

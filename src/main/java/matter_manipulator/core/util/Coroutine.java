@@ -1,5 +1,8 @@
 package matter_manipulator.core.util;
 
+import java.util.function.Function;
+import java.util.function.Supplier;
+
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.lang3.mutable.MutableObject;
 
@@ -40,5 +43,56 @@ public interface Coroutine<T> {
         }
 
         return outer$value.getValue();
+    }
+
+    default <T2> Coroutine<T2> then(Function<T, Coroutine<T2>> next) {
+        class ProxyContext implements CoroutineExecutionContext<T> {
+
+            public CoroutineExecutionContext<?> base;
+            public boolean stopped = false;
+            public T value = null;
+
+            public Coroutine<T> first;
+            public Coroutine<T2> second;
+
+            @Override
+            public boolean shouldYield() {
+                return base.shouldYield();
+            }
+
+            @Override
+            public void stop(T value) {
+                stopped = true;
+                this.value = value;
+            }
+        }
+
+        ProxyContext proxy = new ProxyContext();
+
+        proxy.first = this;
+
+        return ctx -> {
+            proxy.base = ctx;
+
+            if (!proxy.stopped) {
+                proxy.first.run(proxy);
+            }
+
+            if (proxy.stopped) {
+                if (proxy.second == null) {
+                    proxy.second = next.apply(proxy.value);
+                }
+
+                proxy.second.run(ctx);
+            }
+        };
+    }
+
+    static <T> Coroutine<T> finished(T value) {
+        return ctx -> ctx.stop(value);
+    }
+
+    static <T> Coroutine<T> finishedDeferred(Supplier<T> value) {
+        return ctx -> ctx.stop(value.get());
     }
 }

@@ -7,6 +7,7 @@ import java.nio.IntBuffer;
 import java.util.Comparator;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.client.renderer.vertex.VertexFormatElement;
@@ -23,6 +24,7 @@ import org.lwjgl.opengl.GL11;
 
 import com.github.bsideup.jabel.Desugar;
 import it.unimi.dsi.fastutil.Arrays;
+import matter_manipulator.MMMod;
 import matter_manipulator.core.color.ImmutableColor;
 import matter_manipulator.core.color.RGBColor;
 
@@ -181,5 +183,18 @@ public class MMRenderUtils {
         float len = onto.length();
 
         return len == 0 ? 0 : v.dot(onto) / len;
+    }
+
+    public static void safeBegin(BufferBuilder buffer, int glMode, VertexFormat format) {
+        if (((BufferBuilderExt) buffer).mm$isDrawing()) {
+            MMMod.LOG.warn("Resetting buffer that was being drawn: this indicates a crash or logic error somewhere. Any contained geometry will be discarded.");
+            buffer.finishDrawing();
+        }
+
+        buffer.reset();
+
+        buffer.begin(glMode, format);
+
+        buffer.setTranslation(0, 0, 0);
     }
 }

@@ -41,8 +41,10 @@ public interface IBlockSpec {
     EnumSet<ApplyResult> update(BlockPlacingContext context);
 
     IBlockSpec clone();
+    IBlockSpec cloneWithState(IBlockState newState);
 
-    IBlockSpec clone(IBlockState newState);
+    /// Returns a copy of this spec with the [IBlockState] set to the default variant for the resource.
+    IBlockSpec sanitized();
 
     default boolean isAir() {
         return getBlockState().getMaterial() == Material.AIR;

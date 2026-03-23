@@ -1,5 +1,7 @@
 package matter_manipulator.core.block_spec;
 
+import java.util.Set;
+
 public enum ApplyResult {
     DidNothing,
     NotApplicable,
@@ -12,4 +14,8 @@ public enum ApplyResult {
     /// An unrecoverable error occured and the block is in an undefined state. No further operations will be performed.
     Error,
     ;
+
+    public static boolean hasFailure(Set<ApplyResult> result) {
+        return result.contains(Retry) || result.contains(Error);
+    }
 }

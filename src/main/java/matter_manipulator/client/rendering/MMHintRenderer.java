@@ -129,7 +129,7 @@ public class MMHintRenderer {
 
     @SubscribeEvent
     public void onRenderWorldLast(RenderWorldLastEvent e) {
-        if (hints != null && System.currentTimeMillis() >= hints.expiration) {
+        if (hints != null && hints.expiration > 0 && System.currentTimeMillis() >= hints.expiration) {
             hints = null;
         }
 
@@ -156,7 +156,7 @@ public class MMHintRenderer {
             GL11.glTranslated(-playerPos.x(), -playerPos.y(), -playerPos.z());
 
             GL11.glDisable(GL11.GL_CULL_FACE);
-            GL11.glDisable(GL11.GL_ALPHA_TEST);
+            GL11.glEnable(GL11.GL_ALPHA_TEST);
             GL11.glEnable(GL11.GL_BLEND);
             GL11.glBlendFunc(GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_SRC_ALPHA);
             if (!hints.depthTest) GL11.glDisable(GL11.GL_DEPTH_TEST);
@@ -222,16 +222,7 @@ public class MMHintRenderer {
     }
 
     private void rebuildBuffer(BufferBuilder buffer, List<Hint> hints) {
-        if (((BufferBuilderExt) buffer).mm$isDrawing()) {
-            MMMod.LOG.warn("Resetting buffer that was being drawn: this indicates a crash or logic error somewhere. Any contained geometry will be discarded.");
-            buffer.finishDrawing();
-        }
-
-        buffer.reset();
-
-        buffer.begin(GL11.GL_QUADS, FORMAT);
-
-        buffer.setTranslation(0, 0, 0);
+        MMRenderUtils.safeBegin(buffer, GL11.GL_QUADS, FORMAT);
 
         ModelManager modelManager = ((AccessorMinecraft) Minecraft.getMinecraft()).getModelManager();
         ProxiedWorld world = new ProxiedWorld(Minecraft.getMinecraft().world);
@@ -306,9 +297,9 @@ public class MMHintRenderer {
                 float y = Float.intBitsToFloat(ints.get(pos + 1));
                 float z = Float.intBitsToFloat(ints.get(pos + 2));
 
-                x = (x - cX) * 0.7f + cX;
-                y = (y - cY) * 0.7f + cY;
-                z = (z - cZ) * 0.7f + cZ;
+                x = (x - cX) * 0.5f + cX;
+                y = (y - cY) * 0.5f + cY;
+                z = (z - cZ) * 0.5f + cZ;
 
                 ints.put(pos, Float.floatToIntBits(x));
                 ints.put(pos + 1, Float.floatToIntBits(y));

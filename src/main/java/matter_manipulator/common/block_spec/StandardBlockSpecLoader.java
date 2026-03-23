@@ -22,7 +22,7 @@ public class StandardBlockSpecLoader implements IBlockSpecLoader {
 
     @Override
     public String getKey() {
-        return "block";
+        return "core:block";
     }
 
     @Override

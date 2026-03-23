@@ -4,6 +4,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 
@@ -16,7 +17,7 @@ public class StandardBlockAdapter implements BlockAdapter {
 
     @Override
     public boolean canAdapt(IBlockState state) {
-        return true;
+        return Item.getItemFromBlock(state.getBlock()) instanceof ItemBlock;
     }
 
     @Override
@@ -42,5 +43,16 @@ public class StandardBlockAdapter implements BlockAdapter {
 
         //noinspection deprecation
         return block.getStateFromMeta(item.getItem().getMetadata(item.toStackFast(1).getMetadata()));
+    }
+
+    @Override
+    public IBlockState sanitized(IBlockState state) {
+        Block block = state.getBlock();
+        Item item = Item.getItemFromBlock(block);
+
+        int dropped = block.damageDropped(state);
+
+        //noinspection deprecation
+        return block.getStateFromMeta(item.getMetadata(dropped));
     }
 }

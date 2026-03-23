@@ -44,7 +44,8 @@ public class BoxRenderer {
      * Starts rendering fancy boxes. Should only be called once per frame, to allow quad sorting.
      */
     public void start() {
-        buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
+        MMRenderUtils.safeBegin(buffer, GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
+
         drawing = true;
     }
 

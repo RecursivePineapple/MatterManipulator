@@ -10,7 +10,7 @@ import matter_manipulator.core.block_spec.ApplyResult;
 /// the target [IBlockState].
 public interface BlockStateTransformer {
 
-    /// Modifies `existing` to match `target` as best as possible. This should not spawn in items or change block
+    /// Modifies `state` to match `target` as best as possible. This should not spawn in items or change block
     /// materials, it should only update things like `facing` properties.
     ApplyResult transform(MutableObject<IBlockState> state, IBlockState target);
 

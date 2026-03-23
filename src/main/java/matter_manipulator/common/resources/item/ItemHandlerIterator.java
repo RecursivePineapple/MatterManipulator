@@ -5,9 +5,9 @@ import net.minecraftforge.items.IItemHandler;
 
 import org.jetbrains.annotations.NotNull;
 
-import matter_manipulator.common.utils.items.FastImmutableItemStack;
+import matter_manipulator.core.item.FastImmutableItemStack;
 import matter_manipulator.core.item.ImmutableItemStack;
-import matter_manipulator.core.resources.item.ItemStackPredicate;
+import matter_manipulator.core.item.ItemStackPredicate;
 
 /// An inventory iterator for a standard inventory. Performs all item slots validation. When the side is null,
 /// canExtractItem and canInsertItem are skipped - only [IItemHandler#isItemValid(int, ItemStack)] is checked.

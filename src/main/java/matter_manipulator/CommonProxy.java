@@ -25,6 +25,7 @@ import matter_manipulator.common.items.MMItemList;
 import matter_manipulator.common.items.MMMetaItem;
 import matter_manipulator.common.items.ManipulatorTier;
 import matter_manipulator.common.items.RecipeInstallUpgrade;
+import matter_manipulator.common.keybind.MMKeybinds;
 import matter_manipulator.common.networking.MMNetwork;
 import matter_manipulator.common.ui.ManipulatorUIFactory;
 import matter_manipulator.common.uplink.TileUplinkController;
@@ -49,6 +50,7 @@ public class CommonProxy {
         GlobalMMConfig.init();
         MMNetwork.init();
         GuiManager.registerFactory(ManipulatorUIFactory.INSTANCE);
+        MMKeybinds.init();
     }
 
     public void init(FMLInitializationEvent event) {

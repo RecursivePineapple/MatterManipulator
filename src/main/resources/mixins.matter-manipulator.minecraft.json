@@ -7,14 +7,15 @@
   "injectors": {
   },
   "mixins": [
+    "AccessorItemSlab",
     "AccessorItemStack",
     "AccessorWorld",
     "MixinMiscMetadata",
     "MixinWorldDropCapturing"
   ],
   "client": [
-    "MixinBufferBuilder",
-    "AccessorMinecraft"
+    "AccessorMinecraft",
+    "MixinBufferBuilder"
   ],
   "server": []
 }

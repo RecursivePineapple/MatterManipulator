@@ -7,6 +7,8 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
 
+import net.minecraftforge.fluids.FluidStack;
+
 import matter_manipulator.MMMod;
 import matter_manipulator.Tags;
 import matter_manipulator.common.networking.MMActionWithPayload;
@@ -148,7 +150,7 @@ public class Localized {
         if (player instanceof EntityPlayerMP playerMP) {
             CHAT.sendToPlayer(playerMP, this);
         } else {
-            player.sendStatusMessage(new TextComponentString(this.toString()), false);
+            player.sendStatusMessage(new TextComponentString(MCUtils.processFormatStacks(this.toString())), false);
         }
     }
 
@@ -160,6 +162,7 @@ public class Localized {
     private static final byte TYPE_STRING = 5;
     private static final byte TYPE_LOCALIZED = 6;
     private static final byte TYPE_ITEM_STACK = 7;
+    private static final byte TYPE_FLUID_STACK = 8;
 
     private static void encodeArg(MMPacketBuffer buffer, Object arg) {
         if (arg instanceof Integer i) {
@@ -204,6 +207,11 @@ public class Localized {
             return;
         }
 
+        if (arg instanceof FluidStack stack) {
+            buffer.writeByte(TYPE_FLUID_STACK);
+            buffer.writeFluidStack(stack);
+        }
+
         buffer.writeByte(TYPE_INVALID);
 
         MMMod.LOG.error("Attempted to send illegal Localized argument over the network: {}", arg, new Exception());
@@ -234,6 +242,9 @@ public class Localized {
             }
             case TYPE_ITEM_STACK -> {
                 return buffer.readItemStack();
+            }
+            case TYPE_FLUID_STACK -> {
+                return buffer.readFluidStack();
             }
         }
 
@@ -273,6 +284,11 @@ public class Localized {
 
             if (arg instanceof ItemStack stack) {
                 out[idx] = stack.getDisplayName();
+                continue;
+            }
+
+            if (arg instanceof FluidStack stack) {
+                out[idx] = stack.getLocalizedName();
                 continue;
             }
 

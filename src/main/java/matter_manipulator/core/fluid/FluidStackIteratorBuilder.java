@@ -1,0 +1,61 @@
+package matter_manipulator.core.fluid;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import matter_manipulator.core.resources.IteratorUsage;
+
+public interface FluidStackIteratorBuilder {
+
+    /// Sets the filter for this iterator. The iterator must respect the given filter by only returning stacks that
+    /// match it. Note that the iterator may still return empty stacks.
+    /// Using this method is heavily recommended because it will enable the backend to only query specific stacks in
+    /// some situations. If this iterator is drawing from something like an AE system it will only check the handful of
+    /// slots that match the predicate, instead of checking every item. Note that this optimization relies on
+    /// [FluidStackPredicate#getStacks()] returning a valid collection. If this is not the case, then this method can be
+    /// elided.
+    FluidStackIteratorBuilder setFluidFilter(@Nullable FluidStackPredicate filter);
+
+    /// Instead of checking real items, this iterator should only contain any patterns contained by the parent item
+    /// source. Extractions will only be possible while generating an MM plan, in which case the extracted items will be
+    /// recorded as plan inputs.
+    /// <p/>
+    /// Whether extractions succeed is up to the implementation. If it has some way to estimate how many patterns are
+    /// craftable, it should return that many items. Otherwise, requests may be completely fulfilled.
+    FluidStackIteratorBuilder iteratePatterns(boolean onlyPatterns);
+
+    /// Gives a usage hint to iterator implementations. Implementations may avoid expensive operations if iterator
+    /// consumers only need to insert or extract.
+    /// Implementations are free to throw an exception if an unexpected insert or extract is performed. I.E. if a
+    /// consumer sets the usage to [#Extract] and tries to insert an item, the iterator implementation may throw an
+    /// exception, void the item, or behave normally.
+    /// Iterator implementations use [IteratorUsage#Both] as the default.
+    FluidStackIteratorBuilder setUsage(@NotNull IteratorUsage usage);
+
+    FluidStackIterator build();
+
+    EmptyFluidStackIteratorBuilder EMPTY = new EmptyFluidStackIteratorBuilder();
+
+    class EmptyFluidStackIteratorBuilder implements FluidStackIteratorBuilder {
+
+        @Override
+        public FluidStackIteratorBuilder setFluidFilter(@Nullable FluidStackPredicate filter) {
+            return this;
+        }
+
+        @Override
+        public FluidStackIteratorBuilder iteratePatterns(boolean onlyPatterns) {
+            return this;
+        }
+
+        @Override
+        public FluidStackIteratorBuilder setUsage(@NotNull IteratorUsage usage) {
+            return this;
+        }
+
+        @Override
+        public FluidStackIterator build() {
+            return FluidStackIterator.EMPTY;
+        }
+    }
+}

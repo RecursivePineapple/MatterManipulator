@@ -12,6 +12,10 @@ public class MetaMap implements MetadataContainer {
 
     private static final Object MISSING = new Object();
 
+    public void clear() {
+        values.clear();
+    }
+
     @Nullable
     @Override
     public <T> T getMetaValue(MetaKey<T> key) {
@@ -39,8 +43,6 @@ public class MetaMap implements MetadataContainer {
 
         // Hack so that we don't have to do an extra map operation to check if the key was missing
         if (value == MISSING) {
-            value = null;
-
             Optional def = key.getDefault();
 
             if (!def.isPresent()) {

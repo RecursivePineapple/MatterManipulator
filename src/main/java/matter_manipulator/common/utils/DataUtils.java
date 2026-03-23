@@ -6,6 +6,7 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -96,6 +97,48 @@ public class DataUtils {
         }
 
         return -1;
+    }
+
+    public static <T> T[] slice(T[] array, int start, int end) {
+        T[] out = Arrays.copyOf(array, end - start);
+
+        int i = 0;
+
+        for (int i2 = start; i2 < end; i2++) {
+            out[i++] = array[i2];
+        }
+
+        return out;
+    }
+
+    public static String join(String sep, String[] array) {
+        StringBuilder sb = new StringBuilder();
+
+        for (String chunk : array) {
+            //noinspection SizeReplaceableByIsEmpty
+            if (sb.length() > 0) {
+                sb.append(sep);
+            }
+
+            sb.append(chunk);
+        }
+
+        return sb.toString();
+    }
+
+    public static String join(String sep, Collection<String> col) {
+        StringBuilder sb = new StringBuilder();
+
+        for (String chunk : col) {
+            //noinspection SizeReplaceableByIsEmpty
+            if (sb.length() > 0) {
+                sb.append(sep);
+            }
+
+            sb.append(chunk);
+        }
+
+        return sb.toString();
     }
 
     public static <T> T getIndexSafe(T[] array, int index) {

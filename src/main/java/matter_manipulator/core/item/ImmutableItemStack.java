@@ -2,8 +2,6 @@ package matter_manipulator.core.item;
 
 import net.minecraft.item.ItemStack;
 
-import matter_manipulator.common.utils.items.FastImmutableItemStack;
-
 /**
  * An immutable version of {@link ItemStack} for situations where ItemStacks should never be modified.
  */

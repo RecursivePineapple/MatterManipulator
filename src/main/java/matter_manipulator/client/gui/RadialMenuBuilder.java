@@ -8,8 +8,6 @@ import java.util.function.Supplier;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
-
 import net.minecraftforge.fml.relauncher.Side;
 
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -195,7 +193,7 @@ public class RadialMenuBuilder implements BranchableRadialMenu {
         public RadialMenuOptionBuilderLeaf<Parent> onClicked(Runnable onClicked) {
             this.onClicked = (menu, option, mouseButton, side) -> {
                 onClicked.run();
-                player.get().closeScreen();
+                if (side.isServer()) player.get().closeScreen();
             };
             return this;
         }
@@ -203,7 +201,7 @@ public class RadialMenuBuilder implements BranchableRadialMenu {
         public RadialMenuOptionBuilderLeaf<Parent> onClicked(BooleanSupplier onClicked) {
             this.onClicked = (menu, option, mouseButton, side) -> {
                 if (onClicked.getAsBoolean()) {
-                    player.get().closeScreen();
+                    if (side.isServer()) player.get().closeScreen();
                 }
             };
             return this;
@@ -213,7 +211,7 @@ public class RadialMenuBuilder implements BranchableRadialMenu {
             this.onClicked = (menu, option, mouseButton, side) -> {
                 if (mouseButton == buttonId) {
                     onClicked.run();
-                    player.get().closeScreen();
+                    if (side.isServer()) player.get().closeScreen();
                 }
             };
 
@@ -231,8 +229,9 @@ public class RadialMenuBuilder implements BranchableRadialMenu {
         @Override
         public void registerActions(RadialMenu menu, PanelSyncManager syncManager, String baseName) {
             syncManager.registerSyncedAction(baseName + actionId, packet -> {
-                packet = new PacketBuffer(packet.copy());
-                this.onClicked.onClick(menu, this.option, packet.readVarInt(), syncManager.isClient() ? Side.CLIENT : Side.SERVER);
+                if (!syncManager.isClient()) {
+                    this.onClicked.onClick(menu, this.option, packet.readVarInt(), Side.SERVER);
+                }
             });
         }
 
@@ -244,6 +243,8 @@ public class RadialMenuBuilder implements BranchableRadialMenu {
             this.option.weight = this.weight;
             this.option.hidden = this.hidden;
             this.option.onClick = (menu2, option, mouseButton, side) -> {
+                this.onClicked.onClick(menu, this.option, mouseButton, Side.CLIENT);
+
                 syncManager.callSyncedAction(baseName + actionId, buffer -> {
                     buffer.writeVarInt(mouseButton);
                 });

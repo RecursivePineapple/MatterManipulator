@@ -61,6 +61,7 @@ mm.mode.geometry.shape.cylinder=Cylinder
 
 # Misc
 mm.misc.itemstack=%s
+mm.misc.fluidstack=%s
 
 # GUI
 mm.gui.set_mode=Set Mode
@@ -165,6 +166,11 @@ mm.info.error.move_overlapping=Cannot move when the cut and paste regions overla
 mm.info.error.build_compile_crash=Could not determine which blocks to place due to a crash. Check your server logs for more info.
 mm.info.error.build_compile_waiting=Your Matter Manipulator is taking a while to determine which blocks to place.
 mm.info.error.build_place_crash=Could not place blocks due to a crash. Items may have been voided. Check your server logs for more info.
+mm.info.geom.all=all blocks
+mm.info.geom.faces=faces
+mm.info.geom.edges=edges
+mm.info.geom.corners=corners
+mm.info.geom.volumes=volumes
 
 # Transform
 mm.transform.info=Flip: %s\nUp: %s\nForward: %s
@@ -186,7 +192,6 @@ mm.transform.header.stacking=Stacking
 
 # Keybindings
 key.mm=Matter Manipulator
-key.mm-ctrl=Control
 key.mm-cut=Mark Cut
 key.mm-copy=Mark Copy
 key.mm-paste=Mark Paste
@@ -200,3 +205,5 @@ building=Building
 
 # NEI
 mm.recipe.upgrades=Manipulator Upgrades
+
+itemGroup.matter-manipulator=Matter Manipulator

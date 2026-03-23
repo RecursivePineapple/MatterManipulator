@@ -65,7 +65,7 @@ public class BigItemStack implements ItemResourceStack, LongResourceStack {
 
     @Override
     public @NotNull Localized getName() {
-        return null;
+        return new Localized("mm.misc.itemstack", toStack(1));
     }
 
     @Override

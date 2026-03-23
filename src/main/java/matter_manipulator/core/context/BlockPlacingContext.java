@@ -7,8 +7,8 @@ import matter_manipulator.core.i18n.Localized;
 import matter_manipulator.core.resources.Resource;
 import matter_manipulator.core.resources.ResourceProvider;
 import matter_manipulator.core.resources.ResourceStack;
-import matter_manipulator.core.resources.item.ItemStackResource;
-import matter_manipulator.core.resources.item.ItemStackResourceProvider;
+import matter_manipulator.core.resources.item.ItemResource;
+import matter_manipulator.core.resources.item.ItemResourceProvider;
 
 public interface BlockPlacingContext extends BuildingContextBase {
 
@@ -16,14 +16,15 @@ public interface BlockPlacingContext extends BuildingContextBase {
 
     IBlockSpec getSpec();
 
-    <Provider extends ResourceProvider> Provider resource(Resource<Provider> resource);
+    <Provider extends ResourceProvider<?>> Provider resource(Resource<Provider> resource);
 
-    default ItemStackResourceProvider items() {
-        return resource(ItemStackResource.ITEMS);
+    default ItemResourceProvider items() {
+        return resource(ItemResource.ITEMS);
     }
 
     default void insert(Iterable<ResourceStack> stacks) {
         for (ResourceStack stack : stacks) {
+            //noinspection unchecked
             resource(stack.getResource()).insert(stack);
         }
     }

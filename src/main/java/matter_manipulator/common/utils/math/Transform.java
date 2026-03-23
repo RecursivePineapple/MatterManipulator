@@ -7,6 +7,7 @@ import org.joml.Vector3f;
 import org.joml.Vector3i;
 
 import lombok.EqualsAndHashCode;
+import lombok.SneakyThrows;
 import matter_manipulator.common.utils.MathUtils;
 import matter_manipulator.common.utils.enums.ExtendedFacing;
 
@@ -14,7 +15,7 @@ import matter_manipulator.common.utils.enums.ExtendedFacing;
  * Represents the rotation and flipping.
  */
 @EqualsAndHashCode
-public class Transform {
+public class Transform implements Cloneable {
 
     public boolean flipX, flipY, flipZ;
     public EnumFacing forward = EnumFacing.NORTH, up = EnumFacing.UP;
@@ -114,6 +115,16 @@ public class Transform {
             + ", up="
             + up
             + "]";
+    }
+
+    @SneakyThrows
+    @Override
+    public Transform clone() {
+        Transform clone = (Transform) super.clone();
+
+        if (clone.rotation != null) clone.rotation = new Matrix4f(clone.rotation);
+
+        return clone;
     }
 
     public static Matrix4f fromFacing(ExtendedFacing facing) {

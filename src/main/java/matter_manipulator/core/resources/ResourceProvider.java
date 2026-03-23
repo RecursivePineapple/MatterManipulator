@@ -2,9 +2,9 @@ package matter_manipulator.core.resources;
 
 /// This is a minimal interface for resource I/O. Implementations are free to add extra methods to
 /// subclasses/subinterfaces for more granular or optimized operations.
-/// All operations performed on this interface or subclasses/subinterfaces must be atomic, and must be immediately
-/// affect the world to avoid duplication, voiding, or state sync glitches.
-public interface ResourceProvider {
+/// All operations performed on this interface or subclasses/subinterfaces must immediately affect the world to avoid
+/// duplication, voiding, or state sync glitches.
+public interface ResourceProvider<R extends ResourceStack> {
 
     /// Returns the factory that created this provider.
     ResourceProviderFactory<?> getFactory();
@@ -14,14 +14,14 @@ public interface ResourceProvider {
     /// reason.
     /// False positives should be avoided if possible as this method is used to determine if a block/part/etc can be
     /// immediately swapped with another block/part/etc. In this use-case, false positives will cause the existing block
-    /// to be removed without a replacement, which make cause user-facing operations to misbehave (i.e. setups will have
+    /// to be removed without a replacement, which cause user-facing operations to misbehave (i.e. setups will have
     /// random blocks/parts/etc removed).
-    boolean canExtract(ResourceStack request);
+    boolean canExtract(R request);
 
-    /// Fallibly extracts a stack of a resource from this provider.
-    boolean extract(ResourceStack request);
+    /// Fallibly extracts a stack of a resource from this provider. Returns the extracted stack. May return partial
+    /// stacks.
+    R extract(R request);
 
-    /// Inserts a resource into this provider. This operation should accept as much of the stack as possible. Any extra
-    /// will be voided due to the opaque nature of the stack.
-    boolean insert(ResourceStack stack);
+    /// Inserts a resource into this provider. Returns anything that was not inserted.
+    R insert(R stack);
 }

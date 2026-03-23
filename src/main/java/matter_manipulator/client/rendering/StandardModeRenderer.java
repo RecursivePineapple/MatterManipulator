@@ -1,6 +1,5 @@
 package matter_manipulator.client.rendering;
 
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.OptionalInt;
@@ -11,8 +10,8 @@ import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
 
-import org.apache.commons.lang3.mutable.MutableObject;
 import org.joml.Vector3i;
 
 import matter_manipulator.CommonProxy;
@@ -21,7 +20,6 @@ import matter_manipulator.common.block_spec.StandardBlockSpec;
 import matter_manipulator.common.context.AnalysisContextImpl;
 import matter_manipulator.common.interop.MMRegistriesInternal;
 import matter_manipulator.common.utils.data.Lazy;
-import matter_manipulator.core.block_spec.ApplyResult;
 import matter_manipulator.core.block_spec.IBlockSpec;
 import matter_manipulator.core.building.IPendingBlockBuildable;
 import matter_manipulator.core.building.PendingBlock;
@@ -31,7 +29,8 @@ import matter_manipulator.core.context.ManipulatorRenderingContext;
 import matter_manipulator.core.interop.BlockAdapter;
 import matter_manipulator.core.misc.BuildFeedback;
 
-public class StandardModeRenderer<Config, Buildable extends IPendingBlockBuildable> implements ModeRenderer<Config, Buildable> {
+public class StandardModeRenderer<Config, Buildable extends IPendingBlockBuildable>
+    implements ModeRenderer<Config, Buildable> {
 
     private static final ImmutableColor WHITE = RGBColor.fromRGB(0xE5F2FF);
     private static final ImmutableColor INFO = RGBColor.fromRGB(0x3e73ff);
@@ -84,11 +83,6 @@ public class StandardModeRenderer<Config, Buildable extends IPendingBlockBuildab
 
             if (pendingBlock.spec.isAir() && world.isAirBlock(pos)) continue;
 
-            analysisContext.setPos(pos);
-            StandardBlockSpec existing = StandardBlockSpec.fromWorld(analysisContext);
-
-            if (pendingBlock.spec.equals(existing)) continue;
-
             if (++i > RenderingConfig.maxHints) break;
 
             ImmutableColor tint = WHITE;
@@ -113,27 +107,26 @@ public class StandardModeRenderer<Config, Buildable extends IPendingBlockBuildab
                     pendingBlock.y,
                     pendingBlock.z,
                     HINT_WARNING.get(),
-                    ERROR
-                );
+                    ERROR);
 
                 continue;
             }
 
-            IBlockState base = adapter.getBlockForm(adapter.getResourceForm(target));
+            IBlockSpec sanitizedTarget = pendingBlock.spec.sanitized();
 
-            MutableObject<IBlockState> state = new MutableObject<>(base);
+            analysisContext.setPos(pos);
+            IBlockSpec sanitizedExisting = StandardBlockSpec.fromWorld(analysisContext)
+                .sanitized();
 
-            MMRegistriesInternal.transformBlock(state, target, EnumSet.noneOf(ApplyResult.class));
+            if (sanitizedTarget.equals(sanitizedExisting)) continue;
 
             MMHintRenderer.INSTANCE.addHint(
                 pendingBlock.x,
                 pendingBlock.y,
                 pendingBlock.z,
-                state.getValue().getBlock() == Blocks.AIR ?
-                    HINT_X.get() :
-                    pendingBlock.spec.clone(state.getValue()),
-                tint
-            );
+                sanitizedTarget.getBlockState()
+                    .getBlock() == Blocks.AIR ? HINT_X.get() : sanitizedTarget,
+                tint);
         }
 
         feedbackMap.forEach((pos, feedback) -> {
@@ -154,5 +147,21 @@ public class StandardModeRenderer<Config, Buildable extends IPendingBlockBuildab
     @Override
     public void reset(Config config, Buildable buildable) {
 
+    }
+
+    /// Used for detecting when the renderer changes, to invalidate the hints. Since a new render object is created each
+    /// frame, we just need to make sure the two are the same class. Renderers shouldn't contain any state.
+    ///
+    /// @see MMRenderer#renderSelectionImpl(RenderWorldLastEvent)
+    @Override
+    public boolean equals(Object obj) {
+        return obj != null && obj.getClass() == this.getClass();
+    }
+
+    /// Not necessarily needed, but this is implemented to fulfill the contract of [#equals(Object)].
+    @Override
+    public int hashCode() {
+        return this.getClass()
+            .hashCode();
     }
 }

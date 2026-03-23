@@ -7,7 +7,7 @@
   "injectors": {
   },
   "mixins": [
-    "MixinForgeHooks"
+    "MixinMinecraft"
   ],
   "client": [
   ],

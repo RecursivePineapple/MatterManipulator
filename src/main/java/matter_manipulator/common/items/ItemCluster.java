@@ -1,6 +1,5 @@
 package matter_manipulator.common.items;
 
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -14,7 +13,7 @@ public class ItemCluster extends Item {
     public ItemCluster() {
         instance = this;
 
-        setCreativeTab(CreativeTabs.TOOLS);
+        setCreativeTab(MMCreativeTab.INSTANCE);
         setRegistryName(Tags.MODID, "cluster");
         setTranslationKey("cluster");
         setMaxStackSize(1);

@@ -3,7 +3,6 @@ package matter_manipulator.common.resources.item.ios;
 import java.util.Optional;
 
 import net.minecraft.entity.player.InventoryPlayer;
-
 import net.minecraftforge.items.wrapper.InvWrapper;
 
 import org.jetbrains.annotations.NotNull;
@@ -11,14 +10,15 @@ import org.jetbrains.annotations.Nullable;
 
 import matter_manipulator.common.resources.item.ItemHandlerIterator;
 import matter_manipulator.core.context.ManipulatorContext;
+import matter_manipulator.core.item.ItemStackIO;
+import matter_manipulator.core.item.ItemStackIterator;
+import matter_manipulator.core.item.ItemStackIteratorBuilder;
+import matter_manipulator.core.item.ItemStackPredicate;
 import matter_manipulator.core.persist.IDataStorage;
-import matter_manipulator.core.resources.item.ItemStackIO;
-import matter_manipulator.core.resources.item.ItemStackIOFactory;
-import matter_manipulator.core.resources.item.ItemStackIterator;
-import matter_manipulator.core.resources.item.ItemStackIteratorBuilder;
-import matter_manipulator.core.resources.item.ItemStackPredicate;
+import matter_manipulator.core.resources.IteratorUsage;
+import matter_manipulator.core.resources.ResourceIOFactory;
 
-public class PlayerInventoryItemStackIOFactory implements ItemStackIOFactory {
+public class PlayerInventoryItemStackIOFactory implements ResourceIOFactory<ItemStackIO> {
 
     @Override
     public Optional<ItemStackIO> getIO(ManipulatorContext context, IDataStorage storage) {
@@ -47,7 +47,7 @@ public class PlayerInventoryItemStackIOFactory implements ItemStackIOFactory {
                     }
 
                     @Override
-                    public ItemStackIteratorBuilder setUsage(@NotNull Usage usage) {
+                    public ItemStackIteratorBuilder setUsage(@NotNull IteratorUsage usage) {
                         return this;
                     }
 

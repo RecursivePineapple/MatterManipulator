@@ -76,7 +76,7 @@ public class ItemMatterManipulator extends Item implements IGuiHolder<Manipulato
     public ItemMatterManipulator(ManipulatorTier tier) {
         String name = "matter-manipulator-" + tier.tier;
 
-        setCreativeTab(CreativeTabs.TOOLS);
+        setCreativeTab(MMCreativeTab.INSTANCE);
         setRegistryName(Tags.MODID, name);
         setTranslationKey(name);
         setMaxStackSize(1);
@@ -137,11 +137,11 @@ public class ItemMatterManipulator extends Item implements IGuiHolder<Manipulato
 
     @Override
     public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> items) {
+        if (!this.isInCreativeTab(tab)) return;
+
         final ItemStack stack = new ItemStack(this, 1);
         stack.setTagCompound(new MMState().save());
         items.add(stack.copy());
-        //        this.charge(stack, tier.maxCharge, tier.voltageTier, true, false);
-        //        subItems.add(stack);
     }
 
     @Override
@@ -152,6 +152,11 @@ public class ItemMatterManipulator extends Item implements IGuiHolder<Manipulato
             case Tier2 -> EnumRarity.RARE;
             case Tier3 -> EnumRarity.EPIC;
         };
+    }
+
+    @Override
+    public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
+        return slotChanged;
     }
 
     public static MMState getState(ItemStack itemStack) {
@@ -225,19 +230,23 @@ public class ItemMatterManipulator extends Item implements IGuiHolder<Manipulato
         }
     }
 
-    @SuppressWarnings("rawtypes")
     @Override
-    public ActionResult<ItemStack> onItemRightClick(World world, EntityPlayer player, EnumHand hand) {
+    public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
+        return new ActionResult<>(onUsed(playerIn, worldIn, handIn), playerIn.getHeldItem(handIn));
+    }
+
+    private static EnumActionResult onUsed(EntityPlayer player, World world, EnumHand hand) {
         ItemStack held = player.getHeldItem(hand);
 
         if (player.getItemInUseMaxCount() > 0) {
-            return ActionResult.newResult(EnumActionResult.PASS, held);
+            return EnumActionResult.PASS;
         }
 
         MMState state = getState(held);
 
         ManipulatorContextImpl context = new ManipulatorContextImpl(world, player, held, state);
 
+        @SuppressWarnings("rawtypes")
         ManipulatorMode mode = state.getActiveMode();
 
         if (mode == null || !mode.handleRickClick(context)) {
@@ -250,7 +259,8 @@ public class ItemMatterManipulator extends Item implements IGuiHolder<Manipulato
             }
         }
 
-        return new ActionResult<>(EnumActionResult.PASS, held);
+        // Return fail to prevent further processing without causing the hand animation
+        return EnumActionResult.FAIL;
     }
 
     private static final MMAction PICK_BLOCK = MMAction.server("pick-block", ItemMatterManipulator::onPickBlock);

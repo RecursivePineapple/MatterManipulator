@@ -134,6 +134,10 @@ public class Location extends Vector3i {
         return hash;
     }
 
+    public static boolean isInWorld(Location l, World world) {
+        return l != null && l.isInWorld(world);
+    }
+
     /**
      * Checks if two locations are compatible (in the same world).
      */

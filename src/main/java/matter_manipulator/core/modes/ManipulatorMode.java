@@ -81,6 +81,8 @@ public interface ManipulatorMode<Config, Buildable extends IBuildable> {
     Config loadConfig(IDataStorage storage);
     void saveConfig(IDataStorage storage, Config config);
 
+    boolean needsSync();
+
     void write(MMPacketBuffer buffer, Buildable buildable);
     Buildable read(MMPacketBuffer buffer);
 }

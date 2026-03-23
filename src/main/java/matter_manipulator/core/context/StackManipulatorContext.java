@@ -1,6 +1,7 @@
 package matter_manipulator.core.context;
 
 import java.util.OptionalInt;
+import java.util.function.Consumer;
 
 import net.minecraft.item.ItemStack;
 
@@ -8,6 +9,7 @@ import matter_manipulator.common.items.ItemMatterManipulator;
 import matter_manipulator.common.items.MMUpgrades;
 import matter_manipulator.common.items.ManipulatorTier;
 import matter_manipulator.common.state.MMState;
+import matter_manipulator.core.modes.ManipulatorMode;
 import matter_manipulator.core.settings.ManipulatorSetting;
 
 public interface StackManipulatorContext {
@@ -52,5 +54,15 @@ public interface StackManipulatorContext {
 
     default void saveState() {
         ItemMatterManipulator.setState(getManipulator(), getState());
+    }
+
+    default <T, M extends ManipulatorMode<T, ?>> T mutateConfig(M mode, Consumer<T> fn) {
+        T config = mode.loadConfig(this.getState().getActiveModeConfigStorage());
+
+        fn.accept(config);
+
+        mode.saveConfig(this.getState().getActiveModeConfigStorage(), config);
+
+        return config;
     }
 }

@@ -35,6 +35,7 @@ public class MMMetaItem extends Item {
     public MMMetaItem(String name) {
         this.name = name;
 
+        setCreativeTab(MMCreativeTab.INSTANCE);
         setHasSubtypes(true);
         setMaxDamage(0);
         setTranslationKey("mm.metaitem");
@@ -96,6 +97,8 @@ public class MMMetaItem extends Item {
 
     @Override
     public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> items) {
+        if (!isInCreativeTab(tab)) return;
+
         for (IDMetaItem id : IDMetaItem.values()) {
             items.add(new ItemStack(this, 1, id.ID));
         }

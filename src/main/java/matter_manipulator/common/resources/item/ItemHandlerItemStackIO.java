@@ -4,10 +4,11 @@ import net.minecraftforge.items.IItemHandler;
 
 import org.jetbrains.annotations.NotNull;
 
-import matter_manipulator.core.resources.item.ItemStackIO;
-import matter_manipulator.core.resources.item.ItemStackIterator;
-import matter_manipulator.core.resources.item.ItemStackIteratorBuilder;
-import matter_manipulator.core.resources.item.ItemStackPredicate;
+import matter_manipulator.core.resources.IteratorUsage;
+import matter_manipulator.core.item.ItemStackIO;
+import matter_manipulator.core.item.ItemStackIterator;
+import matter_manipulator.core.item.ItemStackIteratorBuilder;
+import matter_manipulator.core.item.ItemStackPredicate;
 
 public class ItemHandlerItemStackIO implements ItemStackIO {
 
@@ -45,7 +46,7 @@ public class ItemHandlerItemStackIO implements ItemStackIO {
         }
 
         @Override
-        public ItemStackIteratorBuilder setUsage(@NotNull Usage usage) {
+        public ItemStackIteratorBuilder setUsage(@NotNull IteratorUsage usage) {
             // ignored
             return this;
         }

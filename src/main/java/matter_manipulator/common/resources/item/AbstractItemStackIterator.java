@@ -8,9 +8,9 @@ import org.jetbrains.annotations.NotNull;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntLinkedOpenHashSet;
-import matter_manipulator.common.utils.items.FastImmutableItemStack;
+import matter_manipulator.core.item.FastImmutableItemStack;
 import matter_manipulator.core.item.ImmutableItemStack;
-import matter_manipulator.core.resources.item.ItemStackIterator;
+import matter_manipulator.core.item.ItemStackIterator;
 
 public abstract class AbstractItemStackIterator implements ItemStackIterator {
 

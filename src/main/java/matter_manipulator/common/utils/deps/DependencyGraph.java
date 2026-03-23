@@ -1,23 +1,31 @@
 package matter_manipulator.common.utils.deps;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 
-import org.jetbrains.annotations.Nullable;
-
 import com.github.bsideup.jabel.Desugar;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import matter_manipulator.common.utils.DataUtils;
 
 public class DependencyGraph<T> implements IDependencyGraph<T> {
+
+    interface Entity {}
+
+    @Desugar
+    private record ObjectEntity<T>(T value) implements Entity { }
+
+    @Desugar
+    private record TargetEntity() implements Entity { }
+
+    @Desugar
+    private record SubgraphEntity<T>(DependencyGraph<T> graph) implements Entity { }
 
     @Desugar
     private record DepInfo(String dependency, boolean optional) {
@@ -35,17 +43,52 @@ public class DependencyGraph<T> implements IDependencyGraph<T> {
         }
     }
 
-    private final Object2ObjectOpenHashMap<String, Optional<T>> objects = new Object2ObjectOpenHashMap<>();
-    private final ObjectOpenHashSet<String> targets = new ObjectOpenHashSet<>();
+    private final Object2ObjectOpenHashMap<String, Entity> entities = new Object2ObjectOpenHashMap<>();
 
     private final Multimap<String, DepInfo> dependencies = MultimapBuilder.hashKeys()
         .hashSetValues()
         .build();
 
-    private List<T> cachedSorted;
+    private final T[] zeroSized;
+    private T[] cachedSorted;
 
-    public DependencyGraph() {
-        objects.defaultReturnValue(null);
+    public DependencyGraph(T[] zeroSized) {
+        this.zeroSized = zeroSized;
+        entities.defaultReturnValue(null);
+    }
+
+    @Desugar
+    private record SubgraphLocation<T>(DependencyGraph<T> graph, String name) { }
+
+    private SubgraphLocation<T> getSubgraphLocation(String name) {
+        String[] path = name.split("/");
+
+        DependencyGraph<T> graph = this;
+
+        for (int i = 0; i < path.length - 1; i++) {
+            // Hacky way to invalidate the cache without needing two iterations.
+            // This doesn't really belong here, but it's where I'm shoving it.
+            graph.cachedSorted = null;
+
+            String chunk = path[i];
+
+            Entity e = graph.entities.get(chunk);
+
+            if (e == null) {
+                throw new MissingEntityException("Could not find subgraph: " + DataUtils.join("/", DataUtils.slice(path, 0, i)));
+            }
+
+            if (!(e instanceof DependencyGraph.SubgraphEntity<?> subgraph)) {
+                throw new MissingEntityException("Entity was not subgraph: " + DataUtils.join("/", DataUtils.slice(path, 0, i)) + " (was " + e + ")");
+            }
+
+            //noinspection unchecked
+            graph = (DependencyGraph<T>) subgraph.graph;
+        }
+
+        graph.cachedSorted = null;
+
+        return new SubgraphLocation<>(graph, path[path.length - 1]);
     }
 
     @Override
@@ -53,11 +96,12 @@ public class DependencyGraph<T> implements IDependencyGraph<T> {
         Objects.requireNonNull(name, "name must not be null");
         Objects.requireNonNull(value, "value must not be null");
 
-        objects.put(name, Optional.of(value));
-        cachedSorted = null;
+        var loc = getSubgraphLocation(name);
+
+        loc.graph.entities.put(loc.name, new ObjectEntity<>(value));
 
         for (String dep : deps) {
-            addUnparsedDependency(name, dep);
+            loc.graph.addUnparsedDependency(loc.name, dep);
         }
     }
 
@@ -99,8 +143,9 @@ public class DependencyGraph<T> implements IDependencyGraph<T> {
         Objects.requireNonNull(object, "object must not be null");
         Objects.requireNonNull(dependsOn, "dependsOn must not be null");
 
-        dependencies.put(object, new DepInfo(dependsOn, optional));
-        cachedSorted = null;
+        var loc = getSubgraphLocation(object);
+
+        loc.graph.dependencies.put(loc.name, new DepInfo(dependsOn, optional));
     }
 
     @Override
@@ -108,31 +153,36 @@ public class DependencyGraph<T> implements IDependencyGraph<T> {
         Objects.requireNonNull(object, "object must not be null");
         Objects.requireNonNull(dependsOn, "dependsOn must not be null");
 
-        boolean successful = dependencies.remove(object, new DepInfo(dependsOn, false));
-        cachedSorted = null;
+        var loc = getSubgraphLocation(object);
 
-        return successful;
+        return loc.graph.dependencies.remove(loc.name, new DepInfo(dependsOn, false));
     }
 
     @Override
     public void addTarget(String targetName, String... deps) {
         Objects.requireNonNull(targetName, "targetName must not be null");
 
-        objects.put(targetName, Optional.empty());
-        targets.add(targetName);
+        var loc = getSubgraphLocation(targetName);
+
+        loc.graph.entities.put(loc.name, new TargetEntity());
 
         for (String dep : deps) {
-            addUnparsedDependency(targetName, dep);
+            loc.graph.addUnparsedDependency(loc.name, dep);
         }
     }
 
-    /// Not made public because there is no well-defined initialization timing.
-    @Nullable
-    public Optional<T> get(String name) {
-        return objects.get(name);
+    @Override
+    public void addSubgraph(String graphName, String... deps) {
+        var loc = getSubgraphLocation(graphName);
+
+        loc.graph.entities.put(loc.name, new SubgraphEntity<>(new DependencyGraph<>(zeroSized)));
+
+        for (String dep : deps) {
+            loc.graph.addUnparsedDependency(loc.name, dep);
+        }
     }
 
-    public List<T> sorted() {
+    public T[] sorted() {
         if (cachedSorted != null) return cachedSorted;
 
         ObjectLinkedOpenHashSet<String> path = new ObjectLinkedOpenHashSet<>();
@@ -141,10 +191,11 @@ public class DependencyGraph<T> implements IDependencyGraph<T> {
             preventCyclicDeps(node, false, path);
         }
 
-        List<T> out = new ArrayList<>();
+        @SuppressWarnings("rawtypes")
+        List out = new ArrayList<>();
         ObjectLinkedOpenHashSet<String> added = new ObjectLinkedOpenHashSet<>();
 
-        ObjectLinkedOpenHashSet<String> remaining = new ObjectLinkedOpenHashSet<>(objects.keySet());
+        ObjectLinkedOpenHashSet<String> remaining = new ObjectLinkedOpenHashSet<>(entities.keySet());
         while (!remaining.isEmpty()) {
             Iterator<String> iter = remaining.iterator();
 
@@ -161,17 +212,24 @@ public class DependencyGraph<T> implements IDependencyGraph<T> {
 
                 added.add(curr);
 
-                Optional<T> value = objects.get(curr);
+                Entity value = entities.get(curr);
 
                 if (value == null) {
-                    throw new IllegalStateException("Missing value for key: " + curr);
+                    throw new MissingEntityException("Could not find entity: " + curr);
                 }
 
-                value.ifPresent(out::add);
+                if (value instanceof DependencyGraph.ObjectEntity<?> obj) {
+                    //noinspection unchecked
+                    out.add(obj.value);
+                } else if (value instanceof DependencyGraph.SubgraphEntity<?> subgraph) {
+                    //noinspection unchecked
+                    out.addAll(Arrays.asList(subgraph.graph.sorted()));
+                }
             }
         }
 
-        cachedSorted = ImmutableList.copyOf(out);
+        //noinspection unchecked
+        cachedSorted = ((List<T>) out).toArray(zeroSized);
 
         return cachedSorted;
     }
@@ -184,15 +242,15 @@ public class DependencyGraph<T> implements IDependencyGraph<T> {
                         .reduce("", (s, s2) -> s + ", " + s2));
         }
 
-        if (!optional && !targets.contains(node) && !objects.containsKey(node)) {
+        if (!optional && !entities.containsKey(node)) {
             throw new IllegalStateException(
                 node + " is present in the dependency graph but does not have a matching object");
         }
 
         path.add(node);
 
-        for (DepInfo deps : dependencies.get(node)) {
-            preventCyclicDeps(deps.dependency, deps.optional, path);
+        for (DepInfo dep : dependencies.get(node)) {
+            preventCyclicDeps(dep.dependency, dep.optional, path);
         }
 
         path.remove(node);

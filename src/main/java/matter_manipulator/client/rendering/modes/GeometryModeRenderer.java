@@ -5,7 +5,7 @@ import org.joml.Vector3i;
 import matter_manipulator.client.rendering.MMRenderUtils;
 import matter_manipulator.client.rendering.StandardModeRenderer;
 import matter_manipulator.common.building.StandardBuild;
-import matter_manipulator.common.modes.GeometryConfig;
+import matter_manipulator.common.modes.geometry.GeometryConfig;
 import matter_manipulator.common.utils.MathUtils;
 import matter_manipulator.common.utils.math.VoxelAABB;
 import matter_manipulator.core.color.ImmutableColor;
@@ -43,15 +43,5 @@ public class GeometryModeRenderer extends StandardModeRenderer<GeometryConfig, S
         }
 
         context.drawBox(box, MMRenderUtils.BLUE);
-    }
-
-    @Override
-    public int hashCode() {
-        return GeometryModeRenderer.class.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return obj instanceof GeometryModeRenderer;
     }
 }

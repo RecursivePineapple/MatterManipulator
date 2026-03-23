@@ -16,7 +16,6 @@ import org.jetbrains.annotations.NotNull;
 import it.unimi.dsi.fastutil.Hash.Strategy;
 import matter_manipulator.common.utils.MCUtils;
 import matter_manipulator.common.utils.hash.Fnv1a32;
-import matter_manipulator.common.utils.items.ItemUtils;
 import matter_manipulator.core.i18n.Localized;
 import matter_manipulator.core.resources.ResourceIdentity.IntResourceIdentity;
 import matter_manipulator.core.resources.ResourceIdentity.LongResourceIdentity;
@@ -48,7 +47,7 @@ public final class ItemId implements ItemResourceIdentity, IntResourceIdentity, 
 
     @Override
     public Localized getName() {
-        return null;
+        return new Localized("mm.misc.itemstack", toStack(1));
     }
 
     @Override
@@ -101,6 +100,10 @@ public final class ItemId implements ItemResourceIdentity, IntResourceIdentity, 
 
     public static ItemId create(ItemStack stack) {
         return create(stack.getItem(), ItemUtils.getStackMeta(stack), stack.getTagCompound(), ItemUtils.getCapTag(stack));
+    }
+
+    public static ItemId create(ItemStackLike stack) {
+        return create(stack.getItem(), stack.getItemMeta(), MCUtils.copy(stack.getTag()), MCUtils.copy(stack.getCapTag()));
     }
 
     public static ItemId create(Item item, int metaData, @Nullable NBTTagCompound tag, @Nullable NBTTagCompound caps) {

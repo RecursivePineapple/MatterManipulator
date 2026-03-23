@@ -2,14 +2,18 @@ package matter_manipulator.core.building;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3i;
 
+import com.google.gson.JsonObject;
 import lombok.EqualsAndHashCode;
+import matter_manipulator.common.networking.MMPacketBuffer;
 import matter_manipulator.common.utils.math.Location;
 import matter_manipulator.core.block_spec.IBlockSpec;
+import matter_manipulator.core.persist.NBTPersist;
 
 /**
  * This represents a block in the world.
@@ -20,6 +24,10 @@ public class PendingBlock extends Location {
 
     public IBlockSpec spec;
 
+    public PendingBlock() {
+
+    }
+
     public PendingBlock(World world, int x, int y, int z, @NotNull IBlockSpec spec) {
         super(world.provider.getDimension(), x, y, z);
         this.spec = spec;
@@ -29,8 +37,6 @@ public class PendingBlock extends Location {
         super(worldId, x, y, z);
         this.spec = spec;
     }
-
-    private PendingBlock() {}
 
     public PendingBlock(World world, Vector3i voxel, IBlockSpec spec) {
         this(world.provider.getDimension(), voxel.x, voxel.y, voxel.z, spec);
@@ -46,6 +52,29 @@ public class PendingBlock extends Location {
 
     public PendingBlock clone() {
         return new PendingBlock(worldId, x, y, z, spec.clone());
+    }
+
+    public void encode(MMPacketBuffer buffer) {
+        buffer.writeInt(this.worldId);
+        buffer.writeBlockPos(this.toPos());
+        buffer.writeBSON((JsonObject) NBTPersist.GSON.toJsonTree(this.spec));
+    }
+
+    public void decode(MMPacketBuffer buffer) {
+        this.worldId = buffer.readInt();
+
+        BlockPos pos = buffer.readBlockPos();
+        this.x = pos.getX();
+        this.y = pos.getY();
+        this.z = pos.getZ();
+
+        this.spec = NBTPersist.GSON.fromJson(buffer.readBSON(), IBlockSpec.class);
+    }
+
+    public static PendingBlock decodeNew(MMPacketBuffer buffer) {
+        PendingBlock block = new PendingBlock();
+        block.decode(buffer);
+        return block;
     }
 
 //    public static Comparator<IBlockSpec> getBlockSpecComparator() {

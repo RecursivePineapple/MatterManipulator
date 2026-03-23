@@ -6,6 +6,7 @@ import net.minecraftforge.oredict.OreDictionary;
 
 import matter_manipulator.common.items.ItemMatterManipulator;
 import matter_manipulator.common.state.MMState;
+import matter_manipulator.core.item.ItemUtils;
 
 public class MMUtils {
 
@@ -46,11 +47,11 @@ public class MMUtils {
 
     /**
      * Plans will have jobs automatically started (see
-     * {@link matter_manipulator.common.utils.items.ItemUtils#createPlanImpl(EntityPlayer, MMState, ItemMatterManipulator, int)}).
+     * {@link ItemUtils#createPlanImpl(EntityPlayer, MMState, ItemMatterManipulator, int)}).
      */
     public static final int PLAN_AUTO_SUBMIT = 0b1;
     /**
-     * Plans will ignore existing blocks (see {@link matter_manipulator.common.utils.items.ItemUtils#createPlanImpl(EntityPlayer, MMState, ItemMatterManipulator, int)}).
+     * Plans will ignore existing blocks (see {@link ItemUtils#createPlanImpl(EntityPlayer, MMState, ItemMatterManipulator, int)}).
      */
     public static final int PLAN_ALL = 0b10;
 
