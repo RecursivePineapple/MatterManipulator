@@ -6,6 +6,7 @@ import static matter_manipulator.common.utils.MCUtils.processFormatStacks;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,6 +16,7 @@ import org.jetbrains.annotations.Contract;
 import org.joml.Vector3i;
 
 import com.cleanroommc.modularui.api.drawable.IKey;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import matter_manipulator.Tags;
 import matter_manipulator.client.gui.BranchableRadialMenu;
 import matter_manipulator.client.rendering.ModeRenderer;
@@ -30,6 +32,7 @@ import matter_manipulator.common.utils.math.Location;
 import matter_manipulator.common.utils.math.Transform;
 import matter_manipulator.core.analysis.BlockAnalyzer;
 import matter_manipulator.core.analysis.BlockAnalyzer.RegionAnalysis;
+import matter_manipulator.core.block_spec.IBlockSpec;
 import matter_manipulator.core.building.PendingBlock;
 import matter_manipulator.core.context.ManipulatorContext;
 import matter_manipulator.core.modes.ManipulatorMode;
@@ -203,6 +206,20 @@ public class CopyingManipulatorMode implements ManipulatorMode<CopyingConfig, St
         return analyzer.then(analysis -> {
             Vector3i deltas = analysis.deltas();
             List<PendingBlock> blocks = analysis.blocks();
+
+            Object2IntOpenHashMap<IBlockSpec> order = new Object2IntOpenHashMap<>();
+
+            for (PendingBlock block : blocks) {
+                int index = order.getOrDefault(block.spec, -1);
+
+                if (index == -1) {
+                    order.put(block.spec.clone(), order.size());
+                }
+            }
+
+            // Sort the blocks in order of which comes first
+            // This only applies within one stack unit, so that we don't have to sort the whole list
+            blocks.sort(Comparator.comparingInt(block -> order.getInt(block.spec)));
 
             // Apply rotation
             for (PendingBlock block : blocks) {
