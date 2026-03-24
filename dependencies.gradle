@@ -46,7 +46,7 @@ dependencies {
 
     shadowImplementation("it.unimi.dsi:fastutil:8.5.15") // Apache 2.0
 
-    api("com.cleanroommc:modularui:3.0.4") { transitive = false }
+    api("com.cleanroommc:modularui:3.1.5") { transitive = false }
 
     // For charging
 //    runtimeOnlyNonPublishable(rfg.deobf("curse.maven:mcjtylib-233105:2745846"))

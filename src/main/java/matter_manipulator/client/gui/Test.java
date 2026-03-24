@@ -10,12 +10,12 @@ import com.cleanroommc.modularui.api.widget.IPositioned;
 import com.cleanroommc.modularui.screen.ModularPanel;
 import com.cleanroommc.modularui.utils.Alignment;
 import com.cleanroommc.modularui.widget.sizer.Area;
-import com.cleanroommc.modularui.widget.sizer.Flex;
+import com.cleanroommc.modularui.widget.sizer.StandardResizer;
 import com.cleanroommc.modularui.widget.sizer.Unit;
 import com.cleanroommc.modularui.widgets.TextWidget;
 import com.cleanroommc.modularui.widgets.layout.Row;
 
-@SuppressWarnings("unchecked")
+@SuppressWarnings({ "unchecked", "unused" })
 public class Test {
 
     public static ModularPanel init() {
@@ -90,10 +90,6 @@ public class Test {
 
     public static Property<? super IPositioned<?>> relativeToParent() {
         return IPositioned::relativeToParent;
-    }
-
-    public static Property<? super IPositioned<?>> bypassLayerRestriction() {
-        return IPositioned::bypassLayerRestriction;
     }
 
     public static Property<? super IPositioned<?>> relative(IGuiElement guiElement) {
@@ -324,8 +320,8 @@ public class Test {
     public static Property<? super IPositioned<?>> center() {
         return IPositioned::center;
     }
-    public static Property<? super IPositioned<?>> flex(Consumer<Flex> flexConsumer) {
-        return w -> w.flex(flexConsumer);
+    public static Property<? super IPositioned<?>> resizer(Consumer<StandardResizer> fn) {
+        return w -> w.resizer(fn);
     }
     public static Property<? super IPositioned<?>> padding(int left, int right, int top, int bottom) {
         return w -> w.padding(left, right, top, bottom);
