@@ -15,14 +15,15 @@ import matter_manipulator.core.context.BlockPlacingContext;
 import matter_manipulator.core.inventory_adapter.InventoryAdapter;
 import matter_manipulator.core.inventory_adapter.InventoryAdapterFactory;
 import matter_manipulator.core.resources.Resource;
+import matter_manipulator.core.resources.item.IntItemResourceStack;
 import matter_manipulator.core.resources.item.ItemResource;
 import matter_manipulator.core.resources.item.ItemStackWrapper;
 
-public class ItemHandlerInventoryAdapterFactory implements InventoryAdapterFactory<ItemStackWrapper> {
+public class ItemHandlerInventoryAdapterFactory implements InventoryAdapterFactory<IntItemResourceStack> {
 
     @Override
     @Nullable
-    public InventoryAdapter<ItemStackWrapper> getAdapter(@NotNull TileEntity te, @Nullable EnumFacing side) {
+    public InventoryAdapter<IntItemResourceStack> getAdapter(@NotNull TileEntity te, @Nullable EnumFacing side) {
         IItemHandler handler = te.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side);
 
         if (handler == null) return null;
@@ -31,7 +32,7 @@ public class ItemHandlerInventoryAdapterFactory implements InventoryAdapterFacto
     }
 
     @Desugar
-    public record ItemHandlerInventoryAdapter(IItemHandler handler) implements InventoryAdapter<ItemStackWrapper> {
+    public record ItemHandlerInventoryAdapter(IItemHandler handler) implements InventoryAdapter<IntItemResourceStack> {
 
         @Override
         public Resource<?> getResource() {
@@ -55,33 +56,35 @@ public class ItemHandlerInventoryAdapterFactory implements InventoryAdapterFacto
         }
 
         @Override
-        public boolean canInsert(int slot, ItemStackWrapper stack) {
-            if (!handler.isItemValid(slot, stack.stack)) return false;
+        public boolean canInsert(int slot, IntItemResourceStack stack) {
+            var stack2 = stack.toStack();
 
-            int rejected = handler.insertItem(slot, stack.stack, true).getCount();
+            if (!handler.isItemValid(slot, stack2)) return false;
+
+            int rejected = handler.insertItem(slot, stack2, true).getCount();
 
             return rejected == 0 || rejected != stack.getAmountInt();
         }
 
         @Override
-        public ItemStackWrapper getStackInSlot(int slot) {
+        public IntItemResourceStack getStackInSlot(int slot) {
             return new ItemStackWrapper(handler.getStackInSlot(slot));
         }
 
         @Override
-        public ItemStackWrapper extract(int slot) {
+        public IntItemResourceStack extract(int slot) {
             return new ItemStackWrapper(handler.extractItem(slot, Integer.MAX_VALUE, false));
         }
 
         @Override
-        public ItemStackWrapper insert(int slot, ItemStackWrapper stack) {
-            if (!handler.isItemValid(slot, stack.stack)) return stack;
-            if (!handler.getStackInSlot(slot)
-                .isEmpty()) return stack;
+        public IntItemResourceStack insert(int slot, IntItemResourceStack stack) {
+            var stack2 = stack.toStack();
 
-            if (handler.insertItem(slot, stack.stack, true)
-                .isEmpty()) {
-                return new ItemStackWrapper(handler.insertItem(slot, stack.stack.copy(), false));
+            if (!handler.isItemValid(slot, stack2)) return stack;
+            if (!handler.getStackInSlot(slot).isEmpty()) return stack;
+
+            if (handler.insertItem(slot, stack2, true).isEmpty()) {
+                return new ItemStackWrapper(handler.insertItem(slot, stack2, false));
             } else {
                 return stack;
             }

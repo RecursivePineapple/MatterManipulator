@@ -15,20 +15,21 @@ import matter_manipulator.core.context.BlockPlacingContext;
 import matter_manipulator.core.inventory_adapter.InventoryAdapter;
 import matter_manipulator.core.inventory_adapter.InventoryAdapterFactory;
 import matter_manipulator.core.resources.Resource;
+import matter_manipulator.core.resources.item.IntItemResourceStack;
 import matter_manipulator.core.resources.item.ItemResource;
 import matter_manipulator.core.resources.item.ItemStackWrapper;
 
-public class StandardInventoryAdapterFactory implements InventoryAdapterFactory<ItemStackWrapper> {
+public class StandardInventoryAdapterFactory implements InventoryAdapterFactory<IntItemResourceStack> {
 
     @Override
-    public InventoryAdapter<ItemStackWrapper> getAdapter(@NotNull TileEntity te, @Nullable EnumFacing side) {
+    public InventoryAdapter<IntItemResourceStack> getAdapter(@NotNull TileEntity te, @Nullable EnumFacing side) {
         if (!(te instanceof IInventory inv)) return null;
 
         return new InvInventoryAdapter(inv);
     }
 
     @Desugar
-    private record InvInventoryAdapter(IInventory inv) implements InventoryAdapter<ItemStackWrapper> {
+    private record InvInventoryAdapter(IInventory inv) implements InventoryAdapter<IntItemResourceStack> {
 
         @Override
         public Resource<?> getResource() {
@@ -51,17 +52,17 @@ public class StandardInventoryAdapterFactory implements InventoryAdapterFactory<
         }
 
         @Override
-        public boolean canInsert(int slot, ItemStackWrapper stack) {
-            return inv.isItemValidForSlot(slot, stack.stack);
+        public boolean canInsert(int slot, IntItemResourceStack stack) {
+            return inv.isItemValidForSlot(slot, stack.toStackFast(stack.getAmountInt()));
         }
 
         @Override
-        public ItemStackWrapper getStackInSlot(int slot) {
+        public IntItemResourceStack getStackInSlot(int slot) {
             return new ItemStackWrapper(inv.getStackInSlot(slot));
         }
 
         @Override
-        public ItemStackWrapper extract(int slot) {
+        public IntItemResourceStack extract(int slot) {
             ItemStack stack = inv.getStackInSlot(slot);
 
             inv.setInventorySlotContents(slot, ItemStack.EMPTY);
@@ -70,14 +71,17 @@ public class StandardInventoryAdapterFactory implements InventoryAdapterFactory<
         }
 
         @Override
-        public ItemStackWrapper insert(int slot, ItemStackWrapper stack) {
-            if (!inv.isItemValidForSlot(slot, stack.stack)) return stack;
-            if (!inv.getStackInSlot(slot)
-                .isEmpty()) return stack;
+        public IntItemResourceStack insert(int slot, IntItemResourceStack stack) {
+            var stack2 = stack.toStackFast(stack.getAmountInt());
 
-            int max = Math.min(inv.getInventoryStackLimit(), stack.stack.getMaxStackSize());
+            if (!inv.isItemValidForSlot(slot, stack2)) return stack;
+            if (!inv.getStackInSlot(slot).isEmpty()) return stack;
 
-            inv.setInventorySlotContents(slot, stack.stack.splitStack(max));
+            int max = Math.min(inv.getInventoryStackLimit(), stack2.getMaxStackSize());
+            int xfer = Math.min(max, stack.getAmountInt());
+
+            inv.setInventorySlotContents(slot, stack.toStack(xfer));
+            stack.setAmountInt(stack.getAmountInt() - xfer);
 
             return stack;
         }
