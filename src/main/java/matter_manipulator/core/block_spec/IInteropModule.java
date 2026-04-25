@@ -2,6 +2,7 @@ package matter_manipulator.core.block_spec;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import net.minecraft.nbt.NBTTagCompound;
 
@@ -26,9 +27,9 @@ import matter_manipulator.core.resources.ResourceStack;
 /// <br />
 /// 1. A manipulator starts analyzing a block in the world.
 /// <br />
-/// 2. It loops over all registered [ICopyInteropModule] objects and calls [#analyze(BlockAnalysisContext)].
+/// 2. It loops over all registered [IInteropModule] objects and calls [#analyze(BlockAnalysisContext)].
 /// <br />
-/// 3. The analysis results are stored in a `Map<ICopyInteropModule<AnalysisResult>, AnalysisResult>` within a
+/// 3. The analysis results are stored in a `Map<IInteropModule<AnalysisResult>, AnalysisResult>` within a
 /// [IBlockSpec].
 /// <p />
 /// From here, the [IBlockSpec] can either be saved, applied to a block, or discarded entirely.
@@ -51,8 +52,8 @@ import matter_manipulator.core.resources.ResourceStack;
 /// [IBlockSpec] loops over all analysis results (which are identified by their name, see [MMRegistries#interop()]) and
 /// loads their results via [#load(IDataStorage)].
 /// <br />
-/// 2. Each [ICopyInteropModule] loads its sandbox and deserializes its state into its object, which is stored in a
-/// `Map<ICopyInteropModule<AnalysisResult>, AnalysisResult>` within the [IBlockSpec].
+/// 2. Each [IInteropModule] loads its sandbox and deserializes its state into its object, which is stored in a
+/// `Map<IInteropModule<AnalysisResult>, AnalysisResult>` within the [IBlockSpec].
 /// <br />
 /// 3. As before, the [IBlockSpec] can either be saved again, applied to a block, or discarded entirely.
 ///
@@ -62,7 +63,7 @@ import matter_manipulator.core.resources.ResourceStack;
 /// @see IStateSandbox
 /// @see IDataStorage
 /// @see MMRegistries#interop()
-public interface ICopyInteropModule<AnalysisResult> {
+public interface IInteropModule<AnalysisResult> {
 
     /// Analyzes a block in the world and returns this interop module's analysis result. Returns [Optional#empty()] if
     /// this module cannot analyze or affect the requested block.
@@ -72,14 +73,14 @@ public interface ICopyInteropModule<AnalysisResult> {
 
     /// Applies an analysis result that was previously retrieved from [#analyze(BlockAnalysisContext)] or
     /// [#load(IDataStorage)].
-    ApplyResult apply(BlockPlacingContext context, AnalysisResult analysis);
+    Set<ApplyResult> apply(BlockPlacingContext context, AnalysisResult analysis);
 
     /// Gets the items required to update an existing block. Items should be extracted from the context, but not placed
     /// in the world.
-    ApplyResult getRequiredItemsForExistingBlock(BlockPlacingContext context, AnalysisResult analysis);
+    Set<ApplyResult> getRequiredItemsForExistingBlock(BlockPlacingContext context, AnalysisResult analysis);
     /// Gets the items required to create a block from scratch. This should ignore any existing blocks at the location.
     /// Items should be extracted from the context, but not placed in the world.
-    ApplyResult getRequiredItemsForNewBlock(BlockPlacingContext context, AnalysisResult analysis);
+    Set<ApplyResult> getRequiredItemsForNewBlock(BlockPlacingContext context, AnalysisResult analysis);
 
     @Contract(mutates = "param1")
     void save(IDataStorage storage, AnalysisResult analysis);
@@ -100,8 +101,8 @@ public interface ICopyInteropModule<AnalysisResult> {
 
     /// Transforms the result according to the given [Transform].
     @Contract(mutates = "param1")
-    default void transform(AnalysisResult analysis, Transform transform) {
-
+    default AnalysisResult transform(AnalysisResult analysis, Transform transform) {
+        return analysis;
     }
 
     default AnalysisResult cloneAnalysis(AnalysisResult analysisResult) {

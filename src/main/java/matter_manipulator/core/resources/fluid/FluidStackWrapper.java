@@ -57,8 +57,9 @@ public class FluidStackWrapper implements IntFluidResourceStack {
     }
 
     @Override
-    public void setAmountInt(int amount) {
+    public FluidStackWrapper setAmountInt(int amount) {
         stack.amount = Math.max(0, amount);
+        return this;
     }
 
     @Override

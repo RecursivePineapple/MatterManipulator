@@ -12,22 +12,19 @@ import net.minecraftforge.oredict.OreDictionary;
 import matter_manipulator.common.utils.IMod;
 import matter_manipulator.common.utils.data.Lazy;
 
-/**
- * A lazy-loaded item. Useful for making a static final reference to a item. Can also be used to simplify references to
- * static final items in optional methods.
- *
- * <pre>
- * {@code
- * private static final LazyItem SOME_OPTIONAL_ITEM = new LazyItem(Mods.SomeMod, "foo");
- *
- * {@literal @}Optional.Method(modid = Names.SOME_MOD)
- * public static void doSomething(ItemStack stack) {
- *   if (SOME_OPTIONAL_BLOCK.matches(stack)) {
- *      ...
- *   }
- * }
- * </pre>
- */
+/// A lazy-loaded item. Useful for making a static final reference to a item. Can also be used to simplify references to
+/// static final items in optional methods.
+///
+/// ```java
+/// private static final LazyItem SOME_OPTIONAL_ITEM = new LazyItem(Mods.SomeMod, "foo");
+///
+/// @Optional.Method(modid = Names.SOME_MOD)
+/// public static void doSomething(ItemStack stack) {
+///   if (SOME_OPTIONAL_BLOCK.matches(stack)) {
+///     ...
+///   }
+/// }
+/// ```
 public class LazyItem extends Lazy<ImmutableItemMeta> implements ImmutableItemMeta {
 
     private final IMod mod;

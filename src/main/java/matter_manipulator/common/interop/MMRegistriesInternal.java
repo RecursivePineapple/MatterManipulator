@@ -17,9 +17,13 @@ import org.apache.commons.lang3.mutable.MutableObject;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import matter_manipulator.MMMod;
+import matter_manipulator.common.analysis.InventoryInteropModule;
 import matter_manipulator.common.block_spec.StandardBlockSpecLoader;
 import matter_manipulator.common.interop.block_adapters.AirBlockAdapter;
 import matter_manipulator.common.interop.block_adapters.DroppedBlockAdapter;
@@ -40,14 +44,17 @@ import matter_manipulator.common.resources.item.ios.PlayerInventoryItemStackIOFa
 import matter_manipulator.common.utils.deps.DependencyGraph;
 import matter_manipulator.core.block_spec.ApplyResult;
 import matter_manipulator.core.block_spec.IBlockSpecLoader;
-import matter_manipulator.core.block_spec.ICopyInteropModule;
+import matter_manipulator.core.block_spec.IInteropModule;
 import matter_manipulator.core.fluid.FluidStackIO;
+import matter_manipulator.core.i18n.ILocalizer;
+import matter_manipulator.core.i18n.JoiningLocalizer;
 import matter_manipulator.core.interop.BlockAdapter;
 import matter_manipulator.core.interop.BlockResetter;
 import matter_manipulator.core.interop.BlockStateTransformer;
 import matter_manipulator.core.interop.MMRegistries;
 import matter_manipulator.core.inventory_adapter.InventoryAdapter;
 import matter_manipulator.core.inventory_adapter.InventoryAdapterFactory;
+import matter_manipulator.core.item.ImmutableItemStack;
 import matter_manipulator.core.item.ItemStackIO;
 import matter_manipulator.core.keybind.ManipulatorKeybind;
 import matter_manipulator.core.manipulator_resource.ManipulatorResourceLoader;
@@ -57,9 +64,9 @@ import matter_manipulator.core.resources.Resource;
 import matter_manipulator.core.resources.ResourceIOFactory;
 import matter_manipulator.core.resources.ResourceProviderFactory;
 import matter_manipulator.core.resources.fluid.FluidResourceStack;
+import matter_manipulator.core.resources.item.IntItemResourceStack;
 import matter_manipulator.core.resources.item.ItemResource;
 import matter_manipulator.core.resources.item.ItemResourceProviderFactory;
-import matter_manipulator.core.resources.item.ItemResourceStack;
 import matter_manipulator.core.settings.ManipulatorSetting;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -67,8 +74,8 @@ import matter_manipulator.core.settings.ManipulatorSetting;
 public class MMRegistriesInternal {
 
     public static final DependencyGraph<BlockResetter> BLOCK_RESETTERS = new DependencyGraph<>(new BlockResetter[0]);
-    public static final DependencyGraph<ICopyInteropModule<?>> INTEROP_MODULES = new DependencyGraph<ICopyInteropModule<?>>(new ICopyInteropModule[0]);
-    public static final DependencyGraph<InventoryAdapterFactory<? extends ItemResourceStack>> INV_ADAPTERS = new DependencyGraph<InventoryAdapterFactory<? extends ItemResourceStack>>(new InventoryAdapterFactory[0]);
+    public static final DependencyGraph<IInteropModule<?>> INTEROP_MODULES = new DependencyGraph<IInteropModule<?>>(new IInteropModule[0]);
+    public static final DependencyGraph<InventoryAdapterFactory<? extends IntItemResourceStack>> INV_ADAPTERS = new DependencyGraph<InventoryAdapterFactory<? extends IntItemResourceStack>>(new InventoryAdapterFactory[0]);
     public static final DependencyGraph<InventoryAdapterFactory<? extends FluidResourceStack>> TANK_ADAPTERS = new DependencyGraph<InventoryAdapterFactory<? extends FluidResourceStack>>(new InventoryAdapterFactory[0]);
     public static final DependencyGraph<BlockAdapter> BLOCK_ADAPTERS = new DependencyGraph<>(new BlockAdapter[0]);
     public static final DependencyGraph<ResourceIOFactory<ItemStackIO>> ITEM_IO_FACTORIES = new DependencyGraph<ResourceIOFactory<ItemStackIO>>(new ResourceIOFactory[0]);
@@ -81,6 +88,8 @@ public class MMRegistriesInternal {
     public static final Map<ResourceLocation, ManipulatorResourceLoader<?>> RESOURCE_LOADERS = new Object2ObjectOpenHashMap<>();
     public static final DependencyGraph<BlockStateTransformer> BLOCK_STATE_TRANSFORMERS = new DependencyGraph<>(new BlockStateTransformer[0]);
     public static final Map<ResourceLocation, ManipulatorKeybind> KEYBINDS = new HashMap<>();
+    public static final BiMap<ResourceLocation, ILocalizer> LOCALIZERS = HashBiMap.create();
+    public static ImmutableItemStack[] FREE_ITEMS = new ImmutableItemStack[0];
 
     static {
         // Anything that removes the contents of a block. This includes things like emptying inventories and tanks.
@@ -105,6 +114,8 @@ public class MMRegistriesInternal {
         INTEROP_MODULES.addSubgraph("block-identity");
         // Any ephemeral settings for a tile (anything that is not saved when it is broken).
         INTEROP_MODULES.addSubgraph("tile-config", "after:block-identity");
+
+        INTEROP_MODULES.addObject("tile-config/std-inventories", new InventoryInteropModule());
     }
 
     static {
@@ -158,23 +169,28 @@ public class MMRegistriesInternal {
         MMRegistries.blockStateTransformers().addObject("slab-half", new PropertyCopyStateTransformer("half", BlockSlab.EnumBlockHalf.class));
     }
 
+    static {
+        MMRegistries.registerLocalizer(MMMod.loc("join"), JoiningLocalizer.NOTHING);
+        MMRegistries.registerLocalizer(MMMod.loc("join-colons"), JoiningLocalizer.COLONS);
+    }
+
     @Nullable
-    public static InventoryAdapter<? extends ItemResourceStack> getInventoryAdapter(@Nonnull TileEntity te, @Nullable EnumFacing side) {
+    public static InventoryAdapter<IntItemResourceStack> getInventoryAdapter(@Nonnull TileEntity te, @Nullable EnumFacing side) {
         for (var factory : INV_ADAPTERS.sorted()) {
             var adapter = factory.getAdapter(te, side);
 
-            if (adapter != null) return adapter;
+            if (adapter != null) return (InventoryAdapter<IntItemResourceStack>) adapter;
         }
 
         return null;
     }
 
     @Nullable
-    public static InventoryAdapter<? extends FluidResourceStack> getTankAdapter(@Nonnull TileEntity te, @Nullable EnumFacing side) {
+    public static InventoryAdapter<FluidResourceStack> getTankAdapter(@Nonnull TileEntity te, @Nullable EnumFacing side) {
         for (var factory : TANK_ADAPTERS.sorted()) {
             var adapter = factory.getAdapter(te, side);
 
-            if (adapter != null) return adapter;
+            if (adapter != null) return (InventoryAdapter<FluidResourceStack>) adapter;
         }
 
         return null;
@@ -195,5 +211,13 @@ public class MMRegistriesInternal {
 
             if (result.contains(ApplyResult.Error)) break;
         }
+    }
+
+    public static ILocalizer getLocalizer(ResourceLocation id) {
+        return LOCALIZERS.get(id);
+    }
+
+    public static ResourceLocation getLocalizerID(ILocalizer message) {
+        return LOCALIZERS.inverse().get(message);
     }
 }

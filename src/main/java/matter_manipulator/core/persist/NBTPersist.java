@@ -40,16 +40,20 @@ import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
+import matter_manipulator.core.analysis.InventoryAnalysis;
+import matter_manipulator.core.analysis.InventoryAnalysis.InventoryAnalysisJsonAdapter;
 import matter_manipulator.core.persist.adapters.BlockSpecJsonAdapter;
 import matter_manipulator.core.block_spec.IBlockSpec;
 import matter_manipulator.core.persist.adapters.BitSetJsonAdapter;
 import matter_manipulator.core.persist.adapters.BlockStateJsonAdapter;
 import matter_manipulator.core.persist.adapters.DataStorageJsonAdapter;
+import matter_manipulator.core.persist.adapters.DirectionMapJsonAdapter;
 import matter_manipulator.core.persist.adapters.FluidStackJsonAdapter;
 import matter_manipulator.core.persist.adapters.ItemStackJsonAdapter;
 import matter_manipulator.core.persist.adapters.NBTJsonAdapter;
 import matter_manipulator.core.persist.adapters.ResourceLocationJsonAdapter;
 import matter_manipulator.core.persist.adapters.StaticEnumJsonAdapter;
+import matter_manipulator.core.util.DirectionMap;
 
 public class NBTPersist {
 
@@ -63,6 +67,8 @@ public class NBTPersist {
         .registerTypeAdapter(FluidStack.class, new FluidStackJsonAdapter())
         .registerTypeAdapter(IBlockSpec.class, new BlockSpecJsonAdapter())
         .registerTypeAdapter(IBlockState.class, new BlockStateJsonAdapter())
+        .registerTypeAdapter(InventoryAnalysis.class, new InventoryAnalysisJsonAdapter())
+        .registerTypeAdapter(DirectionMap.class, new DirectionMapJsonAdapter())
         .create();
 
     /**

@@ -724,6 +724,18 @@ tasks.named('processResources').configure {
     dependsOn('generateAssets')
 }
 
+sourceSets {
+    external {
+        java {
+            srcDir 'src/external/java'
+        }
+    }
+    main {
+        compileClasspath += sourceSets.external.output
+        runtimeClasspath += sourceSets.external.output
+    }
+}
+
 jar {
     manifest {
         attributes(getManifestAttributes())

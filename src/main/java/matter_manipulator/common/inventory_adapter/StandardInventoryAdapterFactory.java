@@ -31,55 +31,55 @@ public class StandardInventoryAdapterFactory implements InventoryAdapterFactory<
     private record InvInventoryAdapter(IInventory inv) implements InventoryAdapter<ItemStackWrapper> {
 
         @Override
-            public Resource<?> getResource() {
-                return ItemResource.ITEMS;
-            }
-
-            @Override
-            public boolean validate(BlockPlacingContext context) {
-                return true;
-            }
-
-            @Override
-            public IntList getSlots() {
-                return IntIterators.pour(IntIterators.fromTo(0, inv.getSizeInventory()));
-            }
-
-            @Override
-            public boolean canExtract(int slot) {
-                return inv.isItemValidForSlot(slot, inv.getStackInSlot(slot));
-            }
-
-            @Override
-            public boolean canInsert(int slot, ItemStackWrapper stack) {
-                return inv.isItemValidForSlot(slot, stack.stack);
-            }
-
-            @Override
-            public ItemStackWrapper getStackInSlot(int slot) {
-                return new ItemStackWrapper(inv.getStackInSlot(slot));
-            }
-
-            @Override
-            public ItemStackWrapper extract(int slot) {
-                ItemStack stack = inv.getStackInSlot(slot);
-
-                inv.setInventorySlotContents(slot, ItemStack.EMPTY);
-
-                return new ItemStackWrapper(stack);
-            }
-
-            @Override
-            public ItemStackWrapper insert(int slot, ItemStackWrapper stack) {
-                if (!inv.isItemValidForSlot(slot, stack.stack)) return stack;
-                if (!inv.getStackInSlot(slot)
-                    .isEmpty()) return stack;
-
-                int max = Math.min(inv.getInventoryStackLimit(), stack.stack.getMaxStackSize());
-
-                inv.setInventorySlotContents(slot, stack.stack.splitStack(max));
-
-                return stack;
-            }
+        public Resource<?> getResource() {
+            return ItemResource.ITEMS;
         }
+
+        @Override
+        public boolean validate(BlockPlacingContext context) {
+            return true;
+        }
+
+        @Override
+        public IntList getSlots() {
+            return IntIterators.pour(IntIterators.fromTo(0, inv.getSizeInventory()));
+        }
+
+        @Override
+        public boolean canExtract(int slot) {
+            return inv.isItemValidForSlot(slot, inv.getStackInSlot(slot));
+        }
+
+        @Override
+        public boolean canInsert(int slot, ItemStackWrapper stack) {
+            return inv.isItemValidForSlot(slot, stack.stack);
+        }
+
+        @Override
+        public ItemStackWrapper getStackInSlot(int slot) {
+            return new ItemStackWrapper(inv.getStackInSlot(slot));
+        }
+
+        @Override
+        public ItemStackWrapper extract(int slot) {
+            ItemStack stack = inv.getStackInSlot(slot);
+
+            inv.setInventorySlotContents(slot, ItemStack.EMPTY);
+
+            return new ItemStackWrapper(stack);
+        }
+
+        @Override
+        public ItemStackWrapper insert(int slot, ItemStackWrapper stack) {
+            if (!inv.isItemValidForSlot(slot, stack.stack)) return stack;
+            if (!inv.getStackInSlot(slot)
+                .isEmpty()) return stack;
+
+            int max = Math.min(inv.getInventoryStackLimit(), stack.stack.getMaxStackSize());
+
+            inv.setInventorySlotContents(slot, stack.stack.splitStack(max));
+
+            return stack;
+        }
+    }
 }

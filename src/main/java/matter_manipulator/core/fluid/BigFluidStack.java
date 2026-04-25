@@ -112,8 +112,9 @@ public class BigFluidStack implements FluidStackLike, LongResourceStack {
     }
 
     @Override
-    public void setAmountLong(long amount) {
+    public BigFluidStack setAmountLong(long amount) {
         this.amount = amount;
+        return this;
     }
 
     @Override

@@ -9,7 +9,7 @@ import com.google.gson.JsonObject;
 import matter_manipulator.common.interop.MMRegistriesInternal;
 import matter_manipulator.core.block_spec.IBlockSpec;
 import matter_manipulator.core.block_spec.IBlockSpecLoader;
-import matter_manipulator.core.block_spec.ICopyInteropModule;
+import matter_manipulator.core.block_spec.IInteropModule;
 import matter_manipulator.core.persist.DataStorage;
 import matter_manipulator.core.persist.IDataStorage;
 import matter_manipulator.core.persist.NBTPersist;
@@ -37,7 +37,7 @@ public class StandardBlockSpecLoader implements IBlockSpecLoader {
             DataStorage storage = NBTPersist.GSON.fromJson(obj.get("interop"), DataStorage.class);
 
             //noinspection rawtypes
-            for (ICopyInteropModule interop : MMRegistriesInternal.INTEROP_MODULES.sorted()) {
+            for (IInteropModule interop : MMRegistriesInternal.INTEROP_MODULES.sorted()) {
                 @SuppressWarnings("rawtypes")
                 Optional result = interop.load(storage);
 

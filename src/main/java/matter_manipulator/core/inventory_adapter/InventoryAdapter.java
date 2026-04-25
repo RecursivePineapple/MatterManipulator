@@ -25,4 +25,5 @@ public interface InventoryAdapter<R extends ResourceStack> {
     R extract(int slot);
 
     R insert(int slot, R stack);
+
 }

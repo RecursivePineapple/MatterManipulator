@@ -68,6 +68,11 @@ public class WrenchOverlayRenderer {
         EntityPlayer player = event.getPlayer();
         World world = player.getEntityWorld();
         BlockPos pos = target.getBlockPos();
+
+        // No idea why this happens, but it does
+        //noinspection ConstantValue
+        if (pos == null) return;
+
         final IBlockState block = world.getBlockState(pos);
         final TileEntity tile = world.getTileEntity(pos);
 

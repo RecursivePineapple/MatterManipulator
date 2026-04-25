@@ -1,5 +1,7 @@
 package matter_manipulator.core.context;
 
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
 
@@ -17,6 +19,14 @@ public interface BuildingContextBase extends ManipulatorContext {
 
     default int getZ() {
         return getPos().getZ();
+    }
+
+    default IBlockState getBlockState() {
+        return getWorld().getBlockState(getPos());
+    }
+
+    default TileEntity getTileEntity() {
+        return getWorld().getTileEntity(getPos());
     }
 
     default void playSound(SoundEvent sound) {

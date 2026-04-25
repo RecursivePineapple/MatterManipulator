@@ -31,7 +31,7 @@ public class ItemHandlerInventoryAdapterFactory implements InventoryAdapterFacto
     }
 
     @Desugar
-    private record ItemHandlerInventoryAdapter(IItemHandler handler) implements InventoryAdapter<ItemStackWrapper> {
+    public record ItemHandlerInventoryAdapter(IItemHandler handler) implements InventoryAdapter<ItemStackWrapper> {
 
         @Override
         public Resource<?> getResource() {
@@ -50,13 +50,17 @@ public class ItemHandlerInventoryAdapterFactory implements InventoryAdapterFacto
 
         @Override
         public boolean canExtract(int slot) {
-            return !handler.extractItem(slot, 1, true)
+            return handler.getStackInSlot(slot).isEmpty() || !handler.extractItem(slot, 1, true)
                 .isEmpty();
         }
 
         @Override
         public boolean canInsert(int slot, ItemStackWrapper stack) {
-            return handler.isItemValid(slot, stack.stack);
+            if (!handler.isItemValid(slot, stack.stack)) return false;
+
+            int rejected = handler.insertItem(slot, stack.stack, true).getCount();
+
+            return rejected == 0 || rejected != stack.getAmountInt();
         }
 
         @Override

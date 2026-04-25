@@ -195,7 +195,7 @@ public class StandardBuild implements IPendingBlockBuildable {
                 result.add(pendingBlock.spec.place(placingContext));
 
                 if (filter == null && (result.contains(ApplyResult.DidSomething) || result.contains(ApplyResult.Wrenched))) {
-                    filter = pendingResource.multipliedCopy(1);
+                    filter = pendingResource.copy();
                 }
             }
 

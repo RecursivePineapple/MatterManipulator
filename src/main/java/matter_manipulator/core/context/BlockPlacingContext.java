@@ -35,6 +35,9 @@ public interface BlockPlacingContext extends BuildingContextBase {
     /// Removes the block at the current target (see [#setTarget(BlockPos, IBlockSpec)]).
     void removeBlock();
 
+    void pushMessageContext(Localized context);
+    void popMessageContext();
+
     void warn(Localized message);
 
     void error(Localized message);

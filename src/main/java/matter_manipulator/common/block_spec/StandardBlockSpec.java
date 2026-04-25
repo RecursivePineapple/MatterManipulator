@@ -17,7 +17,7 @@ import matter_manipulator.common.utils.math.Transform;
 import matter_manipulator.core.block_spec.ApplyResult;
 import matter_manipulator.core.block_spec.IBlockSpec;
 import matter_manipulator.core.block_spec.IBlockSpecLoader;
-import matter_manipulator.core.block_spec.ICopyInteropModule;
+import matter_manipulator.core.block_spec.IInteropModule;
 import matter_manipulator.core.context.BlockAnalysisContext;
 import matter_manipulator.core.context.BlockPlacingContext;
 import matter_manipulator.core.i18n.Localized;
@@ -31,7 +31,7 @@ public class StandardBlockSpec implements IBlockSpec {
 
     public IBlockState state;
     @SuppressWarnings("rawtypes")
-    public final Object2ObjectOpenHashMap<ICopyInteropModule, Object> interop = new Object2ObjectOpenHashMap<>(0);
+    public final Object2ObjectOpenHashMap<IInteropModule, Object> interop = new Object2ObjectOpenHashMap<>(0);
 
     private boolean hasResource = false;
     private ResourceStack resource;
@@ -89,6 +89,8 @@ public class StandardBlockSpec implements IBlockSpec {
                 state = state.withProperty((IProperty<EnumFacing>) prop, facing);
             }
         }
+
+        this.interop.replaceAll((module, state) -> module.transform(state, transform));
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -132,7 +134,7 @@ public class StandardBlockSpec implements IBlockSpec {
 
         for (var e : interop.object2ObjectEntrySet()) {
             //noinspection unchecked
-            result.add(e.getKey().apply(context, e.getValue()));
+            result.addAll(e.getKey().apply(context, e.getValue()));
         }
 
         return result;
@@ -195,7 +197,7 @@ public class StandardBlockSpec implements IBlockSpec {
 
         StandardBlockSpec spec = new StandardBlockSpec(state);
 
-        for (ICopyInteropModule<?> interop : MMRegistriesInternal.INTEROP_MODULES.sorted()) {
+        for (IInteropModule<?> interop : MMRegistriesInternal.INTEROP_MODULES.sorted()) {
             var result = interop.analyze(context);
 
             if (!result.isPresent()) continue;

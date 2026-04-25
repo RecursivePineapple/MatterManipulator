@@ -4,6 +4,7 @@ import java.util.Set;
 
 public enum ApplyResult {
     DidNothing,
+    /// The block/tile was invalid for the given operation, and nothing was done.
     NotApplicable,
     /// Did an action that could be performed by a wrench (rotated, etc). Will show wrench particles.
     Wrenched,

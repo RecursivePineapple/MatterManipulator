@@ -63,6 +63,15 @@ mm.mode.geometry.shape.cylinder=Cylinder
 mm.misc.itemstack=%s
 mm.misc.fluidstack=%s
 
+mm.misc.dir.DOWN=Down
+mm.misc.dir.UP=Up
+mm.misc.dir.NORTH=North
+mm.misc.dir.SOUTH=South
+mm.misc.dir.WEST=West
+mm.misc.dir.EAST=East
+mm.misc.dir.unknown=Unknown
+mm.misc.dir.null=Center
+
 # GUI
 mm.gui.set_mode=Set Mode
 mm.gui.set_remove_mode=Set Remove Mode
@@ -171,6 +180,14 @@ mm.info.geom.faces=faces
 mm.info.geom.edges=edges
 mm.info.geom.corners=corners
 mm.info.geom.volumes=volumes
+
+# Chat Messages
+mm.chat.inventory-no-extract=Cannot extract %s from slot %s
+mm.chat.inventory-no-insert=Cannot insert %s into slot %s
+mm.chat.too-many-items=Bug: Too many items were extracted (got %s, wanted %s of %s)
+mm.chat.wrong-slot-count=Incorrect slot counts: expected %s but had %s
+mm.chat.missing-slot-analysis=Invalid inventory: inventory has slot %s (contains %s) but analysis did not
+mm.chat.missing-slot-inventory=Invalid inventory: expected inventory to have slot %s (for %s) but it did not
 
 # Transform
 mm.transform.info=Flip: %s\nUp: %s\nForward: %s

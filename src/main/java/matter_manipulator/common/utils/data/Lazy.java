@@ -2,10 +2,8 @@ package matter_manipulator.common.utils.data;
 
 import java.util.function.Supplier;
 
-/**
- * Just a container that will lazy-load a value. Can be used in the place of a Supplier<T>. This is useful if you want a
- * static final field that shouldn't be initialized when the class is loaded.
- */
+/// Just a container that will lazy-load a value. Can be used in the place of a [Supplier]. This is useful if you want a
+/// static final field that shouldn't be initialized when the class is loaded.
 public class Lazy<T> implements Supplier<T> {
 
     private boolean hasValue = false;

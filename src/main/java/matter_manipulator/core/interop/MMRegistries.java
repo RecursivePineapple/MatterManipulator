@@ -7,12 +7,15 @@ import net.minecraft.util.ResourceLocation;
 
 import it.unimi.dsi.fastutil.Pair;
 import matter_manipulator.common.interop.MMRegistriesInternal;
+import matter_manipulator.common.utils.DataUtils;
 import matter_manipulator.common.utils.deps.IDependencyGraph;
 import matter_manipulator.core.block_spec.IBlockSpecLoader;
-import matter_manipulator.core.block_spec.ICopyInteropModule;
+import matter_manipulator.core.block_spec.IInteropModule;
 import matter_manipulator.core.fluid.FluidStackIO;
+import matter_manipulator.core.i18n.ILocalizer;
 import matter_manipulator.core.inventory_adapter.InventoryAdapter;
 import matter_manipulator.core.inventory_adapter.InventoryAdapterFactory;
+import matter_manipulator.core.item.ImmutableItemStack;
 import matter_manipulator.core.item.ItemStackIO;
 import matter_manipulator.core.keybind.ManipulatorKeybind;
 import matter_manipulator.core.manipulator_resource.ManipulatorResourceLoader;
@@ -23,7 +26,7 @@ import matter_manipulator.core.resources.ResourceIOFactory;
 import matter_manipulator.core.resources.ResourceProvider;
 import matter_manipulator.core.resources.ResourceProviderFactory;
 import matter_manipulator.core.resources.fluid.FluidResourceStack;
-import matter_manipulator.core.resources.item.ItemResourceStack;
+import matter_manipulator.core.resources.item.IntItemResourceStack;
 import matter_manipulator.core.settings.ManipulatorSetting;
 
 /// All registries available for third party mods to add their own Matter Manipulator integrations.
@@ -38,14 +41,14 @@ public class MMRegistries {
 
     /// These are used to copy, save, load, and apply some configuration item from a block. They have free rein over
     /// any field or trait of the block, so long as they only affect the requested block.
-    public static IDependencyGraph<ICopyInteropModule<?>> interop() {
+    public static IDependencyGraph<IInteropModule<?>> interop() {
         return MMRegistriesInternal.INTEROP_MODULES;
     }
 
     /// [InventoryAdapterFactory]s are iterated in order until one returns a non-null [InventoryAdapter], which is used
     /// to inspect and modify inventories. Many machines have custom inventory logic that cannot be represented through
     /// an [IInventory], and this is the mechanism through which that logic is expressed (for manipulators).
-    public static IDependencyGraph<InventoryAdapterFactory<? extends ItemResourceStack>> inventoryAdapters() {
+    public static IDependencyGraph<InventoryAdapterFactory<? extends IntItemResourceStack>> inventoryAdapters() {
         return MMRegistriesInternal.INV_ADAPTERS;
     }
 
@@ -113,5 +116,17 @@ public class MMRegistries {
 
     public static ManipulatorKeybind getKeybind(ResourceLocation id) {
         return MMRegistriesInternal.KEYBINDS.get(id);
+    }
+
+    public static void registerLocalizer(ResourceLocation id, ILocalizer localizer) {
+        ILocalizer existing = MMRegistriesInternal.LOCALIZERS.put(id, localizer);
+
+        if (existing != null) {
+            throw new IllegalArgumentException("Localizer ID " + id + " is already used by " + existing);
+        }
+    }
+
+    public static void addFreeItem(ImmutableItemStack stack) {
+        MMRegistriesInternal.FREE_ITEMS = DataUtils.concat(MMRegistriesInternal.FREE_ITEMS, stack);
     }
 }

@@ -10,4 +10,18 @@ public interface IntItemResourceStack extends ItemResourceStack, IntResourceStac
 
     @Override
     IntItemResourceStack emptyCopy();
+
+    default ItemStack toStack() {
+        return toStack(getAmountInt());
+    }
+
+    @Override
+    default IntItemResourceStack copy() {
+        return (IntItemResourceStack) ItemResourceStack.super.copy();
+    }
+
+    @Override
+    default IntItemResourceStack multipliedCopy(int mult) {
+        return (IntItemResourceStack) ItemResourceStack.super.multipliedCopy(mult);
+    }
 }

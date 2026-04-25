@@ -57,13 +57,14 @@ public class ItemStackWrapper implements IntItemResourceStack {
     }
 
     @Override
-    public void setAmountInt(int amount) {
+    public ItemStackWrapper setAmountInt(int amount) {
         stack.setCount(Math.max(0, amount));
+        return this;
     }
 
     @Override
     public boolean isEmpty() {
-        return stack == ItemStack.EMPTY || stack.getCount() <= 0;
+        return stack.isEmpty();
     }
 
     @Override

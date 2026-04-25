@@ -17,6 +17,8 @@ import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 
+import matter_manipulator.core.i18n.Localized;
+
 public class MCUtils {
 
     public static final String BLACK = TextFormatting.BLACK.toString();
@@ -103,21 +105,14 @@ public class MCUtils {
         return getDecimalFormat().format(aNumber);
     }
 
-    public static String getDirectionDisplayName(EnumFacing dir) {
+    public static Localized getDirectionDisplayName(EnumFacing dir) {
         return getDirectionDisplayName(dir, false);
     }
 
-    public static String getDirectionDisplayName(EnumFacing dir, boolean unknownIsCentre) {
-        if (dir == null) return unknownIsCentre ? "Center" : "Unknown";
+    public static Localized getDirectionDisplayName(EnumFacing dir, boolean nullIsUnknown) {
+        if (dir == null) return nullIsUnknown ? new Localized("mm.misc.dir.unknown") : new Localized("mm.misc.dir.null");
 
-        return switch (dir) {
-            case DOWN -> "Down";
-            case EAST -> "East";
-            case NORTH -> "North";
-            case SOUTH -> "South";
-            case UP -> "Up";
-            case WEST -> "West";
-        };
+        return new Localized("mm.misc.dir." + dir.name());
     }
 
     public static <T extends NBTBase> T copy(T tag) {

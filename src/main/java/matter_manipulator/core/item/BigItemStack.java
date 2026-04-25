@@ -96,8 +96,9 @@ public class BigItemStack implements ItemResourceStack, LongResourceStack {
     }
 
     @Override
-    public void setAmountLong(long amount) {
+    public BigItemStack setAmountLong(long amount) {
         this.stackSize = Math.max(0, amount);
+        return this;
     }
 
     public ItemStack split(int amount) {

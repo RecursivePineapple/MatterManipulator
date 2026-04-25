@@ -59,6 +59,7 @@ import matter_manipulator.common.ui.ManipulatorRadialMenuUI;
 import matter_manipulator.common.ui.ManipulatorUIFactory;
 import matter_manipulator.common.utils.MCUtils;
 import matter_manipulator.core.building.IBuildable;
+import matter_manipulator.core.manipulator_resource.EnergyManipulatorResource;
 import matter_manipulator.core.meta.MetadataContainer;
 import matter_manipulator.core.modes.ManipulatorMode;
 import matter_manipulator.core.persist.IDataStorage;
@@ -99,39 +100,29 @@ public class ItemMatterManipulator extends Item implements IGuiHolder<Manipulato
 
     // #region Energy
 
-//    @Override
-//    public boolean showDurabilityBar(ItemStack stack) {
-//        return true;
-//    }
-//
-//    @Override
-//    public double getDurabilityForDisplay(ItemStack stack) {
-//        return 1d - getCharge(stack) / tier.maxCharge;
-//    }
-//
-//    public void refillPower(ItemStack stack, MMState state) {
-//        if (!state.hasUpgrade(MMUpgrades.PowerP2P)) return;
-//        if (!state.connectToUplink()) return;
-//
-//        ItemMatterManipulator manipulator = (ItemMatterManipulator) stack.getItem();
-//
-//        assert manipulator != null;
-//
-//        double toFill = manipulator.getMaxCharge(stack) - manipulator.getCharge(stack);
-//
-//        double drained = state.uplink.drainPower(toFill);
-//
-//        manipulator.charge(stack, drained, 0, true, false);
-//    }
-//
-//    @Override
-//    public void onUpdate(ItemStack stack, World worldIn, Entity entityIn, int p_77663_4_, boolean p_77663_5_) {
-//        if (worldIn.getTotalWorldTime() % 100 == 0) {
-//            MMState state = getState(stack);
-//
-//            refillPower(stack, state);
-//        }
-//    }
+    @Override
+    public boolean showDurabilityBar(ItemStack stack) {
+        return true;
+    }
+
+    @Override
+    public double getDurabilityForDisplay(ItemStack stack) {
+        var state = getState(stack);
+
+        StackManipulatorContextImpl context = new StackManipulatorContextImpl(stack, state);
+
+        double capacity = 0;
+        double stored = 0;
+
+        for (var e : state.getResources(context).values()) {
+            if (e instanceof EnergyManipulatorResource energy) {
+                stored += energy.getStored();
+                capacity += energy.getCapacity();
+            }
+        }
+
+        return 1d - stored / capacity;
+    }
 
     // #endregion
 

@@ -25,6 +25,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
+@SuppressWarnings("unused")
 public class DataUtils {
 
     public static <S, T> List<T> mapToList(Collection<S> in, Function<S, T> mapper) {
@@ -141,6 +142,72 @@ public class DataUtils {
         return sb.toString();
     }
 
+    public static int countNonNulls(Object[] array) {
+        int l = array.length;
+        int count = 0;
+
+        for (Object o : array) {
+            if (o != null) count++;
+        }
+
+        return count;
+    }
+
+    public static <T> T[] withoutNulls(T[] array) {
+        if (array.length == 0) return array;
+
+        int nonNullCount = countNonNulls(array);
+
+        if (nonNullCount == array.length) return array;
+
+        T[] out = Arrays.copyOf(array, nonNullCount);
+
+        int j = 0;
+
+        for (T t : array) {
+            if (t != null) out[j++] = t;
+        }
+
+        return out;
+    }
+
+    public static <T> ArrayList<T> filterList(List<T> input, Predicate<T> filter) {
+        ArrayList<T> output = new ArrayList<>(input.size());
+
+        for (int i = 0, inputSize = input.size(); i < inputSize; i++) {
+            T t = input.get(i);
+
+            if (filter.test(t)) {
+                output.add(t);
+            }
+        }
+
+        return output;
+    }
+
+    public static <T, S extends T> void addAllFiltered(List<S> input, List<T> output, Predicate<S> filter) {
+        for (int i = 0, inputSize = input.size(); i < inputSize; i++) {
+            S s = input.get(i);
+
+            if (filter.test(s)) {
+                output.add(s);
+            }
+        }
+    }
+
+    /**
+     * Upcasts a list of a concrete type into a list of interfaces since java can't do this implicitly with generics.
+     */
+    public static <I, T extends I> ArrayList<I> upcast(List<T> input) {
+        ArrayList<I> output = new ArrayList<>(input.size());
+
+        for (int i = 0, inputSize = input.size(); i < inputSize; i++) {
+            output.add(input.get(i));
+        }
+
+        return output;
+    }
+
     public static <T> T getIndexSafe(T[] array, int index) {
         return array == null || index < 0 || index >= array.length ? null : array[index];
     }
@@ -234,5 +301,19 @@ public class DataUtils {
         }
 
         return true;
+    }
+
+    public static <T> T[] concat(T[] array, T value) {
+        T[] out = Arrays.copyOf(array, array.length + 1);
+        out[out.length - 1] = value;
+        return out;
+    }
+
+    public static <T> T[] concat(T[] first, T[] second) {
+        T[] out = Arrays.copyOf(first, first.length + second.length);
+
+        System.arraycopy(second, 0, out, first.length, second.length);
+
+        return out;
     }
 }

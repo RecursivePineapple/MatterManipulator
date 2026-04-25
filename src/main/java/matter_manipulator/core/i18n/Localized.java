@@ -1,5 +1,7 @@
 package matter_manipulator.core.i18n;
 
+import java.util.Collection;
+
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
@@ -11,6 +13,7 @@ import net.minecraftforge.fluids.FluidStack;
 
 import matter_manipulator.MMMod;
 import matter_manipulator.Tags;
+import matter_manipulator.common.interop.MMRegistriesInternal;
 import matter_manipulator.common.networking.MMActionWithPayload;
 import matter_manipulator.common.networking.MMPacketBuffer;
 import matter_manipulator.common.utils.DataUtils;
@@ -36,7 +39,7 @@ public class Localized {
 
     public Localized(MMPacketBuffer buffer) {
         this.key = switch (buffer.readByte()) {
-            case KEY_LOCALIZER -> LocalizerRegistry.getLocalizer(buffer.readResourceLocation());
+            case KEY_LOCALIZER -> MMRegistriesInternal.getLocalizer(buffer.readResourceLocation());
             case KEY_LANG -> buffer.readString(Short.MAX_VALUE);
             default -> null;
         };
@@ -67,6 +70,20 @@ public class Localized {
         this.args = args;
     }
 
+    /** Localizes a lang key directly */
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public Localized(String key, Collection args) {
+        this.key = key;
+        this.args = args.toArray(new Object[0]);
+    }
+
+    /** Localizes an {@link ILocalizer}, which may have additional processing on the client */
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public Localized(ILocalizer key, Collection args) {
+        this.key = key;
+        this.args = args.toArray(new Object[0]);
+    }
+
     /**
      * Sets the base colour for this entry. Does not clobber the previous style, if the output of
      * {@link #localize(ArgProcessor)} is ran through {@link MCUtils#processFormatStacks(String)}.
@@ -82,7 +99,7 @@ public class Localized {
     public void encode(MMPacketBuffer buffer) {
         if (key instanceof ILocalizer message) {
             buffer.writeByte(KEY_LOCALIZER);
-            buffer.writeResourceLocation(LocalizerRegistry.getLocalizerID(message));
+            buffer.writeResourceLocation(MMRegistriesInternal.getLocalizerID(message));
         } else {
             buffer.writeByte(KEY_LANG);
             buffer.writeString((String) key);
@@ -99,7 +116,7 @@ public class Localized {
 
     public Localized decode(MMPacketBuffer buffer) {
         this.key = switch (buffer.readByte()) {
-            case KEY_LOCALIZER -> LocalizerRegistry.getLocalizer(buffer.readResourceLocation());
+            case KEY_LOCALIZER -> MMRegistriesInternal.getLocalizer(buffer.readResourceLocation());
             case KEY_LANG -> buffer.readString(Short.MAX_VALUE);
             default -> null;
         };
@@ -135,7 +152,7 @@ public class Localized {
 
         // §s and §t are format stack codes, see processFormatStacks for more info
         if (key instanceof ILocalizer message) {
-            return "§s" + colour + message.localize(args) + "§t";
+            return "§s" + colour + message.localize(argProcessor, args) + "§t";
         } else {
             return "§s" + colour + MCUtils.translate((String) key, argProcessor.process(args)) + "§t";
         }

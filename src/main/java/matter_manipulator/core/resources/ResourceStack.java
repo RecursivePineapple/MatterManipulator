@@ -34,6 +34,10 @@ public interface ResourceStack {
     /// Creates a copy of this stack with an amount of zero
     ResourceStack emptyCopy();
 
+    default ResourceStack copy() {
+        return multipliedCopy(1);
+    }
+
     default ResourceStack multipliedCopy(int mult) {
         ResourceStack out = emptyCopy();
 
@@ -56,14 +60,14 @@ public interface ResourceStack {
     /// (inclusive). Implementations must clamp negative values to zero.
     interface IntResourceStack extends ResourceStack {
         int getAmountInt();
-        void setAmountInt(int amount);
+        IntResourceStack setAmountInt(int amount);
     }
 
     /// The stack has a `long` amount field. The stack can store any amount between 0 to [Long#MAX_VALUE]
     /// (inclusive). Implementations must clamp negative values to zero.
     interface LongResourceStack extends ResourceStack {
         long getAmountLong();
-        void setAmountLong(long amount);
+        LongResourceStack setAmountLong(long amount);
     }
 
     static long getStackAmount(ResourceStack stack) {

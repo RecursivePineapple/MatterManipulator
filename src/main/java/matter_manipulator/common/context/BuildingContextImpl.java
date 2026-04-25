@@ -18,12 +18,14 @@ import org.joml.Vector3d;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import matter_manipulator.MMMod;
 import matter_manipulator.common.interop.MMRegistriesInternal;
 import matter_manipulator.common.items.MMUpgrades;
 import matter_manipulator.common.state.MMState;
 import matter_manipulator.core.block_spec.IBlockSpec;
 import matter_manipulator.core.context.BlockPlacingContext;
+import matter_manipulator.core.i18n.JoiningLocalizer;
 import matter_manipulator.core.i18n.Localized;
 import matter_manipulator.core.i18n.MMTextBuilder;
 import matter_manipulator.core.interop.BlockResetter;
@@ -39,12 +41,14 @@ import matter_manipulator.core.resources.ResourceStack;
 
 public class BuildingContextImpl extends ManipulatorContextImpl implements BlockPlacingContext {
 
+    @SuppressWarnings("rawtypes")
     private final Map<Resource<?>, ResourceProvider> cachedProviders = new Object2ObjectArrayMap<>();
 
     public BlockPos pos;
     public IBlockSpec spec;
     public double dist, distEUMult;
 
+    public final ObjectArrayList<Localized> feedbackContext = new ObjectArrayList<>();
     public List<BuildFeedback> feedback = new ArrayList<>(0);
 
     /// TODO: turn this into a config or something
@@ -174,13 +178,29 @@ public class BuildingContextImpl extends ManipulatorContextImpl implements Block
     }
 
     @Override
+    public void pushMessageContext(Localized context) {
+        feedbackContext.push(context);
+    }
+
+    @Override
+    public void popMessageContext() {
+        feedbackContext.pop();
+    }
+
+    @Override
     public void warn(Localized message) {
-        feedback.add(new BuildFeedback(this.pos, message, FeedbackSeverity.WARNING));
+        List<Localized> args = new ArrayList<>(feedbackContext);
+        args.add(message);
+
+        feedback.add(new BuildFeedback(this.pos, new Localized(JoiningLocalizer.COLONS, args), FeedbackSeverity.WARNING));
     }
 
     @Override
     public void error(Localized message) {
-        feedback.add(new BuildFeedback(this.pos, message, FeedbackSeverity.ERROR));
+        List<Localized> args = new ArrayList<>(feedbackContext);
+        args.add(message);
+
+        feedback.add(new BuildFeedback(this.pos, new Localized(JoiningLocalizer.COLONS, args), FeedbackSeverity.ERROR));
     }
 
     @Override
